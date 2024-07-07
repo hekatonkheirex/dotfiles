@@ -206,6 +206,7 @@ vivaldi-ffmpeg-codecs
 w3m
 waybar
 waybar-module-pacman-updates-git
+waypaper
 wev
 wezterm
 wf-recorder
@@ -221,7 +222,6 @@ xdg-utils
 xf86-video-amdgpu
 xorg-xhost
 yad
-yadm
 yt-dlp
 zellij
 zramd
