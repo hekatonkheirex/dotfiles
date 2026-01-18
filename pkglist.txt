@@ -54,6 +54,7 @@ hyprpaper
 hyprpicker
 hyprpolkitagent
 hyprqt6engine
+hyprshot
 imagemagick
 inotify-tools
 intel-gpu-tools

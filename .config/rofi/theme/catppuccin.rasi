@@ -39,7 +39,7 @@ mainbox {
 
 inputbar {
     padding: 3em;
-    background-image: url("~/Pictures/Walls/wallhaven-6lqvql.jpg", width);
+    background-image: url("~/.config/rofi/images/wallhaven-6lqvql.jpg", width);
     children: [prompt,entry];
     spacing: -1px;
 }

@@ -38,9 +38,7 @@ tooltip label {
 }
 
 #workspaces button:hover {
-  color: @mauve;
-  background-size: 300% 300%;
-  min-height: 30px;
+  color: @red;
 }
 
 #workspaces button.active {
@@ -83,14 +81,19 @@ taskbar#waybar.empty #taskbar {
 #wireplumber.1 {
   background: @base;
   color: @text;
-  margin: 0px 0px 0px 4px;
   padding: 4px 0px 4px 0px;
 }
+#wireplumber.1:hover {
+  background: @rosewater;
+  color: @base;
+  border-radius: 0px 0px 4px 4px;
+  margin: 0px 4px 0px 4px;
+}
 #wireplumber.2 {
-  background: @base;
-  color: @text;
-  margin: 0px 0px 0px 4px;
-  padding: 0px 0px 0px 0px;
+  background: @rosewater;
+  color: @base;
+  border-radius: 4px 4px 0px 0px;
+  margin: 0px 4px 0px 4px;
 }
 
 /** ********** Backlight ********** **/
@@ -99,10 +102,17 @@ taskbar#waybar.empty #taskbar {
   color: @text;
   padding: 4px 0px 4px 0px;
 }
+#backlight.1:hover {
+  background: @blue;
+  color: @base;
+  border-radius: 0px 0px 4px 4px;
+  margin: 0px 4px 0px 4px;
+}
 #backlight.2 {
-  background: @base;
-  color: @text;
-  padding: 0px 0px 0px 0px;
+  background: @blue;
+  color: @base;
+  border-radius: 4px 4px 0px 0px;
+  margin: 0px 4px 0px 4px;
 }
 
 /** ********** Battery ********** **/
@@ -111,9 +121,17 @@ taskbar#waybar.empty #taskbar {
   color: @text;
   padding: 4px 0px 4px 0px;
 }
+#battery.1:hover {
+  background: @flamingo;
+  color: @base;
+  border-radius: 0px 0px 4px 4px;
+  margin: 0px 4px 0px 4px;
+}
 #battery.2 {
-  background: @base;
-  color: @text;
+  background: @flamingo;
+  color: @base;
+  border-radius: 4px 4px 0px 0px;
+  margin: 0px 4px 0px 4px;
   padding: 0px 0px 4px 0px;
 }
 #battery.1.charging {
@@ -241,4 +259,8 @@ taskbar#waybar.empty #taskbar {
   background: @base;
   color: @sky;
   padding: 4px 0px 4px 0px;
+}
+
+#custom-dots {
+  color: @text;
 }

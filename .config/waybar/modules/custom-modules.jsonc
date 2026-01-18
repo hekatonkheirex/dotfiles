@@ -45,5 +45,10 @@
     "format": "&#xf51d;",
     "on-click": "~/.config/waybar/scripts/themeswitcher.sh",
     "tooltip": false
+  },
+
+  "custom/dots": {
+    "format": "&#xea95;",
+    "tooltip": false
   }
-}
+} 

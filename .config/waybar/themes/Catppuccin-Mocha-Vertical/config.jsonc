@@ -24,7 +24,7 @@
   ],
 
   // Choose the order of the modules
-  "modules-left": ["image","hyprland/workspaces"],
-  "modules-center": ["custom/wall", "custom/themeswitcher", "idle_inhibitor"],
-  "modules-right": ["hyprland/language", "group/audio", "group/backlight", "group/battery", "clock#1", "clock#2", "clock#3", "clock#4", "tray", "custom/swaync"],
+  "modules-left": ["image","hyprland/workspaces", "custom/wall", "custom/themeswitcher"],
+  "modules-center": ["clock#1", "clock#2", "custom/dots", "clock#3", "clock#4"],
+  "modules-right": ["idle_inhibitor", "group/audio", "group/backlight", "group/battery", "hyprland/language", "tray", "custom/swaync"],
 }
