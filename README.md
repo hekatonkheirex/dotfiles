@@ -69,3 +69,33 @@ packages*.
 ```bash
 paru -S --needed - < pkglist.txt
 ```
+
+## Useful configurations for Thinkpads/laptops
+
+In `.config/thinkpad` added some useful configurations files that needs to put
+under root permissions.
+
+* `00-macrandomize.conf`: This file is a NetworkManager rule and needs to put
+in `/etc/NetworkManager/conf.d/`. After that, restart the sysmtemd service with
+`systemctl restart NetworkManager`.
+* `99-backlight-automation.rules`: This is an UDEV rule that needs to be in `/etc/udev/rules.d/`.
+* `backlight_auto.sh`: This is the "aplication" that runs the UDEV rule mentioned
+before. What this does is set the display backlight to 30% when using battery
+and 100% when plugged in.
+* `grub`: This is the GRUB configuration. It is designed to not display all the
+init commands and shows a nice splash logo, with the help of plymouth.
+* `inter-undervolt.conf`: This requires the `inter-undervolt` package to be
+able to use it. It appears in the `/etc/` directory. Upon modification/copying,
+it needs to be activate as a systemd service with the command
+`sudo systemctl enable --now intel-undervolt.service`.
+* `login`, `logind.conf`, `sddm`, `system-auth` and `system-local-login`: All
+files needed to unlock the Thinkpad with the fingerprint sensor. `sddm`,
+`login`, `system-auth` and `system-local-login` goes into `/etc/pam.d/`,
+`login.conf` goes into `/etc/systemd/`.
+* `throttled.conf`: This needs to be installed the `throttled` package. This file
+goes into `/etc/`. Is a systemd service and it needs to run
+`sudo systemctl enable --now throttled.service`.
+* `tlp.conf`: This needs to be installed the `tlp` package. This handles the
+power usage. Limits the charge thresholds, put USB to autosuspend, and a lot
+more. This goes into `/etc/`. Also, this comes with a systemd service
+`sudo systemctl enable --now tlp.service`.

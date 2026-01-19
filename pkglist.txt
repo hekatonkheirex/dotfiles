@@ -18,6 +18,7 @@ btrfs-progs
 catppuccin-gtk-theme-mocha
 chafa
 cliphist
+cpio
 cups
 dialog
 efibootmgr
@@ -40,7 +41,6 @@ gemini-cli
 git
 git-credential-manager-bin
 gnome-keyring
-gnome-tweaks
 grim
 grub
 grub-btrfs
@@ -71,6 +71,7 @@ libva-utils
 linux-firmware
 linux-headers
 localsend-bin
+meson
 most
 mpv
 nano
