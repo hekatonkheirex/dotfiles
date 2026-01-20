@@ -92,7 +92,7 @@
 
   "clock#1": {
     "format": "{:%H}",
-    "tooltip-format": false,
+    "tooltip": false,
   },
   "clock#2": {
     "format": "{:%M}",
