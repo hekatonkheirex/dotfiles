@@ -196,6 +196,7 @@ export TERM="kitty"
 export SUDO_PROMPT="Say friend and enter: "
 export PAGER="most"
 export EDITOR="nvim"
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#313244,bg:#1e1e2e,spinner:#f5c2e7,hl:#f38ba8 \
 --color=fg:#a6e3a1,header:#f38ba8,info:#89b4fa,pointer:#f5c2e7 \

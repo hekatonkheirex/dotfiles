@@ -31,18 +31,24 @@ tooltip label {
 #workspaces {
   background: @base;
   border: 1px solid @surface2;
-  border-radius: 4px;
-  margin: 1px 0px 1px 1px;
+  border-radius: 16px;
+  margin: 0px 0px 1px 1px;
 }
 
 #workspaces button {
   color: @text;
+  min-width: 12px;
+  min-height: 1px;
+  padding: 8px 0px 8px 0px;
   transition: all 0.3s ease-in-out;
 }
 
 #workspaces button:hover {
   background: @yellow;
+  border-radius: 16px;
   color: @base;
+  min-height: 30px;
+  padding: 4px 1px 4px 1px;
 }
 
 #workspaces button.active {
@@ -88,7 +94,7 @@ taskbar#waybar.empty #taskbar {
   border-right: 1px solid @surface2;
   border-bottom: 1px solid @surface2;
   border-left: 1px solid @surface2;
-  border-radius: 4px;
+  border-radius: 16px;
   color: @rosewater;
   margin: 0px 0px 1px 1px;
   padding: 4px 0px 4px 0px;
@@ -100,7 +106,7 @@ taskbar#waybar.empty #taskbar {
   border-bottom: 1px solid @surface2;
   border-left: 1px solid @surface2;
   color: @base;
-  border-radius: 0px 0px 4px 4px;
+  border-radius: 0px 0px 16px 16px;
   margin: 0px 0px 1px 1px;
 }
 #wireplumber.2 {
@@ -109,8 +115,9 @@ taskbar#waybar.empty #taskbar {
   border-right: 1px solid @surface2;
   border-left: 1px solid @surface2;
   color: @base;
-  border-radius: 4px 4px 0px 0px;
+  border-radius: 16px 16px 0px 0px;
   margin: 0px 0px 0px 1px;
+  padding: 6px 0px 0px 0px;
 }
 
 /** ********** Backlight ********** **/
@@ -120,7 +127,7 @@ taskbar#waybar.empty #taskbar {
   border-right: 1px solid @surface2;
   border-bottom: 1px solid @surface2;
   border-left: 1px solid @surface2;
-  border-radius: 4px;
+  border-radius: 16px;
   color: @blue;
   margin: 0px 0px 1px 1px;
   padding: 4px 0px 4px 0px;
@@ -132,7 +139,7 @@ taskbar#waybar.empty #taskbar {
   border-bottom: 1px solid @surface2;
   border-left: 1px solid @surface2;
   color: @base;
-  border-radius: 0px 0px 4px 4px;
+  border-radius: 0px 0px 16px 16px;
   margin: 0px 0px 1px 1px;
 }
 #backlight.2 {
@@ -141,8 +148,9 @@ taskbar#waybar.empty #taskbar {
   border-right: 1px solid @surface2;
   border-left: 1px solid @surface2;
   color: @base;
-  border-radius: 4px 4px 0px 0px;
+  border-radius: 16px 16px 0px 0px;
   margin: 0px 0px 0px 1px;
+  padding: 6px 0px 0px 0px;
 }
 
 /** ********** Battery ********** **/
@@ -152,7 +160,7 @@ taskbar#waybar.empty #taskbar {
   border-right: 1px solid @surface2;
   border-bottom: 1px solid @surface2;
   border-left: 1px solid @surface2;
-  border-radius: 4px;
+  border-radius: 16px;
   color: @text;
   margin: 0px 0px 1px 1px;
   padding: 4px 0px 4px 0px;
@@ -164,7 +172,7 @@ taskbar#waybar.empty #taskbar {
   border-bottom: 1px solid @surface2;
   border-left: 1px solid @surface2;
   color: @base;
-  border-radius: 0px 0px 4px 4px;
+  border-radius: 0px 0px 16px 16px;
   margin: 0px 0px 1px 1px;
 }
 #battery.2 {
@@ -173,7 +181,7 @@ taskbar#waybar.empty #taskbar {
   border-right: 1px solid @surface2;
   border-left: 1px solid @surface2;
   color: @base;
-  border-radius: 4px 4px 0px 0px;
+  border-radius: 16px 16px 0px 0px;
   margin: 0px 0px 0px 1px;
   padding: 0px 0px 4px 0px;
 }
@@ -212,11 +220,11 @@ taskbar#waybar.empty #taskbar {
   border-top: 1px solid @surface2;
   border-right: 1px solid @surface2;
   border-left: 1px solid @surface2;
-  border-radius: 4px 4px 0px 0px;
+  border-radius: 16px 16px 0px 0px;
   color: @blue;
   font-weight: bold;
   margin: 0px 0px 0px 1px;
-  padding: 4px 0px 0px 0px;
+  padding: 8px 0px 0px 0px;
 }
 #clock.2 {
   background: @base;
@@ -242,11 +250,11 @@ taskbar#waybar.empty #taskbar {
   border-right: 1px solid @surface2;
   border-bottom: 1px solid @surface2;
   border-left: 1px solid @surface2;
-  border-radius: 0px 0px 4px 4px;
+  border-radius: 0px 0px 16px 16px;
   color: @green;
   font-weight: bold;
   margin: 0px 0px 0px 1px;
-  padding: 0px 0px 4px 0px;
+  padding: 0px 0px 8px 0px;
 }
 
 
@@ -254,9 +262,9 @@ taskbar#waybar.empty #taskbar {
 #tray {
   background: @base;
   border: 1px solid @surface2;
-  border-radius: 4px;
+  border-radius: 16px;
   margin: 0px 0px 1px 1px;
-  padding: 4px 0px 4px 0px;
+  padding: 6px 0px 8px 0px;
 }
 #tray > .passive {
   -gtk-icon-effect: dim;
@@ -270,7 +278,7 @@ taskbar#waybar.empty #taskbar {
 #language {
   background: @base;
   border: 1px solid @surface2;
-  border-radius: 4px;
+  border-radius: 16px;
   color: @teal;
   font-weight: bold;
   margin: 0px 0px 1px 1px;
@@ -280,10 +288,10 @@ taskbar#waybar.empty #taskbar {
 #idle_inhibitor {
   background: @base;
   border: 1px solid @surface2;
-  border-radius: 4px;
+  border-radius: 16px;
   color: @surface2;
   margin: 0px 0px 1px 1px;
-  padding: 4px 0px 8px 0px;
+  padding: 4px 0px 6px 0px;
 }
 #idle_inhibitor.activated {
   background-size: 300% 300%;
@@ -294,8 +302,9 @@ taskbar#waybar.empty #taskbar {
 #image {
   border: 1px solid @surface2;
   background: @base;
-  border-radius: 4px;
-  margin: 1px 0px 0px 1px;
+  border-radius: 16px;
+  margin: 1px 0px 1px 1px;
+  padding: 0px 0px 1px 0px;
 }
 
 /** ********** Custom ********** **/
@@ -304,33 +313,10 @@ taskbar#waybar.empty #taskbar {
   border-top: 1px solid @surface2;
   border-right: 1px solid @surface2;
   border-left: 1px solid @surface2;
-  border-radius: 4px 4px 0px 0px;
+  border-radius: 16px 16px 0px 0px;
   color: @blue;
   margin: 0px 0px 0px 1px;
   padding: 8px 0px 4px 0px;
-}
-
-/* Swaync */
-#custom-swaync {
-  background: @base;
-  border: 1px solid @surface2;
-  border-radius: 4px;
-  color: @text;
-  font-weight: bold;
-  margin: 0px 0px 1px 1px;
-  padding: 4px 0px 4px 0px;
-}
-
-@keyframes gradient_f {
-	0% {
-		background-position: 0% 200%;
-	}
-    50% {
-        background-position: 200% 0%;
-    }
-	100% {
-		background-position: 400% 200%;
-	}
 }
 
 /* Theme switcher */
@@ -339,10 +325,10 @@ taskbar#waybar.empty #taskbar {
   border-right: 1px solid @surface2;
   border-bottom: 1px solid @surface2;
   border-left: 1px solid @surface2;
-  border-radius: 0px 0px 4px 4px;
+  border-radius: 0px 0px 16px 16px;
   color: @sky;
   margin: 0px 0px 0px 1px;
-  padding: 4px 0px 4px 0px;
+  padding: 4px 0px 8px 0px;
 }
 
 #custom-dots {

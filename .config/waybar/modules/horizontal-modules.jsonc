@@ -121,7 +121,7 @@
       "default": ["&#xeb50;", "&#xeb4f;", "&#xeb51;"]
     },
     "scroll-step": 5.0,
-    "on-click": "amixer set Master toggle",
+    "on-click": "pactl set-sink-mute 0 toggle",
     "on-click-right": "pavucontrol",
     "smooth-scrolling-threshold": 1,
   },
@@ -142,7 +142,6 @@
   "image": {
     "path": "/home/mura/.config/waybar/images/hyprland.png",
     "size": 24,
-    "interval": 10,
     "on-click": "killall rofi || rofi -show drun",
     "tooltip": false,
   },
@@ -156,19 +155,19 @@
   },
 
   "cpu": {
-    "interval": 10,
+    "interval": 60,
     "format": "&#xef8e; {}%",
     "max-length": 10
   },
 
   "memory": {
-    "interval": 30,
+    "interval": 60,
     "format": "&#xf075; {}%",
     "max-length": 10
   },
 
   "disk": {
-  	"interval": 30,
+  	"interval": 60,
 	  "format": "&#xf384; {free}",
 	  "unit": "GB"
   },

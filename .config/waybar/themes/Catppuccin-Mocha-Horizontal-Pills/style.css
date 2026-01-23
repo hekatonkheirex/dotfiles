@@ -1,3 +1,5 @@
+@import '../catppuccin-mocha.css';
+
 /* General configuration */
 * {
   border: none;
@@ -7,8 +9,7 @@
 }
 
 window#waybar {
-  background: rgba(30, 30, 46, 0.8);
-  box-shadow: 2 2 2 4px #1e1e2e;
+  background: transparent;
   transition-property: background-color;
   transition-duration: .5s;
 }
@@ -23,46 +24,47 @@ tooltip {
   padding: 20px;
 }
 tooltip label {
-  color: #cdd6f4;
+  color: @text;
 }
 
 /* Workspaces */
 #workspaces {
+  background: @base;
   border-radius: 16px;
-  margin: 5px 10px 3px 0;
-  padding: 1px 1px;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 
 #workspaces button {
-  background: #45475a;
+  background: @surface1;
   border-radius: 10px;
-  margin: 0px 3px;
+  margin: 4px 2px 4px 2px;
   min-height: 1px;
-  padding: 0 10px;
+  padding: 0px 2px;
   transition: all 0.3s ease-in-out;
 }
 
 #workspaces button:hover {
-  background: #a6e3a1;
-  background-size: 400% 400%;
-  border-radius: 10px;
+  background: @green;
+  background-size: 300% 300%;
+  border-radius: 16px;
   min-width: 30px;
 }
 
 #workspaces button.active {
-  background: #a6e3a1;
-  background-size: 400% 400%;
-  border-radius: 10px;
+  background: @green;
+  background-size: 300% 300%;
+  border-radius: 16px;
   min-width: 40px;
   transition: all 0.3s ease-in-out;
 }
 
 #workspaces button.urgent {
-  background: #f38ba8;
+  background: @red;
 }
 
 #workspaces button.persistent {
-  background: #a6e3a1;
+  background: @surface1;
   transition: all 0.3s ease-in-out;
 }
 
@@ -72,7 +74,7 @@ window#waybar.empty #window {
 
 /** ********* Taskbar ********** **/
 #taskbar {
-  background: #1e1e2e;
+  background: @base;
   /* border: 3px solid #262626; */
   border-radius: 16px;
   box-shadow: rgba(0, 0, 0, 0.116) 2 2 5 2px;
@@ -90,7 +92,6 @@ taskbar#waybar.empty #taskbar {
   padding: 2px 10px 0 10px;
 }
 
-
 .modules-left > widget:first-child > #workspaces {
   margin-left: 0;
 }
@@ -101,49 +102,55 @@ taskbar#waybar.empty #taskbar {
 
 /** ********** Window ********** **/
 #window{
-  color: #b4befe;
+  background: @base;
+  border-radius: 16px;
+  color: @lavender;
   font-weight: bold;
-  margin: 0 5px 0 5px;
+  margin: 1px 0px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 window#waybar.empty #window {
   background-color: transparent;
 }
 
-/** ********** Pulseaudio ********** **/
-#pulseaudio {
-  color: #89b4fa;
-  margin: 0 5px 0 5px;
-}
-
 /** ********** Wireplumber ********** **/
 #wireplumber {
-  color: #89b4fa;
-  margin: 0 5px 0 5px;
+  background: @base;
+  border-radius: 16px;
+  color: @text;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 
 /** ********** Backlight ********** **/
 #backlight {
-  color: #94e2d5;
-  margin: 0 5px 0 5px;
+  background: @base;
+  border-radius: 16px;
+  color: @text;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 
 /** ********** Battery ********** **/
 #battery {
-  color: #a6e3a1;
-  margin: 0 5px 0 5px;
+  background: @base;
+  border-radius: 16px;
+  color: @text;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 
 #battery.charging {
-  color: #f38ba8;
+  color: @red;
 }
 
 #battery.plugged {
-  color: #fab387;
+  color: @peach;
 }
 
 @keyframes blink {
   to {
-    background: linear-gradient(45deg, #f9e2af, #fab387);
+    background: linear-gradient(45deg, @yellow, @peach);
   }
 }
 
@@ -153,20 +160,25 @@ window#waybar.empty #window {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   animation-direction: alternate;
-  color: #161616;
+  color: @base;
   opacity: 1.0;
 }
 
 /** ********** Clock ********** **/
 #clock {
-  color: #f5c2e7;
-  margin: 0 5px 0 5px;
+  background: @base;
+  border-radius: 16px;
+  color: @text;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 
 /** ********** Tray ********** **/
 #tray {
-  margin: 0 5px 0 5px;
-  padding: 0 5px 0 5px;
+  background: @base;
+  border-radius: 16px;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 #tray > .passive {
   -gtk-icon-effect: dim;
@@ -174,78 +186,89 @@ window#waybar.empty #window {
 
 #tray > .needs-attention {
   -gtk-icon-effect: highlight;
-  background-color: #f38ba8;
+  background-color: @red;
 }
 
 /** ********** Language ********** **/
 #language {
-  color: #cdd6f4;
-  margin: 0 5px 0 7px;
+  background: @base;
+  border-radius: 16px;
+  color: @text;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 
 /** ********** Idle Inhibitor ********** **/
 #idle_inhibitor {
-  color: #6c7086;
-  margin: 0 5px 0 7px;
+  background: @base;
+  border-radius: 16px;
+  color: @overlay0;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 7px 0px 7px;
 }
 #idle_inhibitor.activated {
-  color: #cba6f7;
+  color: @red;
   font-weight: bold;
 }
 
 /** ********** Image ********** **/
 #image {
-  margin: 0 7px 0 5px;
-}
-
-/** ********** power-profiles-daemon ********** **/
-#power-profiles-daemon {
-  color: #a6e3a1;
-  margin: 0 5px 0 7px;
+  background: @base;
+  border-radius: 16px;
+  margin: 1px 5px 0px 5px;
+  padding: 0px 2px 0px 2px;
 }
 
 /* Temperature */
 #temperature {
-  color: #a6e3a1;
-  margin: 0 5px 0 7px;
+  background: @base;
+  border-radius: 16px;
+  color: @text;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 #temperature.warning {
-  color: #fab387;
+  color: @peach;
 }
 #temperature.critiacl {
-  color: #f38ba8;
+  color: @red;
 }
 
 /* CPU */
 #cpu {
-  color: #89b4fa;
-  margin: 0 5px 0 7px;
+  background: @base;
+  border-radius: 16px;
+  color: @text;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 
 /* Memory */
 #memory {
-  color: #74c7ec;
-  margin: 0 5px 0 7px;
+  background: @base;
+  border-radius: 16px;
+  color: @text;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 
 /* Disk */
 #disk {
-  color: #89dceb;
-  margin: 0 5px 0 7px;
+  background: @base;
+  border-radius: 16px;
+  color: @text;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 
 /** ********** Custom ********** **/
 /* Wall */
 #custom-wall {
-  color: #f5e0dc;
-  margin: 0 5px 0 5px;
-}
-
-/* Swaync */
-#custom-swaync {
-  color: #bac2de;
-  font-weight: bold;
-  margin: 0 7px 0 5px;
+  background: @base;
+  border-radius: 16px;
+  color: @rosewater;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 7px 0px 7px;
 }
 
 @keyframes gradient_f {
@@ -261,18 +284,26 @@ window#waybar.empty #window {
 }
 /* Theme switcher */
 #custom-themeswitcher {
-  color: #f5e0dc;
-  margin: 0 5px 0 5px;
+  background: @base;
+  border-radius: 16px;
+  color: @flamingo;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 7px 0px 7px;
 }
 
 /* Pacman */
 #custom-pacman {
-  color: #6c7086;
-  margin: 0 5px 0 5px;
+  background: @base;
+  border-radius: 16px;
+  color: @overlay0;
+  margin: 1px 5px 0px 0px;
+  padding: 0px 6px 0px 6px;
 }
 
 /* Kernel */
 #custom-kernel {
-  color: #6c7086;
-  margin: 0 5px 0 5px;
+  background: @base;
+  border-radius: 16px;
+  color: @overlay0;
+  margin: 1px 5px 0px 5px;
 }
