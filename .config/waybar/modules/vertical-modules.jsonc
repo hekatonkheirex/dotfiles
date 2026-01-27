@@ -19,7 +19,11 @@
       "default": "&#xf671;",
       "active": "&#xf671;",
       "urgent": "&#xf671;",
-    }
+    },
+    // "persistent-workspaces": {
+      // "*": 9,
+    // },
+    // "all-outputs": true,
   },
 
   "hyprland/window": {

@@ -18,8 +18,10 @@ btop
 btrfs-progs
 catfish
 catppuccin-gtk-theme-mocha
+cava
 chafa
 cliphist
+cmake
 cpio
 cups
 dialog
@@ -28,6 +30,7 @@ ente-auth-bin
 ente-desktop-bin
 eog
 eog-plugins
+evolution-data-server
 eza
 fastfetch
 fd
@@ -40,6 +43,7 @@ fzf
 galculator
 gamemode
 gemini-cli
+ghostty
 git
 gnome-keyring
 grim
@@ -47,13 +51,13 @@ grub
 grub-btrfs
 gvfs
 gvfs-smb
+helium-browser-bin
 hypridle
 hyprland
 hyprlock
 hyprpaper
 hyprpicker
 hyprpolkitagent
-hyprqt6engine
 hyprshot
 imagemagick
 inotify-tools
@@ -64,6 +68,7 @@ intel-undervolt
 inter-font
 jq
 kitty
+krokiet-bin
 kvantum
 lazygit
 libgepub
@@ -85,6 +90,7 @@ nano
 neovim
 network-manager-applet
 networkmanager
+niri
 noctalia-shell
 noto-fonts-emoji
 ntfs-3g
@@ -112,6 +118,7 @@ qbittorrent
 qt5-declarative
 qt6-tools
 qt6-wayland
+qt6ct
 reflector
 resvg
 retroarch
@@ -161,11 +168,14 @@ wf-recorder
 wget
 wireplumber
 wlogout
+wlsunset
 wtype
+xdg-desktop-portal-gnome
 xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
 xdg-user-dirs
 xdg-utils
+xwayland-satellite
 yad
 yadm
 yazi

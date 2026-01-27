@@ -40,30 +40,24 @@ tooltip label {
   min-width: 12px;
   min-height: 1px;
   padding: 8px 0px 8px 0px;
-  transition: all 0.3s ease-in-out;
 }
 
 #workspaces button:hover {
-  background: @yellow;
-  border-radius: 16px;
-  color: @base;
-  min-height: 30px;
-  padding: 4px 1px 4px 1px;
+  color: @green;
 }
 
 #workspaces button.active {
   color: @yellow;
-  transition: all 0.3s ease-in-out;
 }
 
 #workspaces button.urgent {
   background: @red;
 }
 
-#workspaces button.persistent {
-  color: @text;
-  transition: all 0.3s ease-in-out;
-}
+/* #workspaces button.persistent { */
+/*   color: @text; */
+/*   transition: all 0.3s ease-in-out; */
+/* } */
 
 window#waybar.empty #window {
 	background-color: transparent;
