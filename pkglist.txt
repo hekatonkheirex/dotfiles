@@ -83,6 +83,7 @@ linux-firmware
 linux-headers
 localsend-bin
 mako
+mangowc-git
 meson
 most
 mpv
@@ -95,6 +96,7 @@ noctalia-shell
 noto-fonts-emoji
 ntfs-3g
 nwg-look
+ollama
 pacman-contrib
 pacutils
 papirus-folders-catppuccin-git
@@ -134,6 +136,7 @@ sddm-git
 sddm-silent-theme
 slurp
 sof-firmware
+swayosd
 swww
 tailscale
 thermald
@@ -161,6 +164,8 @@ tumbler
 unrar
 unzip
 upower
+vivaldi
+vivaldi-ffmpeg-codecs
 waybar
 waypaper
 wev
@@ -182,6 +187,7 @@ yazi
 yt-dlp
 zed
 zellij
+zen-browser-bin
 zoxide
 zramswap
 zsh

@@ -3,7 +3,7 @@
   /* "mode": "dock", 				// Display mode (dock|hide|invisible|overlay) */
   "exclusive": true, 				// Request an exclusive zone from the compositor
   "passthrough": false, 			// Pass any pointer events to the window under the bar
-  "position": "left", 			// Waybar position (top|bottom|left|right)
+  "position": "top", 			// Waybar position (top|bottom|left|right)
   "height": "", 					// Waybar height (to be removed for auto height)
   "width": "", 					// Waybar width (empty for auto width)
   "spacing": 0, 					// Gaps between modules
@@ -19,12 +19,12 @@
 
   // Load modules
   "include": [
-    "~/.config/waybar/modules/vertical-modules.jsonc",
-    "~/.config/waybar/modules/custom-modules.jsonc"
+    "~/.config/mango/waybar/horizontal-modules.jsonc",
+    "~/.config/mango/waybar/custom-modules.jsonc"
   ],
 
   // Choose the order of the modules
-  "modules-left": ["image","hyprland/workspaces", "custom/wall", "custom/themeswitcher"],
-  "modules-center": ["clock#1", "clock#2", "custom/dots", "clock#3", "clock#4"],
-  "modules-right": ["idle_inhibitor", "group/audio", "group/backlight", "group/battery", "hyprland/language", "tray"],
+  "modules-left": ["image", "ext/workspaces", "dwl/window"],
+  "modules-center": ["custom/wall", "clock"],
+  "modules-right": ["idle_inhibitor","custom/pacman", "group/hardware", "wireplumber", "backlight", "battery", "language", "tray"],
 }
