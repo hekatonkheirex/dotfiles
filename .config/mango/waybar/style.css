@@ -1,16 +1,14 @@
+@import './themes/catppuccin-mocha.css';
+
 /* General configuration */
 * {
   border: none;
-  font-family: "Nunito", "tabler-icons";
+  font-family: "JetBrains Mono", "tabler-icons";
   font-size: 13px;
-  /* font-weight: bold; */
 }
 
 window#waybar {
-  background: rgba(30, 30, 46, 0.8);
-  box-shadow: 2 2 2 4px #1e1e2e;
-  transition-property: background-color;
-  transition-duration: .5s;
+  background: @mauve;
 }
 
 window#waybar.hidden {
@@ -19,131 +17,82 @@ window#waybar.hidden {
 
 /* Tooltips */
 tooltip {
-  background: rgba(30, 30, 46, 0.9);
+  background: @base;
   padding: 20px;
 }
 tooltip label {
-  color: #cdd6f4;
+  color: @text;
 }
 
-/* Workspaces */
-#workspaces {
-  border-radius: 16px;
-  margin: 5px 10px 3px 0;
-  padding: 1px 1px;
+/* Tags */
+#tags {
+  background: @base;
+  padding: 0px;
 }
 
-#workspaces button {
-  background: #45475a;
-  border-radius: 10px;
-  margin: 0px 3px;
-  min-height: 1px;
-  padding: 0 10px;
-  transition: all 0.3s ease-in-out;
+#tags button {
+  color: @surface1;
+  padding: 0px;
 }
 
-#workspaces button:hover {
-  background: #a6e3a1;
-  background-size: 400% 400%;
-  border-radius: 10px;
-  min-width: 30px;
+#tags button.occupied {
+  color: @rosewater;
 }
 
-#workspaces button.active {
-  background: #a6e3a1;
-  background-size: 400% 400%;
-  border-radius: 10px;
-  min-width: 40px;
-  transition: all 0.3s ease-in-out;
+#tags button.focused {
+  color: @green;
 }
 
-#workspaces button.urgent {
-  background: #f38ba8;
+#tags button.urgent {
+  color: @red;
 }
 
-#workspaces button.persistent {
-  background: #a6e3a1;
-  transition: all 0.3s ease-in-out;
-}
-
-window#waybar.empty #window {
-	background-color: transparent;
-}
-
-/** ********* Taskbar ********** **/
-#taskbar {
-  background: #1e1e2e;
-  /* border: 3px solid #262626; */
-  border-radius: 16px;
-  box-shadow: rgba(0, 0, 0, 0.116) 2 2 5 2px;
-  margin: 5px 6px 3px 0;
-  opacity: 0.8;
-  /* padding: 2px 10px 0 10px; */
-}
-#taskbar button {
-  margin: 0;
-  padding: 0 5px;
-}
-taskbar#waybar.empty #taskbar {
-  background-color: transparent;
-  margin: 5px 10px 3px 0;
-  padding: 2px 10px 0 10px;
-}
-
-
-.modules-left > widget:first-child > #workspaces {
-  margin-left: 0;
-}
-
-.modules-right > widget:last-child > #workspaces {
-  margin-right: 0;
+/** ********** Layout indicator ********** **/
+#window.1 {
+  background: @base;
+  color: @text;
+  font-weight: bold;
 }
 
 /** ********** Window ********** **/
-#window{
-  color: #b4befe;
+#window.2 {
+  color: @base;
   font-weight: bold;
-  margin: 0 5px 0 5px;
-}
-window#waybar.empty #window {
-  background-color: transparent;
-}
-
-/** ********** Pulseaudio ********** **/
-#pulseaudio {
-  color: #89b4fa;
-  margin: 0 5px 0 5px;
+  padding: 0px 0px 0px 4px;
 }
 
 /** ********** Wireplumber ********** **/
 #wireplumber {
-  color: #89b4fa;
-  margin: 0 5px 0 5px;
+  background: @base;
+  color: @yellow;
+  padding: 0px 5px 0px 5px;
 }
 
 /** ********** Backlight ********** **/
 #backlight {
-  color: #94e2d5;
-  margin: 0 5px 0 5px;
+  background: @base;
+  color: @green;
+  padding: 0px 5px 0px 5px;
 }
 
 /** ********** Battery ********** **/
 #battery {
-  color: #a6e3a1;
-  margin: 0 5px 0 5px;
+  background: @base;
+  color: @teal;
+  padding: 0px 5px 0px 5px;
 }
 
 #battery.charging {
-  color: #f38ba8;
+  color: @peach;
 }
 
 #battery.plugged {
-  color: #fab387;
+  color: @yellow;
 }
 
 @keyframes blink {
   to {
-    background: linear-gradient(45deg, #f9e2af, #fab387);
+    color: @red;
   }
 }
 
@@ -153,19 +102,20 @@ window#waybar.empty #window {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   animation-direction: alternate;
-  color: #161616;
+  color: @base;
   opacity: 1.0;
 }
 
 /** ********** Clock ********** **/
 #clock {
-  color: #f5c2e7;
-  margin: 0 5px 0 5px;
+  background: @base;
+  color: @sky;
+  padding: 0px 5px 0px 5px;
 }
 
 /** ********** Tray ********** **/
 #tray {
-  margin: 0 5px 0 5px;
+  background: #1e1e2e;
   padding: 0 5px 0 5px;
 }
 #tray > .passive {
@@ -174,105 +124,56 @@ window#waybar.empty #window {
 
 #tray > .needs-attention {
   -gtk-icon-effect: highlight;
-  background-color: #f38ba8;
-}
-
-/** ********** Language ********** **/
-#language {
-  color: #cdd6f4;
-  margin: 0 5px 0 7px;
+  background-color: @red;
 }
 
 /** ********** Idle Inhibitor ********** **/
 #idle_inhibitor {
-  color: #6c7086;
-  margin: 0 5px 0 7px;
+  background: @base;
+  color: @overlay0;
+  padding: 0px 5px 0px 5px;
 }
 #idle_inhibitor.activated {
-  color: #cba6f7;
+  color: @blue;
   font-weight: bold;
 }
 
 /** ********** Image ********** **/
 #image {
-  margin: 0 7px 0 5px;
-}
-
-/** ********** power-profiles-daemon ********** **/
-#power-profiles-daemon {
-  color: #a6e3a1;
-  margin: 0 5px 0 7px;
+  background: @base;
+  padding: 2px;
 }
 
 /* Temperature */
 #temperature {
-  color: #a6e3a1;
-  margin: 0 5px 0 7px;
+  background: @base;
+  color: @mauve;
+  padding: 0px 5px 0px 5px;
 }
 #temperature.warning {
-  color: #fab387;
+  color: @orange;
 }
 #temperature.critiacl {
-  color: #f38ba8;
+  color: @red;
 }
 
 /* CPU */
 #cpu {
-  color: #89b4fa;
-  margin: 0 5px 0 7px;
+  background: @base;
+  color: @flamingo;
+  padding: 0px 5px 0px 5px;
 }
 
 /* Memory */
 #memory {
-  color: #74c7ec;
-  margin: 0 5px 0 7px;
+  background: @base;
+  color: @pink;
+  padding: 0px 5px 0px 5px;
 }
 
 /* Disk */
 #disk {
-  color: #89dceb;
-  margin: 0 5px 0 7px;
-}
-
-/** ********** Custom ********** **/
-/* Wall */
-#custom-wall {
-  color: #f5e0dc;
-  margin: 0 5px 0 5px;
-}
-
-/* Swaync */
-#custom-swaync {
-  color: #bac2de;
-  font-weight: bold;
-  margin: 0 7px 0 5px;
-}
-
-@keyframes gradient_f {
-	0% {
-		background-position: 0% 200%;
-	}
-    50% {
-        background-position: 200% 0%;
-    }
-	100% {
-		background-position: 400% 200%;
-	}
-}
-/* Theme switcher */
-#custom-themeswitcher {
-  color: #f5e0dc;
-  margin: 0 5px 0 5px;
-}
-
-/* Pacman */
-#custom-pacman {
-  color: #6c7086;
-  margin: 0 5px 0 5px;
-}
-
-/* Kernel */
-#custom-kernel {
-  color: #6c7086;
-  margin: 0 5px 0 5px;
+  background: @base;
+  color: @peach;
+  padding: 0px 5px 0px 5px;
 }

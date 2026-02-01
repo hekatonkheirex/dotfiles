@@ -50,3 +50,5 @@ gnome-keyring-daemon --start --components=secrets,ssh,pkcs11 2>&1 &
 udiskie -2 2>&1 &
 
 thunar --daemon 2>&1 &
+
+enteauth 2>&1 &
