@@ -1,0 +1,114 @@
+* {
+    color0: #282828;
+    color1: #cc241d;
+    color2: #98971a;
+    color3: #d79921;
+    color4: #458588;
+    color5: #b16286;
+    color6: #689d6a;
+    color7: #fbf1c7;
+
+    bg: #282828f0;
+    bg-alt: #3c3836;
+    fg: #ebdbb2;
+
+    color: @fg;
+    background-color: transparent;
+    highlight: underline bold #cc241d;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 13px;
+}
+
+window {
+    width: 500px;
+    height: 550px;
+    children: [ mainbox];
+    location: center;
+    transparency: "real";
+    background-color: @bg;
+}
+
+mainbox {
+    orientation: vertical;
+    children: [ inputbar, message, listview, mode-switcher];
+    border: 1px;
+    border-color: @color0;
+}
+
+inputbar {
+    padding: 3em;
+    background-image: url("~/.config/rofi/images/wallhaven-6lqvql.jpg", width);
+    children: [prompt,entry];
+    spacing: -1px;
+}
+
+prompt {
+    background-color: @color1;
+    padding: 15px;
+    text-color: @bg;
+    border-radius: 50% 0 0 50%;
+}
+
+entry {
+    padding: 15px;
+    border: 0px;
+    border-radius: 0 100% 100% 0;
+    background-color: @bg;
+    text-color: @fg;
+}
+
+message {
+    padding: 0 0 1em 0;
+}
+
+textbox {
+    background-color: @color1;
+    padding: 0 1.5em;
+}
+
+listview {
+    margin: 0.5em 0 0 0;
+    lines: 6;
+    scrollbar: false;
+}
+
+element {
+    padding: 0.5em;
+    color: @fg;
+    cursor: pointer;
+}
+
+element selected.normal {
+    background-color: @bg-alt;
+    text-color: @color1;
+}
+
+element-text {
+    background-color: transparent;
+    text-color:       inherit;
+    highlight:        inherit;
+    vertical-align:   0.5;
+}
+
+element-icon {
+    padding: 0 0.5em 0 1em;
+    size: 1em;
+    vertical-align: 0.5;
+}
+
+mode-switcher {
+    padding: 0 1em;
+}
+
+button {
+    margin: 0.3em 0 0.5em;
+    padding: 0.3em;
+    border-radius: 50%;
+}
+
+button selected {
+    background-color: @color5;
+    text-color: @color0;
+}

@@ -31,12 +31,12 @@ tooltip label {
 }
 
 #tags button {
-  color: @bg2;
+  color: @fg2;
   padding: 0px;
 }
 
 #tags button.occupied {
-  color: @fg3;
+  color: @fg1;
 }
 
 #tags button.focused {

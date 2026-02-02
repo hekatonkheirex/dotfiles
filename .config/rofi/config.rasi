@@ -13,5 +13,6 @@ configuration {
   me-accept-entry: "MousePrimary";
 }
 
-@theme "~/.config/rofi/theme/catppuccin.rasi"
+// @theme "~/.config/rofi/theme/catppuccin.rasi"
 // @theme "~/.config/rofi/theme/dawn.rasi"
+@theme "~/.config/rofi/theme/gruvbox.rasi"

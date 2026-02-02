@@ -51,4 +51,4 @@ udiskie -2 2>&1 &
 
 thunar --daemon 2>&1 &
 
-enteauth 2>&1 &
+# enteauth 2>&1 &

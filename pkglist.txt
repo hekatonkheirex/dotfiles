@@ -22,6 +22,8 @@ cava
 chafa
 cliphist
 cmake
+colloid-nord-gtk-theme-git
+colloid-nord-icon-theme-git
 cpio
 cups
 dialog
@@ -30,6 +32,8 @@ ente-auth-bin
 ente-desktop-bin
 eog
 eog-plugins
+everforest-gtk-theme-git
+everforest-icon-theme-git
 evolution-data-server
 eza
 fastfetch
@@ -49,6 +53,8 @@ gnome-keyring
 grim
 grub
 grub-btrfs
+gruvbox-material-gtk-theme-git
+gruvbox-material-icon-theme-git
 gvfs
 gvfs-smb
 helium-browser-bin
@@ -91,7 +97,6 @@ nano
 neovim
 network-manager-applet
 networkmanager
-niri
 noctalia-shell
 noto-fonts-emoji
 ntfs-3g
@@ -180,7 +185,6 @@ xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
 xdg-user-dirs
 xdg-utils
-xwayland-satellite
 yad
 yadm
 yazi

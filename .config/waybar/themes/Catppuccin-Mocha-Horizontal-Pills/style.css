@@ -63,11 +63,6 @@ tooltip label {
   background: @red;
 }
 
-#workspaces button.persistent {
-  background: @surface1;
-  transition: all 0.3s ease-in-out;
-}
-
 window#waybar.empty #window {
 	background-color: transparent;
 }

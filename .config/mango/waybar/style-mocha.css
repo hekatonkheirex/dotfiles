@@ -1,4 +1,4 @@
-@import './themes/gruvbox-dark.css';
+@import './themes/catppuccin-mocha.css';
 
 /* General configuration */
 * {
@@ -8,7 +8,7 @@
 }
 
 window#waybar {
-  background: @green;
+  background: @magenta;
 }
 
 window#waybar.hidden {
@@ -31,12 +31,12 @@ tooltip label {
 }
 
 #tags button {
-  color: @bg2;
+  color: @fg2;
   padding: 0px;
 }
 
 #tags button.occupied {
-  color: @fg3;
+  color: @rosewater;
 }
 
 #tags button.focused {
@@ -109,7 +109,7 @@ tooltip label {
 /** ********** Clock ********** **/
 #clock {
   background: @bg;
-  color: @aqua;
+  color: @sky;
   padding: 0px 5px 0px 5px;
 }
 
@@ -160,14 +160,14 @@ tooltip label {
 /* CPU */
 #cpu {
   background: @bg;
-  color: @purple;
+  color: @flamingo;
   padding: 0px 5px 0px 5px;
 }
 
 /* Memory */
 #memory {
   background: @bg;
-  color: @blue1;
+  color: @pink;
   padding: 0px 5px 0px 5px;
 }
 
