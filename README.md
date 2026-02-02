@@ -1,6 +1,6 @@
-# Hyprland-Arch Linux Rice
+# Arch Linux Rice
 
-## My personal Hyprland config
+## My personal Arch Linux config
 
 ___
 
@@ -10,24 +10,29 @@ ___
 configurations are just what I learned along the way by myself. You may
 encounter some redundant lines of code.*
 ___
-![Screenshot](https://i.imgur.com/nGGcmZY.png)
+![Screenshot](https://i.imgur.com/AzLZLjl.png)
 
 * **Distro** • [Arch Linux](https://archlinux.org/) 🐧
-* **Window Manager** • [Hyprland](https://hyprland.org/) 💧
-* **Colorscheme** • [Oxocarbon](https://github.com/nyoom-engineering/oxocarbon)
-💻
+* **Window Manager** • Main - [mangowc](https://mangowc.vercel.app/) 🥭
+* **Window Manager** • Backup (probably will uninstall later)
+[Hyprland](https://hyprland.org/) 💧
+* **Colorscheme** • [Gruvbox](https://github.com/gruvbox-community/gruvbox)
+🌈
   * **Backup Colorscheme** •  [Catppuccin](https://github.com/catppuccin) 🐈
+  * **Backup Colorscheme** • [Oxocarbon](https://github.com/nyoom-engineering/oxocarbon)
+💻
   * **Backup Colorscheme** •  [Rose Pine](https://rosepinetheme.com) 🌹
 * **Shell** • [Zsh](https://www.zsh.org) 🐚 with
   * [zinit](https://github.com/zdharma-continuum/zinit) 💤
   * [Starship](https://github.com/starship/starship) 🚀
 * **Terminal** • [Kitty](https://sw.kovidgoyal.net/kitty/) 🐈
 * **Panel** • [Waybar](https://github.com/Alexays/Waybar) 🍫
+* **Shell (running with Hyprland)** • [Noctalia](https://docs.noctalia.dev/) 🌙
 * **Notication Daemon** •
-[Swaync](https://github.com/ErikReider/SwayNotificationCenter) 🔔
+[mako](https://github.com/emersion/mako) 🔔
 * **Launcher** • [Rofi](https://github.com/davatorium/rofi) ⚓ with
 [rofimoji](https://github.com/fdw/rofimoji) 😐
-* **File Manager** • [Nautilus](https://apps.gnome.org/Nautilus/) 🗄️
+* **File Manager** • [Thunar](https://www.xfce.org/) 🗄️
 * **Editor** • [Neovim](https://neovim.io/) 📝
 * **Backup Editor** • [Zed](https://zed.dev/) 📝
   
