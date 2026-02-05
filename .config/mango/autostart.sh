@@ -10,6 +10,7 @@ mako 2>&1 &
 
 # night light
 # wlsunset -T 3501 -t 3500 >/dev/null 2>&1 &
+~/.config/mango/blfilter.sh 2>&1 &
 
 # wallpaper
 swww-daemon 2>&1 &
@@ -21,7 +22,7 @@ waybar -c ~/.config/mango/waybar/config.jsonc -s ~/.config/mango/waybar/style.cs
 echo "Xft.dpi: 140" | xrdb -merge #dpi缩放
 
 # ime input
-# fcitx5 --replace -d >/dev/null 2>&1 &
+fcitx5 --replace -d >/dev/null 2>&1 &
 
 # keep clipboard content
 wl-clip-persist --clipboard regular --reconnect-tries 0 >/dev/null 2>&1 &
@@ -50,5 +51,3 @@ gnome-keyring-daemon --start --components=secrets,ssh,pkcs11 2>&1 &
 udiskie -2 2>&1 &
 
 thunar --daemon 2>&1 &
-
-# enteauth 2>&1 &
