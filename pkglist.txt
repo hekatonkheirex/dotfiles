@@ -16,6 +16,7 @@ brave-bin
 brightnessctl
 btop
 btrfs-progs
+calf
 catfish
 catppuccin-gtk-theme-mocha
 cava
@@ -30,6 +31,7 @@ cups
 dialog
 discord
 dms-shell-bin
+easyeffects
 efibootmgr
 ente-auth-bin
 ente-desktop-bin
@@ -61,6 +63,7 @@ grub
 grub-btrfs
 gruvbox-material-gtk-theme-git
 gruvbox-material-icon-theme-git
+gtk-theme-numix-solarized
 gvfs
 gvfs-smb
 helium-browser-bin
@@ -95,8 +98,11 @@ linux
 linux-firmware
 linux-headers
 localsend-bin
+lsp-plugins-lv2
+lutgen-bin
 mako
 mangowc-git
+mda.lv2
 meson
 most
 mpv
@@ -166,6 +172,7 @@ ttf-fira-code
 ttf-fira-mono
 ttf-fira-sans
 ttf-hack
+ttf-ibm-plex
 ttf-jetbrains-mono
 ttf-jetbrains-mono-nerd
 ttf-material-symbols-variable
@@ -198,7 +205,9 @@ xwayland-satellite
 yad
 yadm
 yazi
+yelp
 yt-dlp
+zam-plugins-lv2
 zed
 zellij
 zen-browser-bin

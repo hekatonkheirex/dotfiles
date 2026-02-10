@@ -1,6 +1,6 @@
 configuration {
   modi: "drun,emoji:rofimoji --action copy --max-recent 0";
-  font: "Google Sans Flex Bold 18px";
+  font: "IBM Plex Bold 18px";
   icon-theme: "Papirus-Dark";
   show-icons: true;
   drun-display-format: "{name}";
@@ -15,4 +15,5 @@ configuration {
 
 // @theme "~/.config/rofi/theme/catppuccin.rasi"
 // @theme "~/.config/rofi/theme/dawn.rasi"
-@theme "~/.config/rofi/theme/gruvbox.rasi"
+// @theme "~/.config/rofi/theme/gruvbox.rasi"
+@theme "~/.config/rofi/theme/everforest.rasi"

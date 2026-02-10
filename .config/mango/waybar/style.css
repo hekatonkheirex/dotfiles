@@ -1,14 +1,14 @@
-@import './themes/gruvbox-dark.css';
+@import './themes/solarized-dark.css';
 
 /* General configuration */
 * {
   border: none;
-  font-family: "JetBrains Mono", "tabler-icons";
+  font-family: "IBM Plex Sans", "tabler-icons";
   font-size: 13px;
 }
 
 window#waybar {
-  background: @green;
+  background: @blue;
 }
 
 window#waybar.hidden {
@@ -31,16 +31,21 @@ tooltip label {
 }
 
 #tags button {
-  color: @bg2;
+  color: @bg1;
+  min-width: 30px;
   padding: 0px;
 }
 
 #tags button.occupied {
-  color: @fg3;
+  color: @green;
+  font-weight: bold;
 }
 
 #tags button.focused {
-  color: @green;
+  background: @blue;
+  border-radius: 0px;
+  color: @bg;
+  font-weight: bold;
 }
 
 #tags button.urgent {
@@ -109,7 +114,7 @@ tooltip label {
 /** ********** Clock ********** **/
 #clock {
   background: @bg;
-  color: @aqua;
+  color: @cyan;
   padding: 0px 5px 0px 5px;
 }
 
@@ -147,7 +152,7 @@ tooltip label {
 /* Temperature */
 #temperature {
   background: @bg;
-  color: @magenta;
+  color: @violet;
   padding: 0px 5px 0px 5px;
 }
 #temperature.warning {
@@ -160,14 +165,14 @@ tooltip label {
 /* CPU */
 #cpu {
   background: @bg;
-  color: @purple;
+  color: @magenta;
   padding: 0px 5px 0px 5px;
 }
 
 /* Memory */
 #memory {
   background: @bg;
-  color: @blue1;
+  color: @blue;
   padding: 0px 5px 0px 5px;
 }
 

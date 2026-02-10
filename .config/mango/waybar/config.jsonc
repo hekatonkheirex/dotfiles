@@ -18,13 +18,13 @@
   "bar_id": "bar-0",
 
   // Choose the order of the modules
-  "modules-left": ["image", "dwl/tags", "dwl/window#1", "dwl/window#2"],
+  "modules-left": ["dwl/tags", "dwl/window#1", "dwl/window#2"],
   "modules-center": [],
   "modules-right": ["cpu", "memory", "temperature", "disk", "wireplumber", "backlight", "battery", "clock", "idle_inhibitor", "tray"],
 
   "dwl/tags": {
     "num-tags": 9,
-    "hide-vacant": true,
+    // "hide-vacant": true,
     // "tag-labels": ["一", "二", "三", "四", "五", "六", "七", "八", "九"]
   },
 

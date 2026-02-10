@@ -1,9 +1,9 @@
-@import './themes/gruvbox-dark.css';
+@import './themes/everforest-dark.css';
 
 /* General configuration */
 * {
   border: none;
-  font-family: "JetBrains Mono", "tabler-icons";
+  font-family: "IBM Plex Sans", "tabler-icons";
   font-size: 13px;
 }
 
@@ -32,7 +32,7 @@ tooltip label {
 
 #tags button {
   color: @bg2;
-  /* min-width: 20px; */
+  min-width: 20px;
   padding: 0px;
 }
 
@@ -110,7 +110,7 @@ tooltip label {
 /** ********** Clock ********** **/
 #clock {
   background: @bg;
-  color: @aqua;
+  color: @cyan;
   padding: 0px 5px 0px 5px;
 }
 
@@ -161,14 +161,14 @@ tooltip label {
 /* CPU */
 #cpu {
   background: @bg;
-  color: @purple;
+  color: @magenta;
   padding: 0px 5px 0px 5px;
 }
 
 /* Memory */
 #memory {
   background: @bg;
-  color: @blue1;
+  color: @blue;
   padding: 0px 5px 0px 5px;
 }
 
