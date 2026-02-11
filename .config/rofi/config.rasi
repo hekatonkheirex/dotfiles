@@ -16,4 +16,6 @@ configuration {
 // @theme "~/.config/rofi/theme/catppuccin.rasi"
 // @theme "~/.config/rofi/theme/dawn.rasi"
 // @theme "~/.config/rofi/theme/gruvbox.rasi"
-@theme "~/.config/rofi/theme/everforest.rasi"
+// @theme "~/.config/rofi/theme/everforest.rasi"
+// @theme "~/.config/rofi/theme/solarized.rasi"
+@theme "~/.config/rofi/theme/oxocarbon.rasi"

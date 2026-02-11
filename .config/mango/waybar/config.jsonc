@@ -18,7 +18,7 @@
   "bar_id": "bar-0",
 
   // Choose the order of the modules
-  "modules-left": ["dwl/tags", "dwl/window#1", "dwl/window#2"],
+  "modules-left": ["image", "dwl/tags", "dwl/window#1", "dwl/window#2"],
   "modules-center": [],
   "modules-right": ["cpu", "memory", "temperature", "disk", "wireplumber", "backlight", "battery", "clock", "idle_inhibitor", "tray"],
 
@@ -126,6 +126,7 @@
     "size": 24,
     "on-click": "killall rofi || rofi -show drun",
     "tooltip": false,
+    "interval": 60,
   },
 
   "temperature": {

@@ -1,19 +1,18 @@
-## Catppuccin Mocha Colors for Mako
-background-color=#1e1e2e
-text-color=#cdd6f4
-border-color=#89b4fa
-progress-color=over #313244
+background-color=#161616
+text-color=#ffffff
+border-color=#4589ff
+progress-color=over #262626
 border-size=2
 border-radius=8
-font=JetBrainsMono Nerd Font 10
+font=IBM Plex Sans 13
 
 # Default Timeout (in milliseconds)
 default-timeout=5000
 
 # High Urgency (Red border/Peach accent)
 [urgency=high]
-border-color=#fab387
+border-color=#fa4d56
 default-timeout=0
 
 [urgency=low]
-border-color=#313244
+border-color=#262626

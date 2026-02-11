@@ -1,4 +1,4 @@
-@import './themes/oxocarbon.css';
+@import './themes/solarized-dark.css';
 
 /* General configuration */
 * {
@@ -8,7 +8,7 @@
 }
 
 window#waybar {
-  background: @red;
+  background: @blue;
 }
 
 window#waybar.hidden {
@@ -31,7 +31,7 @@ tooltip label {
 }
 
 #tags button {
-  color: @bg3;
+  color: @bg1;
   min-width: 30px;
   padding: 0px;
 }
@@ -42,14 +42,14 @@ tooltip label {
 }
 
 #tags button.focused {
-  background: @red;
+  background: @blue;
   border-radius: 0px;
   color: @bg;
   font-weight: bold;
 }
 
 #tags button.urgent {
-  color: @purple;
+  color: @red;
 }
 
 /** ********** Layout indicator ********** **/
@@ -69,21 +69,21 @@ tooltip label {
 /** ********** Wireplumber ********** **/
 #wireplumber {
   background: @bg;
-  color: @aqua;
+  color: @yellow;
   padding: 0px 5px 0px 5px;
 }
 
 /** ********** Backlight ********** **/
 #backlight {
   background: @bg;
-  color: @orange;
+  color: @green;
   padding: 0px 5px 0px 5px;
 }
 
 /** ********** Battery ********** **/
 #battery {
   background: @bg;
-  color: @aqua;
+  color: @cyan;
   padding: 0px 5px 0px 5px;
 }
 
@@ -114,7 +114,7 @@ tooltip label {
 /** ********** Clock ********** **/
 #clock {
   background: @bg;
-  color: @fg;
+  color: @cyan;
   padding: 0px 5px 0px 5px;
 }
 
@@ -152,7 +152,7 @@ tooltip label {
 /* Temperature */
 #temperature {
   background: @bg;
-  color: @purple;
+  color: @violet;
   padding: 0px 5px 0px 5px;
 }
 #temperature.warning {
@@ -165,20 +165,20 @@ tooltip label {
 /* CPU */
 #cpu {
   background: @bg;
-  color: @green;
+  color: @magenta;
   padding: 0px 5px 0px 5px;
 }
 
 /* Memory */
 #memory {
   background: @bg;
-  color: @yellow;
+  color: @blue;
   padding: 0px 5px 0px 5px;
 }
 
 /* Disk */
 #disk {
   background: @bg;
-  color: @blue;
+  color: @orange;
   padding: 0px 5px 0px 5px;
 }
