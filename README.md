@@ -18,7 +18,7 @@
 - **Window Manager** • Main - [mangowc](https://mangowc.vercel.app/) 🥭
 - **Window Manager** • Backup (probably will uninstall later)
   [Hyprland](https://hyprland.org/) 💧
-  **Window Manager** • Experimental (probably will uninstall later)
+- **Window Manager** • Experimental (probably will uninstall later)
   [Niri](https://niri-wm.github.io/niri/) 🔥
 
 - **Colorscheme** • [Oxocarbon](https://github.com/nyoom-engineering/oxocarbon)
