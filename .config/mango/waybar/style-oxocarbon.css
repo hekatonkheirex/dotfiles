@@ -1,4 +1,4 @@
-@import './themes/tokyonight-storm.css';
+@import './themes/oxocarbon.css';
 
 /* General configuration */
 * {
@@ -8,7 +8,7 @@
 }
 
 window#waybar {
-  background: @blue;
+  background: @red;
 }
 
 window#waybar.hidden {
@@ -31,7 +31,7 @@ tooltip label {
 }
 
 #tags button {
-  color: @bg1;
+  color: @bg3;
   min-width: 30px;
   padding: 0px;
 }
@@ -42,7 +42,7 @@ tooltip label {
 }
 
 #tags button.focused {
-  background: @blue;
+  background: @red;
   border-radius: 0px;
   color: @bg;
   font-weight: bold;

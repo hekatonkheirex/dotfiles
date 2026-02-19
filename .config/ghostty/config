@@ -1,7 +1,7 @@
 # Appearance
 font-family = "Maple Mono NF"
 font-size = 13
-theme = Gruvbox Material Dark
+theme = TokyoNight Storm
 
 # Window Behavior (Ideal for Wayland Tiling WMs)
 # Disables the GTK title bar so your compositor handles the borders

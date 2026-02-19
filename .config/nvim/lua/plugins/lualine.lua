@@ -4,7 +4,7 @@ return {
     "nvim-tree/nvim-web-devicons",
   },
   opts = {
-    theme = "catppuccin",
+    -- theme = "tokyonight",
     component_separators = { left = "|", right = "|" },
     section_separators = { left = "", right = "" },
     sections = {

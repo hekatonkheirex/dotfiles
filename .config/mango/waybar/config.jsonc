@@ -34,7 +34,7 @@
   "dwl/window#2": {
     "expand": true,
     "format": "{}",
-    "max-length": 102,
+    "max-length": 113,
   },
 
   "backlight": {

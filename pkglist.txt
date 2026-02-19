@@ -3,6 +3,7 @@ acpi
 acpi_call
 adobe-source-han-sans-jp-fonts
 adobe-source-han-sans-otc-fonts
+anytype-bin
 apple_cursor
 auto-cpufreq
 base
@@ -18,6 +19,7 @@ btop
 btrfs-progs
 calf
 catfish
+catppuccin-gtk-theme-frappe
 catppuccin-gtk-theme-mocha
 cava
 chafa
@@ -30,7 +32,6 @@ cpio
 cups
 dialog
 discord
-dms-shell-bin
 easyeffects
 efibootmgr
 ente-auth-bin
@@ -167,6 +168,7 @@ timeshift
 timeshift-autosnap
 tlp
 tlp-rdw
+tokyonight-gtk-theme-git
 tree
 ttf-fira-code
 ttf-fira-mono

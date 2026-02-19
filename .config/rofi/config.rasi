@@ -18,4 +18,5 @@ configuration {
 // @theme "~/.config/rofi/theme/gruvbox.rasi"
 // @theme "~/.config/rofi/theme/everforest.rasi"
 // @theme "~/.config/rofi/theme/solarized.rasi"
-@theme "~/.config/rofi/theme/oxocarbon.rasi"
+// @theme "~/.config/rofi/theme/oxocarbon.rasi"
+@theme "~/.config/rofi/theme/tokyonight-storm.rasi"

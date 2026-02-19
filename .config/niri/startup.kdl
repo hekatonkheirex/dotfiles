@@ -1,1 +1,2 @@
 spawn-at-startup "hypridle"
+spawn-at-startup "qs" "-c" "noctalia-shell"
