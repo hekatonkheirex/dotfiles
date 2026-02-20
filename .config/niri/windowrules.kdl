@@ -52,7 +52,7 @@ window-rule {
     match app-id="zoom"
     open-floating true
 }
-// Open dms windows as floating by default
+
 window-rule {
     match app-id=r#"org.quickshell$"#
     open-floating true
@@ -61,6 +61,7 @@ layer-rule {
     match namespace="^quickshell$"
     place-within-backdrop true
 }
+
 overview {
     workspace-shadow {
         off

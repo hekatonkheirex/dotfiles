@@ -1,11 +1,10 @@
-hotkey-overlay {
-}
+hotkey-overlay {}
 binds {
   Mod+Shift+Slash { show-hotkey-overlay; }
 
   Mod+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty"; }
   Mod+D hotkey-overlay-title="Run an Application: noctalia launcher" { spawn "qs" "-c" "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
-  Super+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
+  Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 
   // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
   // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
@@ -133,7 +132,7 @@ binds {
 
   // Usually scrolling up and down with Shift in applications results in
   // horizontal scrolling; these binds replicate that.
-   Mod+Shift+WheelScrollDown      { focus-column-right; }
+  Mod+Shift+WheelScrollDown      { focus-column-right; }
   Mod+Shift+WheelScrollUp        { focus-column-left; }
   Mod+Ctrl+Shift+WheelScrollDown { move-column-right; }
   Mod+Ctrl+Shift+WheelScrollUp   { move-column-left; }

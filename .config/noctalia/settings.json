@@ -288,6 +288,18 @@
         "enabled": true,
         "gridSnap": false,
         "monitorWidgets": [
+            {
+                "name": "eDP-1",
+                "widgets": [
+                    {
+                        "id": "Weather",
+                        "scale": 1.4015593119097667,
+                        "showBackground": true,
+                        "x": 1541,
+                        "y": 173
+                    }
+                ]
+            }
         ]
     },
     "dock": {
@@ -367,7 +379,7 @@
         "shadowOffsetY": 3,
         "showChangelogOnStartup": true,
         "showHibernateOnLockScreen": false,
-        "showScreenCorners": false,
+        "showScreenCorners": true,
         "showSessionButtonsOnLockScreen": true,
         "telemetryEnabled": false
     },
@@ -512,6 +524,13 @@
                 "countdownEnabled": true,
                 "enabled": true,
                 "keybind": "6"
+            },
+            {
+                "action": "rebootToUefi",
+                "command": "",
+                "countdownEnabled": true,
+                "enabled": true,
+                "keybind": ""
             }
         ],
         "showHeader": true,

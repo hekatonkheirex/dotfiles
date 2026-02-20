@@ -5,8 +5,6 @@ environment {
   DISPLAY ":0"
 
   XCURSOR_SIZE "24"
-  HYPRCURSOR_THEME "macOS"
-  HYPRCURSOR_SIZE "24"
 
   EDITOR "nvim"
 
