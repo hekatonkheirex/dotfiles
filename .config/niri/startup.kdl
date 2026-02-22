@@ -1,6 +1,0 @@
-// spawn-at-startup "hypridle"
-spawn-at-startup "swayidle" "-w" \
-    "timeout" "300" "swaylock -f" \
-    "timeout" "600" "niri msg action power-off-monitors" \
-    "before-sleep" "swaylock -f"
-spawn-at-startup "qs" "-c" "noctalia-shell"

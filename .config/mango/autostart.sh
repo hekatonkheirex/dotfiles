@@ -41,11 +41,7 @@ nm-applet >/dev/null 2>&1 &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 >/dev/null 2>&1 &
 
 # inhibit by audio
-swayidle -w \
-  timeout 300 'swaylock -f -c 1a1b26' \
-  timeout 600 'wlopm --off *' \
-  resume 'wlopm --on *' \
-  before-sleep 'swaylock -f -c 1a1b26' 2>&1 &
+hypridle 2>&1 &
 
 # change light value and volume value by swayosd-client in keybind
 swayosd-server >/dev/null 2>&1 &
@@ -53,5 +49,3 @@ swayosd-server >/dev/null 2>&1 &
 gnome-keyring-daemon --start --components=secrets,ssh,pkcs11 2>&1 &
 
 udiskie -2 2>&1 &
-
-thunar --daemon 2>&1 &

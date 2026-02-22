@@ -1,14 +1,16 @@
+@import '../apple.css';
+
 /* General configuration */
 * {
   border: none;
-  font-family: "Nunito", "tabler-icons";
+  font-family: "Inter", "tabler-icons";
   font-size: 13px;
-  /* font-weight: bold; */
+  font-weight: 500;
+  text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.8);
 }
 
 window#waybar {
-  background: rgba(30, 30, 46, 0.8);
-  box-shadow: 2 2 2 4px #1e1e2e;
+  background: rgba(0, 0, 0, 0);
   transition-property: background-color;
   transition-duration: .5s;
 }
@@ -23,47 +25,32 @@ tooltip {
   padding: 20px;
 }
 tooltip label {
-  color: #cdd6f4;
+  color: @fg0;
 }
 
 /* Workspaces */
 #workspaces {
-  border-radius: 16px;
-  margin: 5px 10px 3px 0;
-  padding: 1px 1px;
 }
 
 #workspaces button {
-  background: #45475a;
-  border-radius: 10px;
-  margin: 0px 3px;
-  min-height: 1px;
-  padding: 0 10px;
-  transition: all 0.3s ease-in-out;
+  padding: 0 5px;
+  background: transparent;
+  color: @fg0;
+  border-radius: 8px;
+  margin: 2px;
 }
 
 #workspaces button:hover {
-  background: #a6e3a1;
-  background-size: 400% 400%;
-  border-radius: 10px;
-  min-width: 30px;
 }
 
 #workspaces button.active {
-  background: #a6e3a1;
-  background-size: 400% 400%;
-  border-radius: 10px;
-  min-width: 40px;
-  transition: all 0.3s ease-in-out;
+  background: rgba(255, 255, 255, 0.2);
+  color: @pink;
+  border-radius: 12px;
 }
 
 #workspaces button.urgent {
-  background: #f38ba8;
-}
-
-#workspaces button.persistent {
-  background: #a6e3a1;
-  transition: all 0.3s ease-in-out;
+  background: @red;
 }
 
 window#waybar.empty #window {
@@ -90,7 +77,6 @@ taskbar#waybar.empty #taskbar {
   padding: 2px 10px 0 10px;
 }
 
-
 .modules-left > widget:first-child > #workspaces {
   margin-left: 0;
 }
@@ -101,49 +87,54 @@ taskbar#waybar.empty #taskbar {
 
 /** ********** Window ********** **/
 #window{
-  color: #b4befe;
-  font-weight: bold;
+  color: @fg0;
   margin: 0 5px 0 5px;
 }
 window#waybar.empty #window {
   background-color: transparent;
 }
 
-/** ********** Pulseaudio ********** **/
-#pulseaudio {
-  color: #89b4fa;
-  margin: 0 5px 0 5px;
-}
-
 /** ********** Wireplumber ********** **/
 #wireplumber {
-  color: #89b4fa;
-  margin: 0 5px 0 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 0 15px;
+  margin: 6px 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /** ********** Backlight ********** **/
 #backlight {
-  color: #94e2d5;
-  margin: 0 5px 0 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 0 15px;
+  margin: 6px 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /** ********** Battery ********** **/
 #battery {
-  color: #a6e3a1;
-  margin: 0 5px 0 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 0 15px;
+  margin: 6px 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 #battery.charging {
-  color: #f38ba8;
+  color: @green;
 }
 
 #battery.plugged {
-  color: #fab387;
+  color: @green;
 }
 
 @keyframes blink {
   to {
-    background: linear-gradient(45deg, #f9e2af, #fab387);
+    background-color: @pink;
   }
 }
 
@@ -153,19 +144,17 @@ window#waybar.empty #window {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   animation-direction: alternate;
-  color: #161616;
+  color: @bg0;
   opacity: 1.0;
 }
 
 /** ********** Clock ********** **/
 #clock {
-  color: #f5c2e7;
-  margin: 0 5px 0 5px;
+  font-weight: 700;
 }
 
 /** ********** Tray ********** **/
 #tray {
-  margin: 0 5px 0 5px;
   padding: 0 5px 0 5px;
 }
 #tray > .passive {
@@ -174,105 +163,65 @@ window#waybar.empty #window {
 
 #tray > .needs-attention {
   -gtk-icon-effect: highlight;
-  background-color: #f38ba8;
+  background-color: @red;
 }
 
 /** ********** Language ********** **/
 #language {
-  color: #cdd6f4;
-  margin: 0 5px 0 7px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 0 15px;
+  margin: 6px 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /** ********** Idle Inhibitor ********** **/
 #idle_inhibitor {
-  color: #6c7086;
-  margin: 0 5px 0 7px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 0 15px;
+  margin: 6px 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 #idle_inhibitor.activated {
-  color: #cba6f7;
+  color: @green;
   font-weight: bold;
 }
 
 /** ********** Image ********** **/
 #image {
-  margin: 0 7px 0 5px;
-}
-
-/** ********** power-profiles-daemon ********** **/
-#power-profiles-daemon {
-  color: #a6e3a1;
-  margin: 0 5px 0 7px;
-}
-
-/* Temperature */
-#temperature {
-  color: #a6e3a1;
-  margin: 0 5px 0 7px;
-}
-#temperature.warning {
-  color: #fab387;
-}
-#temperature.critiacl {
-  color: #f38ba8;
-}
-
-/* CPU */
-#cpu {
-  color: #89b4fa;
-  margin: 0 5px 0 7px;
-}
-
-/* Memory */
-#memory {
-  color: #74c7ec;
-  margin: 0 5px 0 7px;
-}
-
-/* Disk */
-#disk {
-  color: #89dceb;
-  margin: 0 5px 0 7px;
+  padding: 0 10px 0 15px;
 }
 
 /** ********** Custom ********** **/
 /* Wall */
 #custom-wall {
-  color: #f5e0dc;
-  margin: 0 5px 0 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 0 15px;
+  margin: 6px 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Swaync */
-#custom-swaync {
-  color: #bac2de;
-  font-weight: bold;
-  margin: 0 7px 0 5px;
-}
-
-@keyframes gradient_f {
-	0% {
-		background-position: 0% 200%;
-	}
-    50% {
-        background-position: 200% 0%;
-    }
-	100% {
-		background-position: 400% 200%;
-	}
-}
 /* Theme switcher */
 #custom-themeswitcher {
-  color: #f5e0dc;
-  margin: 0 5px 0 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 0 15px;
+  margin: 6px 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Pacman */
 #custom-pacman {
-  color: #6c7086;
-  margin: 0 5px 0 5px;
-}
-
-/* Kernel */
-#custom-kernel {
-  color: #6c7086;
-  margin: 0 5px 0 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 0 15px;
+  margin: 6px 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }

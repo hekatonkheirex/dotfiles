@@ -54,7 +54,7 @@
         "monitors": [
         ],
         "outerCorners": true,
-        "position": "left",
+        "position": "top",
         "screenOverrides": [
         ],
         "showCapsule": true,
@@ -286,7 +286,7 @@
     },
     "desktopWidgets": {
         "enabled": true,
-        "gridSnap": false,
+        "gridSnap": true,
         "monitorWidgets": [
             {
                 "name": "eDP-1",
@@ -294,9 +294,9 @@
                     {
                         "id": "Weather",
                         "scale": 1.4015593119097667,
-                        "showBackground": true,
-                        "x": 1541,
-                        "y": 173
+                        "showBackground": false,
+                        "x": 780,
+                        "y": 140
                     }
                 ]
             }
@@ -336,7 +336,7 @@
         "compactLockScreen": false,
         "dimmerOpacity": 0.2,
         "enableLockScreenCountdown": true,
-        "enableShadows": true,
+        "enableShadows": false,
         "forceBlackScreenCorners": false,
         "iRadiusRatio": 1,
         "keybinds": {
@@ -379,7 +379,7 @@
         "shadowOffsetY": 3,
         "showChangelogOnStartup": true,
         "showHibernateOnLockScreen": false,
-        "showScreenCorners": true,
+        "showScreenCorners": false,
         "showSessionButtonsOnLockScreen": true,
         "telemetryEnabled": false
     },
@@ -576,7 +576,7 @@
         "networkPanelView": "wifi",
         "panelBackgroundOpacity": 0.93,
         "panelsAttachedToBar": true,
-        "settingsPanelMode": "attached",
+        "settingsPanelMode": "centered",
         "tooltipsEnabled": true,
         "wifiDetailsViewMode": "grid"
     },
@@ -593,7 +593,7 @@
         "monitorDirectories": [
         ],
         "overviewBlur": 0.4,
-        "overviewEnabled": false,
+        "overviewEnabled": true,
         "overviewTint": 0.6,
         "panelPosition": "follow_bar",
         "randomIntervalSec": 300,

@@ -6,9 +6,10 @@
     "on-scroll-down": "hyprctl dispatch workspace e-1",
     "format": "{icon}",
     "format-icons": {
-			"urgent": "",
-			"active": "",
-			"default": "",
+      "1": "1",
+			// "urgent": "",
+			// "active": "",
+			// "default": "",
     "sort-by-number": true
     },
   },
@@ -144,6 +145,7 @@
     "size": 24,
     "on-click": "killall rofi || rofi -show drun",
     "tooltip": false,
+    "interval": 60,
   },
 
   "temperature": {

@@ -1,3 +1,3 @@
 #!/usr/bin/sh
-sh -c swaylock &
+sh -c hyprlock &
 systemctl suspend
