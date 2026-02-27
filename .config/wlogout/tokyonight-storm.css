@@ -1,31 +1,33 @@
 /** ********** Fonts ********** **/
 * {
-  font-family: "SF Pro Display", sans-serif; 
+  font-family: "IBM Plex Sans", sans-serif; 
   font-size: 18px;
   font-weight: bold;
 }
 
 /** ********** Main Window ********** **/
 window {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(36, 40, 59, 1.0);
 }
 
 /** ********** Buttons ********** **/
 button {
-  background-color: rgba(13, 17, 23, 0.6);
-  color: #C9D1D9;
-	border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(122, 162, 247, 0.020);
+  color: #7aa2f7;
+	border: 0px solid rgba(36, 40, 59, 1.0);
 	border-radius: 20px;
 	background-repeat: no-repeat;
 	background-position: center;
-	background-size: 25%;
+	background-size: 40%;
   margin: 10px;
 }
 
 button:focus, button:active, button:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  border: 1px solid #FF6489;
-	color: #FF6489;
+  background-color: rgba(122, 162, 247, 1.0);
+	box-shadow: 0px 0px 25px 0px rgba(122, 162, 247, 0.85);
+	color: #565f89;
+  margin: 10px;
+	outline-style: none;
 }
 
 /** ********** Icons ********** **/

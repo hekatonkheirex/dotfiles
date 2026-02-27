@@ -10,6 +10,7 @@ base
 base-devel
 bat
 bc
+bleachbit
 blueman
 bluez
 bluez-utils
@@ -144,7 +145,6 @@ retroarch
 retroarch-assets-ozone
 ripgrep
 rofi
-rofimoji
 rose-pine-gtk-theme-full
 rsync
 rustup
@@ -187,6 +187,7 @@ unzip
 upower
 vivaldi
 vivaldi-ffmpeg-codecs
+vulkan-headers
 waybar
 waypaper
 wev

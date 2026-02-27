@@ -51,8 +51,8 @@
     "interval": 10,
     "format": "{icon} {percent}%",
     "format-icons": ["&#xeb7f;"],
-    "on-scroll-up": "light -A 5%",
-    "on-scroll-down": "light -U 5%",
+    "on-scroll-up": "brightnessctl set +5%",
+    "on-scroll-down": "brightnessctl set 5%-",
     "smooth-scrolling-threshold": 1,
     "tooltip": false,
   },
@@ -77,14 +77,13 @@
   },
 
   "clock": {
-    "format": "&#xea70; {:%H:%M}",
+    "format": "&#xea70; {:%a %b %d, %H:%M}",
     "tooltip-format": "<tt><small>{calendar}</small></tt>",
     "calendar": {
       "format": {
         "today": "<span color = '#f38ba8'><b><u>{}</u></b></span>",
       },
     },
-    "format-alt": "&#xea53; {:%Y-%m-%d}",
   },
 
   "idle_inhibitor": {

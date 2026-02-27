@@ -26,5 +26,5 @@
   // Choose the order of the modules
   "modules-left": ["image", "hyprland/workspaces", "hyprland/window"],
   "modules-center": ["clock"],
-  "modules-right": ["idle_inhibitor", "custom/wall", "custom/themeswitcher", "custom/pacman", "wireplumber", "backlight", "battery", "hyprland/language", "tray"],
+  "modules-right": ["idle_inhibitor", "custom/wall", "custom/themeswitcher", "wireplumber", "backlight", "battery", "tray"],
 }
