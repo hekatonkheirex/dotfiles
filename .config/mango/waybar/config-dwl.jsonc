@@ -1,50 +1,40 @@
 {
-  "hyprland/workspaces": {
-    "disable-scroll": false,
-    "on-click": "activate",
-    "on-scroll-up": "hyprctl dispatch workspace e+1",
-    "on-scroll-down": "hyprctl dispatch workspace e-1",
-    "format": "{icon}",
-    "format-icons": {
-      "1": "1",
-			// "urgent": "",
-			// "active": "",
-			// "default": "",
-    "sort-by-number": true
-    },
+  "layer": "top", 				// Waybar at top layer
+  /* "mode": "dock", 				// Display mode (dock|hide|invisible|overlay) */
+  "exclusive": true, 				// Request an exclusive zone from the compositor
+  "passthrough": false, 			// Pass any pointer events to the window under the bar
+  "position": "top", 			// Waybar position (top|bottom|left|right)
+  "height": "", 					// Waybar height (to be removed for auto height)
+  "width": "", 					// Waybar width (empty for auto width)
+  "spacing": 0, 					// Gaps between modules
+  "margin": 0, 					// Space around the bar
+  "margin-top": 0, 				// Space above the bar
+  "margin-bottom": 0, 			// Space below the bar
+  "margin-left": 0, 				// Space to the left of the bar
+  "margin-right": 0, 				// Space to the right of the bar
+  "fixed-center": false, 			// Center modules position
+  "gtk-layer-shell": true,
+  /* "ipc": true, 					// Control waybar with `swaymsg bar` commands */
+  "bar_id": "bar-0",
+
+  // Choose the order of the modules
+  "modules-left": ["image", "dwl/tags", "dwl/window#1", "dwl/window#2"],
+  "modules-center": [],
+  "modules-right": ["cpu", "memory", "temperature", "disk", "wireplumber", "backlight", "battery", "clock", "idle_inhibitor", "tray"],
+
+  "dwl/tags": {
+    "num-tags": 9,
+    // "hide-vacant": true,
+    // "tag-labels": ["一", "二", "三", "四", "五", "六", "七", "八", "九"]
   },
 
-  "hyprland/window": {
-    "max-length": 50,
+  "dwl/window#1": {
+    "format": "[{layout}]= ",
+  },
+  "dwl/window#2": {
+    "expand": true,
     "format": "{}",
-    "rewrite": {
-      "(.*) — Mozilla Firefox": "$1",
-      "(.*) - Vivaldi": "$1",
-      "(.*) - Thunar": "$1",
-      "(.*) - Discord": "$1",
-      // ": "Desktop",
-      "~": "kitty",
-      "n ": "neovim",
-    },
-    "separate-outputs": true
-  },
-
-  "wlr/taskbar": {
-    "format": "{icon}",
-    "icon-size": 18,
-    "tooltip-format": "{title}",
-    "on-click": "activate",
-    "on-click-middle": "close",
-    "ignore-list": [
-      "kitty"
-    ],
-    "app_ids-mapping": {
-      "firefoxdeveloperedition": "firefox-developer-edition"
-    },
-    "rewrite": {
-      "New Tab": "Brave",
-      "Foot Server": "Terminal"
-    }
+    "max-length": 113,
   },
 
   "backlight": {
@@ -126,21 +116,13 @@
     "smooth-scrolling-threshold": 1,
   },
 
-
   "tray": {
     "icon-size": 16,
     "spacing": 8,
   },
 
-  "hyprland/language": {
-    "format": "{}",
-    "format-en": "US",
-    "format-es": "ES",
-    "tooltip": "false",
-  },
-
-  "image": {
-    "path": "/home/mura/.config/waybar/images/hyprland.png",
+   "image": {
+    "path": "/home/mura/.config/mango/waybar/images/mango.png",
     "size": 24,
     "on-click": "killall rofi || rofi -show drun",
     "tooltip": false,
@@ -173,17 +155,13 @@
 	  "unit": "GB"
   },
 
-	"group/hardware": {
-    "drawer": {
-        "transition-duration": 500,
-        "transition-left-to-right": false,
-    },
-		"orientation": "horizontal",
-		"modules": [
-			"cpu",
-			"memory",
-			"temperature",
-      "disk"
-		]
-	},
+    "custom/pacman": {
+    "format": "&#xeaff; {}",
+    "interval": 3600,
+    "exec": "checkupdates | wc -l",
+    "exec-if": "exit 0",
+    "on-click": "kitty --hold sh -c 'paru'; pkill -SIGRTMIN+8 waybar",
+    "signal": 8
+  },
+  
 }

@@ -12,15 +12,15 @@
   "margin-bottom": 0, 			// Space below the bar
   "margin-left": 0, 				// Space to the left of the bar
   "margin-right": 0, 				// Space to the right of the bar
-  "fixed-center": false, 			// Center modules position
+  "fixed-center": true, 			// Center modules position
   "gtk-layer-shell": true,
   /* "ipc": true, 					// Control waybar with `swaymsg bar` commands */
   "bar_id": "bar-0",
 
   // Choose the order of the modules
   "modules-left": ["image", "dwl/tags", "dwl/window#1", "dwl/window#2"],
-  "modules-center": [],
-  "modules-right": ["cpu", "memory", "temperature", "disk", "wireplumber", "backlight", "battery", "clock", "idle_inhibitor", "tray"],
+  "modules-center": ["clock"],
+  "modules-right": ["idle_inhibitor", "wireplumber", "backlight", "battery", "tray"],
 
   "dwl/tags": {
     "num-tags": 9,
@@ -34,7 +34,7 @@
   "dwl/window#2": {
     "expand": true,
     "format": "{}",
-    "max-length": 113,
+    "max-length": 50,
   },
 
   "backlight": {
@@ -67,7 +67,7 @@
   },
 
   "clock": {
-    "format": "&#xea70; {:%a %b %d, %H:%M}",
+    "format": "{:%a %b %d, %H:%M}",
     "tooltip-format": "<tt><small>{calendar}</small></tt>",
     "calendar": {
       "format": {

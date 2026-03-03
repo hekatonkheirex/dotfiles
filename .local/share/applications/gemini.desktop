@@ -1,9 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Name=Google Gemini
-Exec=brave --app=https://gemini.google.com
-Icon=/home/mura/.config/waybar/images/gemini.png
-Terminal=false
-Type=Application
-Categories=Network;Science;
-StartupWMClass=gemini.google.com

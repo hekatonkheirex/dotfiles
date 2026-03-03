@@ -1,14 +1,18 @@
-@import './themes/tokyonight-storm.css';
+@import './themes/apple.css';
 
 /* General configuration */
 * {
   border: none;
-  font-family: "IBM Plex Sans", "tabler-icons";
+  font-family: "SF Pro Display", "tabler-icons";
   font-size: 13px;
+  font-weight: 500;
+  text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.8);
 }
 
 window#waybar {
-  background: @blue;
+  background: rgba(0, 0, 0, 0.05);
+  transition-property: background-color;
+  transition-duration: .5s;
 }
 
 window#waybar.hidden {
@@ -17,87 +21,94 @@ window#waybar.hidden {
 
 /* Tooltips */
 tooltip {
-  background: @bg;
+  background: rgba(30, 30, 46, 0.9);
   padding: 20px;
 }
 tooltip label {
-  color: @fg;
+  color: @fg0;
 }
 
-/* Tags */
+/* Workspaces */
 #tags {
-  background: @bg;
-  padding: 0px;
 }
 
 #tags button {
-  color: @bg1;
-  min-width: 30px;
-  padding: 0px;
+  background: transparent;
+  border-radius: 8px;
+  color: @fg0;
+  padding: 0px 5px;
 }
 
 #tags button.occupied {
-  color: @green;
-  font-weight: bold;
+  color: @yellow;
 }
 
 #tags button.focused {
-  background: @blue;
-  border-radius: 0px;
-  color: @bg;
-  font-weight: bold;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  color: @pink;
+  padding: 0px 15px;
+  margin: 6px 4px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 #tags button.urgent {
-  color: @purple;
+  background: @red;
 }
 
 /** ********** Layout indicator ********** **/
 #window.1 {
-  background: @bg;
-  color: @fg;
-  font-weight: bold;
+  font-weight: 700;
 }
 
 /** ********** Window ********** **/
 #window.2 {
-  color: @bg;
-  font-weight: bold;
-  padding: 0px 0px 0px 4px;
+  font-weight: 700;
+  padding: 0px 5px 0px 5px;
 }
 
 /** ********** Wireplumber ********** **/
 #wireplumber {
-  background: @bg;
-  color: @aqua;
-  padding: 0px 5px 0px 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 6px 4px;
+  padding: 0px 15px;
 }
 
 /** ********** Backlight ********** **/
 #backlight {
-  background: @bg;
-  color: @orange;
-  padding: 0px 5px 0px 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 6px 4px;
+  padding: 0px 15px;
 }
 
 /** ********** Battery ********** **/
 #battery {
-  background: @bg;
-  color: @aqua;
-  padding: 0px 5px 0px 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 6px 4px;
+  padding: 0px 15px;
 }
 
 #battery.charging {
-  color: @orange;
+  color: @green;
 }
 
 #battery.plugged {
-  color: @yellow;
+  color: @green;
 }
 
 @keyframes blink {
   to {
-    color: @red;
+    background-color: @pink;
   }
 }
 
@@ -107,20 +118,17 @@ tooltip label {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   animation-direction: alternate;
-  color: @bg;
+  color: @bg0;
   opacity: 1.0;
 }
 
 /** ********** Clock ********** **/
 #clock {
-  background: @bg;
-  color: @fg;
-  padding: 0px 5px 0px 5px;
+  font-weight: 700;
 }
 
 /** ********** Tray ********** **/
 #tray {
-  background: @bg;
   padding: 0 5px 0 5px;
 }
 #tray > .passive {
@@ -134,51 +142,19 @@ tooltip label {
 
 /** ********** Idle Inhibitor ********** **/
 #idle_inhibitor {
-  background: @bg;
-  color: @fg3;
-  padding: 0px 5px 0px 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 6px 4px;
+  padding: 0px 15px;
 }
 #idle_inhibitor.activated {
-  color: @blue;
+  color: @green;
   font-weight: bold;
 }
 
 /** ********** Image ********** **/
 #image {
-  background: @bg;
-  padding: 2px;
-}
-
-/* Temperature */
-#temperature {
-  background: @bg;
-  color: @purple;
-  padding: 0px 5px 0px 5px;
-}
-#temperature.warning {
-  color: @orange;
-}
-#temperature.critiacl {
-  color: @red;
-}
-
-/* CPU */
-#cpu {
-  background: @bg;
-  color: @green;
-  padding: 0px 5px 0px 5px;
-}
-
-/* Memory */
-#memory {
-  background: @bg;
-  color: @yellow;
-  padding: 0px 5px 0px 5px;
-}
-
-/* Disk */
-#disk {
-  background: @bg;
-  color: @blue;
-  padding: 0px 5px 0px 5px;
+  padding: 0px 10px 0px 15px;
 }
