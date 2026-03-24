@@ -33,7 +33,7 @@ tooltip label {
 }
 
 #workspaces button {
-  padding: 0 5px;
+  padding: 0px 5px;
   background: transparent;
   color: @fg0;
   border-radius: 8px;
@@ -151,6 +151,8 @@ window#waybar.empty #window {
 /** ********** Clock ********** **/
 #clock {
   font-weight: 700;
+  margin: 6px 4px;
+  padding: 0px 15px;
 }
 
 /** ********** Tray ********** **/

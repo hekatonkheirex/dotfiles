@@ -87,12 +87,10 @@ jq
 kitty
 krokiet-bin
 kvantum
+kvantum-qt5
 lazygit
 libgepub
 libopenraw
-libretro-core-info
-libretro-overlays
-libretro-shaders-slang
 libva-intel-driver
 libva-utils
 linux
@@ -102,7 +100,7 @@ localsend-bin
 lsp-plugins-lv2
 lutgen-bin
 mako
-mangowc-git
+mangowm-git
 mda.lv2
 meson
 most
@@ -115,6 +113,7 @@ noctalia-shell
 noto-fonts-emoji
 ntfs-3g
 nwg-look
+onlyoffice-bin
 pacman-contrib
 pacutils
 papirus-folders-catppuccin-git
@@ -136,13 +135,12 @@ python-requests
 python-websockets
 qbittorrent
 qt5-declarative
+qt5ct
 qt6-tools
 qt6-wayland
 qt6ct
 reflector
 resvg
-retroarch
-retroarch-assets-ozone
 ripgrep
 rofi
 rose-pine-gtk-theme-full
@@ -185,8 +183,6 @@ tumbler
 unrar
 unzip
 upower
-vivaldi
-vivaldi-ffmpeg-codecs
 vulkan-headers
 waybar
 waypaper
@@ -201,8 +197,10 @@ wlsunset
 wtype
 xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
+xdg-desktop-portal-wlr
 xdg-user-dirs
 xdg-utils
+xnviewmp
 yad
 yadm
 yazi

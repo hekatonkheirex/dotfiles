@@ -29,31 +29,36 @@ tooltip label {
 }
 
 /* Workspaces */
-#tags {
+#workspaces {
 }
 
-#tags button {
+#workspaces button {
   background: transparent;
   border-radius: 8px;
   color: @fg0;
+  margin: 2px;
   padding: 0px 5px;
 }
 
-#tags button.occupied {
+#workspaces button.hideen {
   color: @yellow;
 }
 
-#tags button.focused {
+#workspaces button.visible {
+  color: @yellow;
+}
+
+#workspaces button.active {
   background: rgba(255, 255, 255, 0.2);
   border: 1px rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   color: @pink;
-  padding: 0px 15px;
-  margin: 6px 4px;
+  /* padding: 0px 15px; */
+  /* margin: 6px 4px; */
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-#tags button.urgent {
+#workspaces button.urgent {
   background: @red;
 }
 
@@ -125,11 +130,13 @@ tooltip label {
 /** ********** Clock ********** **/
 #clock {
   font-weight: 700;
+  margin: 6px 4px;
+  padding: 0px 15px;
 }
 
 /** ********** Tray ********** **/
 #tray {
-  padding: 0 5px 0 5px;
+  padding: 0px 0px 0px 10px;
 }
 #tray > .passive {
   -gtk-icon-effect: dim;
