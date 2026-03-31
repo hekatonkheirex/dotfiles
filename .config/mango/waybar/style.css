@@ -4,24 +4,15 @@
 * {
   border: none;
   font-family: "SF Pro Display", "tabler-icons";
-<<<<<<< HEAD
   font-size: 16px;
   font-weight: 700;
 }
 
 window#waybar {
   background: rgba(255, 255, 255, 0.02);
-=======
   font-size: 13px;
   font-weight: 500;
   text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.8);
-}
-
-window#waybar {
-  background: rgba(0, 0, 0, 0.05);
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
-  transition-property: background-color;
-  transition-duration: .5s;
 }
 
 window#waybar.hidden {
@@ -30,11 +21,7 @@ window#waybar.hidden {
 
 /* Tooltips */
 tooltip {
-<<<<<<< HEAD
   background: rgba(30, 30, 46, 0.3);
-=======
-  background: rgba(30, 30, 46, 0.9);
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
   padding: 20px;
 }
 tooltip label {
@@ -47,38 +34,19 @@ tooltip label {
 
 #workspaces button {
   background: transparent;
-<<<<<<< HEAD
-=======
-  border-radius: 8px;
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
   color: @fg0;
   margin: 2px;
   padding: 0px 5px;
 }
 
-<<<<<<< HEAD
-#workspaces button.active {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  color: @pink;
-=======
-#workspaces button.hideen {
-  color: @yellow;
-}
-
-#workspaces button.visible {
-  color: @yellow;
-}
-
 #workspaces button.active {
   background: rgba(255, 255, 255, 0.2);
   border: 1px rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  border-radius: 16px;
   color: @pink;
   /* padding: 0px 15px; */
   /* margin: 6px 4px; */
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 }
 
 #workspaces button.urgent {
@@ -87,73 +55,43 @@ tooltip label {
 
 /** ********** Layout indicator ********** **/
 #window.1 {
-<<<<<<< HEAD
-=======
   font-weight: 700;
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 }
 
 /** ********** Window ********** **/
 #window.2 {
-<<<<<<< HEAD
-=======
   font-weight: 700;
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
   padding: 0px 5px 0px 5px;
 }
 
 /** ********** Wireplumber ********** **/
 #wireplumber {
   background: rgba(255, 255, 255, 0.1);
-<<<<<<< HEAD
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   margin: 6px 4px;
   padding: 0px 5px;
-=======
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 6px 4px;
-  padding: 0px 15px;
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 }
 
 /** ********** Backlight ********** **/
 #backlight {
   background: rgba(255, 255, 255, 0.1);
-<<<<<<< HEAD
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   margin: 6px 4px;
   padding: 0px 5px;
-=======
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 6px 4px;
-  padding: 0px 15px;
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 }
 
 /** ********** Battery ********** **/
 #battery {
-  background: rgba(255, 255, 255, 0.1);
-<<<<<<< HEAD
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   margin: 6px 4px;
   padding: 0px 5px;
-=======
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 6px 4px;
-  padding: 0px 15px;
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 }
 
 #battery.charging {
@@ -184,11 +122,7 @@ tooltip label {
 #clock {
   font-weight: 700;
   margin: 6px 4px;
-<<<<<<< HEAD
   padding: 0px 5px;
-=======
-  padding: 0px 15px;
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 }
 
 /** ********** Tray ********** **/
@@ -206,14 +140,10 @@ tooltip label {
 
 /** ********** Idle Inhibitor ********** **/
 #idle_inhibitor {
-<<<<<<< HEAD
-  border-radius: 16px;
-=======
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
   margin: 6px 4px;
   padding: 0px 15px;
 }
@@ -224,14 +154,10 @@ tooltip label {
 
 /** ********** Image ********** **/
 #image {
-<<<<<<< HEAD
   padding: 0px 5px 0px 5px;
 }
 
 #custom-wall {
   margin: 6px 4px;
   padding: 0px 5px;
-=======
-  padding: 0px 10px 0px 15px;
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 }

@@ -4,11 +4,7 @@
     "width": 25,
     "height": 11,
     "type": "kitty",
-<<<<<<< HEAD
     "source": "${HOME}/Pictures/Arch_logo.png",
-=======
-    "source": "${HOME}/Pictures/wallhaven-zmmq5v.jpg",
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
   },
   "modules": [
     {

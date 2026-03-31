@@ -20,11 +20,7 @@
   // Choose the order of the modules
   "modules-left": ["image", "ext/workspaces", "dwl/window#1", "dwl/window#2"],
   "modules-center": [],
-<<<<<<< HEAD
   "modules-right": ["idle_inhibitor", "custom/wall", "wireplumber", "backlight", "battery", "tray", "clock"],
-=======
-  "modules-right": ["idle_inhibitor", "wireplumber", "backlight", "battery", "tray", "clock"],
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 
   "ext/workspaces": {
     "format": "{icon}",
@@ -161,11 +157,7 @@
 	  "unit": "GB"
   },
 
-<<<<<<< HEAD
   "custom/pacman": {
-=======
-    "custom/pacman": {
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
     "format": "&#xeaff; {}",
     "interval": 3600,
     "exec": "checkupdates | wc -l",
@@ -173,14 +165,10 @@
     "on-click": "kitty --hold sh -c 'paru'; pkill -SIGRTMIN+8 waybar",
     "signal": 8
   },
-<<<<<<< HEAD
 
   "custom/wall": {
     "format": "&#xeb00;",
     "on-click": "~/.local/bin/wall",
     "tooltip": false
   }
-=======
-  
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 }

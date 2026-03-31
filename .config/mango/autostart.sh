@@ -13,11 +13,7 @@ mako 2>&1 &
 ~/.config/mango/blfilter.sh 2>&1 &
 
 # wallpaper
-<<<<<<< HEAD
 awww-daemon 2>&1 &
-=======
-swww-daemon 2>&1 &
->>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 
 # top bar
 waybar -c ~/.config/mango/waybar/config.jsonc -s ~/.config/mango/waybar/style.css 2>&1 &
