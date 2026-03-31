@@ -1,0 +1,167 @@
+{
+  "layer": "top", 				// Waybar at top layer
+  /* "mode": "dock", 				// Display mode (dock|hide|invisible|overlay) */
+  "exclusive": true, 				// Request an exclusive zone from the compositor
+  "passthrough": false, 			// Pass any pointer events to the window under the bar
+  "position": "top", 			// Waybar position (top|bottom|left|right)
+  "height": "", 					// Waybar height (to be removed for auto height)
+  "width": "", 					// Waybar width (empty for auto width)
+  "spacing": 0, 					// Gaps between modules
+  "margin": 0, 					// Space around the bar
+  "margin-top": 0, 				// Space above the bar
+  "margin-bottom": 0, 			// Space below the bar
+  "margin-left": 0, 				// Space to the left of the bar
+  "margin-right": 0, 				// Space to the right of the bar
+  "fixed-center": false, 			// Center modules position
+  "gtk-layer-shell": true,
+  /* "ipc": true, 					// Control waybar with `swaymsg bar` commands */
+  "bar_id": "bar-0",
+
+  // Choose the order of the modules
+  "modules-left": ["image", "dwl/tags", "dwl/window#1", "dwl/window#2"],
+  "modules-center": [],
+  "modules-right": ["cpu", "memory", "temperature", "disk", "wireplumber", "backlight", "battery", "clock", "idle_inhibitor", "tray"],
+
+  "dwl/tags": {
+    "num-tags": 9,
+    // "hide-vacant": true,
+    // "tag-labels": ["一", "二", "三", "四", "五", "六", "七", "八", "九"]
+  },
+
+  "dwl/window#1": {
+    "format": "[{layout}]= ",
+  },
+  "dwl/window#2": {
+    "expand": true,
+    "format": "{}",
+    "max-length": 113,
+  },
+
+  "backlight": {
+    "interval": 10,
+    "format": "{icon} {percent}%",
+    "format-icons": ["&#xeb7f;"],
+    "on-scroll-up": "brightnessctl set +5%",
+    "on-scroll-down": "brightnessctl set 5%-",
+    "smooth-scrolling-threshold": 1,
+    "tooltip": false,
+  },
+
+  "battery": {
+		"interval": 60,
+		"full-at": 100,
+		"design-capacity": false,
+    "states": {
+      "good": 95,
+      "warning": 30,
+      "critical": 20
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": "&#xea33; {capacity}%",
+    "format-plugged": "&#xef3b; {capacity}%",
+    "format-full": "&#xf668; 100%",
+    "format-icons": ["&#xea34;", "&#xea2f;", "&#xea30;", "&#xea31;", "&#xea32;"],
+    "format-alt": "{time}",
+    "format-time": "{H}h {M}min",
+    "tooltip": true,
+  },
+
+  "clock": {
+    "format": "{:%a %b %d, %H:%M}",
+    "tooltip-format": "<tt><small>{calendar}</small></tt>",
+    "calendar": {
+      "format": {
+        "today": "<span color = '#f38ba8'><b><u>{}</u></b></span>",
+      },
+    },
+  },
+
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+      "activated": "&#xef0e;",
+      "deactivated": "&#xf106;"
+    }
+  },
+  
+  "network": {
+    "interval": 10,
+    //"interface": "wlan*", // (Optional) To force the use of this interface, set it for netspeed to work
+    "format-wifi": "",
+    "format-ethernet": "",
+    "format-linked": "",
+    "format-disconnected": "",
+    "format-disabled": "",
+    "tooltip-format": "{essid} :  {bandwidthUpBits} |  {bandwidthDownBits}",
+    "on-click": "[[ ! `pidof nm-connection-editor` ]] && nm-connection-editor || pkill nm-connection-e",
+  },
+
+  "wireplumber": {
+    "format": "{icon} {volume}%",
+    "format-muted": "&#xf1c3; Muted",
+    "format-bluetooth": "&#xea37; {volume}%",
+    "format-source": "&#xeaf0; {volume}%",
+    "format-source-muted": "&#xed16; Muted",
+    "format-icons": {
+      "headphone": "&#xeabd;",
+      "hands-free": "&#xf5a9;",
+      "headset": "&#xeb90;",
+      "phone": "&#xeb09;",
+      "portable": "&#xea8a;",
+      "default": ["&#xeb50;", "&#xeb4f;", "&#xeb51;"]
+    },
+    "scroll-step": 5.0,
+    "on-click": "pactl set-sink-mute 0 toggle",
+    "on-click-right": "pavucontrol",
+    "smooth-scrolling-threshold": 1,
+  },
+
+  "tray": {
+    "icon-size": 16,
+    "spacing": 8,
+  },
+
+   "image": {
+    "path": "/home/mura/.config/mango/waybar/images/mango.png",
+    "size": 24,
+    "on-click": "killall rofi || rofi -show drun",
+    "tooltip": false,
+    "interval": 60,
+  },
+
+  "temperature": {
+    "format": "&#xeb38; {temperatureC}°C",
+    "thermal-zone": 2,
+    "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
+    "critical-threshold": 80,
+    "format-critical": "{temperatureC}°C",
+  },
+
+  "cpu": {
+    "interval": 60,
+    "format": "&#xef8e; {}%",
+    "max-length": 10
+  },
+
+  "memory": {
+    "interval": 60,
+    "format": "&#xf075; {}%",
+    "max-length": 10
+  },
+
+  "disk": {
+  	"interval": 60,
+	  "format": "&#xf384; {free}",
+	  "unit": "GB"
+  },
+
+    "custom/pacman": {
+    "format": "&#xeaff; {}",
+    "interval": 3600,
+    "exec": "checkupdates | wc -l",
+    "exec-if": "exit 0",
+    "on-click": "kitty --hold sh -c 'paru'; pkill -SIGRTMIN+8 waybar",
+    "signal": 8
+  },
+  
+}

@@ -1,0 +1,153 @@
+@import './themes/apple.css';
+
+/* General configuration */
+* {
+  border: none;
+  font-family: "SF Pro Display", "tabler-icons";
+  font-size: 16px;
+  font-weight: 700;
+}
+
+window#waybar {
+  background: rgba(255, 255, 255, 0.02);
+  transition-property: background-color;
+  transition-duration: .5s;
+}
+
+window#waybar.hidden {
+  opacity: 0.0;
+}
+
+/* Tooltips */
+tooltip {
+  background: rgba(30, 30, 46, 0.3);
+  padding: 20px;
+}
+tooltip label {
+  color: @fg0;
+}
+
+/* Workspaces */
+#workspaces {
+}
+
+#workspaces button {
+  background: transparent;
+  color: @fg0;
+  margin: 2px;
+  padding: 0px 5px;
+}
+
+#workspaces button.active {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  color: @pink;
+}
+
+#workspaces button.urgent {
+  background: @red;
+}
+
+/** ********** Layout indicator ********** **/
+#window.1 {
+}
+
+/** ********** Window ********** **/
+#window.2 {
+  padding: 0px 5px 0px 5px;
+}
+
+/** ********** Wireplumber ********** **/
+#wireplumber {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 6px 4px;
+  padding: 0px 5px;
+}
+
+/** ********** Backlight ********** **/
+#backlight {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 6px 4px;
+  padding: 0px 5px;
+}
+
+/** ********** Battery ********** **/
+#battery {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 6px 4px;
+  padding: 0px 5px;
+}
+
+#battery.charging {
+  color: @green;
+}
+
+#battery.plugged {
+  color: @green;
+}
+
+@keyframes blink {
+  to {
+    background-color: @pink;
+  }
+}
+
+#battery.critical:not(.charging) {
+  animation-name: blink;
+  animation-duration: 0.5s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  color: @bg0;
+  opacity: 1.0;
+}
+
+/** ********** Clock ********** **/
+#clock {
+  font-weight: 700;
+  margin: 6px 4px;
+  padding: 0px 5px;
+}
+
+/** ********** Tray ********** **/
+#tray {
+  padding: 0px 0px 0px 10px;
+}
+#tray > .passive {
+  -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+  -gtk-icon-effect: highlight;
+  background-color: @red;
+}
+
+/** ********** Idle Inhibitor ********** **/
+#idle_inhibitor {
+  border-radius: 16px;
+  margin: 6px 4px;
+  padding: 0px 15px;
+}
+#idle_inhibitor.activated {
+  color: @green;
+  font-weight: bold;
+}
+
+/** ********** Image ********** **/
+#image {
+  padding: 0px 5px 0px 5px;
+}
+
+#custom-wall {
+  margin: 6px 4px;
+  padding: 0px 5px;
+}

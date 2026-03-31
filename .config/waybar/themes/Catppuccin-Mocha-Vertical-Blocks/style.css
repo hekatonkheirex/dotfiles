@@ -1,0 +1,265 @@
+@import '../catppuccin-mocha.css';
+
+/* General configuration */
+* {
+  border: none;
+  font-family: "JetBrains Mono", "tabler-icons";
+  font-size: 12px;
+}
+
+button {
+  min-height: 18px;
+  min-width: 18px;
+}
+
+window#waybar {
+  background: transparent;
+  transition-property: background-color;
+  transition-duration: .5s;
+}
+
+window#waybar.hidden {
+  opacity: 0.0;
+}
+
+/* Tooltips */
+tooltip {
+  background: rgba(22, 22, 22, 0.9);
+  border: 1px solid rgba(22, 22, 22, 0.9);
+  border-radius: 16px;
+}
+tooltip label {
+  color: @text;
+}
+
+.modules-left {
+  border: 2px solid @surface1;
+  box-shadow: 6px 6px 0 @base;
+  margin: 4px 4px 0px 2px;
+}
+
+.modules-center {
+  border: 2px solid @surface1;
+  box-shadow: 6px 6px 0 @base;
+  margin: 4px 4px 0px 2px;
+}
+
+.modules-right {
+  border: 2px solid @surface1;
+  box-shadow: 6px 6px 0 @base;
+  margin: 0px 4px 10px 2px;
+}
+
+/* Workspaces */
+#workspaces {
+  background: @base;
+}
+
+#workspaces button {
+  color: @surface2;
+  transition: all 0.3s ease-in-out;
+}
+
+#workspaces button:hover {
+  color: @mauve;
+  background-size: 300% 300%;
+  min-height: 30px;
+}
+
+#workspaces button.active {
+  color: @mauve;
+  transition: all 0.3s ease-in-out;
+}
+
+#workspaces button.urgent {
+  background: @red;
+}
+
+#workspaces button.persistent {
+  background: @mauve;
+  transition: all 0.3s ease-in-out;
+}
+
+window#waybar.empty #window {
+	background-color: transparent;
+}
+
+/** ********* Taskbar ********** **/
+#taskbar {
+  background: @surface2;
+  border-radius: 12px;
+}
+#taskbar button {
+  margin: 0;
+}
+taskbar#waybar.empty #taskbar {
+  background-color: transparent;
+}
+
+/** ************ Window ************* **/
+#window {
+  color: @teal;
+  font-weight: bold;
+}
+
+/** ********** Wireplumber ********** **/
+#wireplumber.1 {
+  background: @base;
+  color: @text;
+  font-size: 16px;
+  padding: 4px 0px 0px 0px;
+}
+#wireplumber.2 {
+  background: @base;
+  color: @text;
+  font-size: 10px;
+  padding: 0px 0px 4px 0px;
+}
+
+/** ********** Backlight ********** **/
+#backlight.1 {
+  background: @base;
+  color: @text;
+  font-size: 16px;
+  padding: 4px 0px 0px 0px;
+}
+#backlight.2 {
+  background: @base;
+  color: @text;
+  font-size: 10px;
+  padding: 0px 0px 4px 0px;
+}
+
+/** ********** Battery ********** **/
+#battery.1 {
+  background: @base;
+  font-size: 16px;
+  color: @text;
+  padding: 4px 0px 0px 0px;
+}
+#battery.2 {
+  background: @base;
+  font-size: 10px;
+  color: @text;
+  padding: 0px 0px 4px 0px;
+}
+#battery.1.charging {
+  color: @red;
+}
+#battery.2.charging {
+  color: @red;
+}
+
+#battery.1.plugged {
+  color: @green;
+}
+#battery.2.plugged {
+  color: @green;
+}
+
+@keyframes blink {
+  to {
+    color: @peach;
+  }
+}
+
+#battery.critical:not(.charging) {
+  animation-name: blink;
+  animation-duration: 0.5s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  color: @red;
+}
+
+/** ********** Clock ********** **/
+#clock.1 {
+  background: @base;
+  color: @blue;
+  font-size: 24px;
+  font-weight: bold;
+  padding: 4px 0px 0px 0px;
+}
+#clock.2 {
+  background: @base;
+  color: @green;
+  font-size: 24px;
+  font-weight: bold;
+  padding: 0px 0px 4px 0px;
+}
+
+
+/** ********** Tray ********** **/
+#tray {
+  background: @base;
+  padding: 4px 0px 4px 0px;
+}
+#tray > .passive {
+  -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+  -gtk-icon-effect: highlight;
+  background-color: @red;
+}
+
+#language {
+  background: @base;
+  color: @teal;
+  font-weight: bold;
+  font-size: 18px;
+  padding: 4px 0px 4px 0px;
+}
+
+#idle_inhibitor {
+  background: @base;
+  color: @surface2;
+  font-size: 16px;
+  padding: 4px 0px 8px 0px;
+}
+#idle_inhibitor.activated {
+  background-size: 300% 300%;
+  color: @red;
+}
+
+/* ********** Image ************ */
+#image {
+  background: @base;
+}
+
+/** ********** Custom ********** **/
+#custom-wall {
+  background: @base;
+  color: @blue;
+  font-size: 16px;
+  padding: 8px 0px 4px 0px;
+}
+
+/* Swaync */
+#custom-swaync {
+  background: @base;
+  color: @text;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 4px 0px 4px 0px;
+}
+
+@keyframes gradient_f {
+	0% {
+		background-position: 0% 200%;
+	}
+    50% {
+        background-position: 200% 0%;
+    }
+	100% {
+		background-position: 400% 200%;
+	}
+}
+
+/* Theme switcher */
+#custom-themeswitcher {
+  background: @base;
+  color: @sky;
+  font-size: 16px;
+  padding: 4px 0px 4px 0px;
+}

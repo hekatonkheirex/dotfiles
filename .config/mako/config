@@ -1,0 +1,18 @@
+background-color=#161B2266
+text-color=#ffffff
+border-color=#ffffff33
+progress-color=over #ff6489aa
+border-size=1
+border-radius=12
+font=SF Pro Display 13
+
+# Default Timeout (in milliseconds)
+default-timeout=5000
+
+# High Urgency (Red border/Peach accent)
+[urgency=high]
+border-color=#ff605c
+default-timeout=0
+
+[urgency=low]
+border-color=#161b22

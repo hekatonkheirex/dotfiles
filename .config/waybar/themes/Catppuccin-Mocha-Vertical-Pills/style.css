@@ -1,0 +1,334 @@
+@import '../catppuccin-mocha.css';
+
+/* General configuration */
+* {
+  border: none;
+  font-family: "JetBrains Mono", "tabler-icons";
+  font-size: 12px;
+}
+
+window#waybar {
+  background: transparent;
+  transition-property: background-color;
+  transition-duration: .5s;
+}
+
+window#waybar.hidden {
+  opacity: 0.0;
+}
+
+/* Tooltips */
+tooltip {
+  background: rgba(22, 22, 22, 0.9);
+  border: 1px solid rgba(22, 22, 22, 0.9);
+  border-radius: 16px;
+}
+tooltip label {
+  color: @text;
+}
+
+/* Workspaces */
+#workspaces {
+  background: @base;
+  border: 1px solid @surface2;
+  border-radius: 16px;
+  margin: 0px 0px 1px 1px;
+}
+
+#workspaces button {
+  color: @text;
+  min-width: 12px;
+  min-height: 1px;
+  padding: 8px 0px 8px 0px;
+}
+
+#workspaces button:hover {
+  color: @green;
+}
+
+#workspaces button.active {
+  color: @yellow;
+}
+
+#workspaces button.urgent {
+  background: @red;
+}
+
+/* #workspaces button.persistent { */
+/*   color: @text; */
+/*   transition: all 0.3s ease-in-out; */
+/* } */
+
+window#waybar.empty #window {
+	background-color: transparent;
+}
+
+/** ********* Taskbar ********** **/
+#taskbar {
+  background: @surface2;
+  border-radius: 12px;
+}
+#taskbar button {
+  margin: 0;
+}
+taskbar#waybar.empty #taskbar {
+  background-color: transparent;
+}
+
+/** ************ Window ************* **/
+#window {
+  color: @teal;
+  font-weight: bold;
+}
+
+/** ********** Wireplumber ********** **/
+#wireplumber.1 {
+  background: @base;
+  border-top: 1px solid @surface2;
+  border-right: 1px solid @surface2;
+  border-bottom: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  border-radius: 16px;
+  color: @rosewater;
+  margin: 0px 0px 1px 1px;
+  padding: 4px 0px 4px 0px;
+}
+#wireplumber.1:hover {
+  background: @rosewater;
+  border-top: 0px solid @rosewater;
+  border-right: 1px solid @surface2;
+  border-bottom: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  color: @base;
+  border-radius: 0px 0px 16px 16px;
+  margin: 0px 0px 1px 1px;
+}
+#wireplumber.2 {
+  background: @rosewater;
+  border-top: 1px solid @surface2;
+  border-right: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  color: @base;
+  border-radius: 16px 16px 0px 0px;
+  margin: 0px 0px 0px 1px;
+  padding: 6px 0px 0px 0px;
+}
+
+/** ********** Backlight ********** **/
+#backlight.1 {
+  background: @base;
+  border-top: 1px solid @surface2;
+  border-right: 1px solid @surface2;
+  border-bottom: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  border-radius: 16px;
+  color: @blue;
+  margin: 0px 0px 1px 1px;
+  padding: 4px 0px 4px 0px;
+}
+#backlight.1:hover {
+  background: @blue;
+  border-top: 0px solid @blue;
+  border-right: 1px solid @surface2;
+  border-bottom: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  color: @base;
+  border-radius: 0px 0px 16px 16px;
+  margin: 0px 0px 1px 1px;
+}
+#backlight.2 {
+  background: @blue;
+  border-top: 1px solid @surface2;
+  border-right: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  color: @base;
+  border-radius: 16px 16px 0px 0px;
+  margin: 0px 0px 0px 1px;
+  padding: 6px 0px 0px 0px;
+}
+
+/** ********** Battery ********** **/
+#battery.1 {
+  background: @base;
+  border-top: 1px solid @surface2;
+  border-right: 1px solid @surface2;
+  border-bottom: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  border-radius: 16px;
+  color: @text;
+  margin: 0px 0px 1px 1px;
+  padding: 4px 0px 4px 0px;
+}
+#battery.1:hover {
+  background: @surface2;
+  border-top: 0px solid @surface2;
+  border-right: 1px solid @surface2;
+  border-bottom: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  color: @base;
+  border-radius: 0px 0px 16px 16px;
+  margin: 0px 0px 1px 1px;
+}
+#battery.2 {
+  background: @surface2;
+  border-top: 1px solid @surface2;
+  border-right: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  color: @base;
+  border-radius: 16px 16px 0px 0px;
+  margin: 0px 0px 0px 1px;
+  padding: 0px 0px 4px 0px;
+}
+#battery.1.charging {
+  color: @red;
+}
+#battery.2.charging {
+  color: @red;
+}
+
+#battery.1.plugged {
+  color: @green;
+}
+#battery.2.plugged {
+  color: @green;
+}
+
+@keyframes blink {
+  to {
+    color: @peach;
+  }
+}
+
+#battery.critical:not(.charging) {
+  animation-name: blink;
+  animation-duration: 0.5s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  color: @red;
+}
+
+/** ********** Clock ********** **/
+#clock.1 {
+  background: @base;
+  border-top: 1px solid @surface2;
+  border-right: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  border-radius: 16px 16px 0px 0px;
+  color: @blue;
+  font-weight: bold;
+  margin: 0px 0px 0px 1px;
+  padding: 8px 0px 0px 0px;
+}
+#clock.2 {
+  background: @base;
+  border-right: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  color: @blue;
+  font-weight: bold;
+  margin: 0px 0px 0px 1px;
+  padding: 0px 0px 4px 0px;
+}
+
+#clock.3 {
+  background: @base;
+  border-right: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  color: @green;
+  font-weight: bold;
+  margin: 0px 0px 0px 1px;
+  padding: 4px 0px 0px 0px;
+}
+#clock.4 {
+  background: @base;
+  border-right: 1px solid @surface2;
+  border-bottom: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  border-radius: 0px 0px 16px 16px;
+  color: @green;
+  font-weight: bold;
+  margin: 0px 0px 0px 1px;
+  padding: 0px 0px 8px 0px;
+}
+
+
+/** ********** Tray ********** **/
+#tray {
+  background: @base;
+  border: 1px solid @surface2;
+  border-radius: 16px;
+  margin: 0px 0px 1px 1px;
+  padding: 6px 0px 8px 0px;
+}
+#tray > .passive {
+  -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+  -gtk-icon-effect: highlight;
+  background-color: @red;
+}
+
+#language {
+  background: @base;
+  border: 1px solid @surface2;
+  border-radius: 16px;
+  color: @teal;
+  font-weight: bold;
+  margin: 0px 0px 1px 1px;
+  padding: 4px 0px 4px 0px;
+}
+
+#idle_inhibitor {
+  background: @base;
+  border: 1px solid @surface2;
+  border-radius: 16px;
+  color: @surface2;
+  margin: 0px 0px 1px 1px;
+  padding: 4px 0px 6px 0px;
+}
+#idle_inhibitor.activated {
+  background-size: 300% 300%;
+  color: @red;
+}
+
+/* ********** Image ************ */
+#image {
+  border: 1px solid @surface2;
+  background: @base;
+  border-radius: 16px;
+  margin: 1px 0px 1px 1px;
+  padding: 0px 0px 1px 0px;
+}
+
+/** ********** Custom ********** **/
+#custom-wall {
+  background: @base;
+  border-top: 1px solid @surface2;
+  border-right: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  border-radius: 16px 16px 0px 0px;
+  color: @blue;
+  margin: 0px 0px 0px 1px;
+  padding: 8px 0px 4px 0px;
+}
+
+/* Theme switcher */
+#custom-themeswitcher {
+  background: @base;
+  border-right: 1px solid @surface2;
+  border-bottom: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  border-radius: 0px 0px 16px 16px;
+  color: @sky;
+  margin: 0px 0px 0px 1px;
+  padding: 4px 0px 8px 0px;
+}
+
+#custom-dots {
+  background: @base;
+  border-right: 1px solid @surface2;
+  border-left: 1px solid @surface2;
+  color: @text;
+  margin: 0px 0px 0px 1px;
+}
