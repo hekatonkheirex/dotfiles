@@ -1,0 +1,83 @@
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_state\
+$git_status\
+$fill\
+$cmd_duration\
+$line_break\
+$python\
+$lua\
+$c\
+$rust\
+$perl\
+$php\
+$ruby\
+$character"""
+
+[fill]
+symbol = ' '
+
+[directory]
+read_only = " 󰌾"
+style = "#8be9fd"
+
+[character]
+success_symbol = "[❯](#bd93f9)"
+error_symbol = "[❯](#ff5555)"
+vimcmd_symbol = "[❮](#50fa7b)"
+
+[git_branch]
+format = "[$branch]($style)"
+style = "bright-black"
+
+[git_status]
+format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)"
+style = "cyan"
+conflicted = "​"
+untracked = "​"
+modified = "​"
+staged = "​"
+renamed = "​"
+deleted = "​"
+stashed = "≡"
+
+[git_state]
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+style = "bright-black"
+
+[cmd_duration]
+format = " [$duration]($style) "
+style = "yellow"
+
+[time]
+disabled = false
+time_format = "%T"
+format = '$time'
+
+[c]
+symbol = '󰙱 '
+
+[lua]
+symbol = "󰢱 "
+
+[nodejs]
+symbol = "⬢ "
+
+[perl]
+symbol = " "
+
+[php]
+symbol = " "
+
+[python]
+symbol = " "
+
+[ruby]
+symbol = " "
+
+[rust]
+symbol = " "
+

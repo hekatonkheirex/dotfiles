@@ -18,6 +18,11 @@
 - **Window Manager** • Main - [mangowc](https://mangowc.vercel.app/) 🥭
 - **Window Manager** • Backup (probably will uninstall later)
   [Hyprland](https://hyprland.org/) 💧
+<<<<<<< HEAD
+=======
+- **Window Manager** • Experimental (probably will uninstall later)
+  [Niri](https://niri-wm.github.io/niri/) 🔥
+>>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 
 - **Colorscheme** • [Oxocarbon](https://github.com/nyoom-engineering/oxocarbon)
   💻
@@ -31,9 +36,18 @@
   - [Starship](https://github.com/starship/starship) 🚀
 - **Terminal** • [Kitty](https://sw.kovidgoyal.net/kitty/) 🐈
 - **Panel** • [Waybar](https://github.com/Alexays/Waybar) 🍫
+<<<<<<< HEAD
 - **Notification Daemon** •
   [mako](https://github.com/emersion/mako) 🔔
 - **Launcher** • [Rofi](https://github.com/davatorium/rofi) ⚓
+=======
+- **Shell (running with Hyprland)** • [Noctalia](https://docs.noctalia.dev/) 🌙
+- **Shell (running with Niri)** • [DMS](https://danklinux.com/) 🐧
+- **Notification Daemon** •
+  [mako](https://github.com/emersion/mako) 🔔
+- **Launcher** • [Rofi](https://github.com/davatorium/rofi) ⚓ with
+  [rofimoji](https://github.com/fdw/rofimoji) 😐
+>>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 - **File Manager** • [Thunar](https://www.xfce.org/) 🗄️
 - **Editor** • [Neovim](https://neovim.io/) 📝
 - **Backup Editor** • [Zed](https://zed.dev/) 📝
