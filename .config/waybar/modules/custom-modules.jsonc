@@ -2,7 +2,11 @@
   "custom/wall":{
     "format":"&#xeb00;",
     // "interval": 1,
+<<<<<<< HEAD
     "on-click": "~/.local/bin/wall",
+=======
+    "on-click": "~/.config/waybar/scripts/wall",
+>>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
     "tooltip": false
   },
 

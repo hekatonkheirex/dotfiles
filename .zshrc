@@ -172,8 +172,14 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza --icons $realpath'
 alias ls="eza --icons --group-directories-first"
 alias la="eza -la --icons --group-directories-first"
 alias laa="eza -a --icons --group-directories-first"
+<<<<<<< HEAD
 alias update="paru"
 alias trash="paru -Rns $(paru -Qdtq)"
+=======
+alias li=lsix
+alias update="paru"
+alias garbage="paru -Rns $(pacman -Qdtq)"
+>>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 alias n="nvim"
 alias mirrors="sudo reflector --country US,Paraguay --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist"
 alias tery='echo "--- Power Dashboard ---"; echo "Discharge Rate: $(echo "scale=2; $(cat /sys/class/power_supply/BAT0/power_now) / 1000000" | bc)W"; echo "Battery Health: $(cat /sys/class/power_supply/BAT0/capacity)%"; echo "Cycles: $(cat /sys/class/power_supply/BAT0/cycle_count)"; echo "Status: $(cat /sys/class/power_supply/BAT0/status)"'
@@ -182,6 +188,17 @@ alias tery='echo "--- Power Dashboard ---"; echo "Discharge Rate: $(echo "scale=
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
 
+<<<<<<< HEAD
+=======
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	command yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}
+
+>>>>>>> 5b26e3826b046dcb1f51e1094709b9deed30680c
 # Custom env
 export TERM="kitty"
 export SUDO_PROMPT="Say friend and enter: "
