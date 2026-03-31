@@ -10,7 +10,7 @@
 }
 
 window#waybar {
-  background: rgba(0, 0, 0, 0);
+  background: rgba(255, 255, 255, 0.02);
   transition-property: background-color;
   transition-duration: .5s;
 }
@@ -21,7 +21,7 @@ window#waybar.hidden {
 
 /* Tooltips */
 tooltip {
-  background: rgba(30, 30, 46, 0.9);
+  background: rgba(30, 30, 46, 0.3);
   padding: 20px;
 }
 tooltip label {
@@ -36,7 +36,6 @@ tooltip label {
   padding: 0px 5px;
   background: transparent;
   color: @fg0;
-  border-radius: 8px;
   margin: 2px;
 }
 
