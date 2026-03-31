@@ -1,0 +1,55 @@
+@define-color accent_color #fdb0d3;
+@define-color accent_bg_color #6d3351;
+@define-color accent_fg_color #ffd8e7;
+@define-color destructive_color #ffb4ab;
+@define-color destructive_bg_color #93000a;
+@define-color destructive_fg_color #ffdad6;
+@define-color success_color #e0bdcb;
+@define-color success_bg_color #59404b;
+@define-color success_fg_color #fdd9e7;
+@define-color warning_color #f2bb99;
+@define-color warning_bg_color #643e24;
+@define-color warning_fg_color #ffdbc7;
+@define-color error_color #ffb4ab;
+@define-color error_bg_color #93000a;
+@define-color error_fg_color #ffdad6;
+@define-color window_bg_color #191114;
+@define-color window_fg_color #eedfe3;
+@define-color view_bg_color #191114;
+@define-color view_fg_color #eedfe3;
+@define-color headerbar_bg_color @window_bg_color;
+@define-color headerbar_fg_color @window_fg_color;
+@define-color headerbar_border_color @window_bg_color;
+@define-color headerbar_backdrop_color @window_bg_color;
+@define-color headerbar_shade_color @window_bg_color;
+@define-color card_bg_color #30282b;
+@define-color card_fg_color #eedfe3;
+@define-color card_shade_color rgba(0, 0, 0, 0.07);
+@define-color dialog_bg_color @card_bg_color;
+@define-color dialog_fg_color @card_fg_color;
+@define-color popover_bg_color @card_bg_color;
+@define-color popover_fg_color @card_fg_color;
+@define-color shade_color rgba(0, 0, 0, 0.36);
+@define-color scrollbar_outline_color rgba(139, 145, 152, 0.5);
+@define-color sidebar_bg_color #21191d;
+@define-color secondary_sidebar_bg_color @sidebar_bg_color;
+@define-color sidebar_backdrop_color @sidebar_bg_color;
+@define-color secondary_sidebar_backdrop_color @sidebar_bg_color;
+
+.navigation-sidebar {
+	background-color: @sidebar_bg_color;
+	color: @window_fg_color;
+}
+
+
+headerbar.default-decoration {
+  /* You may need to tweak these values depending on your GTK theme */
+  margin-bottom: 50px;
+  margin-top: -100px;
+}
+
+/* rm -rf window shadows */
+window.csd,             /* gtk4? */
+window.csd decoration { /* gtk3 */
+  box-shadow: none;
+}

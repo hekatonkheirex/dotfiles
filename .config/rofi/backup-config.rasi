@@ -1,0 +1,22 @@
+configuration {
+  modi: "drun,emoji:rofimoji --action copy --max-recent 0";
+  font: "IBM Plex Bold 18px";
+  icon-theme: "Papirus-Dark";
+  show-icons: true;
+  drun-display-format: "{name}";
+  display-drun: ">_";
+  display-emoji: "😃";
+  terminal: "kitty";
+  sidebar-mode: true;
+  hover-select: true;
+  me-select-entry: "";
+  me-accept-entry: "MousePrimary";
+}
+
+// @theme "~/.config/rofi/theme/catppuccin.rasi"
+// @theme "~/.config/rofi/theme/dawn.rasi"
+// @theme "~/.config/rofi/theme/gruvbox.rasi"
+// @theme "~/.config/rofi/theme/everforest.rasi"
+// @theme "~/.config/rofi/theme/solarized.rasi"
+// @theme "~/.config/rofi/theme/oxocarbon.rasi"
+@theme "~/.config/rofi/theme/tokyonight-storm.rasi"

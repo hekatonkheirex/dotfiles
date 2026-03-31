@@ -1,0 +1,102 @@
+* {
+    color0: #f4f4ed;
+    color1: #b4637a;
+    color2: #56949f;
+    color3: #ea9d34;
+    color4: #286983;
+    color5: #d7827e;
+    color6: #56949f;
+    color7: #907aa9;
+
+    bg: #f4f4edf0;
+    bg-alt: #fffaf3;
+    fg: #575279;
+
+    color: @fg;
+    background-color: transparent;
+    highlight: underline bold #b4637a;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 13px;
+}
+
+window {
+    width: 800px;
+    height: 600px;
+    children: [ mainbox];
+    location: center;
+    transparency: "real";
+    background-color: @bg;
+}
+
+mainbox {
+    orientation: vertical;
+    children: [ inputbar, message, listview, mode-switcher];
+    border: 1px;
+    border-color: @color0;
+}
+
+inputbar {
+    padding: 3em;
+    background-image: url("~/Pictures/Walls/wallhaven-6lqvql.jpg", width);
+    children: [prompt,entry];
+    spacing: -1px;
+}
+
+prompt {
+    background-color: @color1;
+    padding: 15px;
+    text-color: @bg;
+    border-radius: 50% 0 0 50%;
+}
+
+entry {
+    padding: 15px 30px 15px 15px;
+    border: 0px;
+    border-radius: 0 100% 100% 0;
+    background-color: @bg;
+    text-color: @fg;
+}
+
+message {
+    padding: 0 0 1em 0;
+}
+
+textbox {
+    background-color: @color1;
+    padding: 0 1.5em;
+}
+
+listview {
+    margin: 0.5em 0 0 0;
+    lines: 6;
+}
+
+element {
+    padding: 0.5em;
+    color: @fg;
+}
+
+element selected.normal {
+    background-color: @bg-alt;
+}
+
+element-icon {
+    padding: 0 0.5em 0 1em;
+}
+
+mode-switcher {
+    padding: 0 1em;
+}
+
+button {
+    margin: 0.3em 0 0.5em;
+    padding: 0.3em;
+    border-radius: 50%;
+}
+
+button selected {
+    background-color: @color5;
+    text-color: @color0;
+}
