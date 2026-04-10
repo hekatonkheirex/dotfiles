@@ -18,7 +18,6 @@ cmake
 cpio
 cups
 dialog
-easyeffects
 efibootmgr
 ente-auth-bin
 ente-desktop-bin
@@ -35,6 +34,7 @@ firefox
 fprintd
 fwupd
 fzf
+gammastep
 git
 glaze
 gnome-epub-thumbnailer
@@ -49,13 +49,9 @@ gvfs-mtp
 gvfs-smb
 gvfs-wsdd
 helium-browser-bin
-hyprcursor
+hplip
 hypridle
-hyprland
-hyprland-protocols
 hyprlock
-hyprpaper
-hyprpicker
 imagemagick
 intel-gpu-tools
 intel-media-driver
@@ -70,11 +66,10 @@ lazygit
 libva-intel-driver
 linux
 linux-firmware
+linux-headers
 localsend-bin
-lsp-plugins-lv2
 mako
 mangowm
-mda-lv2-git
 most
 mpv
 nautilus
@@ -85,7 +80,6 @@ nautilus-share
 neovim
 network-manager-applet
 networkmanager
-noctalia-shell
 noto-fonts
 noto-fonts-cjk
 noto-fonts-emoji
@@ -93,6 +87,7 @@ noto-fonts-extra
 ntfs-3g
 nwg-look
 onlyoffice-bin
+openssh
 pacman-contrib
 pacutils
 papers
@@ -135,6 +130,7 @@ ttf-opensans
 ttf-roboto
 ttf-ubuntu-font-family
 udiskie
+upower
 vulkan-headers
 waybar
 waypaper-git
@@ -147,10 +143,7 @@ wireplumber
 wlogout
 wlopm
 wlr-randr
-wlsunset
 xdg-desktop-portal
-xdg-desktop-portal-gtk
-xdg-desktop-portal-hyprland
 xdg-desktop-portal-wlr
 xdg-user-dirs
 xdg-utils
@@ -158,7 +151,6 @@ xorg-xwayland
 yad
 yadm
 yt-dlp
-zam-plugins-lv2
 zed
 zoxide
 zramswap
