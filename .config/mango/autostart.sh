@@ -47,6 +47,4 @@ swayosd-server >/dev/null 2>&1 &
 
 gnome-keyring-daemon --start --components=secrets,ssh,pkcs11 2>&1 &
 
-easyeffects 2>&1 &
-
 udiskie -2 2>&1 &
