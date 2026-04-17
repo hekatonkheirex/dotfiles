@@ -104,7 +104,7 @@ progress.indicator.text.color=#ffffff
 
 [Hacks]
 transparent_ktitle_label=true
-transparent_dolphin_view=false
+transparent_dolphin_view=true
 transparent_pcmanfm_sidepane=true
 blur_translucent=true
 transparent_menutitle=true
@@ -127,7 +127,7 @@ centered_forms=false
 kinetic_scrolling=false
 noninteger_translucency=false
 transparent_arrow_button=true
-blur_only_active_window=true
+blur_only_active_window=false
 style_vertical_toolbars=false
 
 [PanelButtonCommand]

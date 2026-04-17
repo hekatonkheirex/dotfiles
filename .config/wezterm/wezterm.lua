@@ -284,10 +284,10 @@ return {
   tab_bar_at_bottom = true,
 
   -- General
-  animation_fps = 1,
+  animation_fps = 60,
   cursor_blink_rate = 1000,
-  cursor_blink_ease_in = "Constant",
-  cursor_blink_ease_out = "Constant",
+  cursor_blink_ease_in = "EaseIn",
+  cursor_blink_ease_out = "EaseOut",
   enable_kitty_graphics = true,
   automatically_reload_config = true,
   inactive_pane_hsb = { saturation = 1.0, brightness = 1.0 },

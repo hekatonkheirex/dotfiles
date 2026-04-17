@@ -10,6 +10,7 @@ blueman
 bluez
 bluez-utils
 brave-bin
+brave-origin-beta-bin
 brightnessctl
 btop
 calf
@@ -20,7 +21,6 @@ cups
 dialog
 efibootmgr
 ente-auth-bin
-ente-desktop-bin
 eza
 fastfetch
 fcitx5
@@ -42,6 +42,8 @@ gnome-keyring
 grim
 grub
 gst-libav
+gst-plugins-bad
+gst-thumbnailers
 gvfs
 gvfs-afc
 gvfs-gphoto2
@@ -63,10 +65,13 @@ kitty
 krokiet
 kvantum
 lazygit
+libid3tag
 libva-intel-driver
 linux
 linux-firmware
 linux-headers
+linux-zen
+linux-zen-headers
 localsend-bin
 mako
 mangowm
@@ -130,7 +135,10 @@ ttf-opensans
 ttf-roboto
 ttf-ubuntu-font-family
 udiskie
+unimatrix-git
 upower
+vivaldi
+vivaldi-ffmpeg-codecs
 vulkan-headers
 waybar
 waypaper-git
@@ -144,9 +152,11 @@ wlogout
 wlopm
 wlr-randr
 xdg-desktop-portal
+xdg-desktop-portal-gtk
 xdg-desktop-portal-wlr
 xdg-user-dirs
 xdg-utils
+xnviewmp
 xorg-xwayland
 yad
 yadm
