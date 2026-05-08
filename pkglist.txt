@@ -97,7 +97,6 @@ pacman-contrib
 pacutils
 papers
 paru
-paru-debug
 pavucontrol
 pipewire
 pipewire-jack
