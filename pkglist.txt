@@ -85,6 +85,7 @@ nautilus-share
 neovim
 network-manager-applet
 networkmanager
+niri
 noto-fonts
 noto-fonts-cjk
 noto-fonts-emoji
@@ -151,12 +152,14 @@ wlogout
 wlopm
 wlr-randr
 xdg-desktop-portal
+xdg-desktop-portal-gnome
 xdg-desktop-portal-gtk
 xdg-desktop-portal-wlr
 xdg-user-dirs
 xdg-utils
 xnviewmp
 xorg-xwayland
+xwayland-satellite
 yad
 yadm
 yt-dlp
