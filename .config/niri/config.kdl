@@ -1,0 +1,21 @@
+include "environments.kdl"
+include "inputs.kdl"
+include "outputs.kdl"
+include "decorations.kdl"
+include "startup.kdl"
+include "windowrules.kdl"
+include "keybinds.kdl"
+
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+hotkey-overlay {
+    skip-at-startup
+  }
+
+switch-events {
+    lid-close { spawn "hyprlock"; }
+}
+
+debug {
+  honor-xdg-activation-with-invalid-serial
+}

@@ -1,0 +1,21 @@
+/* Base */
+@define-color bg #073642;
+@define-color bg1 #586E75;
+@define-color bg2 #657B83;
+@define-color bg3 #9EACAD;
+
+@define-color fg #FFFFFF;
+@define-color fg1 #FDF6E3;
+@define-color fg2 #EEE8D5;
+@define-color fg3 #ADB8B8;
+
+@define-color red #DC322F;
+@define-color green #859900;
+@define-color yellow #B58900;
+@define-color blue #268BD2;
+@define-color magenta #D33682;
+@define-color cyan #2AA198;
+@define-color orange #CB4B16;
+
+/* Extras */
+@define-color violet #6C71C4;
