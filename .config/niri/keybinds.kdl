@@ -5,7 +5,11 @@ binds {
 
   Mod+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty"; }
   Mod+D hotkey-overlay-title="Run an Application: Rofi" { spawn "rofi" "-show" "drun"; }
-  Super+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
+  Mod+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
+  Mod+B hotkey-overlay-title="Open Web Browser: Brave Browser" { spawn "brave"; }
+  Mod+T hotkey-overlay-title="Open File Manager: Nautilus" { spawn "nautilus"; }
+  Mod+Escape hotkey-overlay-title="Terminate session: wlogout" { spawn-sh "killall wlogout || wlogout --protocol layer-shell -b 5 -T 400 -B 400"; }
+  Mod+P hotkey-overlay-title="Change wallpaper:bgselector" { spawn-sh "$HOME/.local/bin/bgselector"; }
 
   // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
   // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
@@ -252,7 +256,7 @@ binds {
   //
   // The allow-inhibiting=false property can be applied to other binds as well,
   // which ensures niri always processes them, even when an inhibitor is active.
-  Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+  // Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
 
   // The quit action will show a confirmation dialog to avoid accidental exits.
   Mod+Shift+E { quit; }

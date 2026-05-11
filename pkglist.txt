@@ -1,6 +1,7 @@
 acpi
 acpi_call
 acpid
+avahi
 awww
 base
 base-devel
@@ -10,13 +11,11 @@ blueman
 bluez
 bluez-utils
 brave-bin
-brave-origin-beta-bin
 brightnessctl
 btop
 calf
 cliphist
 cmake
-cpio
 cups
 dialog
 efibootmgr
@@ -41,6 +40,7 @@ gnome-epub-thumbnailer
 gnome-keyring
 grim
 grub
+grub-btrfs
 gst-libav
 gst-plugins-bad
 gst-thumbnailers
@@ -50,11 +50,11 @@ gvfs-gphoto2
 gvfs-mtp
 gvfs-smb
 gvfs-wsdd
-helium-browser-bin
 hplip
 hypridle
 hyprlock
 imagemagick
+inotify-tools
 intel-gpu-tools
 intel-media-driver
 intel-ucode
@@ -93,7 +93,6 @@ noto-fonts-extra
 ntfs-3g
 nwg-look
 onlyoffice-bin
-openssh
 pacman-contrib
 pacutils
 papers
@@ -120,6 +119,7 @@ slurp
 sof-firmware
 sushi
 swayosd
+timeshift
 tlp
 tree
 ttf-fira-code
@@ -141,7 +141,6 @@ vivaldi
 vivaldi-ffmpeg-codecs
 vulkan-headers
 waybar
-waypaper-git
 webp-pixbuf-loader
 wev
 wezterm
