@@ -18,7 +18,7 @@
   "bar_id": "bar-0",
 
   // Choose the order of the modules
-  "modules-left": ["image", "niri/workspaces"],
+  "modules-left": ["image", "niri/workspaces", "niri/window"],
   "modules-center": [],
   "modules-right": ["idle_inhibitor", "custom/wall", "wireplumber", "backlight", "battery", "tray", "clock"],
 
@@ -30,13 +30,8 @@
     "sort-by-id": true
   },
 
-  "dwl/window#1": {
-    "format": "[{layout}]= ",
-  },
-  "dwl/window#2": {
-    "expand": true,
-    "format": "{}",
-    "max-length": 50,
+  "niri/window": {
+    "format": "{title}",
   },
 
   "backlight": {

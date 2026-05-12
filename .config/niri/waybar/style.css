@@ -53,13 +53,8 @@ tooltip label {
   background: @red;
 }
 
-/** ********** Layout indicator ********** **/
-#window.1 {
-  font-weight: 700;
-}
-
 /** ********** Window ********** **/
-#window.2 {
+#window {
   font-weight: 700;
   padding: 0px 5px 0px 5px;
 }

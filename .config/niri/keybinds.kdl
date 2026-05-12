@@ -9,7 +9,6 @@ binds {
   Mod+B hotkey-overlay-title="Open Web Browser: Brave Browser" { spawn "brave"; }
   Mod+T hotkey-overlay-title="Open File Manager: Nautilus" { spawn "nautilus"; }
   Mod+Escape hotkey-overlay-title="Terminate session: wlogout" { spawn-sh "killall wlogout || wlogout --protocol layer-shell -b 5 -T 400 -B 400"; }
-  Mod+P hotkey-overlay-title="Change wallpaper:bgselector" { spawn-sh "$HOME/.local/bin/bgselector"; }
 
   // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
   // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
