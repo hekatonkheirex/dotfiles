@@ -15,7 +15,7 @@ gammastep 2>&1 &
 awww-daemon 2>&1 &
 
 # top bar
-waybar -c ~/.config/mango/waybar/config.jsonc -s ~/.config/mango/waybar/style.css 2>&1 &
+~/.config/mango/waybar/launch.sh 2>&1 &
 
 # xwayland dpi scale
 echo "Xft.dpi: 140" | xrdb -merge #dpi缩放
@@ -45,6 +45,6 @@ hypridle 2>&1 &
 # change light value and volume value by swayosd-client in keybind
 swayosd-server >/dev/null 2>&1 &
 
-gnome-keyring-daemon --start --components=secrets,ssh,pkcs11 2>&1 &
+gnome-keyring-daemon --replace --components=secrets,ssh,pkcs11 2>&1 &
 
 udiskie -2 2>&1 &

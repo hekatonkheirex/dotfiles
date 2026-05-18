@@ -2,5 +2,7 @@ return {
   "neanias/everforest-nvim",
   lazy = false,
   priority = 1000,
-  background = "hard",
+  init = function()
+    vim.g.everforest_background = "hard"
+  end,
 }

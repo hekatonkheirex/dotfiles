@@ -16,7 +16,7 @@ while true; do
   SELECTED_WALL=$(find "$WALL_DIR" -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.webp" \) | shuf -n 1)
 
   # Apply the wallpaper with a smooth transition
-  swww img "$SELECTED_WALL" --transition-type center --transition-step 90 --transition-fps 60
+  awww img "$SELECTED_WALL" --transition-type center --transition-step 90 --transition-fps 60
 
   sleep "$INTERVAL"
 done

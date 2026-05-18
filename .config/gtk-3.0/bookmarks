@@ -5,3 +5,4 @@ file:///home/mura/Music Music
 file:///home/mura/Pictures Pictures
 file:///home/mura/Videos Videos
 smb://192.168.100.3/apps/ apps on 192.168.100.3
+smb://192.168.100.3/sd-webui-forge-neo/ sd-webui-forge-neo on 192.168.100.3

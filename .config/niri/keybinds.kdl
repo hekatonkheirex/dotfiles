@@ -8,7 +8,7 @@ binds {
   Mod+Alt+L hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
   Mod+B hotkey-overlay-title="Open Web Browser: Brave Browser" { spawn "brave"; }
   Mod+T hotkey-overlay-title="Open File Manager: Nautilus" { spawn "nautilus"; }
-  Mod+Escape hotkey-overlay-title="Terminate session: wlogout" { spawn-sh "killall wlogout || wlogout --protocol layer-shell -b 5 -T 400 -B 400"; }
+  Mod+Escape hotkey-overlay-title="Open Wlogout for terminating session: wlogout" { spawn-sh "killall wlogout || wlogout --protocol layer-shell -b 5 -T 400 -B 400"; }
 
   // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
   // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
@@ -136,7 +136,7 @@ binds {
 
   // Usually scrolling up and down with Shift in applications results in
   // horizontal scrolling; these binds replicate that.
-   Mod+Shift+WheelScrollDown      { focus-column-right; }
+  Mod+Shift+WheelScrollDown      { focus-column-right; }
   Mod+Shift+WheelScrollUp        { focus-column-left; }
   Mod+Ctrl+Shift+WheelScrollDown { move-column-right; }
   Mod+Ctrl+Shift+WheelScrollUp   { move-column-left; }
@@ -157,7 +157,7 @@ binds {
   // (empty) workspace.
   //
   // For example, with 2 workspaces + 1 empty, indices 3, 4, 5 and so on
-   // will all refer to the 3rd workspace.
+  // will all refer to the 3rd workspace.
   Mod+1 { focus-workspace 1; }
   Mod+2 { focus-workspace 2; }
   Mod+3 { focus-workspace 3; }
@@ -209,7 +209,7 @@ binds {
   Mod+C { center-column; }
 
   // Center all fully visible columns on screen.
-   Mod+Ctrl+C { center-visible-columns; }
+  Mod+Ctrl+C { center-visible-columns; }
 
   // Finer width adjustments.
   // This command can also:
