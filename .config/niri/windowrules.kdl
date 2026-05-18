@@ -29,10 +29,10 @@ window-rule {
 }
 
 window-rule {
-    match app-id=r#"^pavucontrol$"#
-    match app-id=r#"^nm-connection-editor$"#
-    default-column-width { proportion 0.5; }
-    open-floating false
+  match app-id=r#"^pavucontrol$"#
+  match app-id=r#"^nm-connection-editor$"#
+  default-column-width { proportion 0.5; }
+  open-floating false
 }
 
 // Radius rules
@@ -47,10 +47,15 @@ window-rule {
     match app-id=r#"^org\.wezfurlong\.wezterm$"#
     match app-id="zen"
     match app-id="kitty"
-    match app-id="brave-browser"
+    // match app-id="brave-browser"
     match app-id="org.gnome.Nautilus"
     draw-border-with-background false
     opacity 0.90
+}
+
+window-rule {
+    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    default-column-width {}
 }
 
 // General layer rules

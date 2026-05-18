@@ -13,7 +13,8 @@ input {
   trackpoint {
   }
   warp-mouse-to-focus
-  focus-follows-mouse max-scroll-amount="0%"
+  focus-follows-mouse
+  // focus-follows-mouse max-scroll-amount="0%"
 }
 
 gestures {
@@ -28,8 +29,8 @@ gestures {
     max-speed 1500
   }
   hot-corners {
-    // off
-    top-left
+    off
+    // top-left
   }
 }
 

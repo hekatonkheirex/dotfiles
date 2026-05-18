@@ -16,7 +16,6 @@ environment {
   QT_AUTO_SCREEN_SCALE_FACTOR "1"
 
   CLUTTER_BACKEND "wayland"
-  GBM_BACKEND "drm-vision"
 
   MOZ_ENABLE_WAYLAND "1"
   MOZ_DISABLE_RDD_SANDBOX "1"

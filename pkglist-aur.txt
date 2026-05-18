@@ -1,0 +1,16 @@
+brave-bin
+ente-auth-bin
+krokiet
+localsend-bin
+mangowm
+nautilus-admin-gtk4
+nautilus-open-any-terminal
+onlyoffice-bin
+paru
+raw-thumbnailer
+sddm-git
+timeshift-autosnap
+unimatrix-git
+wlogout
+xnviewmp
+zramswap

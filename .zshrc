@@ -178,6 +178,7 @@ alias update="paru"
 alias n="nvim"
 alias mirrors="sudo reflector --country US,Paraguay --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist"
 alias tery='echo "--- Power Dashboard ---"; echo "Discharge Rate: $(echo "scale=2; $(cat /sys/class/power_supply/BAT0/power_now) / 1000000" | bc)W"; echo "Battery Health: $(cat /sys/class/power_supply/BAT0/capacity)%"; echo "Cycles: $(cat /sys/class/power_supply/BAT0/cycle_count)"; echo "Status: $(cat /sys/class/power_supply/BAT0/status)"'
+alias throttled-mon='sudo python /usr/lib/throttled/throttled.py --monitor'
 
 # Shell integrations
 eval "$(fzf --zsh)"
