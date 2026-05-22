@@ -37,7 +37,7 @@
   "backlight": {
     "interval": 10,
     "format": "{icon} {percent}%",
-    "format-icons": ["&#xeb7f;"],
+    "format-icons": ["<span rise='-2000'>\ue1ae</span>"],
     "on-scroll-up": "brightnessctl set +5%",
     "on-scroll-down": "brightnessctl set 5%-",
     "smooth-scrolling-threshold": 1,
@@ -54,10 +54,10 @@
       "critical": 20
     },
     "format": "{icon} {capacity}%",
-    "format-charging": "&#xea33; {capacity}%",
-    "format-plugged": "&#xef3b; {capacity}%",
-    "format-full": "&#xf668; 100%",
-    "format-icons": ["&#xea34;", "&#xea2f;", "&#xea30;", "&#xea31;", "&#xea32;"],
+    "format-charging": "<span rise='-2000'>\uf250</span> {capacity}%",
+    "format-plugged": "<span rise='-2000'>\uf251</span> {capacity}%",
+    "format-full": "<span rise='-2000'>\uf304</span> 100%",
+    "format-icons": ["<span rise='-2000'>\uf30b</span>", "<span rise='-2000'>\uf30a</span>", "<span rise='-2000'>\uf309</span>", "<span rise='-2000'>\uf308</span>", "<span rise='-2000'>\uf307</span>"],
     "format-alt": "{time}",
     "format-time": "{H}h {M}min",
     "tooltip": true,
@@ -76,8 +76,8 @@
   "idle_inhibitor": {
     "format": "{icon}",
     "format-icons": {
-      "activated": "&#xef0e;",
-      "deactivated": "&#xf106;"
+      "activated": "\ue8f4",
+      "deactivated": "\ue8f5"
     }
   },
   
@@ -95,17 +95,17 @@
 
   "wireplumber": {
     "format": "{icon} {volume}%",
-    "format-muted": "&#xf1c3; Muted",
-    "format-bluetooth": "&#xea37; {volume}%",
-    "format-source": "&#xeaf0; {volume}%",
-    "format-source-muted": "&#xed16; Muted",
+    "format-muted": "<span rise='-2000'>\ue04f</span> Muted",
+    "format-bluetooth": "<span rise='-2000'>\uf324</span> {volume}%",
+    "format-source": "<span rise='-2000'>\ue029</span> {volume}%",
+    "format-source-muted": "<span rise='-2000'>\ue02b</span> Muted",
     "format-icons": {
-      "headphone": "&#xeabd;",
-      "hands-free": "&#xf5a9;",
-      "headset": "&#xeb90;",
-      "phone": "&#xeb09;",
-      "portable": "&#xea8a;",
-      "default": ["&#xeb50;", "&#xeb4f;", "&#xeb51;"]
+      "headphone": "<span rise='-2000'>\uf01f</span>",
+      "hands-free": "<span rise='-2000'>\ue311</span>",
+      "headset": "<span rise='-2000'>\ue311</span>",
+      "phone": "<span rise='-2000'>\ue9cd</span>",
+      "portable": "<span rise='-2000'>\ue7ba</span>",
+      "default": ["<span rise='-2000'>\ue04e</span>", "<span rise='-2000'>\ue04d</span>", "<span rise='-2000'>\ue050</span>"]
     },
     "scroll-step": 5.0,
     "on-click": "pactl set-sink-mute 0 toggle",
@@ -162,7 +162,7 @@
   },
 
   "custom/wall": {
-    "format": "&#xeb00;",
+    "format": "\ue1bc",
     "on-click": "~/.local/bin/wall",
     "tooltip": false
   }

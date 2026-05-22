@@ -1,7 +1,7 @@
 # Global path
 PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 
-# Set the directoy we want to store zinit and plugins
+# Set the directory we want to store zinit and plugins
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 
 # Download zinit, if it's not there yet
@@ -133,12 +133,10 @@ bindkey -M emacs '^[[1;5D' backward-word
 bindkey -M viins '^[[1;5D' backward-word
 bindkey -M vicmd '^[[1;5D' backward-word
 
-
 bindkey '\ew' kill-region                             # [Esc-w] - Kill from the cursor to the mark
 bindkey -s '\el' 'ls\n'                               # [Esc-l] - run command: ls
 bindkey '^r' history-incremental-search-backward      # [Ctrl-r] - Search backward incrementally for a specified string. The string may begin with ^ to anchor the search to the beginning of the line.
 bindkey ' ' magic-space                               # [Space] - don't do history expansion
-
 
 # Edit the current command line in $EDITOR
 autoload -U edit-command-line
@@ -152,7 +150,6 @@ bindkey "^[m" copy-prev-shell-word
 HISTSIZE=5000
 HISTFILE=~/.zsh_history
 SAVEHIST=$HISTSIZE
-HISTDUPE=erase
 setopt appendhistory
 setopt sharehistory
 setopt hist_ignore_space
@@ -173,8 +170,7 @@ alias ls="eza --icons --group-directories-first"
 alias la="eza -la --icons --group-directories-first"
 alias laa="eza -a --icons --group-directories-first"
 alias update="paru"
-alias trash="paru -Rns $(paru -Qdtq)"
-alias update="paru"
+trash() { paru -Rns $(paru -Qdtq); }
 alias n="nvim"
 alias mirrors="sudo reflector --country US,Paraguay --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist"
 alias tery='echo "--- Power Dashboard ---"; echo "Discharge Rate: $(echo "scale=2; $(cat /sys/class/power_supply/BAT0/power_now) / 1000000" | bc)W"; echo "Battery Health: $(cat /sys/class/power_supply/BAT0/capacity)%"; echo "Cycles: $(cat /sys/class/power_supply/BAT0/cycle_count)"; echo "Status: $(cat /sys/class/power_supply/BAT0/status)"'
@@ -182,10 +178,8 @@ alias throttled-mon='sudo python /usr/lib/throttled/throttled.py --monitor'
 
 # Shell integrations
 eval "$(fzf --zsh)"
-eval "$(zoxide init --cmd cd zsh)"
 
 # Custom env
-export TERM="kitty"
 export SUDO_PROMPT="Say friend and enter: "
 export PAGER="most"
 export EDITOR="nvim"
