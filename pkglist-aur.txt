@@ -1,16 +1,30 @@
-brave-bin
-ente-auth-bin
-krokiet
-localsend-bin
-mangowm
-nautilus-admin-gtk4
-nautilus-open-any-terminal
-onlyoffice-bin
-paru
-raw-thumbnailer
-sddm-git
-timeshift-autosnap
-unimatrix-git
-wlogout
-xnviewmp
-zramswap
+brave-bin 1:1.90.124-1
+ente-auth-bin 4.4.22-1
+krokiet 11.0.1-0.2
+localsend-bin 1.17.0-1
+mangowm 0.13.1-1
+nautilus-admin-gtk4 1:1.2.0-2
+nautilus-open-any-terminal 0.8.0-1
+onlyoffice-bin 9.4.0-1
+paru 2.1.0-2
+raw-thumbnailer 48.0.0-1
+sddm-git 0.21.0.55.gbc9eee8-1
+timeshift-autosnap 0.10.0-1
+unimatrix-git r103.dff519f-1
+wlogout 1.2.2-0
+xnviewmp 1.11.2-1
+brave-bin 1:1.90.124-1
+ente-auth-bin 4.4.22-1
+krokiet 11.0.1-0.2
+localsend-bin 1.17.0-1
+mangowm 0.13.1-1
+nautilus-admin-gtk4 1:1.2.0-2
+nautilus-open-any-terminal 0.8.0-1
+onlyoffice-bin 9.4.0-1
+paru 2.1.0-2
+raw-thumbnailer 48.0.0-1
+sddm-git 0.21.0.55.gbc9eee8-1
+timeshift-autosnap 0.10.0-1
+unimatrix-git r103.dff519f-1
+wlogout 1.2.2-0
+xnviewmp 1.11.2-1

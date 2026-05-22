@@ -12,8 +12,8 @@ input {
   }
   trackpoint {
   }
-  warp-mouse-to-focus
-  focus-follows-mouse
+  // warp-mouse-to-focus
+  // focus-follows-mouse
   // focus-follows-mouse max-scroll-amount="0%"
 }
 

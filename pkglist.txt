@@ -1,5 +1,4 @@
 acpi
-acpi_call
 acpid
 avahi
 awww
@@ -44,6 +43,7 @@ grub-btrfs
 gst-libav
 gst-plugins-bad
 gst-thumbnailers
+gtklock
 gvfs
 gvfs-afc
 gvfs-gphoto2
@@ -51,8 +51,6 @@ gvfs-mtp
 gvfs-smb
 gvfs-wsdd
 hplip
-hypridle
-hyprlock
 imagemagick
 inotify-tools
 intel-gpu-tools
@@ -66,9 +64,7 @@ kvantum
 lazygit
 libid3tag
 libva-intel-driver
-linux
 linux-firmware
-linux-headers
 linux-zen
 linux-zen-headers
 localsend-bin
@@ -118,6 +114,7 @@ sddm-git
 slurp
 sof-firmware
 sushi
+swayidle
 swayosd
 throttled
 timeshift
@@ -167,5 +164,5 @@ yadm
 yt-dlp
 zed
 zoxide
-zramswap
+zram-generator
 zsh
