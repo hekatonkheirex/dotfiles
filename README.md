@@ -92,11 +92,19 @@ under root permissions.
   and 100% when plugged in.
 - `grub`: This is the GRUB configuration. It is designed to not display all the
   init commands and shows a nice splash logo, with the help of plymouth.
-- `login`, `logind.conf`, `sddm`, `system-auth` and `system-local-login`: All
-  files needed to unlock the Thinkpad with the fingerprint sensor. `sddm`,
-  `login`, `system-auth` and `system-local-login` go into `/etc/pam.d/`,
-  `logind.conf` goes into `/etc/systemd/`.
+- `login`, `logind.conf`, `sddm`, `sddm-greeter`, `gtklock`, `system-auth` and
+`system-local-login`: All files needed to unlock the Thinkpad with the
+fingerprint sensor. `sddm`, `sddm-greeter`, `gtklock`, `login`, `system-auth`
+and `system-local-login` go into `/etc/pam.d/`, `logind.conf` goes into `/etc/systemd/`.
 - `tlp.conf`: This needs to have the `tlp` package installed. This handles the
   power usage. Limits the charge thresholds, puts USB to autosuspend, and a lot
   more. This goes into `/etc/`. Also, this comes with a systemd service
   `sudo systemctl enable --now tlp.service`.
+- `makepkg.conf` goes in `/etc/`. This is for faster linking AUR builds
+(requires `mold` package).
+- `journald.conf` goes in `/etc/systemd/`. Limits journal size from default
+(10% of disk) to 200MB.
+- `zram-generator` goes in `/etc/systemd/`. This enables zram swap (requires
+`zram-generator` package).
+- `timeshift-autosnap.conf` goes in `/etc/`. This enables btrfs backups when
+installing/upgrading/uninstalling packages.
