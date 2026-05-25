@@ -21,7 +21,7 @@ window#waybar.hidden {
 
 /* Tooltips */
 tooltip {
-  background: rgba(30, 30, 46, 0.3);
+  background: rgba(28, 30, 36, 0.3);
   padding: 20px;
 }
 tooltip label {

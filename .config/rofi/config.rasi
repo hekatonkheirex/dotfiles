@@ -31,7 +31,7 @@ window {
 mainbox {
     enabled:                     true;
     spacing:                     0px;
-    background-color:            rgba(13, 17, 23, 0.6);
+    background-color:            rgba(28, 30, 36, 0.7);
     border-radius:               20px;
     children:                    [ "inputbar", "listview" ];
 }

@@ -22,20 +22,20 @@ symbol = ' '
 
 [directory]
 read_only = " 󰌾"
-style = "#8be9fd"
+style = "#0088ff"
 
 [character]
-success_symbol = "[❯](#bd93f9)"
-error_symbol = "[❯](#ff5555)"
-vimcmd_symbol = "[❮](#50fa7b)"
+success_symbol = "[❯](#79b757)"
+error_symbol = "[❯](#ed5f5d)"
+vimcmd_symbol = "[❮](#ff6489)"
 
 [git_branch]
 format = "[$branch]($style)"
-style = "bright-black"
+style = "#8b949e"
 
 [git_status]
 format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)"
-style = "cyan"
+style = "#048abf"
 conflicted = "​"
 untracked = "​"
 modified = "​"
@@ -46,11 +46,11 @@ stashed = "≡"
 
 [git_state]
 format = '\([$state( $progress_current/$progress_total)]($style)\) '
-style = "bright-black"
+style = "#8b949e"
 
 [cmd_duration]
 format = " [$duration]($style) "
-style = "yellow"
+style = "#e9873a"
 
 [time]
 disabled = false
