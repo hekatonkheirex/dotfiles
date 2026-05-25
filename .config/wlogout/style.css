@@ -7,14 +7,14 @@
 
 /** ********** Main Window ********** **/
 window {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(28, 30, 36, 0.4);
 }
 
 /** ********** Buttons ********** **/
 button {
-  background-color: rgba(13, 17, 23, 0.6);
+  background-color: rgba(42, 45, 53, 0.6);
   color: #C9D1D9;
-	border: 1px solid rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.08);
 	border-radius: 20px;
 	background-repeat: no-repeat;
 	background-position: center;
@@ -23,8 +23,9 @@ button {
 }
 
 button:focus, button:active, button:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(0, 136, 255, 0.08);
   border: 1px solid #FF6489;
+  box-shadow: 0 0 12px rgba(0, 136, 255, 0.3);
 	color: #FF6489;
 }
 

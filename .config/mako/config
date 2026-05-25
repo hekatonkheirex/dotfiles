@@ -1,6 +1,6 @@
-background-color=#161B2266
-text-color=#ffffff
-border-color=#ffffff33
+background-color=#1c1e2466
+text-color=#c9d1d9
+border-color=#c9d1d933
 progress-color=over #ff6489aa
 border-size=1
 border-radius=12
@@ -11,8 +11,8 @@ default-timeout=5000
 
 # High Urgency (Red border/Peach accent)
 [urgency=high]
-border-color=#ff605c
+border-color=#ed5f5d
 default-timeout=0
 
 [urgency=low]
-border-color=#161b22
+border-color=#2a2d3566
