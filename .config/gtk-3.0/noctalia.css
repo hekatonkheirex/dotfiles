@@ -1,0 +1,20 @@
+@define-color theme_bg_color #333333;
+@define-color theme_fg_color #dadada;
+@define-color theme_base_color #242424;
+@define-color theme_text_color #dadada;
+@define-color theme_unfocused_bg_color #242424;
+@define-color theme_unfocused_fg_color #afafaf;
+@define-color theme_unfocused_base_color #333333;
+@define-color theme_unfocused_text_color #afafaf;
+
+@define-color theme_selected_bg_color #0088FF;
+@define-color theme_selected_fg_color #ffffff;
+@define-color theme_unfocused_selected_bg_color #0088FF;
+@define-color theme_unfocused_selected_fg_color #ffffff;
+
+@define-color borders rgba(255, 255, 255, 0.12);
+@define-color unfocused_borders rgba(255, 255, 255, 0.08);
+
+@define-color warning_color #E9873A;
+@define-color error_color #ED5F5D;
+@define-color success_color #79B757;
