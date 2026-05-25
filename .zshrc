@@ -185,13 +185,19 @@ export PAGER="most"
 export EDITOR="nvim"
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 export DIFFPROG="nvim -d"
+# export FZF_DEFAULT_OPTS=" \
+# --color=bg+:#313244,bg:#1e1e2e,spinner:#f5c2e7,hl:#f38ba8 \
+# --color=fg:#a6e3a1,header:#f38ba8,info:#89b4fa,pointer:#f5c2e7 \
+# --color=marker:#f5c2e7,fg+:#a6e3a1,prompt:#89b4fa,hl+:#f38ba8"
+
 export FZF_DEFAULT_OPTS=" \
---color=bg+:#313244,bg:#1e1e2e,spinner:#f5c2e7,hl:#f38ba8 \
---color=fg:#a6e3a1,header:#f38ba8,info:#89b4fa,pointer:#f5c2e7 \
---color=marker:#f5c2e7,fg+:#a6e3a1,prompt:#89b4fa,hl+:#f38ba8"
+--color=bg+:#2A2D35,bg:#1C1E24,spinner:#FF6489,hl:#0088FF \
+--color=fg:#C9D1D9,header:#FF6489,info:#0088FF,pointer:#FF6489 \
+--color=marker:#FF6489,fg+:#C9D1D9,prompt:#0088FF,hl+:#0088FF"
 
 # Sourcing
-source /home/mura/.zsh
+# source /home/mura/.zsh
+source /home/mura/.apple
 
 # Fetch
 fastfetch
