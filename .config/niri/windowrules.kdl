@@ -6,7 +6,7 @@ window-rule {
 }
 
 window-rule {
-    geometry-corner-radius 20
+    geometry-corner-radius 24
     clip-to-geometry true
 }
 
@@ -46,11 +46,17 @@ window-rule {
 window-rule {
     match app-id=r#"^org\.wezfurlong\.wezterm$"#
     match app-id="zen"
-    match app-id="kitty"
+    // match app-id="kitty"
     // match app-id="brave-browser"
     match app-id="org.gnome.Nautilus"
     draw-border-with-background false
     opacity 0.90
+}
+
+window-rule {
+  match app-id="kitty"
+  draw-border-with-background false
+  opacity 1.0
 }
 
 window-rule {
@@ -91,7 +97,7 @@ layer-rule {
 
 layer-rule {
   match namespace="^rofi$"
-  geometry-corner-radius 20
+  geometry-corner-radius 24
   shadow {
     on
     softness 40

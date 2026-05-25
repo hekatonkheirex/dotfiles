@@ -32,6 +32,8 @@
 
   "niri/window": {
     "format": "{title}",
+    "icon": true,
+    "icon-size": 24,
   },
 
   "backlight": {
