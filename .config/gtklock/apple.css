@@ -1,0 +1,63 @@
+window {
+    background-image: url("/home/mura/Pictures/Walls/tahoe-dark.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: rgba(30, 30, 46, 0.9);
+}
+
+#user-image {
+    border-radius: 50px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+#clock-label {
+    font-size: 96px;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: "SF Pro Display Light";
+}
+
+#date-label {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: "SF Pro Display";
+}
+
+#input-label {
+    color: rgba(200, 200, 200, 0.8);
+    font-size: 14px;
+}
+
+#input-field {
+    font-size: 16px;
+    min-height: 50px;
+    background-color: rgba(13, 17, 23, 0.6);
+    color: rgb(200, 200, 200);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0 12px;
+}
+
+#input-field:focus {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+#warning-label {
+    color: rgba(255, 200, 0, 0.8);
+}
+
+#error-label {
+    color: rgba(255, 80, 80, 0.9);
+}
+
+#unlock-button {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgb(200, 200, 200);
+    border-radius: 6px;
+    padding: 6px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#unlock-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}

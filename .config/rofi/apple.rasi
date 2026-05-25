@@ -1,0 +1,124 @@
+/*****----- Configuration -----*****/
+configuration {
+    modi:                       "drun";
+    show-icons:                 true;
+    display-drun:               "";
+    drun-display-format:        "{name}";
+    font:                       "SF Pro Display 14";
+}
+
+/*****----- Main Window -----*****/
+window {
+    transparency:                "real";
+    location:                    center;
+    anchor:                      center;
+    fullscreen:                  false;
+    width:                       600px;
+    x-offset:                    0px;
+    y-offset:                    -150px; /* Moves it up like Spotlight */
+
+    enabled:                     true;
+    margin:                      0px;
+    padding:                     0px;
+    border:                      1px solid;
+    border-radius:               20px;
+    border-color:                rgba(255, 255, 255, 0.1);
+    background-color:            rgba(0, 0, 0, 0); /* Tahoe Night Base */
+    cursor:                      "default";
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    enabled:                     true;
+    spacing:                     0px;
+    background-color:            rgba(28, 30, 36, 0.7);
+    border-radius:               20px;
+    children:                    [ "inputbar", "listview" ];
+}
+
+/*****----- Input Bar -----*****/
+inputbar {
+    enabled:                     true;
+    spacing:                     10px;
+    margin:                      0px;
+    padding:                     25px;
+    background-color:            transparent;
+    text-color:                  #C9D1D9;
+    children:                    [ "prompt", "entry" ];
+}
+
+prompt {
+    enabled:                     true;
+    background-color:            transparent;
+    text-color:                  #FF6489; /* Tahoe Pink */
+}
+
+entry {
+    enabled:                     true;
+    background-color:            transparent;
+    text-color:                  inherit;
+    cursor:                      text;
+    placeholder:                 "Search Apps";
+    placeholder-color:           inherit;
+}
+
+/*****----- List View -----*****/
+listview {
+    enabled:                     true;
+    columns:                     1;
+    lines:                       6;
+    cycle:                       true;
+    dynamic:                     true;
+    scrollbar:                   false;
+    layout:                      vertical;
+    reverse:                     false;
+    fixed-height:                true;
+    fixed-columns:               true;
+    
+    spacing:                     5px;
+    margin:                      0px;
+    padding:                     0px 15px 15px 15px;
+    background-color:            transparent;
+    text-color:                  #C9D1D9;
+    cursor:                      "default";
+}
+
+/*****----- Elements -----*****/
+element {
+    enabled:                     true;
+    spacing:                     10px;
+    margin:                      0px;
+    padding:                     12px;
+    border-radius:               12px;
+    background-color:            transparent;
+    text-color:                  #C9D1D9;
+    cursor:                      pointer;
+}
+
+element normal.normal {
+    background-color:            transparent;
+    text-color:                  #C9D1D9;
+}
+
+element alternate.normal {
+    background-color:            transparent;
+    text-color:                  #C9D1D9;
+}
+
+element selected.normal {
+    background-color:            transparent;
+    text-color:                  #FF6489; /* Pink highlight on selection */
+}
+
+element-icon {
+    background-color:            transparent;
+    size:                        32px;
+    cursor:                      inherit;
+}
+
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    vertical-align:              0.5;
+    horizontal-align:            0.0;
+}

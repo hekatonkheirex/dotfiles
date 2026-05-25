@@ -5,6 +5,7 @@ environment {
   DISPLAY ":0"
 
   XCURSOR_SIZE "24"
+  XCURSOR_THEME "Bibata-Modern-Classic"
 
   EDITOR "nvim"
 
