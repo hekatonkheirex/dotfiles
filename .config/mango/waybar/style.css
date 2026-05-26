@@ -1,16 +1,16 @@
-@import './themes/apple.css';
+@import './themes/material.css';
 
 /* General configuration */
 * {
   border: none;
-  font-family: "SF Pro Display", "tabler-icons";
-  font-size: 16px;
-  font-weight: 700;
+  font-family: "Google Sans Flex", "Material Symbols Outlined";
+  font-size: 15px;
+  font-weight: 500;
   text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.8);
 }
 
 window#waybar {
-  background: rgba(255, 255, 255, 0.02);
+  background: @bg0;
   transition-property: background-color;
   transition-duration: .5s;
 }
@@ -21,90 +21,75 @@ window#waybar.hidden {
 
 /* Tooltips */
 tooltip {
-  background: rgba(30, 30, 46, 0.3);
-  padding: 20px;
+  background: rgba(28, 27, 31, 0.9);
+  border: 1px solid @fg2;
+  border-radius: 16px;
+  padding: 12px;
 }
 tooltip label {
   color: @fg0;
 }
 
 /* Workspaces */
-#workspaces {
-}
-
 #workspaces button {
   background: transparent;
-  color: @fg0;
-  margin: 6px 0px;
-  padding: 0px 5px;
+  color: @fg2;
+  margin: 6px 4px;
+  padding: 0px 12px;
+  border-radius: 20px;
+  min-width: 28px;
 }
 
 #workspaces button.active {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  color: @pink;
-  /* padding: 0px 15px; */
-  /* margin: 6px 4px; */
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  background: @primary;
+  border-radius: 20px;
+  color: @on-primary;
+  box-shadow: 0px 2px 8px rgba(208, 188, 255, 0.3);
 }
 
 #workspaces button.urgent {
-  background: @red;
+  background: @error;
+  color: @bg0;
 }
 
 /** ********** Layout indicator ********** **/
 #window.1 {
-  font-weight: 700;
+  color: @fg1;
+  font-weight: 500;
 }
 
 /** ********** Window ********** **/
 #window.2 {
-  font-weight: 700;
-  padding: 0px 5px 0px 5px;
+  color: @fg1;
+  font-weight: 500;
+  padding: 0px 8px;
 }
 
 /** ********** Wireplumber ********** **/
-#wireplumber {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+#wireplumber,
+#backlight,
+#battery,
+#idle_inhibitor {
+  background: rgba(43, 41, 48, 0.8);
+  border: 1px solid rgba(147, 143, 153, 0.15);
+  border-radius: 20px;
   margin: 6px 4px;
-  padding: 0px 5px;
-}
-
-/** ********** Backlight ********** **/
-#backlight {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 6px 4px;
-  padding: 0px 5px;
-}
-
-/** ********** Battery ********** **/
-#battery {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 6px 4px;
-  padding: 0px 5px;
+  padding: 0px 12px;
+  color: @fg0;
 }
 
 #battery.charging {
-  color: @green;
+  color: @success;
 }
 
 #battery.plugged {
-  color: @green;
+  color: @primary;
 }
 
 @keyframes blink {
   to {
-    background-color: @pink;
+    background-color: @error;
+    color: @bg0;
   }
 }
 
@@ -114,20 +99,17 @@ tooltip label {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   animation-direction: alternate;
-  color: @bg0;
-  opacity: 1.0;
 }
 
-/** ********** Clock ********** **/
 #clock {
-  font-weight: 700;
+  color: @fg0;
+  font-weight: 500;
   margin: 6px 4px;
-  padding: 0px 5px;
+  padding: 0px 8px;
 }
 
-/** ********** Tray ********** **/
 #tray {
-  padding: 0px 0px 0px 10px;
+  padding: 0px 4px;
 }
 #tray > .passive {
   -gtk-icon-effect: dim;
@@ -135,29 +117,21 @@ tooltip label {
 
 #tray > .needs-attention {
   -gtk-icon-effect: highlight;
-  background-color: @red;
+  background-color: @error;
 }
 
-/** ********** Idle Inhibitor ********** **/
-#idle_inhibitor {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 6px 4px;
-  padding: 0px 15px;
-}
 #idle_inhibitor.activated {
-  color: @green;
+  color: @success;
   font-weight: bold;
 }
 
 /** ********** Image ********** **/
 #image {
-  padding: 0px 5px 0px 5px;
+  padding: 0px 8px;
 }
 
 #custom-wall {
   margin: 6px 4px;
-  padding: 0px 5px;
+  padding: 0px 8px;
+  color: @fg2;
 }
