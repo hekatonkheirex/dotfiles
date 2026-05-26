@@ -6,6 +6,7 @@ base
 base-devel
 bat
 bc
+bibata-cursor-theme
 blueman
 bluez
 bluez-utils
@@ -109,12 +110,14 @@ ripgrep
 rofi
 rsync
 rustup
+sassc
 sddm-git
 slurp
 sof-firmware
 sushi
 swayidle
 swayosd
+tailscale
 timeshift
 timeshift-autosnap
 tlp
