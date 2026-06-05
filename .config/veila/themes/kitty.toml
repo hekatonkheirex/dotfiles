@@ -1,0 +1,19 @@
+theme = "kitty" # Use the bundled Kitty theme
+
+[visuals.outputs]
+ui_mode = "single" # Show the full UI on one monitor. Use "all" for every monitor
+
+[background]
+mode = "file" # Background source (accepts "file", "gradient", "layered", "radial", or "solid")
+path = "~/.config/veila/themes/kitty.png" # Wallpaper image path used when mode = "file"
+
+[weather]
+enabled = true # Enable background weather fetching (accepts true or false)
+location = "Tokyo" # Place name used for weather lookup (accepts any geocodable city or place name)
+unit = "celsius" # Temperature unit (accepts "celsius" or "fahrenheit")
+
+[visuals.now_playing]
+enabled = true # Show the now-playing widget when MPRIS media metadata is available (accepts true or false)
+
+[visuals.clock]
+format = "24h" # Clock format (accepts "24h" or "12h")
