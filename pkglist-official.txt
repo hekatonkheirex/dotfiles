@@ -37,13 +37,13 @@ gammastep
 git
 gnome-epub-thumbnailer
 gnome-keyring
+google-chrome
 grim
 grub
 grub-btrfs
 gst-libav
 gst-plugins-bad
 gst-thumbnailers
-gtklock
 gvfs
 gvfs-afc
 gvfs-gphoto2
@@ -87,6 +87,7 @@ noto-fonts-cjk
 noto-fonts-emoji
 noto-fonts-extra
 ntfs-3g
+ntfsprogs
 nwg-look
 onlyoffice-bin
 opencode
@@ -102,6 +103,7 @@ plymouth
 polkit-gnome
 powertop
 qbittorrent
+qt5-wayland
 qt6-virtualkeyboard
 qt6ct
 raw-thumbnailer
@@ -114,6 +116,7 @@ sassc
 sddm-git
 slurp
 sof-firmware
+sunshine-bin
 sushi
 swayidle
 swayosd
@@ -139,6 +142,8 @@ udiskie
 ufw
 unimatrix-git
 upower
+upscayl-bin
+veila-bin
 vivaldi
 vivaldi-ffmpeg-codecs
 vulkan-headers

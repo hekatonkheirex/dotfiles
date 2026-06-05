@@ -174,6 +174,7 @@ trash() { paru -Rns $(paru -Qdtq); }
 alias n="nvim"
 alias mirrors="run0 reflector --country US,Paraguay --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist"
 alias tery='echo "--- Power Dashboard ---"; echo "Discharge Rate: $(echo "scale=2; $(cat /sys/class/power_supply/BAT0/power_now) / 1000000" | bc)W"; echo "Battery Health: $(cat /sys/class/power_supply/BAT0/capacity)%"; echo "Cycles: $(cat /sys/class/power_supply/BAT0/cycle_count)"; echo "Status: $(cat /sys/class/power_supply/BAT0/status)"'
+alias oc="opencode"
 
 # Shell integrations
 eval "$(fzf --zsh)"
