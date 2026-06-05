@@ -13,6 +13,7 @@ gammastep 2>&1 &
 
 # wallpaper
 awww-daemon 2>&1 &
+~/.local/bin/wall_shuffle.sh 2>&1 &
 
 # top bar
 ~/.config/mango/waybar/launch.sh 2>&1 &
@@ -41,11 +42,12 @@ nm-applet >/dev/null 2>&1 &
 
 # inhibit by audio
 # hypridle 2>&1 &
+veilad 2>&1 &
 ~/.local/bin/idle.sh >/dev/null 2>&1 &
 
 # change light value and volume value by swayosd-client in keybind
 swayosd-server >/dev/null 2>&1 &
 
-gnome-keyring-daemon --replace --components=secrets,ssh,pkcs11 2>&1 &
+gnome-keyring-daemon --replace --components=secrets,ssh,pkcs11,login 2>&1 &
 
 udiskie -2 2>&1 &
