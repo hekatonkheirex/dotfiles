@@ -10,9 +10,14 @@ window-rule {
     clip-to-geometry true
 }
 
+window-rule {
+    open-maximized true
+    match app-id="brave-origin"
+}
+
 // Floating rules
 window-rule {
-    match app-id=r#"brave-browser$"# title="^Picture-in-Picture$"
+    match app-id=r#"brave-origin$"# title="^Picture-in-Picture$"
     open-floating true
 }
 

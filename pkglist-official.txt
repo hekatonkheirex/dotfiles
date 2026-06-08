@@ -10,7 +10,7 @@ bibata-cursor-theme
 blueman
 bluez
 bluez-utils
-brave-bin
+brave-origin-bin
 brightnessctl
 btop
 calf
@@ -19,7 +19,6 @@ cmake
 cups
 dialog
 efibootmgr
-ente-auth-bin
 eza
 fastfetch
 fcitx5
@@ -62,6 +61,7 @@ kitty
 krokiet
 kvantum
 lazygit
+libgnome-keyring
 libid3tag
 libva-intel-driver
 linux-firmware
@@ -104,7 +104,7 @@ polkit-gnome
 powertop
 qbittorrent
 qt5-wayland
-qt6-virtualkeyboard
+qt6-5compat
 qt6ct
 raw-thumbnailer
 reflector

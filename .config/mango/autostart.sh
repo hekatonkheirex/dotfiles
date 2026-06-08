@@ -42,12 +42,13 @@ nm-applet >/dev/null 2>&1 &
 
 # inhibit by audio
 # hypridle 2>&1 &
-veilad 2>&1 &
 ~/.local/bin/idle.sh >/dev/null 2>&1 &
 
 # change light value and volume value by swayosd-client in keybind
 swayosd-server >/dev/null 2>&1 &
 
 gnome-keyring-daemon --replace --components=secrets,ssh,pkcs11,login 2>&1 &
+
+/usr/lib/xdg-desktop-portal-wlr 2>&1 &
 
 udiskie -2 2>&1 &
