@@ -1,8 +1,8 @@
 bibata-cursor-theme
-brave-bin
-ente-auth-bin
+brave-origin-bin
 google-chrome
 krokiet
+libgnome-keyring
 localsend-bin
 mangowm
 nautilus-admin-gtk4

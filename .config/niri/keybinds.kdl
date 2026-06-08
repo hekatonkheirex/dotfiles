@@ -5,8 +5,8 @@ binds {
 
   Mod+Return hotkey-overlay-title="Open a Terminal: Kitty" { spawn "kitty"; }
   Mod+D hotkey-overlay-title="Run an Application: Rofi" { spawn "rofi" "-show" "drun"; }
-  Mod+Alt+L hotkey-overlay-title="Lock the Screen: gtklock" { spawn "gtklock" "-d"; }
-  Mod+B hotkey-overlay-title="Open Web Browser: Brave Browser" { spawn "brave"; }
+  Mod+Alt+L hotkey-overlay-title="Lock the Screen: Veila" { spawn "veila" "lock"; }
+  Mod+B hotkey-overlay-title="Open Web Browser: Brave Browser" { spawn "brave-origin"; }
   Mod+T hotkey-overlay-title="Open File Manager: Nautilus" { spawn "nautilus"; }
   Mod+Escape hotkey-overlay-title="Open Wlogout for terminating session: wlogout" { spawn-sh "killall wlogout || wlogout --protocol layer-shell -b 5 -T 400 -B 400"; }
   Mod+A hotkey-overlay-title="Open OpenCode" { spawn "kitty" "-e" "opencode"; }
