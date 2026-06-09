@@ -1,0 +1,303 @@
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Window
+import Quickshell
+import Quickshell.Wayland
+import Quickshell.Wayland._WlrLayerShell
+
+PanelWindow {
+  id: root
+
+  property QtObject colors_: null
+  property QtObject config: null
+  property int anchorY: 0
+
+  signal dismissed()
+
+  implicitWidth: config ? config.popupWidth : 340
+  implicitHeight: Math.min(contentColumn.implicitHeight + 32, 500)
+  color: "transparent"
+  exclusionMode: ExclusionMode.Ignore
+  WlrLayershell.namespace: "quickshell-popup"
+  WlrLayershell.layer: WlrLayer.Top
+
+  anchors.left: true
+  margins.left: config ? config.barWidth + 4 : 48
+  property int screenH: Screen.desktopAvailableHeight
+
+  anchors.top: true
+  margins.top: Math.max(0, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
+
+  property var notifications: []
+  property int count: 0
+
+  function addNotification(n) {
+    var copy = notifications.slice()
+    copy.push(n)
+    notifications = copy
+    count = notifications.length
+  }
+
+  function removeNotification(n) {
+    for (var i = 0; i < notifications.length; i++) {
+      if (notifications[i] === n) {
+        var copy = notifications.slice()
+        copy.splice(i, 1)
+        notifications = copy
+        count = notifications.length
+        return
+      }
+    }
+  }
+
+  function clearAll() {
+    for (var i = 0; i < notifications.length; i++) {
+      notifications[i].dismiss()
+    }
+    notifications = []
+    count = 0
+  }
+
+  // Called externally from shell.qml on notification received
+  function onNotificationReceived(notif) {
+    root.addNotification(notif)
+    notif.closed.connect(function() {
+      root.removeNotification(notif)
+    })
+  }
+
+  onVisibleChanged: { if (visible && config && config.isNiri) root.requestActivate() }
+
+  WlrLayershell.focusable: true
+
+  Component.onCompleted: {
+    Qt.application.activeChanged.connect(function() {
+      if (!Qt.application.active && root.visible) root.dismissed()
+    })
+  }
+
+  Item {
+    anchors.fill: parent
+    focus: true
+    Keys.onEscapePressed: root.dismissed()
+
+    FocusDismiss {
+      target: root
+      config: root.config
+      onDismissed: root.dismissed()
+    }
+
+    Rectangle {
+      id: bg
+      anchors.fill: parent
+      radius: config ? config.borderRadius : 14
+      color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+      clip: true
+
+      Column {
+        id: contentColumn
+        anchors {
+          fill: parent
+          margins: config ? config.popupPadding : 16
+        }
+        spacing: 12
+
+        RowLayout {
+          width: parent.width
+
+          Text {
+            text: "Notifications"
+            color: colors_ ? colors_.onSurface : "#FFFFFF"
+            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.pixelSize: config ? (config.fontPixelSize + 8) : 18
+            font.weight: Font.Bold
+          }
+
+          Item { Layout.fillWidth: true }
+
+          Text {
+            text: count === 0 ? "None" : count.toString()
+            color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.pixelSize: config ? (config.fontPixelSize + 4) : 14
+          }
+
+          Rectangle {
+            width: 24
+            height: 24
+            radius: 12
+            visible: count > 0
+            color: clearAllMouse.containsMouse ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : "transparent"
+
+            Behavior on color {
+              ColorAnimation { duration: config ? config.animationDuration : 150 }
+            }
+
+            Text {
+              anchors.centerIn: parent
+              text: "clear_all"
+              color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+              font.family: config ? config.iconFont : "Material Symbols Outlined"
+              font.pixelSize: 14
+            }
+
+            MouseArea {
+              id: clearAllMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: root.clearAll()
+            }
+          }
+        }
+
+        Rectangle {
+          width: parent.width
+          height: 1
+          color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
+          visible: count > 0
+        }
+
+        ListView {
+          id: notifList
+          width: parent.width
+          height: Math.min(400, contentHeight)
+          model: root.notifications
+          visible: count > 0
+          spacing: 8
+          clip: true
+
+            delegate: Item {
+            width: parent.width
+            height: notifLayout.implicitHeight + 16
+
+            readonly property QtObject notif: root.notifications[index]
+
+            Rectangle {
+              anchors.fill: parent
+              radius: 10
+              color: notifMouse.containsMouse ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : (colors_ ? colors_.surfaceContainer : "#211F26")
+
+              Behavior on color {
+                ColorAnimation { duration: config ? config.animationDuration : 150 }
+              }
+            }
+
+            MouseArea {
+              id: notifMouse
+              anchors.fill: parent
+              hoverEnabled: true
+            }
+
+            Row {
+              id: notifLayout
+              anchors {
+                fill: parent
+                margins: 8
+              }
+              spacing: 10
+
+              Rectangle {
+                width: 32
+                height: 32
+                radius: 16
+                color: colors_ ? colors_.primaryContainer : "#4F378B"
+
+                Text {
+                  anchors.centerIn: parent
+                  text: {
+                    var app = notif ? (notif.appName || "") : ""
+                    return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
+                  }
+                  color: colors_ ? colors_.onPrimaryContainer : "#EADDFF"
+                  font.family: config ? config.fontFamily : "Google Sans Flex"
+                  font.pixelSize: config ? (config.fontPixelSize + 4) : 14
+                  font.weight: Font.Bold
+                }
+              }
+
+              Column {
+                width: Math.max(0, parent.width - 76)
+                spacing: 2
+
+                Text {
+                  text: notif ? (notif.appName || "Unknown") : ""
+                  color: colors_ ? colors_.onSurface : "#FFFFFF"
+                  font.family: config ? config.fontFamily : "Google Sans Flex"
+                  font.pixelSize: config ? (config.fontPixelSize + 2) : 12
+                  font.weight: Font.Medium
+                  elide: Text.ElideRight
+                  width: parent.width
+                }
+
+                Text {
+                  text: notif ? (notif.summary || "") : ""
+                  color: colors_ ? colors_.onSurface : "#FFFFFF"
+                  font.family: config ? config.fontFamily : "Google Sans Flex"
+                  font.pixelSize: config ? (config.fontPixelSize + 1) : 11
+                  font.weight: Font.Bold
+                  elide: Text.ElideRight
+                  width: parent.width
+                  visible: text !== ""
+                }
+
+                Text {
+                  text: notif ? (notif.body || "") : ""
+                  color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+                  font.family: config ? config.fontFamily : "Google Sans Flex"
+                  font.pixelSize: config ? (config.fontPixelSize + 1) : 11
+                  elide: Text.ElideRight
+                  width: parent.width
+                  maximumLineCount: 2
+                  wrapMode: Text.WordWrap
+                  visible: text !== ""
+                }
+              }
+
+              Rectangle {
+                width: 24
+                height: 24
+                radius: 12
+                color: dismissMouse.containsMouse ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : "transparent"
+                anchors.verticalCenter: parent.verticalCenter
+
+                Behavior on color {
+                  ColorAnimation { duration: config ? config.animationDuration : 150 }
+                }
+
+                Text {
+                  anchors.centerIn: parent
+                  text: "close"
+                  color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+                  font.family: config ? config.iconFont : "Material Symbols Outlined"
+                  font.pixelSize: 14
+                }
+
+                MouseArea {
+                  id: dismissMouse
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: {
+                    if (index >= 0 && index < root.notifications.length) {
+                      root.notifications[index].dismiss()
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        Text {
+          text: "No new notifications"
+          color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.pixelSize: config ? (config.fontPixelSize + 2) : 12
+          visible: count === 0
+          anchors.horizontalCenter: parent.horizontalCenter
+        }
+      }
+    }
+  }
+}

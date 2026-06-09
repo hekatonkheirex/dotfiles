@@ -13,7 +13,7 @@ hotkey-overlay {
   }
 
 switch-events {
-    lid-close { spawn "gtklock" "-d"; }
+    lid-close { spawn "/home/mura/.config/quickshell/scripts/lock"; }
 }
 
 debug {

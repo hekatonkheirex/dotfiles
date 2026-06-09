@@ -6,7 +6,7 @@ window-rule {
 }
 
 window-rule {
-    geometry-corner-radius 24
+    geometry-corner-radius 16
     clip-to-geometry true
 }
 
@@ -29,13 +29,13 @@ window-rule {
 window-rule {
     match app-id=r#"^galculator$"#
     match app-id=r#"^blueman-manager$"#
+    match app-id=r#"^nm-connection-editor$"#
     match app-id=r#"^xdg-desktop-portal$"#
     open-floating true
 }
 
 window-rule {
   match app-id=r#"^pavucontrol$"#
-  match app-id=r#"^nm-connection-editor$"#
   default-column-width { proportion 0.5; }
   open-floating false
 }
@@ -44,7 +44,7 @@ window-rule {
 window-rule {
     match app-id=r#"^org\.gnome\."#
     draw-border-with-background false
-    geometry-corner-radius 20
+    geometry-corner-radius 16
     clip-to-geometry true
 }
 
@@ -102,12 +102,19 @@ layer-rule {
 
 layer-rule {
   match namespace="^rofi$"
-  geometry-corner-radius 24
+  geometry-corner-radius 16
   shadow {
     on
     softness 40
     spread 5
     color "#30303066"
+  }
+}
+
+layer-rule {
+  match namespace="^quickshell-(background|launcher-overlay|dock|panel|popup|toast|osd)(-.*)?$"
+  background-effect {
+    blur false
   }
 }
 
