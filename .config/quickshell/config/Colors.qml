@@ -9,11 +9,7 @@ QtObject {
 
   property bool systemDark: false
 
-  property bool darkMode: {
-    if (themePreference === 1) return false
-    if (themePreference === 2) return true
-    return systemDark
-  }
+  property bool darkMode: themePreference === 1 ? false : (themePreference === 2 ? true : systemDark)
 
   readonly property color l_bg: "#FFFBFE"
   readonly property color l_surface: "#FFFBFE"
@@ -50,10 +46,10 @@ QtObject {
   readonly property color d_surface: "#1C1B1F"
   readonly property color d_surfaceDim: "#141218"
   readonly property color d_surfaceBright: "#3B383E"
-  readonly property color d_surfaceContainer: "#211F26"
-  readonly property color d_surfaceContainerHigh: "#2B2930"
-  readonly property color d_surfaceContainerHighest: "#36343B"
-  readonly property color d_surfaceVariant: "#2B2930"
+  readonly property color d_surfaceContainer: "#25232A"
+  readonly property color d_surfaceContainerHigh: "#312F37"
+  readonly property color d_surfaceContainerHighest: "#3C3A43"
+  readonly property color d_surfaceVariant: "#312F37"
   readonly property color d_primary: "#BEE8C7"
   readonly property color d_onPrimary: "#0F3C2C"
   readonly property color d_primaryContainer: "#1E4F3E"
@@ -86,62 +82,27 @@ QtObject {
   property color surfaceContainerHighest: darkMode ? d_surfaceContainerHighest : l_surfaceContainerHighest
   property color surfaceVariant: darkMode ? d_surfaceVariant : l_surfaceVariant
   property color primary: darkMode ? d_primary : l_primary
-  property color onPrimary: darkMode ? d_onPrimary : l_onPrimary
+  property color fgPrimary: darkMode ? d_onPrimary : l_onPrimary
   property color primaryContainer: darkMode ? d_primaryContainer : l_primaryContainer
-  property color onPrimaryContainer: darkMode ? d_onPrimaryContainer : l_onPrimaryContainer
+  property color fgPrimaryContainer: darkMode ? d_onPrimaryContainer : l_onPrimaryContainer
   property color secondary: darkMode ? d_secondary : l_secondary
-  property color onSecondary: darkMode ? d_onSecondary : l_onSecondary
+  property color fgSecondary: darkMode ? d_onSecondary : l_onSecondary
   property color secondaryContainer: darkMode ? d_secondaryContainer : l_secondaryContainer
-  property color onSecondaryContainer: darkMode ? d_onSecondaryContainer : l_onSecondaryContainer
+  property color fgSecondaryContainer: darkMode ? d_onSecondaryContainer : l_onSecondaryContainer
   property color tertiary: darkMode ? d_tertiary : l_tertiary
-  property color onTertiary: darkMode ? d_onTertiary : l_onTertiary
+  property color fgTertiary: darkMode ? d_onTertiary : l_onTertiary
   property color tertiaryContainer: darkMode ? d_tertiaryContainer : l_tertiaryContainer
-  property color onTertiaryContainer: darkMode ? d_onTertiaryContainer : l_onTertiaryContainer
+  property color fgTertiaryContainer: darkMode ? d_onTertiaryContainer : l_onTertiaryContainer
   property color error: darkMode ? d_error : l_error
-  property color onError: darkMode ? d_onError : l_onError
+  property color fgError: darkMode ? d_onError : l_onError
   property color errorContainer: darkMode ? d_errorContainer : l_errorContainer
-  property color onErrorContainer: darkMode ? d_onErrorContainer : l_onErrorContainer
-  property color onSurface: darkMode ? d_onSurface : l_onSurface
-  property color onSurfaceVariant: darkMode ? d_onSurfaceVariant : l_onSurfaceVariant
+  property color fgErrorContainer: darkMode ? d_onErrorContainer : l_onErrorContainer
+  property color fgSurface: darkMode ? d_onSurface : l_onSurface
+  property color fgSurfaceVariant: darkMode ? d_onSurfaceVariant : l_onSurfaceVariant
   property color outline: darkMode ? d_outline : l_outline
   property color outlineVariant: darkMode ? d_outlineVariant : l_outlineVariant
   property color shadow: darkMode ? d_shadow : l_shadow
   property color scrim: darkMode ? d_scrim : l_scrim
-  property color hoverOverlay: Qt.rgba(1, 1, 1, darkMode ? 0.10 : 0.06)
-  property color pressOverlay: Qt.rgba(1, 1, 1, darkMode ? 0.16 : 0.10)
-
-  onDarkModeChanged: {
-    bg = darkMode ? d_bg : l_bg
-    surface = darkMode ? d_surface : l_surface
-    surfaceDim = darkMode ? d_surfaceDim : l_surfaceDim
-    surfaceBright = darkMode ? d_surfaceBright : l_surfaceBright
-    surfaceContainer = darkMode ? d_surfaceContainer : l_surfaceContainer
-    surfaceContainerHigh = darkMode ? d_surfaceContainerHigh : l_surfaceContainerHigh
-    surfaceContainerHighest = darkMode ? d_surfaceContainerHighest : l_surfaceContainerHighest
-    surfaceVariant = darkMode ? d_surfaceVariant : l_surfaceVariant
-    primary = darkMode ? d_primary : l_primary
-    onPrimary = darkMode ? d_onPrimary : l_onPrimary
-    primaryContainer = darkMode ? d_primaryContainer : l_primaryContainer
-    onPrimaryContainer = darkMode ? d_onPrimaryContainer : l_onPrimaryContainer
-    secondary = darkMode ? d_secondary : l_secondary
-    onSecondary = darkMode ? d_onSecondary : l_onSecondary
-    secondaryContainer = darkMode ? d_secondaryContainer : l_secondaryContainer
-    onSecondaryContainer = darkMode ? d_onSecondaryContainer : l_onSecondaryContainer
-    tertiary = darkMode ? d_tertiary : l_tertiary
-    onTertiary = darkMode ? d_onTertiary : l_onTertiary
-    tertiaryContainer = darkMode ? d_tertiaryContainer : l_tertiaryContainer
-    onTertiaryContainer = darkMode ? d_onTertiaryContainer : l_onTertiaryContainer
-    error = darkMode ? d_error : l_error
-    onError = darkMode ? d_onError : l_onError
-    errorContainer = darkMode ? d_errorContainer : l_errorContainer
-    onErrorContainer = darkMode ? d_onErrorContainer : l_onErrorContainer
-    onSurface = darkMode ? d_onSurface : l_onSurface
-    onSurfaceVariant = darkMode ? d_onSurfaceVariant : l_onSurfaceVariant
-    outline = darkMode ? d_outline : l_outline
-    outlineVariant = darkMode ? d_outlineVariant : l_outlineVariant
-    shadow = darkMode ? d_shadow : l_shadow
-    scrim = darkMode ? d_scrim : l_scrim
-    hoverOverlay = Qt.rgba(1, 1, 1, darkMode ? 0.10 : 0.06)
-    pressOverlay = Qt.rgba(1, 1, 1, darkMode ? 0.16 : 0.10)
-  }
+  property color hoverOverlay: darkMode ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(0, 0, 0, 0.06)
+  property color pressOverlay: darkMode ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(0, 0, 0, 0.10)
 }

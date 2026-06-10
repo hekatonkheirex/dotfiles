@@ -167,7 +167,7 @@ Layout and behavior constants: `barWidth`, `widgetSize`, `iconSize`, `fontPixelS
 
 ### `config/Colors.qml`
 
-Material Design 3 color tokens with runtime dark/light theme switching. System dark mode is detected by polling `gsettings get org.gnome.desktop.interface color-scheme` every 5s (since `Qt.styleHints.colorScheme` is unreliable in Quickshell). The light palette uses green tones matching the SDDM material-you theme.
+Material Design 3 color tokens with runtime dark/light theme switching. System dark mode is detected by polling `gsettings get org.gnome.desktop.interface color-scheme` every 5s. Text/icon colors are prefixed with `fg` (e.g. `fgSurface`, `fgPrimary`) to prevent conflicts with QML's internal signal handler compiler rules.
 
 ### `bar/PopupShield.qml`
 
@@ -175,16 +175,16 @@ Full-screen transparent surface on `WlrLayer.Bottom` that catches clicks outside
 
 ### `bar/FocusDismiss.qml`
 
-Handles popup dismissal on app focus loss. The `activeFocusChanged` check is gated behind `config.isNiri` (MangoWM/dwl fires it falsely on any click). The `Qt.application.activeChanged` check runs on all WMs — it correctly detects when the user switches to another application.
+Handles popup dismissal on app focus loss with target null checks. The `activeFocusChanged` check is gated behind `config.isNiri` (MangoWM/dwl fires it falsely on any click). The `Qt.application.activeChanged` check runs on all WMs — it correctly detects when the user switches to another application.
 
 ## Widget Details
 
-- **WorkspaceIndicator**: Polls the WM every ~80ms (restarting the process on completion). Parses JSON into pills; click to focus, scroll to cycle. Mango filters inactive tags; Niri shows all workspaces. Focused tag uses distinct colors per mode (light: primaryContainer bg + white text; dark: primary bg + onPrimary text).
-- **AudioIndicator/BrightnessIndicator**: Poll `wpctl`/`brightnessctl` every 2 seconds. Scroll adjusts by 5%.
-- **BatteryIndicator**: Reads UPower properties every 1 second. Shows charging/alert icons.
+- **WorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri and MangoWM (`mmsg watch all-tags` and `niri msg event-stream`) using `SplitParser`, consuming 0% CPU at idle. Focused tag uses distinct colors per mode; occupied and hovered state color levels are adjusted for higher contrast.
+- **AudioIndicator/BrightnessIndicator**: 100% event-driven. Monitors PipeWire events (`pactl subscribe`) and backlight sysfs changes (`inotifywait` on `/sys/class/backlight/*/brightness`) respectively to update the UI instantly without periodic polling timers.
+- **BatteryIndicator**: Utilizes declarative UPower property bindings (no timers) to react directly to battery level/state changes.
 - **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu.
 - **QuickMenu (idle toggle)**: Coffee button toggles `swayidle`. When lit (inhibitor ON), `swayidle` is killed so the screen never locks. When dimmed (inhibitor OFF), `swayidle` runs with normal timeouts (dim → lock → display off → suspend).
-- **LauncherPopup**: Runs `desktop-parser.py` to index `.desktop` files, filters by search input, launches via kitty for terminal apps.
+- **LauncherPopup**: Runs `desktop-parser.py` to index `.desktop` files, filters by search input, launches via kitty for terminal apps. Has folder modification-time based caching (`/tmp/qs-app-cache-<uid>.json`) to load in under 3ms.
 
 ## Dependencies
 

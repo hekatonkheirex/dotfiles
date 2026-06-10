@@ -178,12 +178,24 @@ Item {
             clip: true
             border.width: 3
             border.color: accentGreen
+            color: colors_ ? colors_.primaryContainer : "#1E4F3E"
 
             Image {
+              id: profileImage
               anchors.fill: parent
               source: "file://" + root.home + "/Pictures/profile.jpg"
               fillMode: Image.PreserveAspectCrop
               asynchronous: true
+            }
+
+            Text {
+              anchors.centerIn: parent
+              text: root.username().charAt(0).toUpperCase()
+              color: colors_ ? colors_.fgPrimaryContainer : "#BEE8C7"
+              font.family: "Google Sans Flex"
+              font.pixelSize: 36
+              font.weight: Font.Bold
+              visible: profileImage.status !== Image.Ready
             }
           }
 

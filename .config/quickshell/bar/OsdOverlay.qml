@@ -133,7 +133,7 @@ PanelWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         text: root.osdType === "volume" ? "Volume" :
               root.osdType === "brightness" ? "Brightness" : "Microphone"
-        color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
         font.pixelSize: 12
       }
 
@@ -143,7 +143,7 @@ PanelWindow {
         color: {
           if (root.osdType === "mic" && root.muted) return "#F2B8B5"
           if (root.osdType === "volume" && root.muted) return "#F2B8B5"
-          return colors_ ? colors_.onSurface : "#FFFFFF"
+          return colors_ ? colors_.fgSurface : "#FFFFFF"
         }
         font.pixelSize: 20
         font.weight: Font.Bold

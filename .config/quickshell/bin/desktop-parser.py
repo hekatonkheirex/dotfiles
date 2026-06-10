@@ -10,6 +10,8 @@ APP_DIRS = [
     *(Path(d) / "applications" for d in XDG_DATA_DIRS),
 ]
 
+CACHE_PATH = Path("/tmp") / f"qs-app-cache-{os.getuid()}.json"
+
 ICON_DIRS = []
 for d in [XDG_DATA_HOME, *(Path(p) for p in XDG_DATA_DIRS)]:
     icon_dir = d / "icons"
@@ -66,7 +68,38 @@ def resolve_icon(icon_name):
                 return str(p)
     return ""
 
+def get_apps_mtime_sum():
+    total = 0.0
+    for d in APP_DIRS:
+        if d.exists():
+            total += d.stat().st_mtime
+    return total
+
+def load_cache(mtime_sum):
+    if CACHE_PATH.exists():
+        try:
+            with open(CACHE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if data.get("mtime_sum") == mtime_sum:
+                    return data.get("apps")
+        except Exception:
+            pass
+    return None
+
+def save_cache(mtime_sum, apps):
+    try:
+        with open(CACHE_PATH, "w", encoding="utf-8") as f:
+            json.dump({"mtime_sum": mtime_sum, "apps": apps}, f)
+    except Exception:
+        pass
+
 def main():
+    mtime_sum = get_apps_mtime_sum()
+    cached_apps = load_cache(mtime_sum)
+    if cached_apps is not None:
+        print(json.dumps(cached_apps))
+        sys.exit(0)
+
     apps = []
     seen = set()
     for appdir in APP_DIRS:
@@ -98,6 +131,7 @@ def main():
                 "terminal": entry.get("Terminal", "false").lower() == "true",
             })
     apps.sort(key=lambda a: a["name"].lower())
+    save_cache(mtime_sum, apps)
     print(json.dumps(apps))
 
 if __name__ == "__main__":

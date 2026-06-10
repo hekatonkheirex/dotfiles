@@ -16,7 +16,7 @@ Item {
   Text {
     anchors.centerIn: parent
     text: "wallpaper"
-    color: colors_ ? colors_.onSurface : "#FFFFFF"
+    color: colors_ ? colors_.fgSurface : "#FFFFFF"
     font.family: config ? config.iconFont : "Material Symbols Outlined"
     font.pixelSize: config ? config.iconSize : 22
   }

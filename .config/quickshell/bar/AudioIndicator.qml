@@ -38,11 +38,26 @@ Item {
     Quickshell.execDetached(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", String(root.volume)])
   }
 
-  Timer {
-    interval: 2000
+  Process {
+    id: audioWatcher
+    command: ["pactl", "subscribe"]
     running: true
-    repeat: true
-    onTriggered: root.pollAudio()
+    stdout: SplitParser {
+      onRead: function(data) {
+        if (data.indexOf("sink") >= 0) {
+          root.pollAudio()
+        }
+      }
+    }
+    onRunningChanged: {
+      if (!running) audioWatcherRetry.start()
+    }
+  }
+
+  Timer {
+    id: audioWatcherRetry
+    interval: 1000
+    onTriggered: audioWatcher.running = true
   }
 
   Component.onCompleted: root.pollAudio()

@@ -66,7 +66,12 @@ PanelWindow {
     })
   }
 
-  onVisibleChanged: { if (visible && config && config.isNiri) root.requestActivate() }
+
+  onVisibleChanged: {
+    if (visible) {
+      entryAnimation.start()
+    }
+  }
 
   WlrLayershell.focusable: true
 
@@ -94,6 +99,39 @@ PanelWindow {
       color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
       clip: true
 
+      transform: [
+        Translate { id: transX; x: 0 },
+        Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
+      ]
+
+      ParallelAnimation {
+        id: entryAnimation
+        NumberAnimation {
+          target: scaleTransform
+          properties: "xScale,yScale"
+          from: 0.85
+          to: 1.0
+          duration: 250
+          easing.type: Easing.OutBack
+        }
+        NumberAnimation {
+          target: transX
+          property: "x"
+          from: -30
+          to: 0
+          duration: 250
+          easing.type: Easing.OutBack
+        }
+        NumberAnimation {
+          target: bg
+          property: "opacity"
+          from: 0.0
+          to: 1.0
+          duration: 200
+          easing.type: Easing.OutCubic
+        }
+      }
+
       Column {
         id: contentColumn
         anchors {
@@ -107,7 +145,7 @@ PanelWindow {
 
           Text {
             text: "Notifications"
-            color: colors_ ? colors_.onSurface : "#FFFFFF"
+            color: colors_ ? colors_.fgSurface : "#FFFFFF"
             font.family: config ? config.fontFamily : "Google Sans Flex"
             font.pixelSize: config ? (config.fontPixelSize + 8) : 18
             font.weight: Font.Bold
@@ -117,7 +155,7 @@ PanelWindow {
 
           Text {
             text: count === 0 ? "None" : count.toString()
-            color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
             font.family: config ? config.fontFamily : "Google Sans Flex"
             font.pixelSize: config ? (config.fontPixelSize + 4) : 14
           }
@@ -136,7 +174,7 @@ PanelWindow {
             Text {
               anchors.centerIn: parent
               text: "clear_all"
-              color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+              color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
               font.family: config ? config.iconFont : "Material Symbols Outlined"
               font.pixelSize: 14
             }
@@ -209,7 +247,7 @@ PanelWindow {
                     var app = notif ? (notif.appName || "") : ""
                     return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
                   }
-                  color: colors_ ? colors_.onPrimaryContainer : "#EADDFF"
+                  color: colors_ ? colors_.fgPrimaryContainer : "#EADDFF"
                   font.family: config ? config.fontFamily : "Google Sans Flex"
                   font.pixelSize: config ? (config.fontPixelSize + 4) : 14
                   font.weight: Font.Bold
@@ -222,7 +260,7 @@ PanelWindow {
 
                 Text {
                   text: notif ? (notif.appName || "Unknown") : ""
-                  color: colors_ ? colors_.onSurface : "#FFFFFF"
+                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
                   font.family: config ? config.fontFamily : "Google Sans Flex"
                   font.pixelSize: config ? (config.fontPixelSize + 2) : 12
                   font.weight: Font.Medium
@@ -232,7 +270,7 @@ PanelWindow {
 
                 Text {
                   text: notif ? (notif.summary || "") : ""
-                  color: colors_ ? colors_.onSurface : "#FFFFFF"
+                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
                   font.family: config ? config.fontFamily : "Google Sans Flex"
                   font.pixelSize: config ? (config.fontPixelSize + 1) : 11
                   font.weight: Font.Bold
@@ -243,7 +281,7 @@ PanelWindow {
 
                 Text {
                   text: notif ? (notif.body || "") : ""
-                  color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+                  color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
                   font.family: config ? config.fontFamily : "Google Sans Flex"
                   font.pixelSize: config ? (config.fontPixelSize + 1) : 11
                   elide: Text.ElideRight
@@ -268,7 +306,7 @@ PanelWindow {
                 Text {
                   anchors.centerIn: parent
                   text: "close"
-                  color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+                  color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
                   font.family: config ? config.iconFont : "Material Symbols Outlined"
                   font.pixelSize: 14
                 }
@@ -291,7 +329,7 @@ PanelWindow {
 
         Text {
           text: "No new notifications"
-          color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: config ? (config.fontPixelSize + 2) : 12
           visible: count === 0

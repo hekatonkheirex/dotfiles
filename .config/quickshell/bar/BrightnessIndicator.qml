@@ -39,11 +39,24 @@ Item {
     Quickshell.execDetached(["brightnessctl", "set", Math.round(root.pct) + "%"])
   }
 
-  Timer {
-    interval: 2000
+  Process {
+    id: brightnessWatcher
+    command: ["sh", "-c", "inotifywait -m -e modify /sys/class/backlight/*/brightness"]
     running: true
-    repeat: true
-    onTriggered: root.fetchBrightness()
+    stdout: SplitParser {
+      onRead: function(data) {
+        root.fetchBrightness()
+      }
+    }
+    onRunningChanged: {
+      if (!running) brightnessWatcherRetry.start()
+    }
+  }
+
+  Timer {
+    id: brightnessWatcherRetry
+    interval: 1000
+    onTriggered: brightnessWatcher.running = true
   }
 
   Component.onCompleted: root.fetchBrightness()

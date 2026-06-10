@@ -63,7 +63,11 @@ PanelWindow {
 
   property var dayModel: root.buildDayModel(root.displayMonth)
 
-  onVisibleChanged: { if (visible && config && config.isNiri) root.requestActivate() }
+  onVisibleChanged: {
+    if (visible) {
+      entryAnimation.start()
+    }
+  }
 
   WlrLayershell.focusable: true
 
@@ -90,6 +94,39 @@ PanelWindow {
       radius: config ? config.borderRadius : 14
       color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
 
+      transform: [
+        Translate { id: transX; x: 0 },
+        Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
+      ]
+
+      ParallelAnimation {
+        id: entryAnimation
+        NumberAnimation {
+          target: scaleTransform
+          properties: "xScale,yScale"
+          from: 0.85
+          to: 1.0
+          duration: 250
+          easing.type: Easing.OutBack
+        }
+        NumberAnimation {
+          target: transX
+          property: "x"
+          from: -30
+          to: 0
+          duration: 250
+          easing.type: Easing.OutBack
+        }
+        NumberAnimation {
+          target: bg
+          property: "opacity"
+          from: 0.0
+          to: 1.0
+          duration: 200
+          easing.type: Easing.OutCubic
+        }
+      }
+
       Column {
         id: contentBody
         anchors {
@@ -104,7 +141,7 @@ PanelWindow {
 
           Text {
             text: root.monthNames[root.displayMonth.getMonth()] + " " + root.displayMonth.getFullYear()
-            color: colors_ ? colors_.onSurface : "#FFFFFF"
+            color: colors_ ? colors_.fgSurface : "#FFFFFF"
             font.family: config ? config.fontFamily : "Google Sans Flex"
             font.pixelSize: 18
             font.weight: Font.Bold
@@ -128,7 +165,7 @@ PanelWindow {
                 Text {
                   anchors.centerIn: parent
                   text: modelData
-                  color: colors_ ? colors_.onSurface : "#FFFFFF"
+                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
                   font.family: config ? config.iconFont : "Material Symbols Outlined"
                   font.pixelSize: 18
                 }
@@ -154,7 +191,7 @@ PanelWindow {
             model: root.weekDays
             Text {
               text: modelData
-              color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+              color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: 14
               font.weight: Font.Medium
@@ -187,8 +224,8 @@ PanelWindow {
                 anchors.centerIn: parent
                 text: dayNum > 0 ? dayNum.toString() : ""
                 color: root.isToday(dayNum)
-                  ? (colors_ ? colors_.onPrimary : "#FFFFFF")
-                  : (colors_ ? colors_.onSurface : "#FFFFFF")
+                  ? (colors_ ? colors_.fgPrimary : "#FFFFFF")
+                  : (colors_ ? colors_.fgSurface : "#FFFFFF")
                 font.family: config ? config.fontFamily : "Google Sans Flex"
                 font.pixelSize: 14
               }

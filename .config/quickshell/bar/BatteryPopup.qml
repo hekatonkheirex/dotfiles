@@ -79,7 +79,7 @@ PanelWindow {
   onVisibleChanged: {
     if (visible) {
       root.updateBattery()
-      if (config && config.isNiri) root.requestActivate()
+      entryAnimation.start()
     }
   }
 
@@ -109,6 +109,39 @@ PanelWindow {
       color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
       clip: true
 
+      transform: [
+        Translate { id: transX; x: 0 },
+        Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
+      ]
+
+      ParallelAnimation {
+        id: entryAnimation
+        NumberAnimation {
+          target: scaleTransform
+          properties: "xScale,yScale"
+          from: 0.85
+          to: 1.0
+          duration: 250
+          easing.type: Easing.OutBack
+        }
+        NumberAnimation {
+          target: transX
+          property: "x"
+          from: -30
+          to: 0
+          duration: 250
+          easing.type: Easing.OutBack
+        }
+        NumberAnimation {
+          target: bg
+          property: "opacity"
+          from: 0.0
+          to: 1.0
+          duration: 200
+          easing.type: Easing.OutCubic
+        }
+      }
+
       Column {
         id: contentColumn
         anchors {
@@ -119,7 +152,7 @@ PanelWindow {
 
         Text {
           text: "Battery"
-          color: colors_ ? colors_.onSurface : "#FFFFFF"
+          color: colors_ ? colors_.fgSurface : "#FFFFFF"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: config ? (config.fontPixelSize + 8) : 18
           font.weight: Font.Bold
@@ -129,7 +162,7 @@ PanelWindow {
           spacing: 12
           Text {
             text: pct >= 0 ? Math.round(pct) + "%" : "--%"
-            color: colors_ ? (pct <= 10 ? colors_.error : colors_.onSurface) : "#FFFFFF"
+            color: colors_ ? (pct <= 10 ? colors_.error : colors_.fgSurface) : "#FFFFFF"
             font.family: config ? config.fontFamily : "Google Sans Flex"
             font.pixelSize: config ? (config.fontPixelSize + 16) : 26
             font.weight: Font.Bold
@@ -139,14 +172,14 @@ PanelWindow {
             spacing: 2
             Text {
               text: root.stateLabel
-              color: colors_ ? (root.charging ? colors_.primary : colors_.onSurfaceVariant) : "#CAC4D0"
+              color: colors_ ? (root.charging ? colors_.primary : colors_.fgSurfaceVariant) : "#CAC4D0"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 2) : 12
               font.weight: Font.Medium
             }
             Text {
               text: batteryDevice && batteryDevice.capacity ? batteryDevice.capacity.toFixed(0) + " mAh" : ""
-              color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+              color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 1) : 11
             }
@@ -171,7 +204,7 @@ PanelWindow {
 
         Text {
           text: root.timeLabel
-          color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: config ? (config.fontPixelSize + 1) : 11
           visible: root.timeLabel !== ""
@@ -184,13 +217,13 @@ PanelWindow {
             spacing: 2
             Text {
               text: "Voltage"
-              color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+              color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 1) : 11
             }
             Text {
               text: batteryDevice && batteryDevice.voltage ? batteryDevice.voltage.toFixed(3) + " V" : ""
-              color: colors_ ? colors_.onSurface : "#FFFFFF"
+              color: colors_ ? colors_.fgSurface : "#FFFFFF"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 2) : 12
             }
@@ -199,13 +232,13 @@ PanelWindow {
             spacing: 2
             Text {
               text: "Energy"
-              color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+              color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 1) : 11
             }
             Text {
               text: batteryDevice && batteryDevice.energy ? batteryDevice.energy.toFixed(1) + " Wh" : ""
-              color: colors_ ? colors_.onSurface : "#FFFFFF"
+              color: colors_ ? colors_.fgSurface : "#FFFFFF"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 2) : 12
             }
@@ -214,7 +247,7 @@ PanelWindow {
 
         Text {
           text: batteryDevice ? batteryDevice.model || batteryDevice.vendor || "" : ""
-          color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: config ? (config.fontPixelSize + 1) : 11
         }

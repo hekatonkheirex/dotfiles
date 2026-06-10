@@ -122,16 +122,50 @@ PanelWindow {
           filteredModel.append(appModel.get(i))
         }
       }
-      if (config && config.isNiri) root.requestActivate()
+      entryAnimation.start()
     }
   }
 
   Rectangle {
+    id: bg
     anchors.fill: parent
     color: colors_ ? colors_.surfaceContainer : "#211F26"
     radius: 12
     border.color: colors_ ? colors_.outlineVariant : "#49454F"
     border.width: 1
+
+    transform: [
+      Translate { id: transX; x: 0 },
+      Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
+    ]
+
+    ParallelAnimation {
+      id: entryAnimation
+      NumberAnimation {
+        target: scaleTransform
+        properties: "xScale,yScale"
+        from: 0.85
+        to: 1.0
+        duration: 250
+        easing.type: Easing.OutBack
+      }
+      NumberAnimation {
+        target: transX
+        property: "x"
+        from: -30
+        to: 0
+        duration: 250
+        easing.type: Easing.OutBack
+      }
+      NumberAnimation {
+        target: bg
+        property: "opacity"
+        from: 0.0
+        to: 1.0
+        duration: 200
+        easing.type: Easing.OutCubic
+      }
+    }
 
     ColumnLayout {
       id: clipItem
@@ -144,7 +178,7 @@ PanelWindow {
 
         Text {
           text: "search"
-          color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
           font.family: config ? config.iconFont : "Material Symbols Outlined"
           font.pixelSize: config ? (config.iconSize - 2) : 20
         }
@@ -152,7 +186,7 @@ PanelWindow {
         TextInput {
           id: searchInput
           Layout.fillWidth: true
-          color: colors_ ? colors_.onSurface : "#FFFFFF"
+          color: colors_ ? colors_.fgSurface : "#FFFFFF"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: 17
           clip: true
@@ -230,7 +264,7 @@ PanelWindow {
               Text {
                 anchors.centerIn: parent
                 text: model.name.charAt(0).toUpperCase()
-                color: colors_ ? colors_.onSurface : "#FFFFFF"
+                color: colors_ ? colors_.fgSurface : "#FFFFFF"
                 font.family: config ? config.fontFamily : "Google Sans Flex"
                 font.pixelSize: 15
                 font.weight: Font.Medium
@@ -245,7 +279,7 @@ PanelWindow {
               Text {
                 Layout.fillWidth: true
                 text: model.name
-                color: colors_ ? colors_.onSurface : "#FFFFFF"
+                color: colors_ ? colors_.fgSurface : "#FFFFFF"
                 font.family: config ? config.fontFamily : "Google Sans Flex"
                 font.pixelSize: 15
                 font.weight: Font.Medium
@@ -255,7 +289,7 @@ PanelWindow {
               Text {
                 Layout.fillWidth: true
                 text: model.comment || ""
-                color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+                color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
                 font.family: config ? config.fontFamily : "Google Sans Flex"
                 font.pixelSize: 13
                 elide: Text.ElideRight
