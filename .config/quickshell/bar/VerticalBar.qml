@@ -146,6 +146,7 @@ PanelWindow {
       SystemTrayArea {
         colors_: root.colors_
         config: root.config
+        parentWindow: root
       }
 
       MenuIndicator {

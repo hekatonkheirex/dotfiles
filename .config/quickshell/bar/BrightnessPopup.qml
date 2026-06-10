@@ -64,7 +64,7 @@ PanelWindow {
   onVisibleChanged: {
     if (root.visible) {
       root.pollBrightness()
-      if (config && config.isNiri) root.requestActivate()
+      entryAnimation.start()
     }
   }
 
@@ -94,6 +94,39 @@ PanelWindow {
       color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
       clip: true
 
+      transform: [
+        Translate { id: transX; x: 0 },
+        Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
+      ]
+
+      ParallelAnimation {
+        id: entryAnimation
+        NumberAnimation {
+          target: scaleTransform
+          properties: "xScale,yScale"
+          from: 0.85
+          to: 1.0
+          duration: 250
+          easing.type: Easing.OutBack
+        }
+        NumberAnimation {
+          target: transX
+          property: "x"
+          from: -30
+          to: 0
+          duration: 250
+          easing.type: Easing.OutBack
+        }
+        NumberAnimation {
+          target: bg
+          property: "opacity"
+          from: 0.0
+          to: 1.0
+          duration: 200
+          easing.type: Easing.OutCubic
+        }
+      }
+
       Column {
         id: contentColumn
         anchors {
@@ -104,7 +137,7 @@ PanelWindow {
 
         Text {
           text: "Brightness"
-          color: colors_ ? colors_.onSurface : "#FFFFFF"
+          color: colors_ ? colors_.fgSurface : "#FFFFFF"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: config ? (config.fontPixelSize + 8) : 18
           font.weight: Font.Bold
@@ -112,7 +145,7 @@ PanelWindow {
 
         Text {
           text: Math.round(root.pct) + "%"
-          color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: config ? (config.fontPixelSize + 4) : 14
         }

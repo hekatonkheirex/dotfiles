@@ -14,11 +14,7 @@ Item {
   Layout.preferredWidth: config ? config.widgetSize : 50
   Layout.preferredHeight: config ? config.widgetSize : 50
 
-  property var batteryDevice: null
-  property real pct: -1
-  property string iconLabel: "battery_unknown"
-
-  function findBattery() {
+  readonly property var batteryDevice: {
     for (var i = 0; i < UPower.devices.count; i++) {
       var d = UPower.devices.get(i)
       if (d.ready && d.isLaptopBattery) return d
@@ -28,29 +24,21 @@ Item {
     return null
   }
 
-  function updateBattery() {
-    var dev = root.findBattery()
-    if (!dev) return
-    root.batteryDevice = dev
-    root.pct = dev.percentage * 100
-    var ch = dev.state === UPowerDeviceState.Charging || dev.state === UPowerDeviceState.PendingCharge
-    var plugged = ch || dev.state === UPowerDeviceState.FullyCharged
-    if (ch) root.iconLabel = "battery_charging_full"
-    else if (plugged && root.pct >= 99) root.iconLabel = "battery_full"
-    else if (root.pct <= 10) root.iconLabel = "battery_alert"
-    else if (root.pct <= 20) root.iconLabel = "battery_1_bar"
-    else if (root.pct <= 40) root.iconLabel = "battery_2_bar"
-    else if (root.pct <= 60) root.iconLabel = "battery_3_bar"
-    else if (root.pct <= 80) root.iconLabel = "battery_4_bar"
-    else if (root.pct <= 95) root.iconLabel = "battery_5_bar"
-    else root.iconLabel = "battery_full"
-  }
+  readonly property real pct: batteryDevice ? batteryDevice.percentage * 100 : -1
 
-  Timer {
-    interval: 1000
-    running: true
-    repeat: true
-    onTriggered: root.updateBattery()
+  readonly property string iconLabel: {
+    if (!batteryDevice) return "battery_unknown"
+    var ch = batteryDevice.state === UPowerDeviceState.Charging || batteryDevice.state === UPowerDeviceState.PendingCharge
+    var plugged = ch || batteryDevice.state === UPowerDeviceState.FullyCharged
+    if (ch) return "battery_charging_full"
+    if (plugged && pct >= 99) return "battery_full"
+    if (pct <= 10) return "battery_alert"
+    if (pct <= 20) return "battery_1_bar"
+    if (pct <= 40) return "battery_2_bar"
+    if (pct <= 60) return "battery_3_bar"
+    if (pct <= 80) return "battery_4_bar"
+    if (pct <= 95) return "battery_5_bar"
+    return "battery_full"
   }
 
   Rectangle {

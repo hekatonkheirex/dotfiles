@@ -25,23 +25,11 @@ Item {
   }
 
   Layout.preferredWidth: config ? config.widgetSize : 50
-  Layout.preferredHeight: workspaces.length * pillHeight + (workspaces.length - 1) * 6
-
-  Timer {
-    id: refreshTimer
-    interval: root.wmType === "mango" ? 500 : 1000
-    running: true
-    repeat: true
-    onTriggered: {
-      if (!refresher.running) refresher.running = true
-    }
-  }
+  Layout.preferredHeight: column.implicitHeight + 12
 
   Process {
     id: refresher
-    command: root.wmType === "mango"
-      ? ["mmsg", "get", "all-tags"]
-      : ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j workspaces"]
+    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j workspaces"]
     running: false
 
     stdout: StdioCollector {
@@ -56,13 +44,66 @@ Item {
 
   Process {
     id: niriWatcher
-    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg event-stream | head -1"]
+    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg event-stream"]
     running: root.wmType === "niri"
+    
+    stdout: SplitParser {
+      onRead: function(data) {
+        if (!refresher.running) refresher.running = true
+      }
+    }
+
     onRunningChanged: {
       if (!running && root.wmType === "niri") {
-        refresher.running = true
-        running = true
+        niriWatcherRetry.start()
       }
+    }
+  }
+
+  Timer {
+    id: niriWatcherRetry
+    interval: 1000
+    onTriggered: {
+      if (root.wmType === "niri") {
+        niriWatcher.running = true
+      }
+    }
+  }
+
+  Process {
+    id: mangoWatcher
+    command: ["mmsg", "watch", "all-tags"]
+    running: root.wmType === "mango"
+
+    stdout: SplitParser {
+      onRead: function(data) {
+        try {
+          var list = parseWorkspaces(data.trim())
+          root.workspaces = list
+        } catch (e) { print("WorkspaceIndicator Mango parse error:", e) }
+      }
+    }
+
+    onRunningChanged: {
+      if (!running && root.wmType === "mango") {
+        mangoWatcherRetry.start()
+      }
+    }
+  }
+
+  Timer {
+    id: mangoWatcherRetry
+    interval: 1000
+    onTriggered: {
+      if (root.wmType === "mango") {
+        mangoWatcher.running = true
+      }
+    }
+  }
+
+  Component.onCompleted: {
+    if (root.wmType === "niri") {
+      refresher.running = true
     }
   }
 
@@ -121,8 +162,11 @@ Item {
   }
 
   Column {
+    id: column
     anchors {
-      fill: parent
+      left: parent.left
+      right: parent.right
+      top: parent.top
       topMargin: 6
     }
     spacing: 6
@@ -131,29 +175,45 @@ Item {
       model: root.workspaces
 
       delegate: Item {
+        id: delegateItem
         required property var modelData
         width: parent.width
-        height: root.pillHeight
+
+        readonly property bool active: modelData.isFocused || wsMouse.containsMouse
+
+        height: active ? 40 : 20
+        Behavior on height {
+          NumberAnimation {
+            duration: config ? config.animationDuration : 150
+            easing.type: Easing.OutBack
+          }
+        }
 
         Rectangle {
-          anchors {
-            fill: parent
-            leftMargin: 6
-            rightMargin: 6
-          }
-          radius: (width) / 2
+          id: pillRect
+          anchors.centerIn: parent
+          width: delegateItem.active ? 32 : (modelData.isOccupied ? 12 : 6)
+          height: delegateItem.active ? 40 : (modelData.isOccupied ? 12 : 6)
+          radius: height / 2
+
           color: {
             if (modelData.isFocused) return colors_ ? (colors_.darkMode ? colors_.primary : colors_.primaryContainer) : "#D0BCFF"
-            if (wsMouse.containsMouse) return colors_ ? colors_.surfaceContainerHighest : "#3A3840"
-            if (modelData.isOccupied) return colors_ ? colors_.surfaceContainerHigh : "#2B2930"
-            return "transparent"
+            if (wsMouse.containsMouse) return colors_ ? colors_.outlineVariant : "#49454F"
+            if (modelData.isOccupied) return colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
+            return colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.2) : Qt.rgba(147/255, 143/255, 153/255, 0.2)
           }
           border.width: modelData.isFocused ? 0 : 1
           border.color: {
             if (modelData.isFocused) return "transparent"
-            return colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, modelData.isOccupied ? 0.3 : 0.15) : Qt.rgba(147/255, 143/255, 153/255, modelData.isOccupied ? 0.3 : 0.15)
+            return colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, modelData.isOccupied ? 0.3 : 0.1) : Qt.rgba(147/255, 143/255, 153/255, modelData.isOccupied ? 0.3 : 0.1)
           }
 
+          Behavior on width {
+            NumberAnimation { duration: config ? config.animationDuration : 150; easing.type: Easing.OutBack }
+          }
+          Behavior on height {
+            NumberAnimation { duration: config ? config.animationDuration : 150; easing.type: Easing.OutBack }
+          }
           Behavior on color {
             ColorAnimation { duration: config ? config.animationDuration : 150 }
           }
@@ -161,14 +221,19 @@ Item {
           Text {
             anchors.centerIn: parent
             text: modelData.idx.toString()
+            opacity: delegateItem.active ? 1.0 : 0.0
+            visible: opacity > 0
             color: {
-              if (modelData.isFocused) return colors_ ? colors_.onPrimary : "#FFFFFF"
-              if (modelData.isOccupied) return colors_ ? colors_.onSurface : "#FFFFFF"
-              return colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.5) : Qt.rgba(147/255, 143/255, 153/255, 0.5)
+              if (modelData.isFocused) return colors_ ? colors_.fgPrimary : "#FFFFFF"
+              return colors_ ? colors_.fgSurface : "#FFFFFF"
             }
             font.family: config ? config.fontFamily : "Google Sans Flex"
             font.pixelSize: config ? (config.fontPixelSize + 4) : 14
             font.weight: modelData.isFocused ? Font.Bold : Font.Normal
+
+            Behavior on opacity {
+              NumberAnimation { duration: 100 }
+            }
           }
         }
 

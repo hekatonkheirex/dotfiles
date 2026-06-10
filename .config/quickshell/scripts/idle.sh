@@ -8,8 +8,8 @@ else
 fi
 
 exec setsid -f /usr/bin/swayidle \
-  timeout 150 '/usr/bin/sh -c "if grep -q Discharging /sys/class/power_supply/BAT*/status; then /usr/bin/brightnessctl set 30%; else /usr/bin/brightnessctl set 100%; fi"' \
-  resume '/usr/bin/sh -c "if grep -q Discharging /sys/class/power_supply/BAT*/status; then /usr/bin/brightnessctl set 30%; else /usr/bin/brightnessctl set 100%; fi"' \
+  timeout 150 '/usr/bin/sh -c "brightnessctl g > /tmp/qs-prev-brightness && brightnessctl set 10%"' \
+  resume '/usr/bin/sh -c "brightnessctl set $(cat /tmp/qs-prev-brightness 2>/dev/null || echo 100%)"' \
   timeout 300 "$HOME/.config/quickshell/scripts/lock" \
   timeout 600 "eval $dpms_off" \
   resume "eval $dpms_on" \

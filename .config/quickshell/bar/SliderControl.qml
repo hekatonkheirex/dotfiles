@@ -15,6 +15,8 @@ Item {
   width: parent.width
   height: 32
 
+  readonly property bool active: sliderMouse.containsMouse || sliderMouse.pressed
+
   Rectangle {
     id: track
     anchors {
@@ -22,9 +24,16 @@ Item {
       right: parent.right
       verticalCenter: parent.verticalCenter
     }
-    height: 6
-    radius: 3
+    height: root.active ? 16 : 8
+    radius: height / 2
     color: root.surfaceContainerHighest
+
+    Behavior on height {
+      NumberAnimation {
+        duration: 150
+        easing.type: Easing.OutBack
+      }
+    }
 
     Rectangle {
       anchors {
@@ -33,7 +42,7 @@ Item {
         bottom: parent.bottom
       }
       width: parent.width * root.value
-      radius: 3
+      radius: parent.radius
       color: root.muted ? root.outline : root.activeColor
     }
   }
@@ -42,16 +51,26 @@ Item {
     id: knob
     x: track.x + track.width * root.value - width / 2
     y: parent.height / 2 - height / 2
-    width: 20
-    height: 20
-    radius: 10
+    width: root.active ? 20 : 12
+    height: width
+    radius: width / 2
     color: root.muted ? root.outline : root.activeColor
-    border.width: 2
+    border.width: root.active ? 2 : 1
     border.color: root.surfaceContainerHigh
+
+    Behavior on width {
+      NumberAnimation {
+        duration: 150
+        easing.type: Easing.OutBack
+      }
+    }
   }
 
   MouseArea {
+    id: sliderMouse
     anchors.fill: parent
+    hoverEnabled: true
+    cursorShape: Qt.PointingHandCursor
     onPressed: function(mouse) { handleMouse(mouse.x) }
     onPositionChanged: function(mouse) { handleMouse(mouse.x) }
     function handleMouse(mx) {
@@ -60,3 +79,4 @@ Item {
     }
   }
 }
+

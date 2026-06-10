@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 
@@ -8,6 +9,7 @@ Item {
 
   property QtObject colors_: null
   property QtObject config: null
+  property var parentWindow: null
 
   Layout.preferredWidth: config ? config.widgetSize : 50
   Layout.preferredHeight: trayRepeater.count > 0
@@ -55,15 +57,26 @@ Item {
           height: width
         }
 
+        QsMenuAnchor {
+          id: menuAnchor
+          menu: modelData.menu
+          anchor.window: parentWindow
+          anchor.item: trayIconDelegate
+          anchor.edges: Edges.Right
+          anchor.gravity: Edges.Right
+        }
+
         MouseArea {
           id: trayMouse
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          acceptedButtons: Qt.LeftButton | Qt.RightButton
+          acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
           onClicked: function(mouse) {
             if (mouse.button === Qt.RightButton && modelData.hasMenu) {
-              modelData.display(trayColumn, mouse.x, mouse.y)
+              menuAnchor.open()
+            } else if (mouse.button === Qt.MiddleButton) {
+              modelData.secondaryActivate()
             } else {
               modelData.activate()
             }

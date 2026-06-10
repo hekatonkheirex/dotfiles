@@ -30,6 +30,7 @@ PanelWindow {
     }
     notif = n
     dismissTimer.restart()
+    entryAnimation.start()
   }
 
   function dismiss() {
@@ -55,9 +56,43 @@ PanelWindow {
   }
 
   Rectangle {
+    id: bg
     anchors.fill: parent
     radius: config ? config.borderRadius : 14
     color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+
+    transform: [
+      Translate { id: transX; x: 0 },
+      Scale { id: scaleTransform; origin.x: bg.width; origin.y: 0; xScale: 1.0; yScale: 1.0 }
+    ]
+
+    ParallelAnimation {
+      id: entryAnimation
+      NumberAnimation {
+        target: scaleTransform
+        properties: "xScale,yScale"
+        from: 0.8
+        to: 1.0
+        duration: 250
+        easing.type: Easing.OutBack
+      }
+      NumberAnimation {
+        target: transX
+        property: "x"
+        from: 50
+        to: 0
+        duration: 250
+        easing.type: Easing.OutBack
+      }
+      NumberAnimation {
+        target: bg
+        property: "opacity"
+        from: 0.0
+        to: 1.0
+        duration: 200
+        easing.type: Easing.OutCubic
+      }
+    }
 
     RowLayout {
       id: layout
@@ -76,7 +111,7 @@ PanelWindow {
         Text {
           anchors.centerIn: parent
           text: notif ? (notif.appName.length > 0 ? notif.appName.charAt(0).toUpperCase() : "?") : "?"
-          color: colors_ ? colors_.onPrimaryContainer : "#EADDFF"
+          color: colors_ ? colors_.fgPrimaryContainer : "#EADDFF"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: 18
           font.weight: Font.Bold
@@ -89,7 +124,7 @@ PanelWindow {
 
         Text {
           text: notif ? (notif.appName || "Unknown") : ""
-          color: colors_ ? colors_.onSurface : "#FFFFFF"
+          color: colors_ ? colors_.fgSurface : "#FFFFFF"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: 15
           font.weight: Font.Medium
@@ -98,7 +133,7 @@ PanelWindow {
 
         Text {
           text: notif ? (notif.summary || "") : ""
-          color: colors_ ? colors_.onSurface : "#FFFFFF"
+          color: colors_ ? colors_.fgSurface : "#FFFFFF"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: 14
           font.weight: Font.Bold
@@ -108,7 +143,7 @@ PanelWindow {
 
         Text {
           text: notif ? (notif.body || "") : ""
-          color: colors_ ? colors_.onSurfaceVariant : "#CAC4D0"
+          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: 13
           elide: Text.ElideRight

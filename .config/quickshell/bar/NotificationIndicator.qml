@@ -17,11 +17,27 @@ Item {
 
   readonly property string iconLabel: hasNotifications ? "notifications_active" : "notifications"
 
+  Rectangle {
+    id: bgOverlay
+    anchors {
+      fill: parent
+      leftMargin: 6
+      rightMargin: 6
+    }
+    radius: config ? config.borderRadius : 14
+    clip: true
+    color: colors_ ? (mouseArea.containsMouse ? colors_.surfaceContainerHighest : colors_.surfaceContainerHigh) : "#2B2930"
+    border.color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
+    border.width: 1
+
+    Behavior on color {
+      ColorAnimation { duration: config ? config.animationDuration : 150 }
+    }
+  }
+
   Text {
     id: iconText
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.top: parent.top
-    anchors.topMargin: 6
+    anchors.centerIn: parent
     text: root.iconLabel
     color: colors_ ? colors_.primary : "#D0BCFF"
     font.family: config ? config.iconFont : "Material Symbols Outlined"
@@ -48,7 +64,7 @@ Item {
         id: badgeText
         anchors.centerIn: parent
         text: notificationCount > 99 ? "99+" : notificationCount.toString()
-        color: colors_ ? colors_.onError : "#601410"
+        color: colors_ ? colors_.fgError : "#601410"
         font.family: config ? config.fontFamily : "Google Sans Flex"
         font.pixelSize: config ? (config.fontPixelSize - 3) : 7
         font.weight: Font.Bold

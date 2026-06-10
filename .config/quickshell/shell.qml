@@ -1,3 +1,4 @@
+//@ pragma UseQApplication
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -62,6 +63,7 @@ ShellRoot {
       bar.popupAnchorY = bar.getMenuIndicatorY()
       bar.openPopup = bar.openPopup === "quickmenu" ? "" : "quickmenu"
     }
+
   }
 
   FileTrigger {
