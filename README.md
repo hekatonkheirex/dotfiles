@@ -17,23 +17,18 @@
 - **Distro** • [Arch Linux](https://archlinux.org/) 🐧
 - **Window Manager** • Main - [Niri](https://niri-wm.github.io/niri/) 🔥
 - **Window Manager** • Backup - [MangoWM](https://mangowm.github.io/) 🥭
-- **Colorscheme** • Custom made Apple's macOS 26 Tahoe Dark Liquid Glass
-lookalike 🍎
-  - **Backup Colorscheme** • [Oxocarbon](https://github.com/nyoom-engineering/oxocarbon)
-  💻
-  - **Backup Colorscheme** • [Catppuccin](https://github.com/catppuccin) 🐈
-  - **Backup Colorscheme** • [Gruvbox](https://github.com/gruvbox-community/gruvbox)
-    🌈
-  - **Backup Colorscheme** • [Rose Pine](https://rosepinetheme.com) 🌹
-
+- **Colorscheme** • Main - Custom made Material Design 3 Expressive theme suite (Blue, Green, Yellow, Red, Purple, Orange) 🎨
+- **Colorscheme** • Backup - Custom made Apple's macOS 26 Tahoe Dark Liquid Glass lookalike 🍎
 - **Shell** • [Zsh](https://www.zsh.org) 🐚 with
   - [zinit](https://github.com/zdharma-continuum/zinit) 💤
   - [Starship](https://github.com/starship/starship) 🚀
 - **Terminal** • [Kitty](https://sw.kovidgoyal.net/kitty/) 🐈
-- **Panel** • [Waybar](https://github.com/Alexays/Waybar) 🍫
-- **Notification Daemon** •
-  [mako](https://github.com/emersion/mako) 🔔
-- **Launcher** • [Rofi](https://github.com/davatorium/rofi) ⚓
+- **Panel / Desktop Shell** • Custom [Quickshell](https://quickshell.outfoxxed.me/) QML-based status bar, dashboard, and widgets 🐚 (replaces Waybar)
+- **Lock Screen** • Custom [Quickshell](https://quickshell.outfoxxed.me/) lock screen with PAM + fingerprint authentication 🔒
+- **Notification Daemon** • Custom [Quickshell](https://quickshell.outfoxxed.me/) notification toasts & history 🔔
+- **Launcher** • Custom [Quickshell](https://quickshell.outfoxxed.me/) app launcher with offline voice search 🎙️
+- **Icon Theme** • Custom Material Design 3 Expressive folders with specific category glyphs 📁 (inherits Adwaita/hicolor)
+- **Kvantum Theme** • Custom Material Design 3 Expressive Qt themes 🎨
 - **File Manager** • [Nautilus](https://apps.gnome.org/Nautilus/) 🗄️
 - **Editor** • [Neovim](https://neovim.io/) 📝
 - **Backup Editor** • [Zed](https://zed.dev/) 📝
@@ -107,4 +102,10 @@ and `system-local-login` go into `/etc/pam.d/`, `logind.conf` goes into `/etc/sy
 - `zram-generator` goes in `/etc/systemd/`. This enables zram swap (requires
 `zram-generator` package).
 - `timeshift-autosnap.conf` goes in `/etc/`. This enables btrfs backups when
-installing/upgrading/uninstalling packages.
+  installing/upgrading/uninstalling packages.
+
+---
+
+## Disclaimer
+
+Part of these configuration files and theme builders were generated and vibe-coded with the assistance of **Antigravity**, an AI agentic coding assistant designed by the Google DeepMind team. Each one affected by vide coding was added an expecific README file.
