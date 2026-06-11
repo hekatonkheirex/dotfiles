@@ -93,6 +93,8 @@ PanelWindow {
       radius: config ? config.borderRadius : 14
       color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
       clip: true
+      border.width: 1
+      border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
 
       transform: [
         Translate { id: transX; x: 0 },

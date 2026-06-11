@@ -9,6 +9,8 @@ Item {
   property QtObject colors_: null
   property QtObject config: null
 
+  property bool active: false
+
   signal clicked(var mouse)
 
   Layout.preferredWidth: config ? config.widgetSize : 50
@@ -48,10 +50,17 @@ Item {
       leftMargin: 6
       rightMargin: 6
     }
-    radius: config ? config.borderRadius : 14
+    radius: width / 2
     clip: true
-    color: colors_ ? (mouseArea.containsMouse ? colors_.surfaceContainerHighest : colors_.surfaceContainerHigh) : "#2B2930"
-    border.color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
+    color: {
+      if (root.active) return colors_ ? colors_.primary : "#D0BCFF"
+      if (mouseArea.containsMouse) return colors_ ? colors_.surfaceContainerHighest : "#36343B"
+      return colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+    }
+    border.color: {
+      if (root.active) return "transparent"
+      return colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
+    }
     border.width: 1
 
     Behavior on color {
@@ -63,7 +72,10 @@ Item {
     id: iconText
     anchors.centerIn: parent
     text: root.iconLabel
-    color: colors_ ? colors_.primary : "#D0BCFF"
+    color: {
+      if (root.active) return colors_ ? colors_.fgPrimary : "#0F3C2C"
+      return colors_ ? colors_.primary : "#D0BCFF"
+    }
     font.family: config ? config.iconFont : "Material Symbols Outlined"
     font.pixelSize: config ? config.iconSize : 22
     horizontalAlignment: Text.AlignHCenter
@@ -75,7 +87,10 @@ Item {
     anchors.bottom: parent.bottom
     anchors.bottomMargin: 4
     text: root.pct >= 0 ? Math.round(root.pct) + "%" : ""
-    color: colors_ ? colors_.primary : "#D0BCFF"
+    color: {
+      if (root.active) return colors_ ? colors_.fgPrimary : "#0F3C2C"
+      return colors_ ? colors_.primary : "#D0BCFF"
+    }
     font.family: config ? config.fontFamily : "Google Sans Flex"
     font.pixelSize: config ? (config.fontPixelSize - 2) : 8
     font.weight: Font.Medium

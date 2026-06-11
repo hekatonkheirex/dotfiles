@@ -10,14 +10,14 @@ Item {
   Process {
     id: proc
     command: ["sh", "-c",
-      "while true; do inotifywait -e create /tmp/ 2>/dev/null | grep -q '" + root.triggerFile.split("/").pop() + "' && { rm -f " + root.triggerFile + "; break; }; done"
+      "if [ -f " + root.triggerFile + " ]; then rm -f " + root.triggerFile + "; else inotifywait -e create /tmp/ 2>/dev/null | grep -q '" + root.triggerFile.split("/").pop() + "' && rm -f " + root.triggerFile + "; fi"
     ]
     running: root.triggerFile.length > 0
-    onRunningChanged: {
-      if (!running && root.triggerFile.length > 0) {
+    onExited: (exitCode, exitStatus) => {
+      if (exitCode === 0) {
         root.triggered()
-        restartTimer.start()
       }
+      restartTimer.start()
     }
   }
 

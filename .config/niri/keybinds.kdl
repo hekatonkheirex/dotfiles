@@ -8,7 +8,7 @@ binds {
   Mod+Alt+L hotkey-overlay-title="Lock the Screen" { spawn "~/.config/quickshell/scripts/lock"; }
   Mod+B hotkey-overlay-title="Open Web Browser: Brave Browser" { spawn "brave-origin"; }
   Mod+T hotkey-overlay-title="Open File Manager: Nautilus" { spawn "nautilus"; }
-  Mod+Escape hotkey-overlay-title="Open Quick Settings" { spawn "~/.config/quickshell/scripts/quickmenu"; }
+  Mod+Escape repeat=false hotkey-overlay-title="Open Quick Settings" { spawn "~/.config/quickshell/scripts/quickmenu"; }
   Mod+A hotkey-overlay-title="Open OpenCode" { spawn "kitty" "-e" "opencode"; }
 
   // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.

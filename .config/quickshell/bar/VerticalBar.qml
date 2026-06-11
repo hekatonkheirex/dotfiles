@@ -92,6 +92,7 @@ PanelWindow {
         id: launcherWidget
         colors_: root.colors_
         config: root.config
+        active: root.openPopup === "launcher"
         onClicked: function(mouse) {
           root.togglePopup("launcher", launcherWidget)
         }
@@ -120,6 +121,7 @@ PanelWindow {
         id: audioIndicator
         colors_: root.colors_
         config: root.config
+        active: root.openPopup === "audio"
         onClicked: function(mouse) {
           root.togglePopup("audio", audioIndicator)
         }
@@ -129,6 +131,7 @@ PanelWindow {
         id: brightnessIndicator
         colors_: root.colors_
         config: root.config
+        active: root.openPopup === "brightness"
         onClicked: function(mouse) {
           root.togglePopup("brightness", brightnessIndicator)
         }
@@ -138,6 +141,7 @@ PanelWindow {
         id: batteryIndicator
         colors_: root.colors_
         config: root.config
+        active: root.openPopup === "battery"
         onClicked: function(mouse) {
           root.togglePopup("battery", batteryIndicator)
         }
@@ -153,6 +157,7 @@ PanelWindow {
         id: menuIndicator
         colors_: root.colors_
         config: root.config
+        active: root.openPopup === "quickmenu"
         onClicked: function(mouse) {
           root.togglePopup("quickmenu", menuIndicator)
         }
@@ -191,6 +196,7 @@ PanelWindow {
         colors_: root.colors_
         config: root.config
         notificationCount: root.notificationCount
+        active: root.openPopup === "notification"
         onClicked: function(mouse) {
           root.togglePopup("notification", notifIndicator)
         }

@@ -4,12 +4,12 @@ A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/)
 
 ## Overview
 
-This replaces a traditional status bar (waybar/polybar) and panel infrastructure with a unified QML-based shell. It provides:
+This replaces a traditional status bar (waybar) and panel infrastructure with a unified QML-based shell. It provides:
 
 - **Vertical side panel** with workspace/tag indicators, system status widgets, and popup panels
 - **Lock screen** with PAM + fingerprint authentication
-- **Notification handling** with history and toasts
-- **App launcher** that reads `.desktop` files
+- **Notification handling** with history and toasts, styled in Material Design 3
+- **App launcher** with fuzzy search and local offline **voice search** capabilities
 
 ## Project Structure
 
@@ -17,35 +17,37 @@ This replaces a traditional status bar (waybar/polybar) and panel infrastructure
 ~/.config/quickshell/
 ├── shell.qml                  # Entry point — ShellRoot, IpcHandler, triggers
 ├── config/
-│   ├── Config.qml             # Layout constants (sizes, fonts, animation)
-│   └── Colors.qml             # Material Design 3 light/dark theme, gsettings polling
+│   ├── Config.qml             # Layout constants, centralized WM detection
+│   └── Colors.qml             # Material Design 3 light/dark theme color tokens
 ├── bar/
 │   ├── VerticalBar.qml        # Main panel — the side bar itself
-│   ├── LockScreen.qml         # PAM auth, fingerprint, clock, power buttons
-│   ├── WorkspaceIndicator.qml # Workspace/tag pills (Niri & MangoWM), 80ms polling
+│   ├── LockScreen.qml         # PAM auth, fingerprint, clock, power buttons (secure binding fixes)
+│   ├── WorkspaceIndicator.qml # Workspace/tag pills (Niri & MangoWM), event-driven
 │   ├── Launcher.qml           # App launcher button
-│   ├── LauncherPopup.qml      # App search & launch popup
+│   ├── LauncherPopup.qml      # App search (text/voice input) popup
 │   ├── AudioIndicator.qml     # Volume icon + scroll control
-│   ├── AudioPopup.qml         # Volume + mic sliders
+│   ├── AudioPopup.qml         # Volume + mic sliders (M3 bordered)
 │   ├── BrightnessIndicator.qml
-│   ├── BrightnessPopup.qml
+│   ├── BrightnessPopup.qml    # Brightness slider (M3 bordered)
 │   ├── BatteryIndicator.qml   # Battery via UPower
-│   ├── BatteryPopup.qml       # Detailed battery info
+│   ├── BatteryPopup.qml       # Detailed battery info (M3 bordered)
 │   ├── SystemTrayArea.qml     # StatusNotifier tray icons
 │   ├── MenuIndicator.qml      # Quick settings trigger
-│   ├── QuickMenu.qml          # WiFi, Bluetooth, idle, dark mode, power
-│   ├── CalendarPopup.qml
+│   ├── QuickMenu.qml          # WiFi, Bluetooth, idle, dark mode, power (M3 bordered)
+│   ├── CalendarPopup.qml      # Calendar month grid (M3 bordered)
 │   ├── NotificationIndicator.qml
-│   ├── NotificationPopup.qml  # Notification history (manual JS array tracking)
-│   ├── NotificationToast.qml  # Transient toast popup
+│   ├── NotificationPopup.qml  # M3 notification history popup list
+│   ├── NotificationToast.qml  # M3 notification toast banner
 │   └── WallpaperChanger.qml   # Periodic wallpaper rotation
 ├── resources/
-│   └── lock_bg.png            # Lock screen background wallpaper
+│   ├── lock_bg.png            # Lock screen background wallpaper
+│   └── vosk-model/            # Offline speech recognition acoustic model folder
 ├── scripts/
 │   ├── lock                   # Lock trigger (touches /tmp/qslock-trigger)
 │   ├── idle.sh                # swayidle: dim, lock, display off, suspend
 │   ├── idle.sh.bak            # Previous idle script backup
-│   └── lid.sh                 # Lid close: lock + suspend
+│   ├── lid.sh                 # Lid close: lock + suspend
+│   └── voice-search.py        # Local speech transcription via python-vosk
 └── bin/
     └── desktop-parser.py      # .desktop → JSON for launcher
 ```
@@ -151,13 +153,13 @@ All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to int
 
 | Popup | Trigger | Content |
 |---|---|---|---|
-| Launcher | `Launcher` button / `SUPER+d` | App search bar + `.desktop` list |
-| Audio | `AudioIndicator` click | Volume + mic sliders |
-| Brightness | `BrightnessIndicator` click | Brightness slider |
-| Battery | `BatteryIndicator` click | Percentage, capacity, health, model |
-| Calendar | Clock click | Month grid with navigation |
-| Notifications | `NotificationIndicator` click | Notification history with dismiss (manual JS array tracking) |
-| Quick Menu | `MenuIndicator` click / `SUPER+Escape` | WiFi, BT, idle inhibit, dark mode, power |
+| Launcher | `Launcher` button / `SUPER+d` | App search bar (I-beam text pointer + offline voice search) + `.desktop` list |
+| Audio | `AudioIndicator` click | Volume + mic sliders (M3 bordered) |
+| Brightness | `BrightnessIndicator` click | Brightness slider (M3 bordered) |
+| Battery | `BatteryIndicator` click | Percentage, energy capacity, status, rate, cycles, model (M3 bordered) |
+| Calendar | Clock click | Month grid with navigation (M3 bordered) |
+| Notifications | `NotificationIndicator` click | M3-compliant card layout list tracked via `modelData` |
+| Quick Menu | `MenuIndicator` click / `SUPER+Escape` | WiFi, BT, idle inhibit, dark mode, power (M3 bordered) |
 
 ## Configuration
 
@@ -179,21 +181,37 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 
 ## Widget Details
 
-- **WorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri and MangoWM (`mmsg watch all-tags` and `niri msg event-stream`) using `SplitParser`, consuming 0% CPU at idle. Focused tag uses distinct colors per mode; occupied and hovered state color levels are adjusted for higher contrast.
+- **WorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri and MangoWM (`mmsg watch all-tags` and `niri msg event-stream`) using `SplitParser`, consuming 0% CPU at idle. Evaluates WM type consistently using centralized variables from `Config.qml` with robust startup completed initialization.
 - **AudioIndicator/BrightnessIndicator**: 100% event-driven. Monitors PipeWire events (`pactl subscribe`) and backlight sysfs changes (`inotifywait` on `/sys/class/backlight/*/brightness`) respectively to update the UI instantly without periodic polling timers.
 - **BatteryIndicator**: Utilizes declarative UPower property bindings (no timers) to react directly to battery level/state changes.
 - **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu.
 - **QuickMenu (idle toggle)**: Coffee button toggles `swayidle`. When lit (inhibitor ON), `swayidle` is killed so the screen never locks. When dimmed (inhibitor OFF), `swayidle` runs with normal timeouts (dim → lock → display off → suspend).
-- **LauncherPopup**: Runs `desktop-parser.py` to index `.desktop` files, filters by search input, launches via kitty for terminal apps. Has folder modification-time based caching (`/tmp/qs-app-cache-<uid>.json`) to load in under 3ms.
+- **LauncherPopup**: Runs `desktop-parser.py` to index `.desktop` files. Features local offline voice search: records voice via PipeWire `pw-record` on mic click and transcribes it using local `vosk` model via `scripts/voice-search.py`, filtering the app list reactively.
+- **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles.
+- **Lock Screen Security**: Employs imperative start/stop handlers in `onLockedChanged` for `fprintdProcess` to prevent QML declarative property binding breaks.
 
 ## Dependencies
 
 - **Quickshell** — the shell framework
 - **Qt6** (QtQuick, QtWayland)
-- **Python 3** — for `.desktop` parsing
+- **Python 3** — for `.desktop` parsing & `vosk` voice search
+- **python-vosk** — offline speech recognition API
+- **pw-record** (from `pipewire-utils`) — recording mic input
 - **wpctl** (WirePlumber) — audio control
 - **brightnessctl** — backlight control
 - **UPower** — battery monitoring
 - **fprintd** — fingerprint authentication
 - **brightnessctl**, **nmcli**, **bluetoothctl** — quick settings
 - **swayosd-client** — OSD feedback for media keys
+
+---
+
+## Disclaimer
+
+This theme suite and shell configuration was generated and vibe-coded using **Antigravity**, an AI agentic coding assistant designed by the Google DeepMind team.
+
+---
+
+## License
+
+This project is licensed under the terms of the GNU General Public License v3.0 (GPL-3.0). See the [LICENSE](file:///home/mura/.config/quickshell/LICENSE) file for details.

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-touch /tmp/qslock-trigger
+rm -f /tmp/qslock-trigger && touch /tmp/qslock-trigger

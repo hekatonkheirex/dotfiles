@@ -35,6 +35,8 @@ PanelWindow {
 
   property string searchText: ""
   property int selectedIndex: 0
+  property bool voiceRecording: false
+  property bool voiceTranscribing: false
 
   Process {
     id: desktopProc
@@ -53,6 +55,30 @@ PanelWindow {
             }
             if (visible) filterApps()
           } catch (e) { print("LauncherPopup parse error:", e) }
+        }
+      }
+    }
+  }
+
+  Process {
+    id: recorderProc
+    command: ["pw-record", "--rate", "16000", "--channels", "1", "--format", "s16", "/tmp/qs-voice.wav"]
+    running: false
+  }
+
+  Process {
+    id: transcriberProc
+    command: ["python3", Quickshell.env("HOME") + "/.config/quickshell/scripts/voice-search.py", "/tmp/qs-voice.wav"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.voiceTranscribing = false
+        var t = text.trim()
+        if (t.length > 0) {
+          searchInput.text = t
+          root.searchText = t
+          root.selectedIndex = 0
+          filterApps()
         }
       }
     }
@@ -123,6 +149,17 @@ PanelWindow {
         }
       }
       entryAnimation.start()
+      root.voiceRecording = false
+      root.voiceTranscribing = false
+    } else {
+      if (root.voiceRecording) {
+        root.voiceRecording = false
+        recorderProc.running = false
+      }
+      if (root.voiceTranscribing) {
+        root.voiceTranscribing = false
+        transcriberProc.running = false
+      }
     }
   }
 
@@ -130,7 +167,7 @@ PanelWindow {
     id: bg
     anchors.fill: parent
     color: colors_ ? colors_.surfaceContainer : "#211F26"
-    radius: 12
+    radius: 24
     border.color: colors_ ? colors_.outlineVariant : "#49454F"
     border.width: 1
 
@@ -170,59 +207,123 @@ PanelWindow {
     ColumnLayout {
       id: clipItem
       anchors { fill: parent; margins: 12 }
-      spacing: 8
+      spacing: 12
 
-      RowLayout {
+      // Pill-shaped search bar container
+      Rectangle {
+        id: searchBarContainer
         Layout.fillWidth: true
-        spacing: 8
+        height: 46
+        radius: height / 2
+        color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+        border.width: 1
+        border.color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.1) : "transparent"
 
-        Text {
-          text: "search"
-          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.iconFont : "Material Symbols Outlined"
-          font.pixelSize: config ? (config.iconSize - 2) : 20
-        }
+        RowLayout {
+          anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
+          spacing: 12
 
-        TextInput {
-          id: searchInput
-          Layout.fillWidth: true
-          color: colors_ ? colors_.fgSurface : "#FFFFFF"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
-          font.pixelSize: 17
-          clip: true
-          focus: true
-          cursorVisible: true
-          activeFocusOnPress: true
-
-          onTextChanged: {
-            root.searchText = text
-            root.selectedIndex = 0
-            filterApps()
+          Text {
+            text: "search"
+            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            font.pixelSize: 22
+            Layout.alignment: Qt.AlignVCenter
           }
 
-          Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) {
-              dismissed()
-            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-              if (filteredModel.count > 0 && selectedIndex >= 0 && selectedIndex < filteredModel.count) {
-                var app = filteredModel.get(selectedIndex)
-                root.launchApp(app.exec, app.terminal)
+          TextInput {
+            id: searchInput
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
+            color: colors_ ? colors_.fgSurface : "#FFFFFF"
+            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.pixelSize: 16
+            clip: true
+            focus: true
+            cursorVisible: true
+            activeFocusOnPress: true
+            selectByMouse: true
+
+            MouseArea {
+              anchors.fill: parent
+              cursorShape: Qt.IBeamCursor
+              acceptedButtons: Qt.NoButton
+            }
+
+            Text {
+              text: root.voiceRecording ? "Listening... Click mic to stop." : (root.voiceTranscribing ? "Transcribing..." : "Search apps...")
+              color: root.voiceRecording ? (colors_ ? colors_.error : "#ea1821") : (colors_ ? colors_.fgSurfaceVariant : "#888888")
+              font.family: searchInput.font.family
+              font.pixelSize: searchInput.font.pixelSize
+              visible: searchInput.text === ""
+            }
+
+            onTextChanged: {
+              root.searchText = text
+              root.selectedIndex = 0
+              filterApps()
+            }
+
+            Keys.onPressed: function(event) {
+              if (event.key === Qt.Key_Escape) {
+                dismissed()
+              } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                if (filteredModel.count > 0 && selectedIndex >= 0 && selectedIndex < filteredModel.count) {
+                  var app = filteredModel.get(selectedIndex)
+                  root.launchApp(app.exec, app.terminal)
+                }
+              } else if (event.key === Qt.Key_Up) {
+                selectedIndex = Math.max(0, selectedIndex - 1)
+                ensureVisible(selectedIndex)
+              } else if (event.key === Qt.Key_Down) {
+                selectedIndex = Math.min(filteredModel.count - 1, selectedIndex + 1)
+                ensureVisible(selectedIndex)
               }
-            } else if (event.key === Qt.Key_Up) {
-              selectedIndex = Math.max(0, selectedIndex - 1)
-              ensureVisible(selectedIndex)
-            } else if (event.key === Qt.Key_Down) {
-              selectedIndex = Math.min(filteredModel.count - 1, selectedIndex + 1)
-              ensureVisible(selectedIndex)
+            }
+          }
+
+          Text {
+            id: micIcon
+            text: root.voiceRecording ? "stop" : (root.voiceTranscribing ? "sync" : "mic")
+            color: root.voiceRecording ? (colors_ ? colors_.error : "#ea1821") : (root.voiceTranscribing ? (colors_ ? colors_.tertiary : "#FFD580") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"))
+            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            font.pixelSize: 22
+            Layout.alignment: Qt.AlignVCenter
+
+            onRotationChanged: {
+              if (!root.voiceTranscribing && rotation !== 0) {
+                rotation = 0
+              }
+            }
+
+            RotationAnimator {
+              target: micIcon
+              running: root.voiceTranscribing
+              loops: Animation.Infinite
+              from: 0
+              to: 360
+              duration: 1200
+            }
+
+            MouseArea {
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: {
+                if (!root.voiceRecording && !root.voiceTranscribing) {
+                  root.voiceRecording = true
+                  Quickshell.execDetached(["rm", "-f", "/tmp/qs-voice.wav"])
+                  recorderProc.running = true
+                } else if (root.voiceRecording) {
+                  root.voiceRecording = false
+                  root.voiceTranscribing = true
+                  recorderProc.running = false
+                  transcriberProc.running = true
+                }
+              }
             }
           }
         }
-      }
-
-      Rectangle {
-        Layout.fillWidth: true
-        height: 1
-        color: colors_ ? colors_.outlineVariant : "#49454F"
       }
 
       ListView {
@@ -232,30 +333,31 @@ PanelWindow {
         model: filteredModel
         clip: true
         currentIndex: root.selectedIndex
+        spacing: 4
 
         delegate: Rectangle {
           width: appList.width
-          height: 44
-          radius: 8
+          height: 48
+          radius: 24 // Pill shape selection
           color: root.selectedIndex === index ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : "transparent"
 
           RowLayout {
-            anchors { fill: parent; leftMargin: 8; rightMargin: 8 }
-            spacing: 10
+            anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+            spacing: 12
 
             Rectangle {
               width: 30
               height: 30
-              radius: 6
+              radius: 15 // Circle avatar/icon background
               color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
 
               Image {
                 anchors.centerIn: parent
-                width: 22
-                height: 22
+                width: 20
+                height: 20
                 source: model.icon !== "" ? "file://" + model.icon : ""
-                sourceSize.width: 22
-                sourceSize.height: 22
+                sourceSize.width: 20
+                sourceSize.height: 20
                 smooth: true
                 fillMode: Image.PreserveAspectFit
                 visible: model.icon !== ""
@@ -266,7 +368,7 @@ PanelWindow {
                 text: model.name.charAt(0).toUpperCase()
                 color: colors_ ? colors_.fgSurface : "#FFFFFF"
                 font.family: config ? config.fontFamily : "Google Sans Flex"
-                font.pixelSize: 15
+                font.pixelSize: 14
                 font.weight: Font.Medium
                 visible: model.icon === ""
               }
