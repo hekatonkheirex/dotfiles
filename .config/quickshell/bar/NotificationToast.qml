@@ -13,7 +13,7 @@ PanelWindow {
   property int displayMs: config ? config.notificationToastDurationMs : 5000
 
   implicitWidth: 280
-  implicitHeight: layout.implicitHeight + 24
+  implicitHeight: cardLayout.implicitHeight + 24
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-toast"
@@ -60,6 +60,8 @@ PanelWindow {
     anchors.fill: parent
     radius: config ? config.borderRadius : 14
     color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+    border.width: 1
+    border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
 
     transform: [
       Translate { id: transX; x: 0 },
@@ -94,44 +96,68 @@ PanelWindow {
       }
     }
 
-    RowLayout {
-      id: layout
+    ColumnLayout {
+      id: cardLayout
       anchors {
         fill: parent
-        margins: 12
+        leftMargin: 16
+        rightMargin: 16
+        topMargin: 12
+        bottomMargin: 12
       }
-      spacing: 10
+      spacing: 8
 
-      Rectangle {
-        width: 32
-        height: 32
-        radius: 16
-        color: colors_ ? colors_.primaryContainer : "#4F378B"
-
-        Text {
-          anchors.centerIn: parent
-          text: notif ? (notif.appName.length > 0 ? notif.appName.charAt(0).toUpperCase() : "?") : "?"
-          color: colors_ ? colors_.fgPrimaryContainer : "#EADDFF"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
-          font.pixelSize: 18
-          font.weight: Font.Bold
-        }
-      }
-
-      ColumnLayout {
+      RowLayout {
         Layout.fillWidth: true
-        spacing: 2
+        spacing: 8
+
+        Rectangle {
+          width: 20
+          height: 20
+          radius: 10
+          color: colors_ ? colors_.primaryContainer : "#4F378B"
+
+          Text {
+            anchors.centerIn: parent
+            text: notif ? (notif.appName.length > 0 ? notif.appName.charAt(0).toUpperCase() : "?") : "?"
+            color: colors_ ? colors_.fgPrimaryContainer : "#EADDFF"
+            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.pixelSize: 10
+            font.weight: Font.Bold
+          }
+        }
 
         Text {
-          text: notif ? (notif.appName || "Unknown") : ""
-          color: colors_ ? colors_.fgSurface : "#FFFFFF"
+          text: notif ? (notif.appName || "Notification") : "Notification"
+          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
           font.family: config ? config.fontFamily : "Google Sans Flex"
-          font.pixelSize: 15
+          font.pixelSize: 11
           font.weight: Font.Medium
+          Layout.fillWidth: true
           elide: Text.ElideRight
         }
 
         Text {
+          text: "now"
+          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.pixelSize: 10
+          opacity: 0.7
+        }
+      }
+
+      Rectangle {
+        Layout.fillWidth: true
+        height: 1
+        color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.1) : Qt.rgba(255, 255, 255, 0.05)
+      }
+
+      ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 4
+
+        Text {
+          Layout.fillWidth: true
           text: notif ? (notif.summary || "") : ""
           color: colors_ ? colors_.fgSurface : "#FFFFFF"
           font.family: config ? config.fontFamily : "Google Sans Flex"
@@ -142,18 +168,17 @@ PanelWindow {
         }
 
         Text {
+          Layout.fillWidth: true
           text: notif ? (notif.body || "") : ""
           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
           font.family: config ? config.fontFamily : "Google Sans Flex"
-          font.pixelSize: 13
+          font.pixelSize: 12
           elide: Text.ElideRight
-          maximumLineCount: 2
+          maximumLineCount: 3
           wrapMode: Text.WordWrap
           visible: text !== ""
         }
       }
-
-
     }
   }
 }

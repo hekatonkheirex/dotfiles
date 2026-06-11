@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-touch /tmp/qsquickmenu-trigger
+rm -f /tmp/qsquickmenu-trigger && touch /tmp/qsquickmenu-trigger

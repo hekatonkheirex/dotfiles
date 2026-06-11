@@ -122,6 +122,8 @@ PanelWindow {
       radius: config ? config.borderRadius : 14
       color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
       clip: true
+      border.width: 1
+      border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -164,12 +166,30 @@ PanelWindow {
         }
         spacing: 16
 
-        Text {
-          text: "Volume"
-          color: colors_ ? colors_.fgSurface : "#FFFFFF"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
-          font.pixelSize: config ? (config.fontPixelSize + 8) : 18
-          font.weight: Font.Bold
+        Item {
+          width: parent.width
+          height: 32
+
+          Text {
+            text: "Volume"
+            color: colors_ ? colors_.fgSurface : "#FFFFFF"
+            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.pixelSize: config ? (config.fontPixelSize + 8) : 18
+            font.weight: Font.Bold
+            anchors.verticalCenter: parent.verticalCenter
+          }
+
+          SwitchControl {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            checked: root.muted
+            activeColor: colors_ ? colors_.primary : "#D0BCFF"
+            checkmarkColor: colors_ ? (colors_.darkMode ? colors_.fgPrimary : colors_.primary) : "#0F3C2C"
+            surfaceContainerHigh: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+            surfaceContainerHighest: colors_ ? colors_.surfaceContainerHighest : "#36343B"
+            outline: colors_ ? colors_.outline : "#938F99"
+            onToggled: root.toggleMute()
+          }
         }
 
         Text {
@@ -189,54 +209,36 @@ PanelWindow {
           onChanged: function(val) { root.setVolume(val) }
         }
 
-        Row {
-          spacing: 8
-
-          Rectangle {
-            width: muteBtn.implicitWidth + 24
-            height: 36
-            radius: config ? config.borderRadius : 14
-            color: colors_ ? (muteArea.containsMouse ? colors_.surfaceContainerHighest : colors_.surfaceContainer) : "#211F26"
-            border.color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
-            border.width: 1
-
-            Behavior on color {
-              ColorAnimation { duration: config ? config.animationDuration : 150 }
-            }
-
-            Text {
-              id: muteBtn
-              anchors.centerIn: parent
-              text: root.muted ? "Unmute" : "Mute"
-              color: colors_ ? colors_.fgSurface : "#FFFFFF"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
-              font.pixelSize: config ? (config.fontPixelSize + 2) : 12
-              font.weight: Font.Medium
-            }
-
-            MouseArea {
-              id: muteArea
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.toggleMute()
-            }
-          }
-
-        }
-
         Rectangle {
           width: parent.width
           height: 1
           color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
         }
 
-        Text {
-          text: "Microphone"
-          color: colors_ ? colors_.fgSurface : "#FFFFFF"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
-          font.pixelSize: config ? (config.fontPixelSize + 8) : 18
-          font.weight: Font.Bold
+        Item {
+          width: parent.width
+          height: 32
+
+          Text {
+            text: "Microphone"
+            color: colors_ ? colors_.fgSurface : "#FFFFFF"
+            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.pixelSize: config ? (config.fontPixelSize + 8) : 18
+            font.weight: Font.Bold
+            anchors.verticalCenter: parent.verticalCenter
+          }
+
+          SwitchControl {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            checked: root.micMuted
+            activeColor: colors_ ? colors_.primary : "#D0BCFF"
+            checkmarkColor: colors_ ? (colors_.darkMode ? colors_.fgPrimary : colors_.primary) : "#0F3C2C"
+            surfaceContainerHigh: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+            surfaceContainerHighest: colors_ ? colors_.surfaceContainerHighest : "#36343B"
+            outline: colors_ ? colors_.outline : "#938F99"
+            onToggled: root.toggleMicMute()
+          }
         }
 
         Text {
@@ -249,46 +251,11 @@ PanelWindow {
         SliderControl {
           value: root.micVolume
           muted: root.micMuted
-          activeColor: colors_ ? colors_.tertiary : "#D0BCFF"
+          activeColor: colors_ ? colors_.primary : "#D0BCFF"
           surfaceContainerHigh: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
           surfaceContainerHighest: colors_ ? colors_.surfaceContainerHighest : "#36343B"
           outline: colors_ ? colors_.outline : "#938F99"
           onChanged: function(val) { root.setMicVolume(val) }
-        }
-
-        Row {
-          spacing: 8
-
-          Rectangle {
-            width: micMuteBtn.implicitWidth + 24
-            height: 36
-            radius: config ? config.borderRadius : 14
-            color: colors_ ? (micMuteArea.containsMouse ? colors_.surfaceContainerHighest : colors_.surfaceContainer) : "#211F26"
-            border.color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
-            border.width: 1
-
-            Behavior on color {
-              ColorAnimation { duration: config ? config.animationDuration : 150 }
-            }
-
-            Text {
-              id: micMuteBtn
-              anchors.centerIn: parent
-              text: root.micMuted ? "Unmute" : "Mute"
-              color: colors_ ? colors_.fgSurface : "#FFFFFF"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
-              font.pixelSize: config ? (config.fontPixelSize + 2) : 12
-              font.weight: Font.Medium
-            }
-
-            MouseArea {
-              id: micMuteArea
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.toggleMicMute()
-            }
-          }
         }
       }
     }

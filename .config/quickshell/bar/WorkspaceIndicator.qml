@@ -14,15 +14,7 @@ Item {
   property var workspaces: []
   property int pillHeight: 48
 
-  readonly property string wmType: {
-    var desktop = Quickshell.env("XDG_CURRENT_DESKTOP")
-    if (desktop && desktop.toLowerCase() === "niri") return "niri"
-    var niriSock = Quickshell.env("NIRI_SOCKET")
-    if (niriSock && niriSock.length > 0) return "niri"
-    var sig = Quickshell.env("MANGO_INSTANCE_SIGNATURE")
-    if (sig && sig.length > 0) return "mango"
-    return "niri"
-  }
+  readonly property string wmType: config ? config.wmType : "niri"
 
   Layout.preferredWidth: config ? config.widgetSize : 50
   Layout.preferredHeight: column.implicitHeight + 12
@@ -45,7 +37,7 @@ Item {
   Process {
     id: niriWatcher
     command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg event-stream"]
-    running: root.wmType === "niri"
+    running: false
     
     stdout: SplitParser {
       onRead: function(data) {
@@ -73,7 +65,7 @@ Item {
   Process {
     id: mangoWatcher
     command: ["mmsg", "watch", "all-tags"]
-    running: root.wmType === "mango"
+    running: false
 
     stdout: SplitParser {
       onRead: function(data) {
@@ -104,6 +96,9 @@ Item {
   Component.onCompleted: {
     if (root.wmType === "niri") {
       refresher.running = true
+      niriWatcher.running = true
+    } else if (root.wmType === "mango") {
+      mangoWatcher.running = true
     }
   }
 

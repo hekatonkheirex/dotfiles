@@ -12,6 +12,14 @@ Item {
   property QtObject config: null
 
   property bool locked: false
+  onLockedChanged: {
+    if (locked) {
+      fprintdProcess.running = true
+    } else {
+      fprintdProcess.running = false
+      fprintdRetry.stop()
+    }
+  }
   readonly property color accentGreen: "#BEE8C7"
   readonly property color textColor: "#FFFFFF"
   readonly property color mutedText: Qt.rgba(1, 1, 1, 0.7)
@@ -97,7 +105,7 @@ Item {
   Process {
     id: fprintdProcess
     command: ["fprintd-verify", root.username()]
-    running: root.locked
+    running: false
 
     onExited: (exitCode, exitStatus) => {
       if (exitCode === 0 && root.locked && !root.authenticated) {
@@ -126,7 +134,6 @@ Item {
         root.lockInputText = ""
         root.lockError = ""
         root.authenticated = false
-        fprintdProcess.running = true
       }
       root.locked = locked
     }
@@ -249,6 +256,13 @@ Item {
               activeFocusOnPress: true
               cursorVisible: true
               verticalAlignment: Qt.AlignVCenter
+              selectByMouse: true
+
+              MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.IBeamCursor
+                acceptedButtons: Qt.NoButton
+              }
 
               onTextChanged: {
                 root.lockPassword = text
@@ -434,6 +448,13 @@ Item {
             activeFocusOnPress: true
             cursorVisible: true
             verticalAlignment: Qt.AlignVCenter
+            selectByMouse: true
+
+            MouseArea {
+              anchors.fill: parent
+              cursorShape: Qt.IBeamCursor
+              acceptedButtons: Qt.NoButton
+            }
 
             onTextChanged: {
               root.lockPassword = text

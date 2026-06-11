@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Services.UPower
+import Quickshell.Io
 
 PanelWindow {
   id: root
@@ -34,6 +35,7 @@ PanelWindow {
   property bool charging: false
   property string stateLabel: "No battery"
   property string timeLabel: ""
+  property string cycles: "--"
 
   function formatTime(seconds) {
     if (!seconds || seconds <= 0) return ""
@@ -76,9 +78,26 @@ PanelWindow {
     }
   }
 
+  Process {
+    id: cycleQuery
+    command: ["cat", "/sys/class/power_supply/BAT0/cycle_count"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var c = text.trim()
+        if (c.length > 0 && !isNaN(c)) {
+          root.cycles = c
+        } else {
+          root.cycles = "--"
+        }
+      }
+    }
+  }
+
   onVisibleChanged: {
     if (visible) {
       root.updateBattery()
+      cycleQuery.running = true
       entryAnimation.start()
     }
   }
@@ -108,6 +127,8 @@ PanelWindow {
       radius: config ? config.borderRadius : 14
       color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
       clip: true
+      border.width: 1
+      border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -178,7 +199,7 @@ PanelWindow {
               font.weight: Font.Medium
             }
             Text {
-              text: batteryDevice && batteryDevice.capacity ? batteryDevice.capacity.toFixed(0) + " mAh" : ""
+              text: batteryDevice && batteryDevice.energyCapacity ? batteryDevice.energyCapacity.toFixed(1) + " Wh" : ""
               color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 1) : 11
@@ -210,37 +231,44 @@ PanelWindow {
           visible: root.timeLabel !== ""
         }
 
-        Row {
-          spacing: 16
+        RowLayout {
+          width: parent.width
           visible: batteryDevice !== null
-          Column {
+          spacing: 0
+
+          ColumnLayout {
+            Layout.fillWidth: true
             spacing: 2
             Text {
-              text: "Voltage"
+              text: root.charging ? "Charge Rate" : "Discharge Rate"
               color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 1) : 11
             }
             Text {
-              text: batteryDevice && batteryDevice.voltage ? batteryDevice.voltage.toFixed(3) + " V" : ""
+              text: batteryDevice && batteryDevice.changeRate !== undefined ? batteryDevice.changeRate.toFixed(1) + " W" : "-- W"
               color: colors_ ? colors_.fgSurface : "#FFFFFF"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 2) : 12
+              font.weight: Font.Medium
             }
           }
-          Column {
+
+          ColumnLayout {
+            Layout.fillWidth: true
             spacing: 2
             Text {
-              text: "Energy"
+              text: "Cycle Count"
               color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 1) : 11
             }
             Text {
-              text: batteryDevice && batteryDevice.energy ? batteryDevice.energy.toFixed(1) + " Wh" : ""
+              text: root.cycles
               color: colors_ ? colors_.fgSurface : "#FFFFFF"
               font.family: config ? config.fontFamily : "Google Sans Flex"
               font.pixelSize: config ? (config.fontPixelSize + 2) : 12
+              font.weight: Font.Medium
             }
           }
         }

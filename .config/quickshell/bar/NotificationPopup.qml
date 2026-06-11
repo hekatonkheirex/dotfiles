@@ -173,10 +173,10 @@ PanelWindow {
 
             Text {
               anchors.centerIn: parent
-              text: "clear_all"
+              text: "delete_sweep"
               color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
               font.family: config ? config.iconFont : "Material Symbols Outlined"
-              font.pixelSize: 14
+              font.pixelSize: 16
             }
 
             MouseArea {
@@ -206,125 +206,144 @@ PanelWindow {
           clip: true
 
             delegate: Item {
-            width: parent.width
-            height: notifLayout.implicitHeight + 16
+              id: notifDelegate
+              width: parent.width
+              height: mainContainer.implicitHeight + 8
 
-            readonly property QtObject notif: root.notifications[index]
-
-            Rectangle {
-              anchors.fill: parent
-              radius: 10
-              color: notifMouse.containsMouse ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : (colors_ ? colors_.surfaceContainer : "#211F26")
-
-              Behavior on color {
-                ColorAnimation { duration: config ? config.animationDuration : 150 }
-              }
-            }
-
-            MouseArea {
-              id: notifMouse
-              anchors.fill: parent
-              hoverEnabled: true
-            }
-
-            Row {
-              id: notifLayout
-              anchors {
-                fill: parent
-                margins: 8
-              }
-              spacing: 10
+              readonly property QtObject notif: modelData
 
               Rectangle {
-                width: 32
-                height: 32
+                id: mainContainer
+                width: parent.width
+                implicitHeight: cardLayout.implicitHeight + 24
                 radius: 16
-                color: colors_ ? colors_.primaryContainer : "#4F378B"
-
-                Text {
-                  anchors.centerIn: parent
-                  text: {
-                    var app = notif ? (notif.appName || "") : ""
-                    return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
-                  }
-                  color: colors_ ? colors_.fgPrimaryContainer : "#EADDFF"
-                  font.family: config ? config.fontFamily : "Google Sans Flex"
-                  font.pixelSize: config ? (config.fontPixelSize + 4) : 14
-                  font.weight: Font.Bold
-                }
-              }
-
-              Column {
-                width: Math.max(0, parent.width - 76)
-                spacing: 2
-
-                Text {
-                  text: notif ? (notif.appName || "Unknown") : ""
-                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                  font.family: config ? config.fontFamily : "Google Sans Flex"
-                  font.pixelSize: config ? (config.fontPixelSize + 2) : 12
-                  font.weight: Font.Medium
-                  elide: Text.ElideRight
-                  width: parent.width
-                }
-
-                Text {
-                  text: notif ? (notif.summary || "") : ""
-                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                  font.family: config ? config.fontFamily : "Google Sans Flex"
-                  font.pixelSize: config ? (config.fontPixelSize + 1) : 11
-                  font.weight: Font.Bold
-                  elide: Text.ElideRight
-                  width: parent.width
-                  visible: text !== ""
-                }
-
-                Text {
-                  text: notif ? (notif.body || "") : ""
-                  color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                  font.family: config ? config.fontFamily : "Google Sans Flex"
-                  font.pixelSize: config ? (config.fontPixelSize + 1) : 11
-                  elide: Text.ElideRight
-                  width: parent.width
-                  maximumLineCount: 2
-                  wrapMode: Text.WordWrap
-                  visible: text !== ""
-                }
-              }
-
-              Rectangle {
-                width: 24
-                height: 24
-                radius: 12
-                color: dismissMouse.containsMouse ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : "transparent"
-                anchors.verticalCenter: parent.verticalCenter
+                color: notifMouse.containsMouse ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : (colors_ ? colors_.surfaceContainer : "#211F26")
+                border.width: 1
+                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
 
                 Behavior on color {
                   ColorAnimation { duration: config ? config.animationDuration : 150 }
                 }
 
-                Text {
-                  anchors.centerIn: parent
-                  text: "close"
-                  color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                  font.family: config ? config.iconFont : "Material Symbols Outlined"
-                  font.pixelSize: 14
-                }
-
                 MouseArea {
-                  id: dismissMouse
+                  id: notifMouse
                   anchors.fill: parent
                   hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: {
-                    if (index >= 0 && index < root.notifications.length) {
-                      root.notifications[index].dismiss()
+                }
+
+                ColumnLayout {
+                  id: cardLayout
+                  anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    leftMargin: 16
+                    rightMargin: 16
+                    topMargin: 12
+                  }
+                  spacing: 8
+
+                  RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Rectangle {
+                      width: 20
+                      height: 20
+                      radius: 10
+                      color: colors_ ? colors_.primaryContainer : "#4F378B"
+
+                      Text {
+                        anchors.centerIn: parent
+                        text: {
+                          var app = notif ? (notif.appName || "") : ""
+                          return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
+                        }
+                        color: colors_ ? colors_.fgPrimaryContainer : "#EADDFF"
+                        font.family: config ? config.fontFamily : "Google Sans Flex"
+                        font.pixelSize: 10
+                        font.weight: Font.Bold
+                      }
+                    }
+
+                    Text {
+                      text: notif ? (notif.appName || "Notification") : "Notification"
+                      color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                      font.family: config ? config.fontFamily : "Google Sans Flex"
+                      font.pixelSize: 11
+                      font.weight: Font.Medium
+                      Layout.fillWidth: true
+                      elide: Text.ElideRight
+                    }
+
+                    Rectangle {
+                      width: 20
+                      height: 20
+                      radius: 10
+                      color: dismissMouse.containsMouse ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : "transparent"
+
+                      Behavior on color {
+                        ColorAnimation { duration: config ? config.animationDuration : 150 }
+                      }
+
+                      Text {
+                        anchors.centerIn: parent
+                        text: "close"
+                        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                        font.family: config ? config.iconFont : "Material Symbols Outlined"
+                        font.pixelSize: 12
+                      }
+
+                      MouseArea {
+                        id: dismissMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                          if (index >= 0 && index < root.notifications.length) {
+                            root.notifications[index].dismiss()
+                          }
+                        }
+                      }
+                    }
+                  }
+
+                  Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.1) : Qt.rgba(255, 255, 255, 0.05)
+                  }
+
+                  ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+
+                    Text {
+                      Layout.fillWidth: true
+                      text: notif ? (notif.summary || "") : ""
+                      color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                      font.family: config ? config.fontFamily : "Google Sans Flex"
+                      font.pixelSize: 14
+                      font.weight: Font.Bold
+                      elide: Text.ElideRight
+                      visible: text !== ""
+                    }
+
+                    Text {
+                      Layout.fillWidth: true
+                      text: notif ? (notif.body || "") : ""
+                      color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                      font.family: config ? config.fontFamily : "Google Sans Flex"
+                      font.pixelSize: 12
+                      wrapMode: Text.WordWrap
+                      maximumLineCount: 3
+                      elide: Text.ElideRight
+                      visible: text !== ""
                     }
                   }
                 }
               }
             }
-          }
         }
 
         Text {

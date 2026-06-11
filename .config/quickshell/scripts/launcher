@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-touch /tmp/qslauncher-trigger
+rm -f /tmp/qslauncher-trigger && touch /tmp/qslauncher-trigger

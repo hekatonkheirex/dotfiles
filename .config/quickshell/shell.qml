@@ -14,19 +14,9 @@ ShellRoot {
     id: colors
   }
 
-  Timer {
-    id: darkModeTimer
-    interval: 5000
-    running: true
-    repeat: true
-    onTriggered: {
-      if (!darkModeCheck.running) darkModeCheck.running = true
-    }
-  }
-
   Process {
-    id: darkModeCheck
-    command: ["sh", "-c", "gsettings get org.gnome.desktop.interface color-scheme"]
+    id: darkModeInitial
+    command: ["gsettings", "get", "org.gnome.desktop.interface", "color-scheme"]
     running: true
 
     stdout: StdioCollector {
@@ -34,6 +24,36 @@ ShellRoot {
         colors.systemDark = text.trim() === "'prefer-dark'"
       }
     }
+  }
+
+  Process {
+    id: darkModeMonitor
+    command: ["gsettings", "monitor", "org.gnome.desktop.interface", "color-scheme"]
+    running: true
+
+    stdout: SplitParser {
+      onRead: function(data) {
+        var clean = data.trim()
+        var prefix = "color-scheme:"
+        var idx = clean.indexOf(prefix)
+        if (idx >= 0) {
+          var val = clean.substring(idx + prefix.length).trim()
+          colors.systemDark = val === "'prefer-dark'"
+        }
+      }
+    }
+
+    onRunningChanged: {
+      if (!running) {
+        darkModeMonitorRetry.start()
+      }
+    }
+  }
+
+  Timer {
+    id: darkModeMonitorRetry
+    interval: 5000
+    onTriggered: darkModeMonitor.running = true
   }
 
   Config {
