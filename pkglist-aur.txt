@@ -1,3 +1,5 @@
+antigravity
+antigravity-cli
 bibata-cursor-theme
 brave-origin-bin
 google-chrome
@@ -15,6 +17,5 @@ sunshine-bin
 timeshift-autosnap
 unimatrix-git
 upscayl-bin
-veila-bin
 wlogout
 xnviewmp
