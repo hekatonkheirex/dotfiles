@@ -12,7 +12,7 @@
 
 ---
 
-![Screenshot](https://i.imgur.com/WhXSclg.png)
+![Screenshot](https://i.imgur.com/ljlYpNy.png)
 
 - **Distro** • [Arch Linux](https://archlinux.org/) 🐧
 - **Window Manager** • Main - [Niri](https://niri-wm.github.io/niri/) 🔥
