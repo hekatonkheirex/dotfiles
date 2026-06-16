@@ -6,7 +6,6 @@ google-chrome
 krokiet
 libgnome-keyring
 localsend-bin
-mangowm
 nautilus-admin-gtk4
 nautilus-open-any-terminal
 onlyoffice-bin

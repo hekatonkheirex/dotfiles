@@ -70,7 +70,6 @@ linux-firmware
 linux-zen
 linux-zen-headers
 localsend-bin
-mangowm
 mold
 most
 mpv

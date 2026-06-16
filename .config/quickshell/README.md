@@ -1,6 +1,6 @@
 # Quickshell Desktop Shell
 
-A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/), running on **Niri** or **MangoWM** (dwl-based).
+A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/), running on **Niri**.
 
 ## Overview
 
@@ -24,7 +24,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── VerticalBar.qml        # Main vertical panel — the side bar itself
 │   ├── HorizontalBar.qml      # Main horizontal panel — the top bar itself
 │   ├── LockScreen.qml         # PAM auth, fingerprint, clock, power buttons (secure binding fixes)
-│   ├── WorkspaceIndicator.qml # Workspace/tag pills (Niri & MangoWM) for vertical mode
+│   ├── WorkspaceIndicator.qml # Workspace/tag pills (Niri) for vertical mode
 │   ├── HorizontalWorkspaceIndicator.qml # Workspace/tag pills for horizontal mode
 │   ├── Launcher.qml           # App launcher button
 │   ├── LauncherPopup.qml      # App search (text/voice input) popup
@@ -62,12 +62,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 
 ## WM Integration
 
-Quickshell runs as a Wayland layer surface (side panel) on top of the compositor. It auto-detects the WM via environment variables:
-
-| WM | Detection | Workspace IPC |
-|---|---|---|
-| **Niri** | `XDG_CURRENT_DESKTOP=Niri` or `NIRI_SOCKET` set | `niri msg -j workspaces` |
-| **MangoWM** | `MANGO_INSTANCE_SIGNATURE` set | `mmsg get all-tags` |
+Quickshell runs as a Wayland layer surface (side panel) on top of the compositor. It integrates with **Niri** using the Niri socket.
 
 ### Niri Startup
 
@@ -102,20 +97,7 @@ spawn-at-startup "systemctl" "--user" "start" "quickshell.service"
 
 Quickshell auto-discovers `~/.config/quickshell/shell.qml` as the default config when run without arguments.
 
-### MangoWM Startup
 
-In `~/.config/mango/autostart.sh`:
-
-```sh
-~/.config/quickshell/scripts/idle.sh >/dev/null 2>&1 &
-killall -q quickshell 2>/dev/null
-sleep 0.5
-while true; do
-  WAYLAND_DISPLAY="$WAYLAND_DISPLAY" quickshell --no-duplicate 2>&1
-done &
-```
-
-A restart loop in the autostart ensures quickshell recovers from crashes.
 
 ### Lid Switch
 
@@ -124,11 +106,10 @@ Both compositors handle lid close via `~/.config/quickshell/scripts/lid.sh`, whi
 | WM | Lid Close Handler |
 |---|---|
 | **Niri** | `config.kdl`: `switch-events { lid-close { spawn "/home/mura/.config/quickshell/scripts/lock"; } }` |
-| **MangoWM** | `keybinds.conf`: `switchbind=fold,spawn,~/.config/quickshell/scripts/lid.sh` |
 
 ## Keybindings
 
-Four keyboard shortcuts are handled by Quickshell. MangoWM dispatches the keys but the actions are owned by Quickshell:
+Four keyboard shortcuts are handled by Quickshell:
 
 | Key | Action | Mechanism |
 |---|---|---|
@@ -212,11 +193,11 @@ Full-screen transparent surface on `WlrLayer.Bottom` that catches clicks outside
 
 ### `bar/FocusDismiss.qml`
 
-Handles popup dismissal on app focus loss with target null checks. The `activeFocusChanged` check is gated behind `config.isNiri` (MangoWM/dwl fires it falsely on any click). The `Qt.application.activeChanged` check runs on all WMs — it correctly detects when the user switches to another application.
+Handles popup dismissal on app focus loss with target null checks. The `activeFocusChanged` check is gated behind `config.isNiri`. The `Qt.application.activeChanged` check runs on all WMs — it correctly detects when the user switches to another application.
 
 ## Widget Details
 
-- **WorkspaceIndicator / HorizontalWorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri and MangoWM (`mmsg watch all-tags` and `niri msg event-stream`) using `SplitParser`. Runs only when visible. When the bar is in its collapsed pill state, the container is anchored directly in the workspace zone (50px offset) instead of centered on the screen, keeping the workspace indicator completely stationary during the entire expand/collapse transition in both orientations.
+- **WorkspaceIndicator / HorizontalWorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri (`niri msg event-stream`) using `SplitParser`. Runs only when visible. When the bar is in its collapsed pill state, the container is anchored directly in the workspace zone (50px offset) instead of centered on the screen, keeping the workspace indicator completely stationary during the entire expand/collapse transition in both orientations.
 - **AudioIndicator / BrightnessIndicator / BtIndicator / WifiIndicator**: Event-driven watchers and polling loops are bound to `root.visible`, so they are fully suspended when their parent bar is hidden, saving CPU wakeups and RAM.
 - **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
 - **SystemTrayArea / HorizontalSystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu.
