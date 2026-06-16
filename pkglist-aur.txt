@@ -17,5 +17,4 @@ sunshine-bin
 timeshift-autosnap
 unimatrix-git
 upscayl-bin
-wlogout
 xnviewmp

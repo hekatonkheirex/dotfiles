@@ -112,7 +112,6 @@ quickshell
 raw-thumbnailer
 reflector
 ripgrep
-rofi
 rsync
 rustup
 sassc
@@ -149,14 +148,12 @@ upscayl-bin
 vivaldi
 vivaldi-ffmpeg-codecs
 vulkan-headers
-waybar
 webp-pixbuf-loader
 wev
 wezterm
 wf-recorder
 wget
 wireplumber
-wlogout
 wlopm
 wlr-randr
 xdg-desktop-portal
