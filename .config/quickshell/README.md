@@ -6,7 +6,8 @@ A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/)
 
 This replaces a traditional status bar (waybar) and panel infrastructure with a unified QML-based shell. It provides:
 
-- **Vertical side panel** with workspace/tag indicators, system status widgets, and popup panels
+- **Vertical & Horizontal panel layouts** with workspace/tag indicators, system status widgets, and popup panels
+- **Layout Toggling**: Switch between vertical and horizontal layouts dynamically via a toggle button in the Quick Settings menu, with selection persistent across reboots (saved to `~/.config/quickshell/layout`)
 - **Lock screen** with PAM + fingerprint authentication
 - **Notification handling** with history and toasts, styled in Material Design 3
 - **App launcher** with fuzzy search and local offline **voice search** capabilities
@@ -15,27 +16,34 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 
 ```
 ~/.config/quickshell/
-├── shell.qml                  # Entry point — ShellRoot, IpcHandler, triggers
+├── shell.qml                  # Entry point — ShellRoot, IpcHandler, layout toggle, triggers
 ├── config/
 │   ├── Config.qml             # Layout constants, centralized WM detection
 │   └── Colors.qml             # Material Design 3 light/dark theme color tokens
 ├── bar/
-│   ├── VerticalBar.qml        # Main panel — the side bar itself
+│   ├── VerticalBar.qml        # Main vertical panel — the side bar itself
+│   ├── HorizontalBar.qml      # Main horizontal panel — the top bar itself
 │   ├── LockScreen.qml         # PAM auth, fingerprint, clock, power buttons (secure binding fixes)
-│   ├── WorkspaceIndicator.qml # Workspace/tag pills (Niri & MangoWM), event-driven
+│   ├── WorkspaceIndicator.qml # Workspace/tag pills (Niri & MangoWM) for vertical mode
+│   ├── HorizontalWorkspaceIndicator.qml # Workspace/tag pills for horizontal mode
 │   ├── Launcher.qml           # App launcher button
 │   ├── LauncherPopup.qml      # App search (text/voice input) popup
-│   ├── AudioIndicator.qml     # Volume icon + scroll control
-│   ├── AudioPopup.qml         # Volume + mic sliders (M3 bordered)
-│   ├── BrightnessIndicator.qml
+│   ├── AudioIndicator.qml     # Volume icon + scroll control (orientation-aware)
+│   ├── AudioPopup.qml         # Volume + mic sliders (M3 bordered, correct active/mute states)
+│   ├── BrightnessIndicator.qml # Brightness icon (orientation-aware)
 │   ├── BrightnessPopup.qml    # Brightness slider (M3 bordered)
-│   ├── BatteryIndicator.qml   # Battery via UPower
+│   ├── BatteryIndicator.qml   # Battery via UPower (orientation-aware)
 │   ├── BatteryPopup.qml       # Detailed battery info (M3 bordered)
-│   ├── SystemTrayArea.qml     # StatusNotifier tray icons
+│   ├── WifiIndicator.qml      # Wifi strength indicator (orientation-aware)
+│   ├── WifiPopup.qml          # Wifi scan/connect (checkmark contrast fix)
+│   ├── BtIndicator.qml        # Bluetooth status + connected device battery (orientation-aware)
+│   ├── BtPopup.qml            # Bluetooth devices + battery info & disconnect hover action
+│   ├── SystemTrayArea.qml     # StatusNotifier tray icons for vertical bar
+│   ├── HorizontalSystemTrayArea.qml # StatusNotifier tray icons for horizontal bar
 │   ├── MenuIndicator.qml      # Quick settings trigger
-│   ├── QuickMenu.qml          # WiFi, Bluetooth, idle, dark mode, power (M3 bordered)
+│   ├── QuickMenu.qml          # Layout toggle, idle, dark mode, power options (wallpaper changer relocated here)
 │   ├── CalendarPopup.qml      # Calendar month grid (M3 bordered)
-│   ├── NotificationIndicator.qml
+│   ├── NotificationIndicator.qml # Notifications counter (orientation-aware)
 │   ├── NotificationPopup.qml  # M3 notification history popup list
 │   ├── NotificationToast.qml  # M3 notification toast banner
 │   └── WallpaperChanger.qml   # Periodic wallpaper rotation
@@ -63,11 +71,33 @@ Quickshell runs as a Wayland layer surface (side panel) on top of the compositor
 
 ### Niri Startup
 
-In `~/.config/niri/startup.kdl`:
+Quickshell can be managed via a systemd user service to ensure rate-limiting and session-binding (recommended to prevent infinite coredump storms in case of Wayland crashes/logouts).
+
+Create a service file at `~/.config/systemd/user/quickshell.service`:
+
+```ini
+[Unit]
+Description=Quickshell Desktop Panel
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/quickshell
+Restart=on-failure
+RestartSec=2s
+# Stop restarting if it crashes more than 5 times in 10 seconds.
+StartLimitIntervalSec=10s
+StartLimitBurst=5
+
+[Install]
+WantedBy=graphical-session.target
+```
+
+Then in `~/.config/niri/startup.kdl`:
 
 ```
 spawn-sh-at-startup "~/.config/quickshell/scripts/idle.sh"
-spawn-at-startup "sh" "-c" "while true; do quickshell --no-duplicate; done"
+spawn-at-startup "systemctl" "--user" "start" "quickshell.service"
 ```
 
 Quickshell auto-discovers `~/.config/quickshell/shell.qml` as the default config when run without arguments.
@@ -147,19 +177,24 @@ The lock screen (`bar/LockScreen.qml`) was extracted from `shell.qml` as a stand
 
 ## Popup System
 
-Popup visibility is driven entirely by the bar's `openPopup` string property. Each indicator widget signals a popup name, and the corresponding popup shows/hides accordingly. Popup positioning is anchored to the triggering widget's Y coordinate. Escape or clicking outside (on another window) dismisses the active popup.
+Popup visibility is driven entirely by the bar's `openPopup` string property. Each indicator widget signals a popup name, and the corresponding popup shows/hides accordingly.
 
-All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` handles dismissal on app focus loss with platform-specific gating for the `activeFocusChanged` check (off on MangoWM/dwl due to false positives).
+Popup positioning and animations are dynamic depending on the active bar orientation:
+- **Vertical mode**: Anchored to the triggering widget's Y coordinate, sliding out from the left.
+- **Horizontal mode**: Anchored directly beneath the bar (`barWidth + 4`), horizontally centered on the clicked widget's X coordinate, and clamped to fit the screen.
+
+Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` handles dismissal on app focus loss with platform-specific gating for the `activeFocusChanged` check.
 
 | Popup | Trigger | Content |
-|---|---|---|---|
+|---|---|---|
 | Launcher | `Launcher` button / `SUPER+d` | App search bar (I-beam text pointer + offline voice search) + `.desktop` list |
-| Audio | `AudioIndicator` click | Volume + mic sliders (M3 bordered) |
+| Audio | `AudioIndicator` click | Volume + mic sliders (M3 switches; active check = sound enabled, unchecked = muted) |
 | Brightness | `BrightnessIndicator` click | Brightness slider (M3 bordered) |
 | Battery | `BatteryIndicator` click | Percentage, energy capacity, status, rate, cycles, model (M3 bordered) |
+| Bluetooth | `BtIndicator` click | Bluetooth devices, battery percentages, disconnect button, power switch |
 | Calendar | Clock click | Month grid with navigation (M3 bordered) |
 | Notifications | `NotificationIndicator` click | M3-compliant card layout list tracked via `modelData` |
-| Quick Menu | `MenuIndicator` click / `SUPER+Escape` | WiFi, BT, idle inhibit, dark mode, power (M3 bordered) |
+| Quick Menu | `MenuIndicator` click / `SUPER+Escape` | Layout toggle, idle inhibit, dark mode, power (M3 bordered) |
 
 ## Configuration
 
@@ -181,12 +216,12 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 
 ## Widget Details
 
-- **WorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri and MangoWM (`mmsg watch all-tags` and `niri msg event-stream`) using `SplitParser`, consuming 0% CPU at idle. Evaluates WM type consistently using centralized variables from `Config.qml` with robust startup completed initialization.
-- **AudioIndicator/BrightnessIndicator**: 100% event-driven. Monitors PipeWire events (`pactl subscribe`) and backlight sysfs changes (`inotifywait` on `/sys/class/backlight/*/brightness`) respectively to update the UI instantly without periodic polling timers.
-- **BatteryIndicator**: Utilizes declarative UPower property bindings (no timers) to react directly to battery level/state changes.
-- **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu.
-- **QuickMenu (idle toggle)**: Coffee button toggles `swayidle`. When lit (inhibitor ON), `swayidle` is killed so the screen never locks. When dimmed (inhibitor OFF), `swayidle` runs with normal timeouts (dim → lock → display off → suspend).
-- **LauncherPopup**: Runs `desktop-parser.py` to index `.desktop` files. Features local offline voice search: records voice via PipeWire `pw-record` on mic click and transcribes it using local `vosk` model via `scripts/voice-search.py`, filtering the app list reactively.
+- **WorkspaceIndicator / HorizontalWorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri and MangoWM (`mmsg watch all-tags` and `niri msg event-stream`) using `SplitParser`. Runs only when visible. When the bar is in its collapsed pill state, the container is anchored directly in the workspace zone (50px offset) instead of centered on the screen, keeping the workspace indicator completely stationary during the entire expand/collapse transition in both orientations.
+- **AudioIndicator / BrightnessIndicator / BtIndicator / WifiIndicator**: Event-driven watchers and polling loops are bound to `root.visible`, so they are fully suspended when their parent bar is hidden, saving CPU wakeups and RAM.
+- **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
+- **SystemTrayArea / HorizontalSystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu.
+- **QuickMenu (Layout Toggle)**: The WiFi button was replaced with a layout toggle. When clicked, it toggles `isHorizontal` and persists the state. The wallpaper changer was relocated inside the Quick Settings layout.
+- **BtIndicator & BtPopup**: Displays the battery percentage of the connected device directly underneath the bluetooth icon. The popup lists connected devices with their MAC, names, and battery level, offering a `link_off` disconnect button on hover.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles.
 - **Lock Screen Security**: Employs imperative start/stop handlers in `onLockedChanged` for `fprintdProcess` to prevent QML declarative property binding breaks.
 

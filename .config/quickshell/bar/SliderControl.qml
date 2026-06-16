@@ -164,7 +164,7 @@ Item {
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     onPressed: function(mouse) { handleMouse(mouse.x) }
-    onPositionChanged: function(mouse) { handleMouse(mouse.x) }
+    onPositionChanged: function(mouse) { if (pressed) handleMouse(mouse.x) }
     function handleMouse(mx) {
       var ratio = Math.max(0, Math.min(1, mx / parent.width))
       root.changed(ratio)

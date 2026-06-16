@@ -108,12 +108,110 @@ PanelWindow {
   function filterApps() {
     filteredModel.clear()
     var q = searchText.toLowerCase().trim()
+    if (q === "") {
+      for (var i = 0; i < appModel.count; i++) {
+        filteredModel.append(appModel.get(i))
+      }
+      selectedIndex = 0
+      return
+    }
+
+    var matches = []
     for (var i = 0; i < appModel.count; i++) {
       var app = appModel.get(i)
-      if (q === "" || app.name.toLowerCase().indexOf(q) !== -1 || app.comment.toLowerCase().indexOf(q) !== -1) {
-        filteredModel.append(app)
+      var score = 0
+      var nameLower = app.name.toLowerCase()
+      var commentLower = (app.comment || "").toLowerCase()
+      var genNameLower = (app.generic_name || "").toLowerCase()
+      var keywordsLower = (app.keywords || "").toLowerCase()
+      var categoriesLower = (app.categories || "").toLowerCase()
+
+      // 1. Check exact or prefix match on Name (highest priority)
+      if (nameLower === q) {
+        score += 500
+      } else if (nameLower.indexOf(q) === 0) {
+        score += 300
+      } else if (nameLower.indexOf(q) !== -1) {
+        score += 150
+      }
+
+      // 2. Check Generic Name (e.g. "Web Browser", "Text Editor")
+      if (genNameLower === q) {
+        score += 250
+      } else if (genNameLower.indexOf(q) === 0) {
+        score += 180
+      } else if (genNameLower.indexOf(q) !== -1) {
+        score += 100
+      }
+
+      // 3. Check keywords (e.g. "browser", "internet")
+      if (keywordsLower.indexOf(q) !== -1) {
+        score += 80
+      }
+
+      // 4. Check Categories
+      if (categoriesLower.indexOf(q) !== -1) {
+        score += 60
+      }
+
+      // 5. Check description/comment
+      if (commentLower.indexOf(q) !== -1) {
+        score += 40
+      }
+
+      // 6. Check individual terms for multi-word queries
+      var terms = q.split(/\s+/)
+      if (terms.length > 1) {
+        var allTermsMatch = true
+        var termScore = 0
+        for (var t = 0; t < terms.length; t++) {
+          var term = terms[t]
+          if (!term) continue
+          var foundTerm = false
+          if (nameLower.indexOf(term) !== -1) {
+            termScore += 30
+            foundTerm = true
+          }
+          if (genNameLower.indexOf(term) !== -1) {
+            termScore += 20
+            foundTerm = true
+          }
+          if (keywordsLower.indexOf(term) !== -1) {
+            termScore += 15
+            foundTerm = true
+          }
+          if (commentLower.indexOf(term) !== -1) {
+            termScore += 10
+            foundTerm = true
+          }
+          if (!foundTerm) {
+            allTermsMatch = false
+          }
+        }
+        if (allTermsMatch) {
+          score += termScore + 50
+        } else {
+          score += termScore * 0.5
+        }
+      }
+
+      if (score > 0) {
+        matches.push({ app: app, score: score })
       }
     }
+
+    // Sort by score descending, secondary sort alphabetically by name
+    matches.sort(function(a, b) {
+      if (b.score !== a.score) {
+        return b.score - a.score
+      }
+      return a.app.name.localeCompare(b.app.name)
+    })
+
+    for (var j = 0; j < matches.length; j++) {
+      filteredModel.append(matches[j].app)
+    }
+
     selectedIndex = Math.max(0, Math.min(selectedIndex, filteredModel.count - 1))
   }
 

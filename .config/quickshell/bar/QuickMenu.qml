@@ -15,6 +15,9 @@ PanelWindow {
 
   signal dismissed()
 
+  property bool isHorizontal: false
+  signal toggleHorizontal()
+
   property int activePowerIndex: -1
   property var powerOptions: [
     { label: "Log Out", cmd: ["sh", Quickshell.env("HOME") + "/.local/bin/safe-logout.sh"] },
@@ -38,46 +41,7 @@ PanelWindow {
   anchors.top: true
   margins.top: Math.max(0, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
 
-  property bool wifiOn: false
-  property string wifiSSID: ""
-  property bool btOn: false
-  property string btDevice: ""
   property bool idleOn: false
-
-  Process {
-    id: wifiQuery
-    command: ["sh", "-c", "echo $(nmcli radio wifi)___$(nmcli -t -f active,ssid dev wifi list 2>/dev/null | grep '^yes' | head -1 | cut -d: -f2)"]
-    running: false
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var parts = text.trim().split("___")
-        root.wifiOn = parts[0] === "enabled"
-        root.wifiSSID = parts.length > 1 && parts[1] ? parts[1] : ""
-      }
-    }
-  }
-
-  Process {
-    id: btQuery
-    command: ["sh", "-c", "echo $(bluetoothctl show 2>/dev/null | grep 'Powered:' | awk '{print $2}')___$(bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f3-)"]
-    running: false
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var parts = text.trim().split("___")
-        root.btOn = parts[0] === "yes"
-        root.btDevice = parts.length > 1 && parts[1] ? parts[1] : ""
-      }
-    }
-  }
-
-  function pollAll() { wifiQuery.running = true; btQuery.running = true }
-
-  Timer {
-    interval: 2000
-    running: root.visible
-    repeat: true
-    onTriggered: root.pollAll()
-  }
 
   Process {
     id: idleCheck
@@ -92,7 +56,6 @@ PanelWindow {
 
   onVisibleChanged: {
     if (visible) {
-      pollAll()
       idleCheck.running = true
       entryAnimation.start()
       root.activePowerIndex = -1
@@ -207,12 +170,12 @@ PanelWindow {
           width: parent.width
 
           Rectangle {
-            id: wifiBtn
+            id: layoutBtn
             width: (parent.width - 3 * 12) / 4
             height: width
             radius: 20
-            color: root.wifiOn ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.surfaceContainer : "#211F26")
-            border.color: root.wifiOn ? "transparent" : (colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15))
+            color: root.isHorizontal ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.surfaceContainer : "#211F26")
+            border.color: root.isHorizontal ? "transparent" : (colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15))
             border.width: 1
 
             Behavior on color {
@@ -224,10 +187,10 @@ PanelWindow {
               spacing: 4
 
               Text {
-                id: toggleBtn
+                id: layoutToggleBtn
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "wifi"
-                color: root.wifiOn ? (colors_ ? colors_.fgPrimary : "#0F3C2C") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
+                text: root.isHorizontal ? "horizontal_split" : "vertical_split"
+                color: root.isHorizontal ? (colors_ ? colors_.fgPrimary : "#0F3C2C") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
                 font.family: config ? config.iconFont : "Material Symbols Outlined"
                 font.pixelSize: config ? (config.iconSize + 4) : 26
               }
@@ -237,25 +200,19 @@ PanelWindow {
               anchors.fill: parent
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
-              acceptedButtons: Qt.LeftButton | Qt.RightButton
-              onClicked: (mouse) => {
-                if (mouse.button === Qt.RightButton) {
-                  Quickshell.execDetached(["nm-connection-editor"])
-                } else {
-                  Quickshell.execDetached(["nmcli", "radio", "wifi", root.wifiOn ? "off" : "on"])
-                  root.wifiOn = !root.wifiOn
-                }
+              onClicked: {
+                root.toggleHorizontal()
               }
             }
           }
 
           Rectangle {
-            id: btBtn
+            id: wallBtn
             width: (parent.width - 3 * 12) / 4
             height: width
             radius: 20
-            color: root.btOn ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.surfaceContainer : "#211F26")
-            border.color: root.btOn ? "transparent" : (colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15))
+            color: colors_ ? (wallMouse.containsMouse ? colors_.surfaceContainerHighest : colors_.surfaceContainer) : "#211F26"
+            border.color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
             border.width: 1
 
             Behavior on color {
@@ -267,27 +224,22 @@ PanelWindow {
               spacing: 4
 
               Text {
-                id: btToggle
+                id: wallToggle
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "bluetooth"
-                color: root.btOn ? (colors_ ? colors_.fgPrimary : "#0F3C2C") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
+                text: "wallpaper"
+                color: colors_ ? colors_.primary : "#D0BCFF"
                 font.family: config ? config.iconFont : "Material Symbols Outlined"
                 font.pixelSize: config ? (config.iconSize + 4) : 26
               }
             }
 
             MouseArea {
+              id: wallMouse
               anchors.fill: parent
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
-              acceptedButtons: Qt.LeftButton | Qt.RightButton
-              onClicked: (mouse) => {
-                if (mouse.button === Qt.RightButton) {
-                  Quickshell.execDetached(["blueman-manager"])
-                } else {
-                  Quickshell.execDetached(["bluetoothctl", "power", root.btOn ? "off" : "on"])
-                  root.btOn = !root.btOn
-                }
+              onClicked: {
+                Quickshell.execDetached(["sh", "-c", Quickshell.env("HOME") + "/.local/bin/wall"])
               }
             }
           }

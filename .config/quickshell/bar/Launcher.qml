@@ -9,6 +9,7 @@ Item {
   property QtObject config: null
 
   property bool active: false
+  property bool horizontal: false
 
   signal clicked(var mouse)
 
@@ -19,10 +20,12 @@ Item {
     id: bgOverlay
     anchors {
       fill: parent
-      leftMargin: 6
-      rightMargin: 6
+      leftMargin: root.horizontal ? 0 : 6
+      rightMargin: root.horizontal ? 0 : 6
+      topMargin: root.horizontal ? 6 : 0
+      bottomMargin: root.horizontal ? 6 : 0
     }
-    radius: width / 2
+    radius: root.horizontal ? height / 2 : width / 2
     clip: true
     color: {
       if (root.active) return colors_ ? colors_.primary : "#D0BCFF"

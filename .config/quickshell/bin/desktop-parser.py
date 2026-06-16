@@ -75,12 +75,14 @@ def get_apps_mtime_sum():
             total += d.stat().st_mtime
     return total
 
+CACHE_VERSION = 2
+
 def load_cache(mtime_sum):
     if CACHE_PATH.exists():
         try:
             with open(CACHE_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if data.get("mtime_sum") == mtime_sum:
+                if data.get("mtime_sum") == mtime_sum and data.get("version") == CACHE_VERSION:
                     return data.get("apps")
         except Exception:
             pass
@@ -89,7 +91,7 @@ def load_cache(mtime_sum):
 def save_cache(mtime_sum, apps):
     try:
         with open(CACHE_PATH, "w", encoding="utf-8") as f:
-            json.dump({"mtime_sum": mtime_sum, "apps": apps}, f)
+            json.dump({"mtime_sum": mtime_sum, "version": CACHE_VERSION, "apps": apps}, f)
     except Exception:
         pass
 
@@ -128,6 +130,9 @@ def main():
                 "exec": exec_cmd,
                 "icon": resolve_icon(icon_name),
                 "comment": entry.get("Comment", ""),
+                "generic_name": entry.get("GenericName", ""),
+                "keywords": entry.get("Keywords", ""),
+                "categories": entry.get("Categories", ""),
                 "terminal": entry.get("Terminal", "false").lower() == "true",
             })
     apps.sort(key=lambda a: a["name"].lower())
