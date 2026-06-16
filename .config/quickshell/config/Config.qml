@@ -2,15 +2,7 @@ import QtQml
 import Quickshell
 
 QtObject {
-  readonly property string wmType: {
-    var desktop = Quickshell.env("XDG_CURRENT_DESKTOP")
-    if (desktop && desktop.toLowerCase() === "niri") return "niri"
-    var niriSock = Quickshell.env("NIRI_SOCKET")
-    if (niriSock && niriSock.length > 0) return "niri"
-    var sig = Quickshell.env("MANGO_INSTANCE_SIGNATURE")
-    if (sig && sig.length > 0) return "mango"
-    return "niri"
-  }
+  readonly property string wmType: "niri"
   readonly property bool isNiri: wmType === "niri"
   readonly property int barWidth: 44
   readonly property int widgetSize: 44

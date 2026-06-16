@@ -62,36 +62,7 @@ Item {
     }
   }
 
-  Process {
-    id: mangoWatcher
-    command: ["mmsg", "watch", "all-tags"]
-    running: root.visible && root.wmType === "mango"
 
-    stdout: SplitParser {
-      onRead: function(data) {
-        try {
-          var list = parseWorkspaces(data.trim())
-          root.workspaces = list
-        } catch (e) { print("WorkspaceIndicator Mango parse error:", e) }
-      }
-    }
-
-    onRunningChanged: {
-      if (!running && root.wmType === "mango" && root.visible) {
-        mangoWatcherRetry.start()
-      }
-    }
-  }
-
-  Timer {
-    id: mangoWatcherRetry
-    interval: 1000
-    onTriggered: {
-      if (root.wmType === "mango" && root.visible) {
-        mangoWatcher.running = true
-      }
-    }
-  }
 
   onVisibleChanged: {
     if (visible) {
@@ -113,54 +84,27 @@ Item {
     var data = JSON.parse(text)
     var list = []
 
-    if (root.wmType === "mango") {
-      var monitors = data.all_tags
-      if (monitors && monitors.length > 0) {
-        var tags = monitors[0].tags
-        for (var i = 0; i < tags.length; i++) {
-          list.push({
-            idx: tags[i].index,
-            isFocused: tags[i].is_active === true,
-            isOccupied: tags[i].client_count > 0
-          })
-        }
-      }
-    } else {
-      for (var i = 0; i < data.length; i++) {
-        list.push({
-          idx: data[i].idx,
-          isFocused: data[i].is_focused,
-          isOccupied: data[i].active_window_id != null
-        })
-      }
+    for (var i = 0; i < data.length; i++) {
+      list.push({
+        idx: data[i].idx,
+        isFocused: data[i].is_focused,
+        isOccupied: data[i].active_window_id != null
+      })
     }
 
-    if (root.wmType === "mango")
-      list = list.filter(function(t) { return t.isFocused || t.isOccupied })
     list.sort(function(a, b) { return a.idx - b.idx })
     return list
   }
 
   function focusWorkspace(idx) {
-    if (root.wmType === "mango") {
-      Quickshell.execDetached(["mmsg", "dispatch", "view," + idx])
-    } else {
-      Quickshell.execDetached(["sh", "-c", "niri msg action focus-workspace " + idx])
-    }
+    Quickshell.execDetached(["sh", "-c", "niri msg action focus-workspace " + idx])
   }
 
   function scrollWorkspace(deltaY) {
-    if (root.wmType === "mango") {
-      if (deltaY > 0)
-        Quickshell.execDetached(["mmsg", "dispatch", "viewtoleft"])
-      else
-        Quickshell.execDetached(["mmsg", "dispatch", "viewtoright"])
-    } else {
-      if (deltaY > 0)
-        Quickshell.execDetached(["niri", "msg", "action", "focus-workspace-up"])
-      else
-        Quickshell.execDetached(["niri", "msg", "action", "focus-workspace-down"])
-    }
+    if (deltaY > 0)
+      Quickshell.execDetached(["niri", "msg", "action", "focus-workspace-up"])
+    else
+      Quickshell.execDetached(["niri", "msg", "action", "focus-workspace-down"])
   }
 
   Column {
