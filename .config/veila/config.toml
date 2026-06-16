@@ -1,4 +1,0 @@
-include = ["~/.config/veila/themes/default.toml"]
-
-[fingerprint]
-enabled = false

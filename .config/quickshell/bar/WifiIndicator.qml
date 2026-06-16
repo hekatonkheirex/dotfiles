@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Services.UPower
+import Quickshell.Io
 
 Item {
   id: root
@@ -17,31 +17,52 @@ Item {
   Layout.preferredWidth: config ? config.widgetSize : 50
   Layout.preferredHeight: config ? config.widgetSize : 50
 
-  readonly property var batteryDevice: {
-    for (var i = 0; i < UPower.devices.count; i++) {
-      var d = UPower.devices.get(i)
-      if (d.ready && d.isLaptopBattery) return d
+  property bool wifiOn: false
+  property int wifiSignal: -1
+
+  // Use the standard "wifi" icon which is guaranteed to exist and render perfectly.
+  readonly property string iconLabel: "wifi"
+
+  Process {
+    id: wifiQuery
+    command: ["sh", "-c", "echo $(nmcli radio wifi)___$(nmcli -t -f active,signal dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)"]
+    running: false
+
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var clean = text.trim()
+        var parts = clean.split("___")
+        root.wifiOn = parts[0] === "enabled"
+        if (parts.length > 1 && parts[1]) {
+          var sig = parseInt(parts[1])
+          if (!isNaN(sig)) {
+            root.wifiSignal = sig
+          } else {
+            root.wifiSignal = -1
+          }
+        } else {
+          root.wifiSignal = -1
+        }
+      }
     }
-    if (UPower.displayDevice && UPower.displayDevice.ready)
-      return UPower.displayDevice
-    return null
   }
 
-  readonly property real pct: batteryDevice ? batteryDevice.percentage * 100 : -1
+  Timer {
+    id: pollTimer
+    interval: 10000 // 10s
+    running: root.visible
+    repeat: true
+    triggeredOnStart: true
+    onTriggered: wifiQuery.running = true
+  }
 
-  readonly property string iconLabel: {
-    if (!batteryDevice) return "battery_unknown"
-    var ch = batteryDevice.state === UPowerDeviceState.Charging || batteryDevice.state === UPowerDeviceState.PendingCharge
-    var plugged = ch || batteryDevice.state === UPowerDeviceState.FullyCharged
-    if (ch) return "battery_charging_full"
-    if (plugged && pct >= 99) return "battery_full"
-    if (pct <= 10) return "battery_alert"
-    if (pct <= 20) return "battery_1_bar"
-    if (pct <= 40) return "battery_2_bar"
-    if (pct <= 60) return "battery_3_bar"
-    if (pct <= 80) return "battery_4_bar"
-    if (pct <= 95) return "battery_5_bar"
-    return "battery_full"
+  Timer {
+    id: refreshTimer
+    interval: 1000
+    repeat: false
+    onTriggered: {
+      if (root.visible) wifiQuery.running = true
+    }
   }
 
   Rectangle {
@@ -79,6 +100,14 @@ Item {
       if (root.active) return colors_ ? colors_.fgPrimary : "#0F3C2C"
       return colors_ ? colors_.primary : "#D0BCFF"
     }
+    opacity: {
+      if (!root.wifiOn) return 0.25
+      if (root.wifiSignal < 0) return 0.4
+      if (root.wifiSignal <= 25) return 0.55
+      if (root.wifiSignal <= 50) return 0.7
+      if (root.wifiSignal <= 75) return 0.85
+      return 1.0
+    }
     font.family: config ? config.iconFont : "Material Symbols Outlined"
     font.pixelSize: config ? config.iconSize : 22
     horizontalAlignment: Text.AlignHCenter
@@ -89,10 +118,15 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
     anchors.bottomMargin: 4
-    text: root.pct >= 0 ? Math.round(root.pct) + "%" : ""
+    text: root.wifiOn && root.wifiSignal >= 0 ? root.wifiSignal + "%" : "--%"
     color: {
       if (root.active) return colors_ ? colors_.fgPrimary : "#0F3C2C"
       return colors_ ? colors_.primary : "#D0BCFF"
+    }
+    opacity: {
+      if (!root.wifiOn) return 0.35
+      if (root.wifiSignal < 0) return 0.5
+      return 1.0
     }
     font.family: config ? config.fontFamily : "Google Sans Flex"
     font.pixelSize: config ? (config.fontPixelSize - 2) : 8

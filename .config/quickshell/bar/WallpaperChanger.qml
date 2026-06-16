@@ -8,6 +8,8 @@ Item {
   property QtObject colors_: null
   property QtObject config: null
 
+  property bool horizontal: false
+
   signal clicked(var mouse)
 
   Layout.preferredWidth: config ? config.widgetSize : 50
@@ -17,10 +19,12 @@ Item {
     id: bgOverlay
     anchors {
       fill: parent
-      leftMargin: 6
-      rightMargin: 6
+      leftMargin: root.horizontal ? 0 : 6
+      rightMargin: root.horizontal ? 0 : 6
+      topMargin: root.horizontal ? 6 : 0
+      bottomMargin: root.horizontal ? 6 : 0
     }
-    radius: width / 2
+    radius: root.horizontal ? height / 2 : width / 2
     clip: true
     color: colors_ ? (mouseArea.containsMouse ? colors_.surfaceContainerHigh : "transparent") : "transparent"
     border.color: colors_ ? (mouseArea.containsMouse ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : "transparent") : "transparent"

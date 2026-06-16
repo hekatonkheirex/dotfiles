@@ -8,6 +8,7 @@ Item {
 
   property QtObject colors_: null
   property QtObject config: null
+  property bool horizontal: false
 
   signal clicked(var mouse)
 
@@ -41,7 +42,7 @@ Item {
   Process {
     id: audioWatcher
     command: ["pactl", "subscribe"]
-    running: true
+    running: root.visible
     stdout: SplitParser {
       onRead: function(data) {
         if (data.indexOf("sink") >= 0) {
@@ -50,17 +51,25 @@ Item {
       }
     }
     onRunningChanged: {
-      if (!running) audioWatcherRetry.start()
+      if (!running && root.visible) audioWatcherRetry.start()
     }
   }
 
   Timer {
     id: audioWatcherRetry
     interval: 1000
-    onTriggered: audioWatcher.running = true
+    onTriggered: {
+      if (root.visible) audioWatcher.running = true
+    }
   }
 
-  Component.onCompleted: root.pollAudio()
+  onVisibleChanged: {
+    if (visible) root.pollAudio()
+  }
+
+  Component.onCompleted: {
+    if (root.visible) root.pollAudio()
+  }
 
   property bool active: false
 
@@ -74,10 +83,12 @@ Item {
     id: bgOverlay
     anchors {
       fill: parent
-      leftMargin: 6
-      rightMargin: 6
+      leftMargin: root.horizontal ? 0 : 6
+      rightMargin: root.horizontal ? 0 : 6
+      topMargin: root.horizontal ? 6 : 0
+      bottomMargin: root.horizontal ? 6 : 0
     }
-    radius: width / 2
+    radius: root.horizontal ? height / 2 : width / 2
     clip: true
     color: {
       if (root.active) return colors_ ? colors_.primary : "#D0BCFF"

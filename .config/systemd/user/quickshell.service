@@ -1,0 +1,15 @@
+[Unit]
+Description=Quickshell Desktop Panel
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/quickshell
+Restart=on-failure
+RestartSec=2s
+# If it crashes more than 5 times in 10 seconds, stop restarting.
+StartLimitIntervalSec=10s
+StartLimitBurst=5
+
+[Install]
+WantedBy=graphical-session.target

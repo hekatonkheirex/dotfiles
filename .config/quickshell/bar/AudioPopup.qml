@@ -182,7 +182,7 @@ PanelWindow {
           SwitchControl {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            checked: root.muted
+            checked: !root.muted
             activeColor: colors_ ? colors_.primary : "#D0BCFF"
             checkmarkColor: colors_ ? (colors_.darkMode ? colors_.fgPrimary : colors_.primary) : "#0F3C2C"
             surfaceContainerHigh: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
@@ -231,7 +231,7 @@ PanelWindow {
           SwitchControl {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            checked: root.micMuted
+            checked: !root.micMuted
             activeColor: colors_ ? colors_.primary : "#D0BCFF"
             checkmarkColor: colors_ ? (colors_.darkMode ? colors_.fgPrimary : colors_.primary) : "#0F3C2C"
             surfaceContainerHigh: colors_ ? colors_.surfaceContainerHigh : "#2B2930"

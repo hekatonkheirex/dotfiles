@@ -14,6 +14,26 @@ ShellRoot {
     id: colors
   }
 
+  property bool isHorizontal: true
+
+  Process {
+    id: readLayoutPref
+    command: ["sh", "-c", "cat " + Quickshell.env("HOME") + "/.config/quickshell/layout 2>/dev/null || echo horizontal"]
+    running: true
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var pref = text.trim();
+        shell.isHorizontal = (pref !== "vertical");
+      }
+    }
+  }
+
+  function toggleLayout() {
+    shell.isHorizontal = !shell.isHorizontal;
+    var pref = shell.isHorizontal ? "horizontal" : "vertical";
+    Quickshell.execDetached(["sh", "-c", "echo " + pref + " > " + Quickshell.env("HOME") + "/.config/quickshell/layout"]);
+  }
+
   Process {
     id: darkModeInitial
     command: ["gsettings", "get", "org.gnome.desktop.interface", "color-scheme"]
@@ -71,7 +91,11 @@ ShellRoot {
     target: "shell"
 
     function launcher() {
-      bar.popupAnchorY = 0
+      if (bar.horizontal) {
+        bar.popupAnchorX = bar.getLauncherX()
+      } else {
+        bar.popupAnchorY = 0
+      }
       bar.openPopup = bar.openPopup === "launcher" ? "" : "launcher"
     }
 
@@ -80,7 +104,11 @@ ShellRoot {
     }
 
     function quickmenu() {
-      bar.popupAnchorY = bar.getMenuIndicatorY()
+      if (bar.horizontal) {
+        bar.popupAnchorX = bar.getMenuIndicatorX()
+      } else {
+        bar.popupAnchorY = bar.getMenuIndicatorY()
+      }
       bar.openPopup = bar.openPopup === "quickmenu" ? "" : "quickmenu"
     }
 
@@ -121,13 +149,23 @@ ShellRoot {
     onShieldClicked: bar.openPopup = ""
   }
 
-  VerticalBar {
-    id: bar
+  HorizontalBar {
+    id: horizontalBar
     colors_: colors
     config: cfg
     notificationServer: notifServer
-    visible: !lockScreen.locked
+    visible: shell.isHorizontal && !lockScreen.locked
   }
+
+  VerticalBar {
+    id: verticalBar
+    colors_: colors
+    config: cfg
+    notificationServer: notifServer
+    visible: !shell.isHorizontal && !lockScreen.locked
+  }
+
+  readonly property QtObject bar: isHorizontal ? horizontalBar : verticalBar
 
   AudioPopup {
     id: audioPopup
@@ -136,6 +174,52 @@ ShellRoot {
     visible: bar.openPopup === "audio" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: bar.horizontal
+      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
+      : (config ? config.barWidth + 4 : 48)
+    anchors.top: true
+    margins.top: bar.horizontal
+      ? (config ? config.barWidth + 4 : 48)
+      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+  }
+
+  WifiPopup {
+    id: wifiPopup
+    colors_: colors
+    config: cfg
+    visible: bar.openPopup === "wifi" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: bar.horizontal
+      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
+      : (config ? config.barWidth + 4 : 48)
+    anchors.top: true
+    margins.top: bar.horizontal
+      ? (config ? config.barWidth + 4 : 48)
+      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+  }
+
+  BtPopup {
+    id: btPopup
+    colors_: colors
+    config: cfg
+    visible: bar.openPopup === "bluetooth" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    horizontal: bar.horizontal
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: bar.horizontal
+      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
+      : (config ? config.barWidth + 4 : 48)
+    anchors.top: true
+    margins.top: bar.horizontal
+      ? (config ? config.barWidth + 4 : 48)
+      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
   }
 
   BrightnessPopup {
@@ -145,6 +229,15 @@ ShellRoot {
     visible: bar.openPopup === "brightness" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: bar.horizontal
+      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
+      : (config ? config.barWidth + 4 : 48)
+    anchors.top: true
+    margins.top: bar.horizontal
+      ? (config ? config.barWidth + 4 : 48)
+      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
   }
 
   BatteryPopup {
@@ -154,6 +247,15 @@ ShellRoot {
     visible: bar.openPopup === "battery" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: bar.horizontal
+      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
+      : (config ? config.barWidth + 4 : 48)
+    anchors.top: true
+    margins.top: bar.horizontal
+      ? (config ? config.barWidth + 4 : 48)
+      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
   }
 
   CalendarPopup {
@@ -163,6 +265,15 @@ ShellRoot {
     visible: bar.openPopup === "calendar" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: bar.horizontal
+      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
+      : (config ? config.barWidth + 4 : 48)
+    anchors.top: true
+    margins.top: bar.horizontal
+      ? (config ? config.barWidth + 4 : 48)
+      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
   }
 
   NotificationPopup {
@@ -172,6 +283,15 @@ ShellRoot {
     visible: bar.openPopup === "notification" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: bar.horizontal
+      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
+      : (config ? config.barWidth + 4 : 48)
+    anchors.top: true
+    margins.top: bar.horizontal
+      ? (config ? config.barWidth + 4 : 48)
+      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
   }
 
   QuickMenu {
@@ -181,6 +301,17 @@ ShellRoot {
     visible: bar.openPopup === "quickmenu" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
+    isHorizontal: shell.isHorizontal
+    onToggleHorizontal: shell.toggleLayout()
+
+    anchors.left: true
+    margins.left: bar.horizontal
+      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
+      : (config ? config.barWidth + 4 : 48)
+    anchors.top: true
+    margins.top: bar.horizontal
+      ? (config ? config.barWidth + 4 : 48)
+      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
   }
 
   FileTrigger {
@@ -211,5 +342,14 @@ ShellRoot {
     visible: bar.openPopup === "launcher" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: bar.horizontal
+      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
+      : (config ? config.barWidth + 4 : 48)
+    anchors.top: true
+    margins.top: bar.horizontal
+      ? (config ? config.barWidth + 4 : 48)
+      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
   }
 }

@@ -7,4 +7,4 @@ spawn-at-startup "gnome-keyring-daemon --replace --components=secrets,ssh,pkcs11
 // spawn-sh-at-startup "~/.config/niri/waybar/launch.sh"
 // spawn-sh-at-startup "~/.local/bin/wall_shuffle.sh"
 spawn-sh-at-startup "~/.config/quickshell/scripts/idle.sh"
-spawn-at-startup "sh" "-c" "while true; do quickshell --no-duplicate; sleep 1; done"
+spawn-at-startup "systemctl" "--user" "start" "quickshell.service"

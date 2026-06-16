@@ -8,6 +8,7 @@ Item {
 
   property QtObject colors_: null
   property QtObject config: null
+  property bool horizontal: false
 
   signal clicked(var mouse)
 
@@ -42,26 +43,34 @@ Item {
   Process {
     id: brightnessWatcher
     command: ["sh", "-c", "inotifywait -m -e modify /sys/class/backlight/*/brightness"]
-    running: true
+    running: root.visible
     stdout: SplitParser {
       onRead: function(data) {
         root.fetchBrightness()
       }
     }
     onRunningChanged: {
-      if (!running) brightnessWatcherRetry.start()
+      if (!running && root.visible) brightnessWatcherRetry.start()
     }
   }
 
   Timer {
     id: brightnessWatcherRetry
     interval: 1000
-    onTriggered: brightnessWatcher.running = true
+    onTriggered: {
+      if (root.visible) brightnessWatcher.running = true
+    }
   }
 
   property bool active: false
 
-  Component.onCompleted: root.fetchBrightness()
+  onVisibleChanged: {
+    if (visible) root.fetchBrightness()
+  }
+
+  Component.onCompleted: {
+    if (root.visible) root.fetchBrightness()
+  }
 
   property string iconLabel: {
     if (!root.initialized) return "brightness_medium"
@@ -75,10 +84,12 @@ Item {
     id: bgOverlay
     anchors {
       fill: parent
-      leftMargin: 6
-      rightMargin: 6
+      leftMargin: root.horizontal ? 0 : 6
+      rightMargin: root.horizontal ? 0 : 6
+      topMargin: root.horizontal ? 6 : 0
+      bottomMargin: root.horizontal ? 6 : 0
     }
-    radius: width / 2
+    radius: root.horizontal ? height / 2 : width / 2
     clip: true
     color: {
       if (root.active) return colors_ ? colors_.primary : "#D0BCFF"

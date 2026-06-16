@@ -1,14 +1,13 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Services.UPower
+import Quickshell.Io
 
 Item {
   id: root
 
   property QtObject colors_: null
   property QtObject config: null
-
   property bool active: false
   property bool horizontal: false
 
@@ -17,31 +16,47 @@ Item {
   Layout.preferredWidth: config ? config.widgetSize : 50
   Layout.preferredHeight: config ? config.widgetSize : 50
 
-  readonly property var batteryDevice: {
-    for (var i = 0; i < UPower.devices.count; i++) {
-      var d = UPower.devices.get(i)
-      if (d.ready && d.isLaptopBattery) return d
+  property bool btOn: false
+  property string btDeviceMac: ""
+  property string btDeviceBattery: ""
+
+  Process {
+    id: btQuery
+    command: ["sh", "-c", "echo $(bluetoothctl show 2>/dev/null | grep 'Powered:' | awk '{print $2}')___$(MAC=$(bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f2) && [ -n \"$MAC\" ] && echo \"$MAC\" || echo \"\")___$(MAC=$(bluetoothctl devices Connected 2>/dev/null | head -1 | cut -d' ' -f2) && [ -n \"$MAC\" ] && bluetoothctl info \"$MAC\" 2>/dev/null | grep \"Battery Percentage:\" | awk -F '[()]' '{print $2}' || echo \"\")"]
+    running: false
+
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var clean = text.trim()
+        var parts = clean.split("___")
+        root.btOn = parts[0] === "yes"
+        root.btDeviceMac = parts.length > 1 ? parts[1] : ""
+        root.btDeviceBattery = parts.length > 2 ? parts[2].trim() : ""
+      }
     }
-    if (UPower.displayDevice && UPower.displayDevice.ready)
-      return UPower.displayDevice
-    return null
   }
 
-  readonly property real pct: batteryDevice ? batteryDevice.percentage * 100 : -1
+  Timer {
+    id: pollTimer
+    interval: 5000 // 5s
+    running: root.visible
+    repeat: true
+    triggeredOnStart: true
+    onTriggered: btQuery.running = true
+  }
+
+  onVisibleChanged: {
+    if (visible) btQuery.running = true
+  }
+
+  Component.onCompleted: {
+    if (root.visible) btQuery.running = true
+  }
 
   readonly property string iconLabel: {
-    if (!batteryDevice) return "battery_unknown"
-    var ch = batteryDevice.state === UPowerDeviceState.Charging || batteryDevice.state === UPowerDeviceState.PendingCharge
-    var plugged = ch || batteryDevice.state === UPowerDeviceState.FullyCharged
-    if (ch) return "battery_charging_full"
-    if (plugged && pct >= 99) return "battery_full"
-    if (pct <= 10) return "battery_alert"
-    if (pct <= 20) return "battery_1_bar"
-    if (pct <= 40) return "battery_2_bar"
-    if (pct <= 60) return "battery_3_bar"
-    if (pct <= 80) return "battery_4_bar"
-    if (pct <= 95) return "battery_5_bar"
-    return "battery_full"
+    if (!root.btOn) return "bluetooth_disabled"
+    if (root.btDeviceMac !== "") return "bluetooth_connected"
+    return "bluetooth"
   }
 
   Rectangle {
@@ -89,7 +104,16 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
     anchors.bottomMargin: 4
-    text: root.pct >= 0 ? Math.round(root.pct) + "%" : ""
+    text: {
+      if (!root.btOn) return "Off"
+      if (root.btDeviceMac !== "") {
+        if (root.btDeviceBattery !== "") {
+          return root.btDeviceBattery + "%"
+        }
+        return "On"
+      }
+      return "On"
+    }
     color: {
       if (root.active) return colors_ ? colors_.fgPrimary : "#0F3C2C"
       return colors_ ? colors_.primary : "#D0BCFF"

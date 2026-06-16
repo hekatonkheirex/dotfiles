@@ -12,12 +12,12 @@ Item {
   signal clicked(var mouse)
 
   property var workspaces: []
-  property int pillHeight: 48
+  property int pillWidth: 48
 
   readonly property string wmType: config ? config.wmType : "niri"
 
-  Layout.preferredWidth: config ? config.widgetSize : 50
-  Layout.preferredHeight: column.implicitHeight + 12
+  Layout.preferredWidth: row.implicitWidth + 12
+  Layout.preferredHeight: config ? config.widgetSize : 50
 
   Process {
     id: refresher
@@ -163,13 +163,13 @@ Item {
     }
   }
 
-  Column {
-    id: column
+  Row {
+    id: row
     anchors {
-      left: parent.left
-      right: parent.right
       top: parent.top
-      topMargin: 6
+      bottom: parent.bottom
+      left: parent.left
+      leftMargin: 6
     }
     spacing: 6
 
@@ -179,12 +179,12 @@ Item {
       delegate: Item {
         id: delegateItem
         required property var modelData
-        width: parent.width
+        height: parent.height
 
         readonly property bool active: modelData.isFocused || wsMouse.containsMouse
 
-        height: active ? 40 : 20
-        Behavior on height {
+        width: active ? 40 : 20
+        Behavior on width {
           NumberAnimation {
             duration: config ? config.animationDuration : 150
             easing.type: Easing.OutBack
@@ -194,8 +194,8 @@ Item {
         Rectangle {
           id: pillRect
           anchors.centerIn: parent
-          width: delegateItem.active ? 32 : (modelData.isOccupied ? 12 : 6)
-          height: delegateItem.active ? 40 : (modelData.isOccupied ? 12 : 6)
+          width: delegateItem.active ? 40 : (modelData.isOccupied ? 12 : 6)
+          height: delegateItem.active ? 32 : (modelData.isOccupied ? 12 : 6)
           radius: height / 2
 
           color: {
