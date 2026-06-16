@@ -121,7 +121,6 @@ sof-firmware
 sunshine-bin
 sushi
 swayidle
-swayosd
 tailscale
 timeshift
 timeshift-autosnap
