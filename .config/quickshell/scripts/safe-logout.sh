@@ -3,9 +3,6 @@
 # 1. Try the compositor-specific clean exits first
 if [ "$XDG_CURRENT_DESKTOP" = "Niri" ] || [ "$XDG_CURRENT_DESKTOP" = "niri" ]; then
   niri msg action quit --skip-confirmation
-elif [ "$XDG_CURRENT_DESKTOP" = "labwc" ] || [ "$XDG_CURRENT_DESKTOP" = "mangoWC" ]; then
-  # labwc (which mangoWC uses) responds to SIGHUP or its own exit command
-  labwc --exit
 fi
 
 # 2. Give it a split second to breathe
