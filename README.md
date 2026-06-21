@@ -1,126 +1,112 @@
-# Arch Linux Rice
+# Arch Linux Rice & Custom Desktop Environment 🐧✨
 
-## My personal Arch Linux config
-
----
-
-> ### _-- Disclaimer --_
->
-> _I am not a developer/programmer, just a Linux enthusiast. All these
-> configurations are just what I learned along the way by myself. You may
-> encounter some redundant lines of code._
+This repository contains my personal configurations, customized scripts, and system optimization rules for a modern, fluid Wayland-based desktop environment built on top of the **Niri** window manager and a custom **Quickshell** shell.
 
 ---
 
-![Screenshot](https://i.imgur.com/ljlYpNy.png)
-
-- **Distro** • [Arch Linux](https://archlinux.org/) 🐧
-- **Window Manager** • Main - [Niri](https://niri-wm.github.io/niri/) 🔥
-- **Window Manager** • Backup - [MangoWM](https://mangowm.github.io/) 🥭
-- **Colorscheme** • Main - Custom made Material Design 3 Expressive theme suite (Blue, Green, Yellow, Red, Purple, Orange) 🎨
-- **Colorscheme** • Backup - Custom made Apple's macOS 26 Tahoe Dark Liquid Glass lookalike 🍎
-- **Shell** • [Zsh](https://www.zsh.org) 🐚 with
-  - [zinit](https://github.com/zdharma-continuum/zinit) 💤
-  - [Starship](https://github.com/starship/starship) 🚀
-- **Terminal** • [Kitty](https://sw.kovidgoyal.net/kitty/) 🐈
-- **Panel / Desktop Shell** • Custom [Quickshell](https://quickshell.outfoxxed.me/) QML-based status bar, dashboard, and widgets 🐚 (replaces Waybar)
-- **Lock Screen** • Custom [Quickshell](https://quickshell.outfoxxed.me/) lock screen with PAM + fingerprint authentication 🔒
-- **Notification Daemon** • Custom [Quickshell](https://quickshell.outfoxxed.me/) notification toasts & history 🔔
-- **Launcher** • Custom [Quickshell](https://quickshell.outfoxxed.me/) app launcher with offline voice search 🎙️
-- **Icon Theme** • Custom Material Design 3 Expressive folders with specific category glyphs 📁 (inherits Adwaita/hicolor)
-- **Kvantum Theme** • Custom Material Design 3 Expressive Qt themes 🎨
-- **File Manager** • [Nautilus](https://apps.gnome.org/Nautilus/) 🗄️
-- **Editor** • [Neovim](https://neovim.io/) 📝
-- **Backup Editor** • [Zed](https://zed.dev/) 📝
-
-## Before installation note
-
-_You can review the `pkglist-official.txt` and `pkglist-aur.txt` files to
-remove the packages you don't want and replace the ones you like, but I
-cannot guarantee if they don't work as expected. Please, read the
-disclaimer_
-
-## Installation
-
-There are two ways to install and manage these dotfiles: **Method A (Recommended)** using `yadm`, or **Method B** using a standard `git clone`.
-
-Both methods leverage the built-in bootstrap script (`install.sh` / `.config/yadm/bootstrap`), which will automatically:
-1. Detect or install `paru` (AUR helper) if not present.
-2. Install official packages from `pkglist-official.txt`.
-3. Install AUR packages from `pkglist-aur.txt`.
-4. Prompt you to copy laptop/Thinkpad-specific configurations to `/etc` and `/usr/local/bin` (creating backups of existing files first).
-5. Optionally regenerate your GRUB configuration and enable/restart systemd services (`tlp`, `throttled`, `NetworkManager`).
+![Desktop Screenshot](https://i.imgur.com/ljlYpNy.png)
 
 ---
 
-### Method A: Using YADM (Recommended)
-[yadm](https://yadm.io/) is a tool designed specifically for managing dotfiles in your home directory directly.
-
-1. Do a fresh Arch Linux installation (ensure `git` is installed).
-2. Clone your repository directly into your home folder using `yadm`:
-   ```bash
-   yadm clone https://github.com/youruser/yourforkedrepo.git
-   ```
-3. The bootstrap script should run automatically upon clone. If it doesn't, or you want to run it again manually, run:
-   ```bash
-   yadm bootstrap
-   ```
+> [!NOTE]
+> All themes, scripts, and helper components are customized to form a unified, expressive ecosystem. Standard configuration tools have been replaced by custom QML panels and Python scripts to provide a fast and tailored user experience.
 
 ---
+
+## 🎨 System Overview
+
+- **Window Manager** • Main: [Niri](https://niri-wm.github.io/niri/) (Scroll-stacking Wayland compositor)
+- **Desktop Shell & Panels** • Custom [Quickshell](https://quickshell.outfoxxed.me/) (QML-based status bar, widgets, volume/brightness popups, notifications, and desktop dashboard)
+- **Theme Suite** • Custom Material Design 3 Expressive themes (supporting Blue, Green, Yellow, Red, Purple, and Orange variants)
+- **Terminal** • [Kitty](https://sw.kovidgoyal.net/kitty/) configured with expressive dynamic themes
+- **Shell** • Zsh with [zinit](https://github.com/zdharma-continuum/zinit) and [Starship](https://github.com/starship/starship) prompt
+- **File Manager** • Gnome Nautilus
+
+---
+
+## 🛠️ Deep Dive: Custom Scripts & Utilities
+
+To glue the desktop environment together, several custom scripts handle system triggers, application menus, voice commands, and power states.
+
+### 💻 Quickshell Helpers (`.config/quickshell/`)
+
+- **[`voice-search.py`](file:///.config/quickshell/scripts/voice-search.py)**: An offline voice recognition launcher search tool.
+  - *What it does*: It uses the `python-vosk` library and a local offline speech-to-text Vosk model (automatically downloaded on first run, ~40MB) to transcribe recorded voice input and output search queries in plain text.
+- **[`desktop-parser.py`](file:///.config/quickshell/bin/desktop-parser.py)**: An efficient desktop application parser.
+  - *What it does*: It scans standard XDG applications paths (`/usr/share/applications`, `~/.local/share/applications`), extracts details from `.desktop` files, resolves application icons from your current icon themes, caches the results to `/tmp/qs-app-cache-<uid>.json` (with cache invalidation matched to the directories' modified timestamps), and outputs JSON data to feed the launcher panel.
+- **[`idle.sh`](file:///.config/quickshell/scripts/idle.sh)**: Swayidle wrapper.
+  - *What it does*: Handles multi-level inactivity timeouts:
+    - **150 seconds**: Dims screen brightness to 10% (saving previous level).
+    - **300 seconds**: Invokes the screen locker.
+    - **600 seconds**: Shuts off monitor displays (using `niri` monitor controls or `wlopm`).
+    - **900 seconds**: Puts the machine to sleep (`systemctl suspend`).
+- **[`safe-logout.sh`](file:///.config/quickshell/scripts/safe-logout.sh)**: A clean session terminate utility.
+  - *What it does*: First attempts composer-specific clean exits (e.g. `niri msg action quit` or `labwc --exit`). If the desktop environment remains active after a half-second grace period, it sends a direct `SIGKILL` to the active systemd session using `loginctl kill-session`.
+- **Trigger Scripts (`launcher`, `lock`, `quickmenu`)**:
+  - *What they do*: Simple wrappers that touch `/tmp/` trigger files (e.g., `/tmp/qslauncher-trigger`, `/tmp/qslock-trigger`, `/tmp/qsquickmenu-trigger`). The main Quickshell QML shell watches these files to toggle overlays and UI dashboards instantly.
+
+### 🔋 Thinkpad / Laptop Optimizations (`.config/thinkpad/`)
+
+System-level rules located in `.config/thinkpad` automate power management, security, and hardware features:
+
+- **`tlp.conf`**: Power-saving settings that restrict battery charge thresholds (e.g., 75% to 80% to maintain battery health) and enable aggressive autosuspend for PCI/USB hardware.
+- **`backlight_auto.sh` & `99-backlight-automation.rules`**: Auto-brightness triggers. Set display brightness to 100% on AC power and dim to 30% when operating on battery.
+- **`throttled.conf`**: Configuration for `throttled` (lenovo-fix) to stop Intel CPU thermal throttling on laptops.
+- **`00-macrandomize.conf`**: NetworkManager rule to randomize MAC addresses on Wi-Fi connections for enhanced privacy.
+- **`zram-generator.conf`**: Enables compressed zram swap devices dynamically.
+- **PAM Rules (`login`, `sddm`, `sddm-greeter`, `system-auth`, `system-local-login`)**: Configured to enable seamless fingerprint reader integration alongside passwords.
+- **`timeshift-autosnap.conf`**: Triggers automated BTRFS snapshot backups immediately before `pacman` executes updates or modifications.
+
+---
+
+## 🚀 Installation & Bootstrapping
+
+We provide an interactive installer that checks package dependencies, configures an AUR helper, installs standard/AUR packages, and copies system configurations.
+
+### Method A: YADM (Recommended)
+
+[yadm](https://yadm.io/) allows you to clone this repository directly into your home folder and manages it seamlessly.
+
+1. Perform a fresh Arch Linux installation. Make sure `git` is installed.
+2. Clone the repository using `yadm`:
+
+    ```bash
+    yadm clone https://github.com/youruser/yourforkedrepo.git
+    ```
+
+3. The bootstrap script will trigger automatically. You can also re-trigger it at any time:
+
+    ```bash
+    yadm bootstrap
+    ```
 
 ### Method B: Standard Git Clone
-If you prefer not to use `yadm`, you can clone the repository normally and use the wrapper script.
 
-1. Clone this repository to a temporary directory:
-   ```bash
-   git clone https://github.com/youruser/yourforkedrepo.git ~/dotfiles-temp
-   cd ~/dotfiles-temp
-   ```
-2. Run the installation script:
-   ```bash
-   ./install.sh
-   ```
-3. Copy the configuration files to your home directory:
-   ```bash
-   # Copy config and local directories to your home folder
-   cp -ri .config/ .local/ ~/
-   # Copy other dotfiles (e.g. .zshrc, .zsh)
-   cp -ri .zshrc .zsh ~/
-   ```
+If you prefer not to use `yadm`, you can download and run the script manually:
 
-## Useful configurations for Thinkpads/laptops
+1. Clone this repository:
 
-In `.config/thinkpad` added some useful configuration files that need to be put
-under root permissions.
+    ```bash
+    git clone https://github.com/youruser/yourforkedrepo.git ~/dotfiles-temp
+    cd ~/dotfiles-temp
+    ```
 
-- `00-macrandomize.conf`: This file is a NetworkManager rule and needs to be put
-  in `/etc/NetworkManager/conf.d/`. After that, restart the systemd service with
-  `systemctl restart NetworkManager`.
-- `99-backlight-automation.rules`: This is an UDEV rule that needs to be in `/etc/udev/rules.d/`.
-- `backlight_auto.sh`: This is the "application" that runs the UDEV rule mentioned
-  before. What this does is set the display backlight to 30% when using battery
-  and 100% when plugged in.
-- `grub`: This is the GRUB configuration. It is designed to not display all the
-  init commands and shows a nice splash logo, with the help of plymouth.
-- `login`, `logind.conf`, `sddm`, `sddm-greeter`, `gtklock`, `system-auth` and
-`system-local-login`: All files needed to unlock the Thinkpad with the
-fingerprint sensor. `sddm`, `sddm-greeter`, `gtklock`, `login`, `system-auth`
-and `system-local-login` go into `/etc/pam.d/`, `logind.conf` goes into `/etc/systemd/`.
-- `tlp.conf`: This needs to have the `tlp` package installed. This handles the
-  power usage. Limits the charge thresholds, puts USB to autosuspend, and a lot
-  more. This goes into `/etc/`. Also, this comes with a systemd service
-  `sudo systemctl enable --now tlp.service`.
-- `makepkg.conf` goes in `/etc/`. This is for faster linking AUR builds
-(requires `mold` package).
-- `journald.conf` goes in `/etc/systemd/`. Limits journal size from default
-(10% of disk) to 200MB.
-- `zram-generator` goes in `/etc/systemd/`. This enables zram swap (requires
-`zram-generator` package).
-- `timeshift-autosnap.conf` goes in `/etc/`. This enables btrfs backups when
-  installing/upgrading/uninstalling packages.
+2. Execute the installation script:
+
+    ```bash
+    ./install.sh
+    ```
+
+3. Merge the configuration files to your home directory:
+
+    ```bash
+    cp -ri .config/ .local/ ~/
+    cp -ri .zshrc .zsh ~/
+    ```
 
 ---
 
-## Disclaimer
+## 🔒 Disclaimer & Support
 
-Part of these configuration files and theme builders were generated and vibe-coded with the assistance of **Antigravity**, an AI agentic coding assistant designed by the Google DeepMind team. Each one affected by vide coding was added an expecific README file.
+> [!CAUTION]
+> Applying system-level configuration files (like PAM, GRUB, and UDEV rules) modifies core system operations. The bootstrap installer creates automatic backups (`.bak` files) of existing configurations, but you should review system changes before rebooting.
