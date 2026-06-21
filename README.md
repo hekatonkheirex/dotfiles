@@ -41,7 +41,7 @@ To glue the desktop environment together, several custom scripts handle system t
     - **600 seconds**: Shuts off monitor displays (using `niri` monitor controls or `wlopm`).
     - **900 seconds**: Puts the machine to sleep (`systemctl suspend`).
 - **[`safe-logout.sh`](file:///.config/quickshell/scripts/safe-logout.sh)**: A clean session terminate utility.
-  - *What it does*: First attempts composer-specific clean exits (e.g. `niri msg action quit` or `labwc --exit`). If the desktop environment remains active after a half-second grace period, it sends a direct `SIGKILL` to the active systemd session using `loginctl kill-session`.
+  - *What it does*: First attempts composer-specific clean exits (e.g. `niri msg action quit`). If the desktop environment remains active after a half-second grace period, it sends a direct `SIGKILL` to the active systemd session using `loginctl kill-session`.
 - **Trigger Scripts (`launcher`, `lock`, `quickmenu`)**:
   - *What they do*: Simple wrappers that touch `/tmp/` trigger files (e.g., `/tmp/qslauncher-trigger`, `/tmp/qslock-trigger`, `/tmp/qsquickmenu-trigger`). The main Quickshell QML shell watches these files to toggle overlays and UI dashboards instantly.
 
