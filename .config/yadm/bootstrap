@@ -1,0 +1,282 @@
+#!/usr/bin/env bash
+
+# Exit on error for critical steps, but allow graceful handling
+set -e
+
+# Color definitions for gorgeous UI
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
+# Print header
+echo -e "${MAGENTA}${BOLD}=================================================="
+echo -e "         Arch Linux Rice Bootstrap Script         "
+echo -e "==================================================${NC}"
+echo -e "This script will help you configure your system by:"
+echo -e " 1. Checking/installing an AUR helper (paru/yay)"
+echo -e " 2. Installing official pacman packages"
+echo -e " 3. Installing AUR packages"
+echo -e " 4. Applying system/laptop-specific configurations"
+echo
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Resolve repository root
+# If it's located inside .config/yadm, the repo root is two levels up
+if [[ "$SCRIPT_DIR" == *"/.config/yadm"* ]]; then
+    REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+else
+    REPO_ROOT="$SCRIPT_DIR"
+fi
+
+# Define paths with fallback to home directory
+PKG_OFFICIAL="$REPO_ROOT/pkglist-official.txt"
+if [ ! -f "$PKG_OFFICIAL" ]; then
+    PKG_OFFICIAL="$HOME/pkglist-official.txt"
+fi
+
+PKG_AUR="$REPO_ROOT/pkglist-aur.txt"
+if [ ! -f "$PKG_AUR" ]; then
+    PKG_AUR="$HOME/pkglist-aur.txt"
+fi
+
+THINKPAD_DIR="$REPO_ROOT/.config/thinkpad"
+if [ ! -d "$THINKPAD_DIR" ]; then
+    THINKPAD_DIR="$HOME/.config/thinkpad"
+fi
+
+# Helper to ask yes/no questions
+confirm() {
+    local prompt="$1"
+    local default="$2"
+    local response
+    
+    if [ "$default" = "Y" ]; then
+        prompt="$prompt [Y/n]: "
+    elif [ "$default" = "N" ]; then
+        prompt="$prompt [y/N]: "
+    else
+        prompt="$prompt [y/n]: "
+    fi
+    
+    read -r -p "$(echo -e "${YELLOW}${BOLD}${prompt}${NC}")" response
+    response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+    
+    if [ -z "$response" ]; then
+        response=$(echo "$default" | tr '[:upper:]' '[:lower:]')
+    fi
+    
+    if [ "$response" = "y" ] || [ "$response" = "yes" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# ----------------------------------------------------
+# Step 1: Detect / Install AUR Helper
+# ----------------------------------------------------
+echo -e "${BLUE}${BOLD}[Step 1/4] Detecting AUR Helper...${NC}"
+AUR_HELPER=""
+
+if command -v paru &> /dev/null; then
+    AUR_HELPER="paru"
+    echo -e "${GREEN}✓ Found 'paru' as AUR helper.${NC}"
+elif command -v yay &> /dev/null; then
+    AUR_HELPER="yay"
+    echo -e "${GREEN}✓ Found 'yay' as AUR helper.${NC}"
+else
+    echo -e "${YELLOW}! No AUR helper (paru/yay) detected in PATH.${NC}"
+    if confirm "Would you like to download and install 'paru'?" "Y"; then
+        echo -e "${CYAN}Installing dependencies for building paru...${NC}"
+        sudo pacman -S --needed --noconfirm base-devel git
+        
+        echo -e "${CYAN}Cloning and building paru...${NC}"
+        BUILD_DIR=$(mktemp -d)
+        git clone https://aur.archlinux.org/paru.git "$BUILD_DIR/paru"
+        cd "$BUILD_DIR/paru"
+        makepkg -si --noconfirm
+        cd - > /dev/null
+        rm -rf "$BUILD_DIR"
+        
+        AUR_HELPER="paru"
+        echo -e "${GREEN}✓ Successfully installed 'paru'.${NC}"
+    else
+        echo -e "${RED}! Warning: AUR packages cannot be installed automatically without an AUR helper.${NC}"
+    fi
+fi
+echo
+
+# ----------------------------------------------------
+# Step 2: Install Official Packages
+# ----------------------------------------------------
+echo -e "${BLUE}${BOLD}[Step 2/4] Official Packages Installation...${NC}"
+
+if [ -f "$PKG_OFFICIAL" ]; then
+    echo -e "Found official packages list at: ${CYAN}$PKG_OFFICIAL${NC}"
+    if confirm "Install official packages from the list?" "Y"; then
+        echo -e "${CYAN}Running pacman to install official packages...${NC}"
+        sudo pacman -S --needed - < "$PKG_OFFICIAL"
+        echo -e "${GREEN}✓ Official packages installed successfully.${NC}"
+    else
+        echo -e "${YELLOW}Skipped official packages installation.${NC}"
+    fi
+else
+    echo -e "${RED}! Official packages list not found at $PKG_OFFICIAL. Skipping.${NC}"
+fi
+echo
+
+# ----------------------------------------------------
+# Step 3: Install AUR Packages
+# ----------------------------------------------------
+echo -e "${BLUE}${BOLD}[Step 3/4] AUR Packages Installation...${NC}"
+
+if [ -f "$PKG_AUR" ]; then
+    echo -e "Found AUR packages list at: ${CYAN}$PKG_AUR${NC}"
+    if [ -n "$AUR_HELPER" ]; then
+        if confirm "Install AUR packages from the list?" "Y"; then
+            echo -e "${CYAN}Running $AUR_HELPER to install AUR packages...${NC}"
+            $AUR_HELPER -S --needed - < "$PKG_AUR"
+            echo -e "${GREEN}✓ AUR packages installed successfully.${NC}"
+        else
+            echo -e "${YELLOW}Skipped AUR packages installation.${NC}"
+        fi
+    else
+        echo -e "${RED}! Cannot install AUR packages because no AUR helper is available. Skipping.${NC}"
+    fi
+else
+    echo -e "${RED}! AUR packages list not found at $PKG_AUR. Skipping.${NC}"
+fi
+echo
+
+# ----------------------------------------------------
+# Step 4: System Configurations (Sudo/Laptop configs)
+# ----------------------------------------------------
+echo -e "${BLUE}${BOLD}[Step 4/4] Laptop / Thinkpad Specific Configurations...${NC}"
+
+# Function to back up and copy system files safely
+copy_system_file() {
+    local src="$1"
+    local dest="$2"
+    
+    if [ -f "$src" ]; then
+        # Ensure destination directory exists
+        local dest_dir
+        dest_dir=$(dirname "$dest")
+        if [ ! -d "$dest_dir" ]; then
+            echo -e "Creating directory ${CYAN}$dest_dir${NC}..."
+            sudo mkdir -p "$dest_dir"
+        fi
+        
+        # Backup if destination exists and is different
+        if [ -f "$dest" ]; then
+            if ! cmp -s "$src" "$dest"; then
+                echo -e "Backing up existing ${YELLOW}$dest${NC} to ${YELLOW}${dest}.bak${NC}..."
+                sudo cp "$dest" "${dest}.bak"
+            fi
+        fi
+        
+        echo -e "Copying ${GREEN}$src${NC} to ${GREEN}$dest${NC}..."
+        sudo cp "$src" "$dest"
+    else
+        echo -e "${RED}! Source file $src not found. Skipping.${NC}"
+    fi
+}
+
+if [ -d "$THINKPAD_DIR" ]; then
+    echo -e "Thinkpad/laptop configurations found at: ${CYAN}$THINKPAD_DIR${NC}"
+    if confirm "Would you like to copy system configurations under root (requires sudo)?" "N"; then
+        
+        # Copy Network Manager MAC randomization rule
+        copy_system_file "$THINKPAD_DIR/00-macrandomize.conf" "/etc/NetworkManager/conf.d/00-macrandomize.conf"
+        
+        # Copy Backlight rules and script
+        copy_system_file "$THINKPAD_DIR/99-backlight-automation.rules" "/etc/udev/rules.d/99-backlight-automation.rules"
+        copy_system_file "$THINKPAD_DIR/backlight_auto.sh" "/usr/local/bin/backlight_auto.sh"
+        sudo chmod +x "/usr/local/bin/backlight_auto.sh"
+        
+        # Copy GRUB config
+        copy_system_file "$THINKPAD_DIR/grub" "/etc/default/grub"
+        
+        # Copy journald config
+        copy_system_file "$THINKPAD_DIR/journald.conf" "/etc/systemd/journald.conf"
+        
+        # Copy PAM configurations (login, sddm, gtklock, fingerprint auth)
+        copy_system_file "$THINKPAD_DIR/login" "/etc/pam.d/login"
+        copy_system_file "$THINKPAD_DIR/sddm" "/etc/pam.d/sddm"
+        copy_system_file "$THINKPAD_DIR/sddm-greeter" "/etc/pam.d/sddm-greeter"
+        copy_system_file "$THINKPAD_DIR/system-auth" "/etc/pam.d/system-auth"
+        copy_system_file "$THINKPAD_DIR/system-local-login" "/etc/pam.d/system-local-login"
+        
+        # Copy systemd logind config
+        copy_system_file "$THINKPAD_DIR/logind.conf" "/etc/systemd/logind.conf"
+        
+        # Copy makepkg config
+        copy_system_file "$THINKPAD_DIR/makepkg.conf" "/etc/makepkg.conf"
+        
+        # Copy throttled config
+        copy_system_file "$THINKPAD_DIR/throttled.conf" "/etc/throttled.conf"
+        
+        # Copy timeshift-autosnap config
+        copy_system_file "$THINKPAD_DIR/timeshift-autosnap.conf" "/etc/timeshift-autosnap.conf"
+        
+        # Copy TLP config
+        copy_system_file "$THINKPAD_DIR/tlp.conf" "/etc/tlp.conf"
+        
+        # Copy zram-generator config
+        copy_system_file "$THINKPAD_DIR/zram-generator.conf" "/etc/systemd/zram-generator.conf"
+        
+        echo -e "${GREEN}✓ System configuration files copied.${NC}"
+        
+        # Reloading udev rules
+        echo -e "${CYAN}Reloading udev rules...${NC}"
+        sudo udevadm control --reload-rules && sudo udevadm trigger || true
+        
+        # Reloading systemd config
+        echo -e "${CYAN}Reloading systemd manager configuration...${NC}"
+        sudo systemctl daemon-reload || true
+        
+        # Ask to regenerate GRUB
+        echo
+        if confirm "GRUB configuration has been copied. Regenerate grub.cfg now?" "Y"; then
+            echo -e "${CYAN}Running grub-mkconfig...${NC}"
+            sudo grub-mkconfig -o /boot/grub/grub.cfg
+        fi
+        
+        # Ask to enable services
+        echo
+        if confirm "Would you like to enable/restart systemd services (NetworkManager, tlp, throttled)?" "Y"; then
+            echo -e "${CYAN}Enabling and starting systemd services...${NC}"
+            sudo systemctl restart NetworkManager || true
+            
+            # Enable TLP
+            if systemctl list-unit-files | grep -q tlp.service; then
+                sudo systemctl enable --now tlp.service || true
+            fi
+            
+            # Enable Throttled
+            if systemctl list-unit-files | grep -q throttled.service; then
+                sudo systemctl enable --now throttled.service || true
+            fi
+            echo -e "${GREEN}✓ Services configured.${NC}"
+        fi
+    else
+        echo -e "${YELLOW}Skipped system configurations copying.${NC}"
+    fi
+else
+    echo -e "${RED}! Laptop configurations directory not found at $THINKPAD_DIR. Skipping.${NC}"
+fi
+echo
+
+echo -e "${MAGENTA}${BOLD}=================================================="
+echo -e "             Setup Process Completed!             "
+echo -e "==================================================${NC}"
+echo -e "Some changes might require a reboot to take full effect."
+echo -e "Enjoy your new Arch Linux rice setup! 🐧🔥"
+echo
