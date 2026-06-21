@@ -20,7 +20,7 @@ PanelWindow {
 
   property int activePowerIndex: -1
   property var powerOptions: [
-    { label: "Log Out", cmd: ["sh", Quickshell.env("HOME") + "/.local/bin/safe-logout.sh"] },
+    { label: "Log Out", cmd: ["sh", Quickshell.env("HOME") + "/.config/quickshell/scripts/safe-logout.sh"] },
     { label: "Shut Down", cmd: ["systemctl", "poweroff"] },
     { label: "Restart", cmd: ["systemctl", "reboot"] },
     { label: "Sleep", cmd: ["systemctl", "suspend"] }

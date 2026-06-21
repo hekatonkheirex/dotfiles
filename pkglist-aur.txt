@@ -7,7 +7,6 @@ localsend-bin
 onlyoffice-bin
 paru
 raw-thumbnailer
-sddm-git
 sunshine-bin
 timeshift-autosnap
 xnviewmp
