@@ -42,36 +42,51 @@ disclaimer_
 
 ## Installation
 
-1. Do a fresh Arch Linux installation. _Remember to install `git` package
-   during installation_. _You can also install on your existing installation,
-   just skip to section 5_.
-2. Install `paru`. _You can install whatever version you like_. _You can also
-use whatever AUR helper you want, but remember to uninstall `paru` at the end
-of the installation or remove the `paru` line inside the `pkglist-aur.txt` file_
+There are two ways to install and manage these dotfiles: **Method A (Recommended)** using `yadm`, or **Method B** using a standard `git clone`.
 
-```bash
-git clone https://aur.archlinux.org/paru.git
-cd paru
-makepkg -si
-```
+Both methods leverage the built-in bootstrap script (`install.sh` / `.config/yadm/bootstrap`), which will automatically:
+1. Detect or install `paru` (AUR helper) if not present.
+2. Install official packages from `pkglist-official.txt`.
+3. Install AUR packages from `pkglist-aur.txt`.
+4. Prompt you to copy laptop/Thinkpad-specific configurations to `/etc` and `/usr/local/bin` (creating backups of existing files first).
+5. Optionally regenerate your GRUB configuration and enable/restart systemd services (`tlp`, `throttled`, `NetworkManager`).
 
-1. Fork this repository or download it.
-2. If you forked it, use [yadm](https://yadm.io/) to download your forked repo.
+---
 
-```bash
-yadm clone https://github.com/youruser/yourforkedrepo.git
-```
+### Method A: Using YADM (Recommended)
+[yadm](https://yadm.io/) is a tool designed specifically for managing dotfiles in your home directory directly.
 
-1. If you downloaded it or cloned it, copy everything to your home directory
-   (all the .config and .local directory, and all the _" . "_ files as well).
-2. Use `paru` (or the AUR helper of choice) to install everything in the
-   `pkglist-official.txt` and `pkglist-aur.txt` file. _You can use `pacman`
-   too, but it won't install the AUR packages_.
+1. Do a fresh Arch Linux installation (ensure `git` is installed).
+2. Clone your repository directly into your home folder using `yadm`:
+   ```bash
+   yadm clone https://github.com/youruser/yourforkedrepo.git
+   ```
+3. The bootstrap script should run automatically upon clone. If it doesn't, or you want to run it again manually, run:
+   ```bash
+   yadm bootstrap
+   ```
 
-```bash
-paru -S --needed (cat pkglist-official.txt)
-paru -S --needed (cat pkglist-aur.txt)
-```
+---
+
+### Method B: Standard Git Clone
+If you prefer not to use `yadm`, you can clone the repository normally and use the wrapper script.
+
+1. Clone this repository to a temporary directory:
+   ```bash
+   git clone https://github.com/youruser/yourforkedrepo.git ~/dotfiles-temp
+   cd ~/dotfiles-temp
+   ```
+2. Run the installation script:
+   ```bash
+   ./install.sh
+   ```
+3. Copy the configuration files to your home directory:
+   ```bash
+   # Copy config and local directories to your home folder
+   cp -ri .config/ .local/ ~/
+   # Copy other dotfiles (e.g. .zshrc, .zsh)
+   cp -ri .zshrc .zsh ~/
+   ```
 
 ## Useful configurations for Thinkpads/laptops
 
