@@ -28,6 +28,7 @@ environment {
   OZONE_PLATFORM "wayland"
 
   VDPAU_DRIVER "va_gl"
-  LIBVA_DRIVER_NAME "i915"
+
+  GSK_RENDERER "ngl"
  }
 

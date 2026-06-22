@@ -11,6 +11,8 @@ input {
   mouse {
   }
   trackpoint {
+    natural-scroll
+    accel-speed 0.2
   }
   // warp-mouse-to-focus
   // focus-follows-mouse

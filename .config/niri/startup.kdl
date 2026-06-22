@@ -1,3 +1,4 @@
+spawn-at-startup "dbus-update-activation-environment" "--systemd" "--all"
 spawn-at-startup "awww-daemon"
 // spawn-at-startup "mako"
 // spawn-at-startup "swayosd-server"

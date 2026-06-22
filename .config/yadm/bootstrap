@@ -220,9 +220,7 @@ if [ -d "$THINKPAD_DIR" ]; then
         # Copy makepkg config
         copy_system_file "$THINKPAD_DIR/makepkg.conf" "/etc/makepkg.conf"
         
-        # Copy throttled config
-        copy_system_file "$THINKPAD_DIR/throttled.conf" "/etc/throttled.conf"
-        
+
         # Copy timeshift-autosnap config
         copy_system_file "$THINKPAD_DIR/timeshift-autosnap.conf" "/etc/timeshift-autosnap.conf"
         
@@ -251,7 +249,7 @@ if [ -d "$THINKPAD_DIR" ]; then
         
         # Ask to enable services
         echo
-        if confirm "Would you like to enable/restart systemd services (NetworkManager, tlp, throttled)?" "Y"; then
+        if confirm "Would you like to enable/restart systemd services (NetworkManager, tlp)?" "Y"; then
             echo -e "${CYAN}Enabling and starting systemd services...${NC}"
             sudo systemctl restart NetworkManager || true
             
@@ -259,11 +257,7 @@ if [ -d "$THINKPAD_DIR" ]; then
             if systemctl list-unit-files | grep -q tlp.service; then
                 sudo systemctl enable --now tlp.service || true
             fi
-            
-            # Enable Throttled
-            if systemctl list-unit-files | grep -q throttled.service; then
-                sudo systemctl enable --now throttled.service || true
-            fi
+
             echo -e "${GREEN}✓ Services configured.${NC}"
         fi
     else
