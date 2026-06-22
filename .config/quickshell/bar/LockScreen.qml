@@ -151,12 +151,12 @@ Item {
           onWheel: (wheel) => { wheel.accepted = true }
         }
 
-        Image {
+        AnimatedBackground {
           anchors.fill: parent
-          source: Qt.resolvedUrl("../resources/lock_bg.png")
-          fillMode: Image.PreserveAspectCrop
-          asynchronous: true
+          colors_: root.colors_
+          running: root.locked
         }
+
 
         Rectangle {
           anchors.fill: parent
@@ -372,12 +372,12 @@ Item {
       anchors.top: true
       anchors.bottom: true
 
-      Image {
+      AnimatedBackground {
         anchors.fill: parent
-        source: Qt.resolvedUrl("../resources/lock_bg.png")
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
+        colors_: root.colors_
+        running: root.locked
       }
+
 
       Rectangle {
         anchors.fill: parent

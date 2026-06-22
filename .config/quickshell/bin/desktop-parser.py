@@ -58,6 +58,9 @@ def parse_desktop(path):
                 entry[key] = val.strip()
     return entry
 
+from functools import lru_cache
+
+@lru_cache(maxsize=512)
 def resolve_icon(icon_name):
     if not icon_name or icon_name.startswith("/"):
         return icon_name or ""

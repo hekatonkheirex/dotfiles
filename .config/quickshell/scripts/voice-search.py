@@ -12,7 +12,9 @@ model_zip = os.path.expanduser("~/.config/quickshell/resources/vosk-model.zip")
 
 # Ensure model exists
 if not os.path.exists(model_dir):
+    import subprocess
     print("Vosk model not found. Downloading (approx. 40MB)...", file=sys.stderr)
+    subprocess.run(["notify-send", "-a", "Voice Search Launcher", "Vosk model not found", "Downloading offline recognition model (~40MB)..."])
     os.makedirs(os.path.dirname(model_dir), exist_ok=True)
     url = "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
     try:
