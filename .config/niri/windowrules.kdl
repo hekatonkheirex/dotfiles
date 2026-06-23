@@ -30,7 +30,7 @@ window-rule {
     match app-id=r#"^galculator$"#
     match app-id=r#"^blueman-manager$"#
     match app-id=r#"^nm-connection-editor$"#
-    match app-id=r#"^xdg-desktop-portal$"#
+    match app-id=r#"^xdg-desktop-portal.*$"#
     open-floating true
 }
 

@@ -8,7 +8,7 @@ environment {
 
   EDITOR "nvim"
 
-  GDK_BACKEND "wayland,x11,*"
+  // GDK_BACKEND "wayland,x11,*"
 
   DISPLAY ":1"
   QT_QPA_PLATFORM "wayland"
