@@ -20,6 +20,7 @@ PanelWindow {
   }
 
   implicitHeight: (config ? config.barWidth : 50) + 16
+  visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
   exclusiveZone: config ? config.barWidth : 50

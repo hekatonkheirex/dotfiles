@@ -17,6 +17,7 @@ PanelWindow {
   signal dismissed()
 
   implicitWidth: config ? config.popupWidth : 340
+  visible: false
   implicitHeight: Math.min(contentColumn.implicitHeight + 32, 500)
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore

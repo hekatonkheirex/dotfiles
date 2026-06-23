@@ -16,6 +16,7 @@ PanelWindow {
   signal dismissed()
 
   implicitWidth: config ? config.popupWidth : 340
+  visible: false
   implicitHeight: Math.min(contentColumn.implicitHeight + 24, 450)
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
@@ -66,9 +67,11 @@ PanelWindow {
 
       if (seenSSIDs[ssid] !== undefined) {
         var existingIndex = seenSSIDs[ssid];
+        if (active) {
+          list[existingIndex].active = true;
+        }
         if (signal > list[existingIndex].signal) {
           list[existingIndex].signal = signal;
-          list[existingIndex].active = active;
           list[existingIndex].security = security;
         }
         continue;
@@ -79,7 +82,7 @@ PanelWindow {
         signal: signal,
         active: active,
         security: security,
-        secured: security && security.length > 0 && security !== "--"
+        secured: !!(security && security.length > 0 && security !== "--")
       });
       seenSSIDs[ssid] = list.length - 1;
     }
@@ -130,6 +133,7 @@ PanelWindow {
       onStreamFinished: {
         var out = text.trim()
         var parsed = root.parseWifiList(out)
+        console.log("[Antigravity] Wifi list parsed: " + JSON.stringify(parsed))
         wifiListModel.clear()
         for (var i = 0; i < parsed.length; i++) {
           wifiListModel.append(parsed[i])
@@ -375,8 +379,8 @@ PanelWindow {
 
     Item {
       id: delegateRoot
-      width: parent.width
-      height: expanded ? 100 : 44
+      width: ListView.view.width
+      height: expanded ? 104 : 48
       clip: true
 
       readonly property bool expanded: root.selectedIndex === index
@@ -409,14 +413,32 @@ PanelWindow {
           leftMargin: 12
           rightMargin: 12
         }
-        height: 40
+        height: 44
         spacing: 12
+
+        // Reserved space checkmark container to keep layout aligned
+        Item {
+          id: checkContainer
+          Layout.preferredWidth: config ? config.iconSize : 20
+          Layout.preferredHeight: config ? config.iconSize : 20
+          Layout.alignment: Qt.AlignVCenter
+
+          Text {
+            anchors.centerIn: parent
+            text: "check"
+            visible: isCurrent
+            color: colors_ ? colors_.primary : "#D0BCFF"
+            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            font.pixelSize: config ? config.iconSize : 20
+          }
+        }
 
         Text {
           text: "wifi"
           color: isCurrent ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.fgSurface : "#FFFFFF")
           font.family: config ? config.iconFont : "Material Symbols Outlined"
           font.pixelSize: config ? config.iconSize : 20
+          Layout.alignment: Qt.AlignVCenter
           opacity: {
             var sig = model.signal
             if (sig <= 25) return 0.4
@@ -426,14 +448,31 @@ PanelWindow {
           }
         }
 
-        Text {
+        // Two-line title + connection status layout
+        ColumnLayout {
           Layout.fillWidth: true
-          text: model.ssid
-          color: isCurrent ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.fgSurface : "#FFFFFF")
-          font.family: config ? config.fontFamily : "Google Sans Flex"
-          font.pixelSize: config ? config.fontPixelSize + 2 : 12
-          font.weight: isCurrent ? Font.Bold : Font.Normal
-          elide: Text.ElideRight
+          spacing: 1
+          Layout.alignment: Qt.AlignVCenter
+
+          Text {
+            Layout.fillWidth: true
+            text: model.ssid
+            color: isCurrent ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.fgSurface : "#FFFFFF")
+            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.pixelSize: config ? config.fontPixelSize + 2 : 12
+            font.weight: isCurrent ? Font.Bold : Font.Normal
+            elide: Text.ElideRight
+          }
+
+          Text {
+            Layout.fillWidth: true
+            text: "Connected"
+            visible: isCurrent
+            color: colors_ ? colors_.primary : "#D0BCFF"
+            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.pixelSize: config ? config.fontPixelSize : 10
+            font.weight: Font.Medium
+          }
         }
 
         Text {
@@ -441,6 +480,7 @@ PanelWindow {
           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
           font.family: config ? config.fontFamily : "Google Sans Flex"
           font.pixelSize: config ? config.fontPixelSize : 10
+          Layout.alignment: Qt.AlignVCenter
         }
 
         Text {
@@ -449,6 +489,7 @@ PanelWindow {
           color: colors_ ? colors_.outline : "#938F99"
           font.family: config ? config.iconFont : "Material Symbols Outlined"
           font.pixelSize: 16
+          Layout.alignment: Qt.AlignVCenter
         }
       }
 
@@ -478,7 +519,7 @@ PanelWindow {
           Layout.fillWidth: true
           height: 36
           radius: 8
-          color: colors_ ? colors_.surfaceContainerLow : "#211F26"
+          color: colors_ ? colors_.surface : "#211F26"
           border.color: passInput.activeFocus ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.outline : "#49454F")
           border.width: passInput.activeFocus ? 2 : 1
           visible: model.secured

@@ -426,6 +426,7 @@ PanelWindow {
   }
 
   implicitWidth: 800
+  visible: false
   implicitHeight: 600
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore

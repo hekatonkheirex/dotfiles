@@ -6,6 +6,7 @@ Item {
 
   property QtObject colors_: null
   property bool running: true
+  property bool transparentBg: false
 
   readonly property color bgColor: colors_ ? colors_.bg : "#141218"
   readonly property color primaryContainerColor: colors_ ? colors_.primaryContainer : "#1E4F3E"
@@ -16,7 +17,7 @@ Item {
   // Solid base layer
   Rectangle {
     anchors.fill: parent
-    color: bgContainer.bgColor
+    color: bgContainer.transparentBg ? "transparent" : bgContainer.bgColor
     Behavior on color { ColorAnimation { duration: 500 } }
   }
 
@@ -27,7 +28,7 @@ Item {
     height: width
     radius: width / 2
     color: bgContainer.primaryContainerColor
-    opacity: bgContainer.isDark ? 0.15 : 0.22
+    opacity: bgContainer.isDark ? 0.35 : 0.45
     Behavior on color { ColorAnimation { duration: 500 } }
 
     SequentialAnimation on x {
@@ -51,7 +52,7 @@ Item {
     height: width
     radius: width / 2
     color: bgContainer.secondaryContainerColor
-    opacity: bgContainer.isDark ? 0.15 : 0.22
+    opacity: bgContainer.isDark ? 0.30 : 0.40
     Behavior on color { ColorAnimation { duration: 500 } }
 
     SequentialAnimation on x {
@@ -75,7 +76,7 @@ Item {
     height: width
     radius: width / 2
     color: bgContainer.primaryColor
-    opacity: bgContainer.isDark ? 0.05 : 0.09
+    opacity: bgContainer.isDark ? 0.15 : 0.25
     Behavior on color { ColorAnimation { duration: 500 } }
 
     SequentialAnimation on x {
