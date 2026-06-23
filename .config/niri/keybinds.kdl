@@ -38,6 +38,11 @@ binds {
   XF86MonBrightnessUp allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set +10% && touch /tmp/qsosd-bright"; }
   XF86MonBrightnessDown allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set 10%- && touch /tmp/qsosd-bright"; }
 
+  XF86Display    { spawn "wdisplays"; }
+  XF86Tools      { spawn-sh "~/.config/quickshell/scripts/commandcenter"; }
+  XF86Keyboard   { spawn "fcitx5-configtool"; }
+  XF86Favorites  { spawn "kitty"; }
+
   // Open/close the Overview: a zoomed-out view of workspaces and windows.
   // You can also move the mouse into the top-left hot corner,
   // or do a four-finger swipe up on a touchpad.
