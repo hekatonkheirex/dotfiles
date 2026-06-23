@@ -173,7 +173,7 @@ Item {
               if (modelData.isFocused) return colors_ ? colors_.fgPrimary : "#FFFFFF"
               return colors_ ? colors_.fgSurface : "#FFFFFF"
             }
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 4) : 14
             font.weight: modelData.isFocused ? Font.Bold : Font.Normal
 

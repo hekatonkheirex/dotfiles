@@ -155,7 +155,7 @@ PanelWindow {
         Text {
           text: "Quick Settings"
           color: colors_ ? colors_.fgSurface : "#FFFFFF"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? (config.fontPixelSize + 8) : 18
           font.weight: Font.Bold
         }
@@ -320,7 +320,11 @@ PanelWindow {
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
               onClicked: {
-                if (colors_) colors_.themePreference = (colors_.themePreference + 1) % 3
+                if (colors_) {
+                  colors_.themePreference = (colors_.themePreference + 1) % 3
+                  var modes = ["auto", "light", "dark"]
+                  Quickshell.execDetached(["/bin/sh", "-c", "$HOME/.local/bin/sync-theme-mode.sh " + modes[colors_.themePreference]])
+                }
               }
             }
           }
@@ -376,7 +380,7 @@ PanelWindow {
                   anchors.horizontalCenter: parent.horizontalCenter
                   text: modelData.label
                   color: (pwArea.containsMouse || active) ? (colors_ ? colors_.fgPrimary : "#0F3C2C") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
-                  font.family: config ? config.fontFamily : "Google Sans Flex"
+                  font.family: config ? config.fontFamily : "Roboto"
                   font.pixelSize: config ? (config.fontPixelSize - 1) : 10
                   font.weight: Font.Medium
                 }
@@ -396,6 +400,7 @@ PanelWindow {
             }
           }
         }
+
       }
     }
   }

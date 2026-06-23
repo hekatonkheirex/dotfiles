@@ -5,17 +5,22 @@ import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 
 Item {
-  id: root
+  id: systemTrayAreaRoot
 
   property QtObject colors_: null
   property QtObject config: null
   property var parentWindow: null
 
+  property int visibleCount: 0
+  readonly property real preferredHeight: visibleCount * (config ? config.widgetSize : 50)
+
+  onPreferredHeightChanged: {
+    console.log("DEBUG SystemTrayArea preferredHeight changed to: " + preferredHeight + " (count: " + visibleCount + ")")
+  }
+
   Layout.preferredWidth: config ? config.widgetSize : 50
-  Layout.preferredHeight: trayRepeater.count > 0
-    ? (trayRepeater.count * (config ? config.widgetSize : 50))
-    : 0
-  visible: trayRepeater.count > 0
+  Layout.preferredHeight: preferredHeight
+  visible: visibleCount > 0
 
   Rectangle {
     anchors {
@@ -43,18 +48,63 @@ Item {
         id: trayIconDelegate
         required property SystemTrayItem modelData
 
-        Layout.preferredWidth: config ? config.widgetSize : 50
-        Layout.preferredHeight: config ? config.widgetSize : 50
+        // Filter out blueman and udiskie
+        readonly property bool isIconVisible: modelData.id !== "blueman" && modelData.id !== "udiskie"
+        visible: isIconVisible
+
+        Layout.preferredWidth: visible ? (config ? config.widgetSize : 50) : 0
+        Layout.preferredHeight: visible ? (config ? config.widgetSize : 50) : 0
         Layout.alignment: Qt.AlignHCenter
-        width: config ? config.widgetSize : 50
-        height: config ? config.widgetSize : 50
+        width: visible ? (config ? config.widgetSize : 50) : 0
+        height: visible ? (config ? config.widgetSize : 50) : 0
+
+        property bool counted: false
+
+        function updateCount() {
+          var shouldBeCounted = isIconVisible;
+          console.log("DEBUG [SystemTrayArea] updateCount: id=" + modelData.id + " isIconVisible=" + isIconVisible + " counted=" + counted + " shouldBeCounted=" + shouldBeCounted + " currentCount=" + systemTrayAreaRoot.visibleCount)
+          if (shouldBeCounted && !counted) {
+            systemTrayAreaRoot.visibleCount++;
+            counted = true;
+            console.log("DEBUG [SystemTrayArea] Incremented: id=" + modelData.id + " newCount=" + systemTrayAreaRoot.visibleCount)
+          } else if (!shouldBeCounted && counted) {
+            systemTrayAreaRoot.visibleCount--;
+            counted = false;
+            console.log("DEBUG [SystemTrayArea] Decremented: id=" + modelData.id + " newCount=" + systemTrayAreaRoot.visibleCount)
+          }
+        }
+
+        Component.onCompleted: {
+          console.log("DEBUG [SystemTrayArea] Delegate completed: id=" + modelData.id + " title=" + modelData.title + " icon=" + modelData.icon)
+          updateCount()
+        }
+        Component.onDestruction: {
+          if (counted) {
+            systemTrayAreaRoot.visibleCount--;
+            counted = false;
+            console.log("DEBUG [SystemTrayArea] Destroyed/Decremented: id=" + modelData.id + " newCount=" + systemTrayAreaRoot.visibleCount)
+          }
+        }
+
+        readonly property bool isPixmapIcon: modelData.icon.indexOf("image://qspixmap/") === 0
 
         IconImage {
-          id: trayIcon
+          id: trayThemeIcon
           anchors.centerIn: parent
           source: modelData.icon
           width: config ? (config.iconSize + 2) : 24
           height: width
+          visible: !isPixmapIcon
+        }
+
+        Image {
+          id: trayPixmapIcon
+          anchors.centerIn: parent
+          source: modelData.icon
+          width: config ? (config.iconSize + 2) : 24
+          height: width
+          fillMode: Image.PreserveAspectFit
+          visible: isPixmapIcon
         }
 
         QsMenuAnchor {

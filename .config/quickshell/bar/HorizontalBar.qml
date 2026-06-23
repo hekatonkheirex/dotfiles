@@ -297,9 +297,9 @@ PanelWindow {
         Item {
           id: systemTrayWrapper
           Layout.preferredHeight: parent.height
-          Layout.preferredWidth: systemTray.Layout.preferredWidth * root.expandProgress
+          Layout.preferredWidth: systemTray.preferredWidth * root.expandProgress
           opacity: root.expandProgress
-          visible: systemTray.visible && (root.expandProgress > 0)
+          visible: systemTray.visibleCount > 0 && (root.expandProgress > 0)
           clip: true
 
           HorizontalSystemTrayArea {
@@ -348,7 +348,7 @@ PanelWindow {
               anchors.centerIn: parent
               text: root.now.toLocaleString(Qt.locale(), "HH:mm")
               color: colors_ ? colors_.primary : "#D0BCFF"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
+              font.family: config ? config.fontFamily : "Roboto"
               font.pixelSize: config ? (config.fontPixelSize + 2) : 12
               font.weight: Font.Bold
               horizontalAlignment: Text.AlignHCenter

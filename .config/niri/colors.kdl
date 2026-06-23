@@ -1,0 +1,7 @@
+// Generated dynamically by sync-theme-mode.sh
+layout {
+    focus-ring {
+        active-color "#74d7cb"
+        inactive-color "#9b8c9b"
+    }
+}

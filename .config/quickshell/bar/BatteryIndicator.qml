@@ -94,7 +94,7 @@ Item {
       if (root.active) return colors_ ? colors_.fgPrimary : "#0F3C2C"
       return colors_ ? colors_.primary : "#D0BCFF"
     }
-    font.family: config ? config.fontFamily : "Google Sans Flex"
+    font.family: config ? config.fontFamily : "Roboto"
     font.pixelSize: config ? (config.fontPixelSize - 2) : 8
     font.weight: Font.Medium
     horizontalAlignment: Text.AlignHCenter

@@ -145,7 +145,7 @@ PanelWindow {
           Text {
             text: root.monthNames[root.displayMonth.getMonth()] + " " + root.displayMonth.getFullYear()
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: 18
             font.weight: Font.Bold
           }
@@ -195,7 +195,7 @@ PanelWindow {
             Text {
               text: modelData
               color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
+              font.family: config ? config.fontFamily : "Roboto"
               font.pixelSize: 14
               font.weight: Font.Medium
               width: root.cellWidth
@@ -229,7 +229,7 @@ PanelWindow {
                 color: root.isToday(dayNum)
                   ? (colors_ ? colors_.fgPrimary : "#FFFFFF")
                   : (colors_ ? colors_.fgSurface : "#FFFFFF")
-                font.family: config ? config.fontFamily : "Google Sans Flex"
+                font.family: config ? config.fontFamily : "Roboto"
                 font.pixelSize: 14
               }
             }

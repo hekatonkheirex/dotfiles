@@ -5,6 +5,7 @@ include "decorations.kdl"
 include "startup.kdl"
 include "windowrules.kdl"
 include "keybinds.kdl"
+include "colors.kdl"
 
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 

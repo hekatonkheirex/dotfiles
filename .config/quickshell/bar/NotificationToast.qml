@@ -121,7 +121,7 @@ PanelWindow {
             anchors.centerIn: parent
             text: notif ? (notif.appName.length > 0 ? notif.appName.charAt(0).toUpperCase() : "?") : "?"
             color: colors_ ? colors_.fgPrimaryContainer : "#EADDFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: 10
             font.weight: Font.Bold
           }
@@ -130,7 +130,7 @@ PanelWindow {
         Text {
           text: notif ? (notif.appName || "Notification") : "Notification"
           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: 11
           font.weight: Font.Medium
           Layout.fillWidth: true
@@ -140,7 +140,7 @@ PanelWindow {
         Text {
           text: "now"
           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: 10
           opacity: 0.7
         }
@@ -160,7 +160,7 @@ PanelWindow {
           Layout.fillWidth: true
           text: notif ? (notif.summary || "") : ""
           color: colors_ ? colors_.fgSurface : "#FFFFFF"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: 14
           font.weight: Font.Bold
           elide: Text.ElideRight
@@ -171,7 +171,7 @@ PanelWindow {
           Layout.fillWidth: true
           text: notif ? (notif.body || "") : ""
           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: 12
           elide: Text.ElideRight
           maximumLineCount: 3

@@ -128,7 +128,7 @@ Item {
       if (root.wifiSignal < 0) return 0.5
       return 1.0
     }
-    font.family: config ? config.fontFamily : "Google Sans Flex"
+    font.family: config ? config.fontFamily : "Roboto"
     font.pixelSize: config ? (config.fontPixelSize - 2) : 8
     font.weight: Font.Medium
     horizontalAlignment: Text.AlignHCenter

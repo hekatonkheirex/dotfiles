@@ -1,0 +1,6 @@
+[Unit]
+Description=Refresh package lists for backup
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/pkglist-refresh.sh

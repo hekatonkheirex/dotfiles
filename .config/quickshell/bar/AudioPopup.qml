@@ -174,7 +174,7 @@ PanelWindow {
           Text {
             text: "Volume"
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 8) : 18
             font.weight: Font.Bold
             anchors.verticalCenter: parent.verticalCenter
@@ -196,7 +196,7 @@ PanelWindow {
         Text {
           text: muted ? "Muted" : Math.round(volume * 100) + "%"
           color: muted ? (colors_ ? colors_.error : "#F2B8B5") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? (config.fontPixelSize + 4) : 14
         }
 
@@ -223,7 +223,7 @@ PanelWindow {
           Text {
             text: "Microphone"
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 8) : 18
             font.weight: Font.Bold
             anchors.verticalCenter: parent.verticalCenter
@@ -245,7 +245,7 @@ PanelWindow {
         Text {
           text: micMuted ? "Muted" : Math.round(micVolume * 100) + "%"
           color: micMuted ? (colors_ ? colors_.error : "#F2B8B5") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? (config.fontPixelSize + 4) : 14
         }
 

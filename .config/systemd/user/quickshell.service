@@ -4,12 +4,13 @@ PartOf=graphical-session.target
 After=graphical-session.target
 
 [Service]
-ExecStart=/usr/bin/quickshell
+ExecStart=/usr/bin/quickshell -vv
 Restart=on-failure
 RestartSec=2s
 # If it crashes more than 5 times in 10 seconds, stop restarting.
 StartLimitIntervalSec=10s
 StartLimitBurst=5
+Environment=QT_QPA_PLATFORMTHEME=qt6ct QT_QPA_PLATFORM=wayland XDG_CURRENT_DESKTOP=Niri
 
 [Install]
 WantedBy=graphical-session.target

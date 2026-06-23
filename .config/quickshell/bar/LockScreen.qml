@@ -215,7 +215,7 @@ Item {
               anchors.centerIn: parent
               text: root.username().charAt(0).toUpperCase()
               color: colors_ ? colors_.fgPrimaryContainer : "#BEE8C7"
-              font.family: "Google Sans Flex"
+              font.family: "Roboto"
               font.pixelSize: 36
               font.weight: Font.Bold
               visible: profileImage.status !== Image.Ready
@@ -229,7 +229,7 @@ Item {
               return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
             }
             color: textColor
-            font.family: "Google Sans Flex"
+            font.family: "Roboto"
             font.pixelSize: 72
             font.weight: Font.Bold
             style: Text.Sunken
@@ -245,7 +245,7 @@ Item {
               return days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear()
             }
             color: mutedText
-            font.family: "Google Sans Flex"
+            font.family: "Roboto"
             font.pixelSize: 20
           }
 
@@ -263,7 +263,7 @@ Item {
             TextInput {
               anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
               color: textColor
-              font.family: "Google Sans Flex"
+              font.family: "Roboto"
               font.pixelSize: 18
               text: root.lockInputText
               echoMode: TextInput.Password
@@ -298,7 +298,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.lockError
             color: errorColor
-            font.family: "Google Sans Flex"
+            font.family: "Roboto"
             font.pixelSize: 15
             font.weight: Font.Bold
             visible: root.lockError.length > 0
@@ -308,7 +308,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "or touch the fingerprint sensor"
             color: mutedText
-            font.family: "Google Sans Flex"
+            font.family: "Roboto"
             font.pixelSize: 14
             opacity: 0.8
           }
@@ -420,7 +420,7 @@ Item {
             return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
           }
           color: "#FFFFFF"
-          font.family: "Google Sans Flex"
+          font.family: "Roboto"
           font.pixelSize: 72
           font.weight: Font.Bold
           style: Text.Sunken
@@ -436,7 +436,7 @@ Item {
             return days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear()
           }
           color: Qt.rgba(1, 1, 1, 0.7)
-          font.family: "Google Sans Flex"
+          font.family: "Roboto"
           font.pixelSize: 20
         }
 
@@ -454,7 +454,7 @@ Item {
           TextInput {
             anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
             color: "#FFFFFF"
-            font.family: "Google Sans Flex"
+            font.family: "Roboto"
             font.pixelSize: 18
             text: root.lockInputText
             echoMode: TextInput.Password
@@ -489,7 +489,7 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           text: root.lockError
           color: "#ea1821"
-          font.family: "Google Sans Flex"
+          font.family: "Roboto"
           font.pixelSize: 15
           font.weight: Font.Bold
           visible: root.lockError.length > 0
@@ -499,7 +499,7 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           text: "or touch the fingerprint sensor"
           color: Qt.rgba(1, 1, 1, 0.7)
-          font.family: "Google Sans Flex"
+          font.family: "Roboto"
           font.pixelSize: 14
           opacity: 0.8
         }
