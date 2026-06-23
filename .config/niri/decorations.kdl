@@ -82,4 +82,10 @@ blur {
     saturation 1.5
 }
 
+
+cursor {
+    xcursor-theme "Bibata-Modern-Classic"
+    xcursor-size 24
+}
+
 prefer-no-csd
