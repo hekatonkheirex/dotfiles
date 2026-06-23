@@ -45,6 +45,24 @@ To glue the desktop environment together, several custom scripts handle system t
 - **Trigger Scripts (`launcher`, `lock`, `quickmenu`)**:
   - *What they do*: Simple wrappers that touch `/tmp/` trigger files (e.g., `/tmp/qslauncher-trigger`, `/tmp/qslock-trigger`, `/tmp/qsquickmenu-trigger`). The main Quickshell QML shell watches these files to toggle overlays and UI dashboards instantly.
 
+### 🎨 Material You Theming Pipeline
+
+All desktop themes are dynamically generated from a single wallpaper-derived accent color using **matugen** (Material You color extraction).
+
+- **[`~/.local/bin/matugen-and-cache.sh`](file:///.local/bin/matugen-and-cache.sh)**: Runs matugen with wallpaper extraction, saves a transformed palette to `~/.cache/matugen/current_palette.json`, then generates `Colors.qml` for Quickshell.
+- **[`~/.local/bin/generate-all-themes.sh`](file:///.local/bin/generate-all-themes.sh)**: Runs all 4 theme generators in parallel (icons, SDDM, Kvantum) then sequentially (GTK theme), and refreshes gsettings + qt6ct icon theme.
+- **[`~/.local/bin/sync-theme-mode.sh`](file:///.local/bin/sync-theme-mode.sh)**: Syncs light/dark/auto mode across gsettings `color-scheme`, GTK 3/4 `settings.ini`, Kvantum theme, icon theme, and removes stale GTK4 user CSS overrides.
+- **[`~/.local/bin/auto-detect-theme.sh`](file:///.local/bin/auto-detect-theme.sh)**: Analyzes wallpaper brightness via ImageMagick and outputs `"light"` or `"dark"` to drive auto mode.
+- **`~/Projects/material3-expressive-shared/palette.py`**: Shared Python module — `accent_dict()` wraps matugen's raw palette into the format expected by all 5 generators.
+
+The theming flow:
+1. Wallpaper changes (via `wall`, `wall_shuffle.sh`, or CommandCenter grid)
+2. Matugen extracts M3 colors (scheme-expressive with saturation preference)
+3. `generate-all-themes.sh` rebuilds all 5 desktop themes with a single dynamic accent
+4. `sync-theme-mode.sh auto` detects wallpaper brightness and applies light/dark mode
+
+Accent color can also be set manually from the Command Center (Settings tab → Accent Color) which runs matugen with the chosen hex instead of wallpaper.
+
 ### 🔋 Thinkpad / Laptop Optimizations (`.config/thinkpad/`)
 
 System-level rules located in `.config/thinkpad` automate power management, security, and hardware features:

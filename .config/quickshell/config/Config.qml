@@ -9,7 +9,7 @@ QtObject {
   readonly property int padding: 6
   readonly property int iconSize: 20
   readonly property int fontPixelSize: 10
-  readonly property string fontFamily: "Google Sans Flex"
+  readonly property string fontFamily: "Roboto"
   readonly property string iconFont: "Material Symbols Outlined"
   readonly property int animationDuration: 150
   readonly property int popupWidth: 340

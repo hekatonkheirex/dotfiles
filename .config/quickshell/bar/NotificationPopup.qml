@@ -147,7 +147,7 @@ PanelWindow {
           Text {
             text: "Notifications"
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 8) : 18
             font.weight: Font.Bold
           }
@@ -157,7 +157,7 @@ PanelWindow {
           Text {
             text: count === 0 ? "None" : count.toString()
             color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 4) : 14
           }
 
@@ -261,7 +261,7 @@ PanelWindow {
                           return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
                         }
                         color: colors_ ? colors_.fgPrimaryContainer : "#EADDFF"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
+                        font.family: config ? config.fontFamily : "Roboto"
                         font.pixelSize: 10
                         font.weight: Font.Bold
                       }
@@ -270,7 +270,7 @@ PanelWindow {
                     Text {
                       text: notif ? (notif.appName || "Notification") : "Notification"
                       color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                      font.family: config ? config.fontFamily : "Google Sans Flex"
+                      font.family: config ? config.fontFamily : "Roboto"
                       font.pixelSize: 11
                       font.weight: Font.Medium
                       Layout.fillWidth: true
@@ -323,7 +323,7 @@ PanelWindow {
                       Layout.fillWidth: true
                       text: notif ? (notif.summary || "") : ""
                       color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                      font.family: config ? config.fontFamily : "Google Sans Flex"
+                      font.family: config ? config.fontFamily : "Roboto"
                       font.pixelSize: 14
                       font.weight: Font.Bold
                       elide: Text.ElideRight
@@ -334,7 +334,7 @@ PanelWindow {
                       Layout.fillWidth: true
                       text: notif ? (notif.body || "") : ""
                       color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                      font.family: config ? config.fontFamily : "Google Sans Flex"
+                      font.family: config ? config.fontFamily : "Roboto"
                       font.pixelSize: 12
                       wrapMode: Text.WordWrap
                       maximumLineCount: 3
@@ -350,7 +350,7 @@ PanelWindow {
         Text {
           text: "No new notifications"
           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? (config.fontPixelSize + 2) : 12
           visible: count === 0
           anchors.horizontalCenter: parent.horizontalCenter

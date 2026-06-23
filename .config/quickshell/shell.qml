@@ -76,6 +76,15 @@ ShellRoot {
     onTriggered: darkModeMonitor.running = true
   }
 
+  // Re-query system dark mode after Colors.qml hot-reloads (which resets systemDark)
+  Timer {
+    id: darkModeSync
+    interval: 3000
+    running: true
+    repeat: true
+    onTriggered: darkModeInitial.running = true
+  }
+
   Config {
     id: cfg
   }

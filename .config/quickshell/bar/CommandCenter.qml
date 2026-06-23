@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Window
+import QtQuick.Dialogs
 import Quickshell.Services.UPower
 import Quickshell
 import Quickshell.Wayland
@@ -18,7 +19,7 @@ PanelWindow {
   property bool isHorizontal: false
   signal toggleHorizontal()
 
-  property int currentTab: 1 // Default to Media tab (like in the screenshot)
+  property int currentTab: 0 // Default to Overview tab
   property double openTime: 0
 
   // Session & Weather properties
@@ -69,6 +70,10 @@ PanelWindow {
     var m = Math.floor(sec / 60)
     var s = sec % 60
     return m + ":" + (s < 10 ? "0" : "") + s
+  }
+
+  function applyPresetColor(hex) {
+    Quickshell.execDetached(["/bin/sh", "-c", "/usr/bin/matugen --json hex --type scheme-expressive color hex \"#" + hex + "\" 2>/dev/null | python3 -c \"import json,sys,os;d=json.load(sys.stdin)['colors'];p={'light':{t:m['light']['color'] for t,m in d.items()},'dark':{t:m['dark']['color'] for t,m in d.items()}};os.makedirs(os.path.expanduser('~/.cache/matugen'),exist_ok=True);json.dump({'scheme-expressive':p,'_seed':'picker'},open(os.path.expanduser('~/.cache/matugen/current_palette.json'),'w'))\" && /usr/bin/matugen --type scheme-expressive color hex \"#" + hex + "\" 2>/dev/null && $HOME/.local/bin/generate-all-themes.sh && $HOME/.local/bin/sync-theme-mode.sh auto"])
   }
 
   // UPower laptop battery detection
@@ -707,7 +712,7 @@ PanelWindow {
                   Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: modelData.label
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 11
                     font.weight: Font.Medium
                     color: root.currentTab === index ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
@@ -759,7 +764,7 @@ PanelWindow {
             spacing: 16
             visible: root.currentTab === 0
 
-            // Column 1: Clock & Sliders
+            // Column 1: Clock & Weather
             Column {
               width: 148
               height: parent.height
@@ -782,7 +787,7 @@ PanelWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: root.clockHours
                     color: colors_ ? colors_.primary : "#BEE8C7"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 64
                     font.weight: Font.Bold
                   }
@@ -791,7 +796,7 @@ PanelWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: root.clockMinutes
                     color: colors_ ? colors_.primary : "#BEE8C7"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 64
                     font.weight: Font.Bold
                   }
@@ -800,14 +805,14 @@ PanelWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: root.clockDate
                     color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 13
                     font.weight: Font.Medium
                   }
                 }
               }
 
-              // Sliders Card
+              // Weather Card
               Rectangle {
                 width: 148
                 height: 232
@@ -816,145 +821,50 @@ PanelWindow {
                 border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
                 border.width: 1
 
-                Row {
+                Column {
                   anchors.centerIn: parent
-                  spacing: 14
+                  spacing: 8
 
-                  // Volume Slider
-                  Loader {
-                    id: volumeLoader
-                    width: 26
-                    height: 200
-                    sourceComponent: verticalSliderComponent
-                    onLoaded: {
-                      item.icon = root.systemMuted ? "volume_off" : "volume_up"
-                      item.value = root.systemVolume
-                      item.interactive = true
-                      item.sliderMoved.connect(function(val) {
-                        root.ccSetVolume(val)
-                      })
-                    }
-                    Connections {
-                      target: root
-                      function onSystemVolumeChanged() {
-                        if (volumeLoader.item) volumeLoader.item.value = root.systemVolume;
-                      }
-                      function onSystemMutedChanged() {
-                        if (volumeLoader.item) volumeLoader.item.icon = root.systemMuted ? "volume_off" : "volume_up";
-                      }
-                    }
+                  Text {
+                    text: root.weatherIcon
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: 64
+                    verticalAlignment: Text.AlignVCenter
                   }
 
-                  // Brightness Slider
-                  Loader {
-                    id: brightnessLoader
-                    width: 26
-                    height: 200
-                    sourceComponent: verticalSliderComponent
-                    onLoaded: {
-                      item.icon = "light_mode"
-                      item.value = root.systemBrightness / 100.0
-                      item.interactive = true
-                      item.sliderMoved.connect(function(val) {
-                        root.ccSetBrightness(val * 100.0)
-                      })
-                    }
-                    Connections {
-                      target: root
-                      function onSystemBrightnessChanged() {
-                        if (brightnessLoader.item) brightnessLoader.item.value = root.systemBrightness / 100.0;
-                      }
-                    }
+                  Text {
+                    text: root.weatherTemp
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                    font.family: config ? config.fontFamily : "Roboto"
+                    font.pixelSize: 22
+                    font.weight: Font.Bold
                   }
 
-                  // Battery Indicator (Read-Only)
-                  Loader {
-                    id: batteryLoader
-                    width: 26
-                    height: 200
-                    sourceComponent: verticalSliderComponent
-                    onLoaded: {
-                      item.icon = root.getBatteryIcon(root.batteryPct, root.batteryCharging)
-                      item.value = root.batteryPct / 100.0
-                      item.interactive = false
-                    }
-                    Connections {
-                      target: root
-                      function onBatteryPctChanged() {
-                        if (batteryLoader.item) {
-                          batteryLoader.item.value = root.batteryPct / 100.0;
-                          batteryLoader.item.icon = root.getBatteryIcon(root.batteryPct, root.batteryCharging);
-                        }
-                      }
-                      function onBatteryChargingChanged() {
-                        if (batteryLoader.item) {
-                          batteryLoader.item.icon = root.getBatteryIcon(root.batteryPct, root.batteryCharging);
-                        }
-                      }
-                    }
+                  Text {
+                    text: root.weatherDesc
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                    font.family: config ? config.fontFamily : "Roboto"
+                    font.pixelSize: 12
+                    font.weight: Font.Medium
+                    elide: Text.ElideRight
+                    width: 120
+                    horizontalAlignment: Text.AlignHCenter
                   }
                 }
               }
             }
 
-            // Column 2: Weather & Profile Card + Calendar
+            // Column 2: Profile + Calendar
             Column {
               width: 408
               height: parent.height
               spacing: 16
 
-              // Top Row (Weather & Profile)
-              Row {
-                width: parent.width
-                spacing: 16
-
-                // Weather Card
+              // Profile Card
                 Rectangle {
-                  width: 196
-                  height: 120
-                  radius: 20
-                  color: colors_ ? colors_.surfaceContainer : "#25232A"
-                  border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
-                  border.width: 1
-
-                  Row {
-                    anchors.centerIn: parent
-                    spacing: 12
-
-                    Text {
-                      text: root.weatherIcon
-                      font.pixelSize: 44
-                      verticalAlignment: Text.AlignVCenter
-                    }
-
-                    Column {
-                      anchors.verticalCenter: parent.verticalCenter
-                      spacing: 2
-
-                      Text {
-                        text: root.weatherTemp
-                        color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
-                        font.pixelSize: 22
-                        font.weight: Font.Bold
-                      }
-
-                      Text {
-                        text: root.weatherDesc
-                        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
-                        font.pixelSize: 12
-                        font.weight: Font.Medium
-                        elide: Text.ElideRight
-                        width: 110
-                      }
-                    }
-                  }
-                }
-
-                // Profile Card
-                Rectangle {
-                  width: 196
+                  width: 408
                   height: 120
                   radius: 20
                   color: colors_ ? colors_.surfaceContainer : "#25232A"
@@ -1004,7 +914,7 @@ PanelWindow {
                       Text {
                         text: Quickshell.env("USER") || "User"
                         color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
+                        font.family: config ? config.fontFamily : "Roboto"
                         font.pixelSize: 15
                         font.weight: Font.Bold
                       }
@@ -1020,7 +930,7 @@ PanelWindow {
                         Text {
                           text: "on niri"
                           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                          font.family: config ? config.fontFamily : "Google Sans Flex"
+                          font.family: config ? config.fontFamily : "Roboto"
                           font.pixelSize: 11
                         }
                       }
@@ -1036,7 +946,7 @@ PanelWindow {
                         Text {
                           text: root.uptimeText.replace("up ", "")
                           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                          font.family: config ? config.fontFamily : "Google Sans Flex"
+                          font.family: config ? config.fontFamily : "Roboto"
                           font.pixelSize: 11
                           elide: Text.ElideRight
                           width: 80
@@ -1045,7 +955,6 @@ PanelWindow {
                     }
                   }
                 }
-              }
 
               // Calendar Card
               Rectangle {
@@ -1056,20 +965,20 @@ PanelWindow {
                 border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
                 border.width: 1
 
-                Column {
+                ColumnLayout {
                   anchors.fill: parent
                   anchors.margins: 16
                   spacing: 12
 
                   // Month Navigation Row
                   Item {
-                    width: parent.width
+                    Layout.fillWidth: true
                     height: 32
 
                     Text {
                       text: root.monthNames[root.displayMonth.getMonth()] + " " + root.displayMonth.getFullYear()
                       color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                      font.family: config ? config.fontFamily : "Google Sans Flex"
+                      font.family: config ? config.fontFamily : "Roboto"
                       font.pixelSize: 16
                       font.weight: Font.Bold
                       anchors.left: parent.left
@@ -1117,14 +1026,14 @@ PanelWindow {
 
                   // Days of Week Header
                   Row {
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    Layout.alignment: Qt.AlignHCenter
                     spacing: 4
                     Repeater {
                       model: root.weekDays
                       Text {
                         text: modelData
                         color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
+                        font.family: config ? config.fontFamily : "Roboto"
                         font.pixelSize: 12
                         font.weight: Font.Medium
                         width: 50
@@ -1137,9 +1046,8 @@ PanelWindow {
 
                   // Calendar Grid
                   Item {
-                    width: 374 // 7 * 50 + 6 * 4
-                    height: 216
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
 
                     Repeater {
                       model: root.dayModel
@@ -1148,9 +1056,9 @@ PanelWindow {
                         property int dayNum: modelData
                         visible: dayNum > 0
                         x: (index % 7) * 54
-                        y: Math.floor(index / 7) * 36
+                        y: Math.floor(index / 7) * (parent.height / 6)
                         width: 50
-                        height: 30
+                        height: (parent.height / 6) - 6
                         radius: 15
                         color: root.isToday(dayNum) ? (colors_ ? colors_.primary : "#BEE8C7") : "transparent"
 
@@ -1160,7 +1068,7 @@ PanelWindow {
                           color: root.isToday(dayNum)
                             ? (colors_ ? colors_.fgPrimary : "#0F3C2C")
                             : (colors_ ? colors_.fgSurface : "#FFFFFF")
-                          font.family: config ? config.fontFamily : "Google Sans Flex"
+                          font.family: config ? config.fontFamily : "Roboto"
                           font.pixelSize: 12
                           font.weight: root.isToday(dayNum) ? Font.Bold : Font.Normal
                         }
@@ -1334,7 +1242,7 @@ PanelWindow {
                     width: parent.width
                     text: root.mprisTitle ? root.mprisTitle : "No Media"
                     color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 13
                     font.weight: Font.Bold
                     elide: Text.ElideRight
@@ -1345,7 +1253,7 @@ PanelWindow {
                     width: parent.width
                     text: root.mprisArtist ? root.mprisArtist : "Unknown Artist"
                     color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 10
                     elide: Text.ElideRight
                     horizontalAlignment: Text.AlignHCenter
@@ -1701,7 +1609,7 @@ PanelWindow {
                 Text {
                   text: root.mprisTitle ? root.mprisTitle : "No Media Playing"
                   color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                  font.family: config ? config.fontFamily : "Google Sans Flex"
+                  font.family: config ? config.fontFamily : "Roboto"
                   font.pixelSize: 18
                   font.weight: Font.Bold
                   elide: Text.ElideRight
@@ -1712,7 +1620,7 @@ PanelWindow {
                 Text {
                   text: root.mprisArtist ? root.mprisArtist : "Unknown Artist"
                   color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                  font.family: config ? config.fontFamily : "Google Sans Flex"
+                  font.family: config ? config.fontFamily : "Roboto"
                   font.pixelSize: 13
                   elide: Text.ElideRight
                   Layout.fillWidth: true
@@ -1728,7 +1636,7 @@ PanelWindow {
                 Text {
                   text: root.formatTime(root.elapsedSeconds)
                   color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                  font.family: config ? config.fontFamily : "Google Sans Flex"
+                  font.family: config ? config.fontFamily : "Roboto"
                   font.pixelSize: 11
                 }
 
@@ -1777,7 +1685,7 @@ PanelWindow {
                 Text {
                   text: root.mprisLengthStr
                   color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                  font.family: config ? config.fontFamily : "Google Sans Flex"
+                  font.family: config ? config.fontFamily : "Roboto"
                   font.pixelSize: 11
                 }
               }
@@ -1965,7 +1873,7 @@ PanelWindow {
             Text {
               text: "Visual Wallpaper Selector (" + root.wallpapersList.length + " walls found) • Active: " + (root.currentWallpaper || "None")
               color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
+              font.family: config ? config.fontFamily : "Roboto"
               font.pixelSize: 12
               font.weight: Font.Medium
             }
@@ -2038,6 +1946,7 @@ PanelWindow {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                       Quickshell.execDetached(["awww", "img", Quickshell.env("HOME") + "/Pictures/Walls/" + modelData, "--transition-type", "grow", "--transition-pos", "0,1080", "--transition-fps", "60", "--transition-step", "60"])
+                      Quickshell.execDetached(["/bin/sh", "-c", "$HOME/.local/bin/matugen-and-cache.sh \"" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData + "\" && $HOME/.local/bin/generate-all-themes.sh && $HOME/.local/bin/sync-theme-mode.sh auto"])
                       root.currentWallpaper = modelData
                     }
                   }
@@ -2080,7 +1989,7 @@ PanelWindow {
                   Text {
                     text: root.weatherTemp
                     color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 26
                     font.weight: Font.Bold
                   }
@@ -2088,7 +1997,7 @@ PanelWindow {
                   Text {
                     text: root.weatherDesc
                     color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 14
                     font.weight: Font.Medium
                   }
@@ -2096,7 +2005,7 @@ PanelWindow {
                   Text {
                     text: root.weatherCity || "Location Auto"
                     color: colors_ ? Qt.rgba(colors_.fgSurfaceVariant.r, colors_.fgSurfaceVariant.g, colors_.fgSurfaceVariant.b, 0.5) : "#70CAC4D0"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 10
                   }
                 }
@@ -2111,7 +2020,7 @@ PanelWindow {
               Text {
                 text: "Current Conditions Details"
                 color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                font.family: config ? config.fontFamily : "Google Sans Flex"
+                font.family: config ? config.fontFamily : "Roboto"
                 font.pixelSize: 12
                 font.weight: Font.Medium
               }
@@ -2162,7 +2071,7 @@ PanelWindow {
                         Text {
                           text: modelData.label
                           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                          font.family: config ? config.fontFamily : "Google Sans Flex"
+                          font.family: config ? config.fontFamily : "Roboto"
                           font.pixelSize: 9
                           font.weight: Font.Medium
                         }
@@ -2170,7 +2079,7 @@ PanelWindow {
                         Text {
                           text: modelData.value
                           color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                          font.family: config ? config.fontFamily : "Google Sans Flex"
+                          font.family: config ? config.fontFamily : "Roboto"
                           font.pixelSize: 11
                           font.weight: Font.Bold
                         }
@@ -2189,7 +2098,7 @@ PanelWindow {
               Text {
                 text: "5-Day Weather Forecast"
                 color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                font.family: config ? config.fontFamily : "Google Sans Flex"
+                font.family: config ? config.fontFamily : "Roboto"
                 font.pixelSize: 12
                 font.weight: Font.Medium
               }
@@ -2224,7 +2133,7 @@ PanelWindow {
                           return days[d.getDay()];
                         }
                         color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
+                        font.family: config ? config.fontFamily : "Roboto"
                         font.pixelSize: 11
                         font.weight: Font.Bold
                         Layout.alignment: Qt.AlignHCenter
@@ -2239,7 +2148,7 @@ PanelWindow {
                       Text {
                         text: modelData.max_temp + " / " + modelData.min_temp
                         color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
+                        font.family: config ? config.fontFamily : "Roboto"
                         font.pixelSize: 10
                         Layout.alignment: Qt.AlignHCenter
                       }
@@ -2247,7 +2156,7 @@ PanelWindow {
                       Text {
                         text: modelData.desc
                         color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
+                        font.family: config ? config.fontFamily : "Roboto"
                         font.pixelSize: 8
                         Layout.alignment: Qt.AlignHCenter
                         elide: Text.ElideRight
@@ -2262,29 +2171,30 @@ PanelWindow {
           }
 
           // Tab 4: System Settings
-          ColumnLayout {
+          Flickable {
             anchors.fill: parent
-            spacing: 24
             visible: root.currentTab === 4
-            Layout.alignment: Qt.AlignTop
+            clip: true
+            interactive: true
+            contentHeight: settingsCol.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
 
-            Text {
-              text: "System Preferences"
-              color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
-              font.pixelSize: 12
-              font.weight: Font.Medium
-            }
+            ColumnLayout {
+              id: settingsCol
+              width: parent.width
+              spacing: 24
+              Layout.alignment: Qt.AlignTop
 
             RowLayout {
               Layout.fillWidth: true
               spacing: 24
               Layout.alignment: Qt.AlignTop
 
-              // Bar Layout Position Toggle Card
+              // Bar Alignment Card
               Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 140
+                Layout.fillWidth: false
+                Layout.preferredWidth: 200
+                Layout.preferredHeight: 130
                 radius: 16
                 color: colors_ ? colors_.surfaceContainer : "#25232A"
                 border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
@@ -2292,20 +2202,20 @@ PanelWindow {
 
                 ColumnLayout {
                   anchors.centerIn: parent
-                  spacing: 12
+                  spacing: 8
                   Layout.alignment: Qt.AlignHCenter
 
                   Text {
                     text: "Bar Alignment"
                     color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 14
                     font.weight: Font.Bold
                     Layout.alignment: Qt.AlignHCenter
                   }
 
                   Rectangle {
-                    width: 200
+                    width: 180
                     height: 40
                     radius: 20
                     color: colors_ ? colors_.surfaceContainerHigh : "#312F37"
@@ -2332,7 +2242,7 @@ PanelWindow {
                           }
                           Text {
                             text: "Horiz"
-                            font.family: config ? config.fontFamily : "Google Sans Flex"
+                            font.family: config ? config.fontFamily : "Roboto"
                             font.pixelSize: 11
                             font.weight: Font.Bold
                             color: root.isHorizontal ? (colors_ ? colors_.fgPrimary : "#0F3C2C") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
@@ -2342,9 +2252,7 @@ PanelWindow {
                         MouseArea {
                           anchors.fill: parent
                           cursorShape: Qt.PointingHandCursor
-                          onClicked: {
-                            if (!root.isHorizontal) root.toggleHorizontal()
-                          }
+                          onClicked: { if (!root.isHorizontal) root.toggleHorizontal() }
                         }
                       }
 
@@ -2365,7 +2273,7 @@ PanelWindow {
                           }
                           Text {
                             text: "Vert"
-                            font.family: config ? config.fontFamily : "Google Sans Flex"
+                            font.family: config ? config.fontFamily : "Roboto"
                             font.pixelSize: 11
                             font.weight: Font.Bold
                             color: !root.isHorizontal ? (colors_ ? colors_.fgPrimary : "#0F3C2C") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
@@ -2375,9 +2283,7 @@ PanelWindow {
                         MouseArea {
                           anchors.fill: parent
                           cursorShape: Qt.PointingHandCursor
-                          onClicked: {
-                            if (root.isHorizontal) root.toggleHorizontal()
-                          }
+                          onClicked: { if (root.isHorizontal) root.toggleHorizontal() }
                         }
                       }
                     }
@@ -2385,10 +2291,11 @@ PanelWindow {
                 }
               }
 
-              // Dark/Light Theme Preference Toggle Card
+              // Light/Dark Mode Card
               Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 140
+                Layout.fillWidth: false
+                Layout.preferredWidth: 200
+                Layout.preferredHeight: 130
                 radius: 16
                 color: colors_ ? colors_.surfaceContainer : "#25232A"
                 border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
@@ -2396,20 +2303,20 @@ PanelWindow {
 
                 ColumnLayout {
                   anchors.centerIn: parent
-                  spacing: 12
+                  spacing: 8
                   Layout.alignment: Qt.AlignHCenter
 
                   Text {
-                    text: "Color Preference"
+                    text: "Light/Dark Mode"
                     color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
+                    font.family: config ? config.fontFamily : "Roboto"
                     font.pixelSize: 14
                     font.weight: Font.Bold
                     Layout.alignment: Qt.AlignHCenter
                   }
 
                   Rectangle {
-                    width: 220
+                    width: 180
                     height: 40
                     radius: 20
                     color: colors_ ? colors_.surfaceContainerHigh : "#312F37"
@@ -2446,7 +2353,7 @@ PanelWindow {
                             Text {
                               anchors.horizontalCenter: parent.horizontalCenter
                               text: modelData.label
-                              font.family: config ? config.fontFamily : "Google Sans Flex"
+                              font.family: config ? config.fontFamily : "Roboto"
                               font.pixelSize: 8
                               font.weight: Font.Bold
                               color: (colors_ && colors_.themePreference === modelData.value) ? colors_.fgPrimary : colors_.fgSurfaceVariant
@@ -2457,7 +2364,11 @@ PanelWindow {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                              if (colors_) colors_.themePreference = modelData.value
+                              if (colors_) {
+                                colors_.themePreference = modelData.value
+                                var modes = ["auto", "light", "dark"]
+                                Quickshell.execDetached(["/bin/sh", "-c", "$HOME/.local/bin/sync-theme-mode.sh " + modes[modelData.value]])
+                              }
                             }
                           }
                         }
@@ -2466,84 +2377,129 @@ PanelWindow {
                   }
                 }
               }
-            }
 
-            // Caffeine Toggle Card
-            Rectangle {
-              Layout.fillWidth: true
-              Layout.preferredHeight: 76
-              radius: 16
-              color: colors_ ? colors_.surfaceContainer : "#25232A"
-              border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
-              border.width: 1
-
-              RowLayout {
-                anchors.fill: parent
-                anchors.margins: 16
-                spacing: 16
-
-                Text {
-                  text: "coffee"
-                  font.family: config ? config.iconFont : "Material Symbols Outlined"
-                  font.pixelSize: 24
-                  color: root.idleOn ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
-                  Layout.alignment: Qt.AlignVCenter
-                }
+              // Accent Color Picker Card
+              Rectangle {
+                Layout.fillWidth: false
+                Layout.preferredWidth: 294
+                Layout.preferredHeight: 130
+                radius: 16
+                color: colors_ ? colors_.surfaceContainer : "#25232A"
+                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                border.width: 1
+                Layout.alignment: Qt.AlignTop
 
                 ColumnLayout {
-                  spacing: 2
-                  Layout.fillWidth: true
-                  Layout.alignment: Qt.AlignVCenter
+                  anchors.fill: parent
+                  anchors.margins: 12
+                  spacing: 8
 
-                  Text {
-                    text: "Inhibit Desktop Sleep"
-                    color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
-                    font.pixelSize: 14
-                    font.weight: Font.Bold
-                  }
+                  RowLayout {
+                    spacing: 12
+                    Layout.fillWidth: true
 
-                  Text {
-                    text: "Temporarily disables swayidle screen locking and display power management."
-                    color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                    font.family: config ? config.fontFamily : "Google Sans Flex"
-                    font.pixelSize: 10
-                  }
-                }
+                    Rectangle {
+                      width: 24
+                      height: 24
+                      radius: 6
+                      color: colors_ ? colors_.primary : "#D0BCFF"
+                      Layout.alignment: Qt.AlignVCenter
+                      Text {
+                        anchors.centerIn: parent
+                        text: "palette"
+                        color: colors_ ? colors_.fgPrimary : "#0F3C2C"
+                        font.family: config ? config.iconFont : "Material Symbols Outlined"
+                        font.pixelSize: 16
+                      }
+                    }
 
-                // Switch control
-                Rectangle {
-                  width: 52
-                  height: 28
-                  radius: 14
-                  color: root.idleOn ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.surfaceContainerHigh : "#312F37")
-                  border.color: root.idleOn ? "transparent" : (colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1))
-                  border.width: 1
-                  Layout.alignment: Qt.AlignVCenter
+                    ColumnLayout {
+                      spacing: 1
+                      Layout.fillWidth: true
+                      Layout.alignment: Qt.AlignVCenter
+                      Text {
+                        text: "Accent Color"
+                        color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                        font.family: config ? config.fontFamily : "Roboto"
+                        font.pixelSize: 13
+                        font.weight: Font.Bold
+                      }
+                      Text {
+                        text: "Choose a color"
+                        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                        font.family: config ? config.fontFamily : "Roboto"
+                        font.pixelSize: 9
+                      }
+                    }
 
-                  Rectangle {
-                    width: 20
-                    height: 20
-                    radius: 10
-                    color: root.idleOn ? (colors_ ? colors_.fgPrimary : "#0F3C2C") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
-                    x: root.idleOn ? 28 : 4
-                    anchors.verticalCenter: parent.verticalCenter
-                    
-                    Behavior on x {
-                      NumberAnimation { duration: 150 }
+                    Rectangle {
+                      width: 48
+                      height: 28
+                      radius: 14
+                      color: colors_ ? colors_.surfaceContainerHigh : "#312F37"
+                      border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                      border.width: 1
+                      Layout.alignment: Qt.AlignVCenter
+                      Rectangle {
+                        width: 20
+                        height: 20
+                        radius: 5
+                        anchors.centerIn: parent
+                        color: colors_ ? colors_.primary : "#D0BCFF"
+                      }
+                      MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: { colorDialog.open() }
+                      }
                     }
                   }
 
-                  MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                      if (root.idleOn) {
-                        Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
-                        root.idleOn = false
-                      } else {
-                        Quickshell.execDetached(["killall", "swayidle"])
-                        root.idleOn = true
+                  Flow {
+                    spacing: 6
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Repeater {
+                      model: [
+                        { name: "Blue",    hex: "6750A4" },
+                        { name: "Green",   hex: "4F8A4F" },
+                        { name: "Yellow",  hex: "E6A23C" },
+                        { name: "Red",     hex: "C44545" },
+                        { name: "Purple",  hex: "9C4F96" },
+                        { name: "Orange",  hex: "D97A3B" }
+                      ]
+
+                      ColumnLayout {
+                        spacing: 3
+                        Layout.alignment: Qt.AlignHCenter
+
+                        Rectangle {
+                          width: 40
+                          height: 28
+                          radius: 6
+                          color: "#" + modelData.hex
+                          Layout.alignment: Qt.AlignHCenter
+                          border.width: 0
+
+                          MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
+                            onEntered: parent.opacity = 0.8
+                            onExited: parent.opacity = 1.0
+                            onClicked: { root.applyPresetColor(modelData.hex) }
+                          }
+                        }
+
+                        Text {
+                          text: modelData.name
+                          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                          font.family: config ? config.fontFamily : "Roboto"
+                          font.pixelSize: 7
+                          horizontalAlignment: Text.AlignHCenter
+                          Layout.alignment: Qt.AlignHCenter
+                        }
                       }
                     }
                   }
@@ -2551,161 +2507,203 @@ PanelWindow {
               }
             }
 
-            // System Diagnostics Card
-            Rectangle {
+            RowLayout {
               Layout.fillWidth: true
-              Layout.preferredHeight: 140
-              radius: 16
-              color: colors_ ? colors_.surfaceContainer : "#25232A"
-              border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
-              border.width: 1
+              spacing: 16
 
-              ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 16
-                spacing: 12
+              // Caffeine Box
+              Rectangle {
+                Layout.preferredWidth: 80
+                Layout.preferredHeight: 120
+                radius: 16
+                color: colors_ ? colors_.surfaceContainer : "#25232A"
+                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                border.width: 1
 
-                Text {
-                  text: "System Diagnostics & Resources"
-                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                  font.family: config ? config.fontFamily : "Google Sans Flex"
-                  font.pixelSize: 14
-                  font.weight: Font.Bold
+                ColumnLayout {
+                  anchors.centerIn: parent
+                  spacing: 4
+
+                  Text {
+                    text: "coffee"
+                    font.family: config ? config.iconFont : "Material Symbols Outlined"
+                    font.pixelSize: 32
+                    color: root.idleOn ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
+                    Layout.alignment: Qt.AlignHCenter
+                  }
                 }
 
-                RowLayout {
-                  Layout.fillWidth: true
-                  spacing: 20
-
-                  // CPU usage column
-                  ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 4
-
-                    RowLayout {
-                      spacing: 6
-                      Text {
-                        text: "memory"
-                        font.family: config ? config.iconFont : "Material Symbols Outlined"
-                        font.pixelSize: 16
-                        color: colors_ ? colors_.primary : "#BEE8C7"
-                      }
-                      Text {
-                        text: "CPU Usage"
-                        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
-                        font.pixelSize: 11
-                        font.weight: Font.Medium
-                      }
-                    }
-
-                    Rectangle {
-                      Layout.fillWidth: true
-                      height: 8
-                      radius: 4
-                      color: colors_ ? colors_.surfaceContainerHigh : "#312F37"
-                      Rectangle {
-                        width: parent.width * (root.statsCpu / 100.0)
-                        height: parent.height
-                        radius: 4
-                        color: colors_ ? colors_.primary : "#BEE8C7"
-                      }
-                    }
-
-                    Text {
-                      text: Math.round(root.statsCpu) + "%"
-                      color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                      font.family: config ? config.fontFamily : "Google Sans Flex"
-                      font.pixelSize: 11
-                      font.weight: Font.Bold
+                MouseArea {
+                  anchors.fill: parent
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: {
+                    if (root.idleOn) {
+                      Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
+                      root.idleOn = false
+                    } else {
+                      Quickshell.execDetached(["killall", "swayidle"])
+                      root.idleOn = true
                     }
                   }
+                }
+              }
 
-                  // RAM usage column
-                  ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 4
+              // System Diagnostics Card
+              Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 120
+                radius: 16
+                color: colors_ ? colors_.surfaceContainer : "#25232A"
+                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                border.width: 1
 
-                    RowLayout {
-                      spacing: 6
-                      Text {
-                        text: "database"
-                        font.family: config ? config.iconFont : "Material Symbols Outlined"
-                        font.pixelSize: 16
-                        color: colors_ ? colors_.primary : "#BEE8C7"
-                      }
-                      Text {
-                        text: "Memory (RAM)"
-                        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
-                        font.pixelSize: 11
-                        font.weight: Font.Medium
-                      }
-                    }
+                ColumnLayout {
+                  anchors.fill: parent
+                  anchors.margins: 12
+                  spacing: 8
 
-                    Rectangle {
-                      Layout.fillWidth: true
-                      height: 8
-                      radius: 4
-                      color: colors_ ? colors_.surfaceContainerHigh : "#312F37"
-                      Rectangle {
-                        width: parent.width * root.statsRamPct
-                        height: parent.height
-                        radius: 4
-                        color: colors_ ? colors_.primary : "#BEE8C7"
-                      }
-                    }
-
-                    Text {
-                      text: root.statsRamStr + " (" + Math.round(root.statsRamPct * 100) + "%)"
-                      color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                      font.family: config ? config.fontFamily : "Google Sans Flex"
-                      font.pixelSize: 11
-                      font.weight: Font.Bold
-                    }
+                  Text {
+                    text: "System Diagnostics & Resources"
+                    color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                    font.family: config ? config.fontFamily : "Roboto"
+                    font.pixelSize: 14
+                    font.weight: Font.Bold
                   }
 
-                  // Disk usage column
-                  ColumnLayout {
+                  RowLayout {
                     Layout.fillWidth: true
-                    spacing: 4
+                    spacing: 20
 
-                    RowLayout {
-                      spacing: 6
-                      Text {
-                        text: "storage"
-                        font.family: config ? config.iconFont : "Material Symbols Outlined"
-                        font.pixelSize: 16
-                        color: colors_ ? colors_.primary : "#BEE8C7"
-                      }
-                      Text {
-                        text: "Disk Storage"
-                        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                        font.family: config ? config.fontFamily : "Google Sans Flex"
-                        font.pixelSize: 11
-                        font.weight: Font.Medium
-                      }
-                    }
-
-                    Rectangle {
+                    // CPU usage column
+                    ColumnLayout {
                       Layout.fillWidth: true
-                      height: 8
-                      radius: 4
-                      color: colors_ ? colors_.surfaceContainerHigh : "#312F37"
+                      spacing: 4
+
+                      RowLayout {
+                        spacing: 6
+                        Text {
+                          text: "memory"
+                          font.family: config ? config.iconFont : "Material Symbols Outlined"
+                          font.pixelSize: 16
+                          color: colors_ ? colors_.primary : "#BEE8C7"
+                        }
+                        Text {
+                          text: "CPU Usage"
+                          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                          font.family: config ? config.fontFamily : "Roboto"
+                          font.pixelSize: 11
+                          font.weight: Font.Medium
+                        }
+                      }
+
                       Rectangle {
-                        width: parent.width * root.statsDiskPct
-                        height: parent.height
+                        Layout.fillWidth: true
+                        height: 8
                         radius: 4
-                        color: colors_ ? colors_.primary : "#BEE8C7"
+                        color: colors_ ? colors_.surfaceContainerHigh : "#312F37"
+                        Rectangle {
+                          width: parent.width * (root.statsCpu / 100.0)
+                          height: parent.height
+                          radius: 4
+                          color: colors_ ? colors_.primary : "#BEE8C7"
+                        }
+                      }
+
+                      Text {
+                        text: Math.round(root.statsCpu) + "%"
+                        color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                        font.family: config ? config.fontFamily : "Roboto"
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
                       }
                     }
 
-                    Text {
-                      text: root.statsDiskStr + " (" + Math.round(root.statsDiskPct * 100) + "%)"
-                      color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                      font.family: config ? config.fontFamily : "Google Sans Flex"
-                      font.pixelSize: 11
-                      font.weight: Font.Bold
+                    // RAM usage column
+                    ColumnLayout {
+                      Layout.fillWidth: true
+                      spacing: 4
+
+                      RowLayout {
+                        spacing: 6
+                        Text {
+                          text: "database"
+                          font.family: config ? config.iconFont : "Material Symbols Outlined"
+                          font.pixelSize: 16
+                          color: colors_ ? colors_.primary : "#BEE8C7"
+                        }
+                        Text {
+                          text: "Memory (RAM)"
+                          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                          font.family: config ? config.fontFamily : "Roboto"
+                          font.pixelSize: 11
+                          font.weight: Font.Medium
+                        }
+                      }
+
+                      Rectangle {
+                        Layout.fillWidth: true
+                        height: 8
+                        radius: 4
+                        color: colors_ ? colors_.surfaceContainerHigh : "#312F37"
+                        Rectangle {
+                          width: parent.width * root.statsRamPct
+                          height: parent.height
+                          radius: 4
+                          color: colors_ ? colors_.primary : "#BEE8C7"
+                        }
+                      }
+
+                      Text {
+                        text: root.statsRamStr + " (" + Math.round(root.statsRamPct * 100) + "%)"
+                        color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                        font.family: config ? config.fontFamily : "Roboto"
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                      }
+                    }
+
+                    // Disk usage column
+                    ColumnLayout {
+                      Layout.fillWidth: true
+                      spacing: 4
+
+                      RowLayout {
+                        spacing: 6
+                        Text {
+                          text: "storage"
+                          font.family: config ? config.iconFont : "Material Symbols Outlined"
+                          font.pixelSize: 16
+                          color: colors_ ? colors_.primary : "#BEE8C7"
+                        }
+                        Text {
+                          text: "Disk Storage"
+                          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                          font.family: config ? config.fontFamily : "Roboto"
+                          font.pixelSize: 11
+                          font.weight: Font.Medium
+                        }
+                      }
+
+                      Rectangle {
+                        Layout.fillWidth: true
+                        height: 8
+                        radius: 4
+                        color: colors_ ? colors_.surfaceContainerHigh : "#312F37"
+                        Rectangle {
+                          width: parent.width * root.statsDiskPct
+                          height: parent.height
+                          radius: 4
+                          color: colors_ ? colors_.primary : "#BEE8C7"
+                        }
+                      }
+
+                      Text {
+                        text: root.statsDiskStr + " (" + Math.round(root.statsDiskPct * 100) + "%)"
+                        color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                        font.family: config ? config.fontFamily : "Roboto"
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                      }
                     }
                   }
                 }
@@ -2716,4 +2714,16 @@ PanelWindow {
       }
     }
   }
+
+  ColorDialog {
+    id: colorDialog
+    title: "Pick Accent Color"
+    selectedColor: colors_ ? colors_.primary : "#D0BCFF"
+
+    onAccepted: {
+      var hex = selectedColor.toString().slice(1, 7)
+      Quickshell.execDetached(["/bin/sh", "-c", "/usr/bin/matugen --json hex --type scheme-expressive color hex \"#" + hex + "\" 2>/dev/null | python3 -c \"import json,sys,os;d=json.load(sys.stdin)['colors'];p={'light':{t:m['light']['color'] for t,m in d.items()},'dark':{t:m['dark']['color'] for t,m in d.items()}};os.makedirs(os.path.expanduser('~/.cache/matugen'),exist_ok=True);json.dump({'scheme-expressive':p,'_seed':'picker'},open(os.path.expanduser('~/.cache/matugen/current_palette.json'),'w'))\" && /usr/bin/matugen --type scheme-expressive color hex \"#" + hex + "\" 2>/dev/null && $HOME/.local/bin/generate-all-themes.sh && $HOME/.local/bin/sync-theme-mode.sh auto"])
+    }
+  }
+}
 }

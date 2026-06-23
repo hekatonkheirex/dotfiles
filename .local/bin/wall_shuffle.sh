@@ -18,5 +18,12 @@ while true; do
   # Apply the wallpaper with a smooth transition
   awww img "$SELECTED_WALL" --transition-type center --transition-step 90 --transition-fps 60
 
+  # Regenerate color scheme and themes
+  $HOME/.local/bin/matugen-and-cache.sh "$SELECTED_WALL"
+  $HOME/.local/bin/generate-all-themes.sh
+
+  # Re-evaluate auto theme mode for the new wallpaper
+  $HOME/.local/bin/sync-theme-mode.sh auto
+
   sleep "$INTERVAL"
 done

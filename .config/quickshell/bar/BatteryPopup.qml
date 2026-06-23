@@ -175,7 +175,7 @@ PanelWindow {
         Text {
           text: "Battery"
           color: colors_ ? colors_.fgSurface : "#FFFFFF"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? (config.fontPixelSize + 8) : 18
           font.weight: Font.Bold
         }
@@ -185,7 +185,7 @@ PanelWindow {
           Text {
             text: pct >= 0 ? Math.round(pct) + "%" : "--%"
             color: colors_ ? (pct <= 10 ? colors_.error : colors_.fgSurface) : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 16) : 26
             font.weight: Font.Bold
           }
@@ -195,14 +195,14 @@ PanelWindow {
             Text {
               text: root.stateLabel
               color: colors_ ? (root.charging ? colors_.primary : colors_.fgSurfaceVariant) : "#CAC4D0"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
+              font.family: config ? config.fontFamily : "Roboto"
               font.pixelSize: config ? (config.fontPixelSize + 2) : 12
               font.weight: Font.Medium
             }
             Text {
               text: batteryDevice && batteryDevice.energyCapacity ? batteryDevice.energyCapacity.toFixed(1) + " Wh" : ""
               color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
+              font.family: config ? config.fontFamily : "Roboto"
               font.pixelSize: config ? (config.fontPixelSize + 1) : 11
             }
           }
@@ -227,7 +227,7 @@ PanelWindow {
         Text {
           text: root.timeLabel
           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? (config.fontPixelSize + 1) : 11
           visible: root.timeLabel !== ""
         }
@@ -243,13 +243,13 @@ PanelWindow {
             Text {
               text: root.charging ? "Charge Rate" : "Discharge Rate"
               color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
+              font.family: config ? config.fontFamily : "Roboto"
               font.pixelSize: config ? (config.fontPixelSize + 1) : 11
             }
             Text {
               text: batteryDevice && batteryDevice.changeRate !== undefined ? batteryDevice.changeRate.toFixed(1) + " W" : "-- W"
               color: colors_ ? colors_.fgSurface : "#FFFFFF"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
+              font.family: config ? config.fontFamily : "Roboto"
               font.pixelSize: config ? (config.fontPixelSize + 2) : 12
               font.weight: Font.Medium
             }
@@ -261,13 +261,13 @@ PanelWindow {
             Text {
               text: "Cycle Count"
               color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
+              font.family: config ? config.fontFamily : "Roboto"
               font.pixelSize: config ? (config.fontPixelSize + 1) : 11
             }
             Text {
               text: root.cycles
               color: colors_ ? colors_.fgSurface : "#FFFFFF"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
+              font.family: config ? config.fontFamily : "Roboto"
               font.pixelSize: config ? (config.fontPixelSize + 2) : 12
               font.weight: Font.Medium
             }
@@ -277,7 +277,7 @@ PanelWindow {
         Text {
           text: batteryDevice ? batteryDevice.model || batteryDevice.vendor || "" : ""
           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? (config.fontPixelSize + 1) : 11
         }
       }

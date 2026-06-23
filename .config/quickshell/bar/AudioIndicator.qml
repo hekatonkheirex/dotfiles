@@ -131,7 +131,7 @@ Item {
       if (root.muted) return colors_ ? colors_.error : "#F2B8B5"
       return colors_ ? colors_.primary : "#D0BCFF"
     }
-    font.family: config ? config.fontFamily : "Google Sans Flex"
+    font.family: config ? config.fontFamily : "Roboto"
     font.pixelSize: config ? (config.fontPixelSize - 2) : 8
     font.weight: Font.Medium
     horizontalAlignment: Text.AlignHCenter

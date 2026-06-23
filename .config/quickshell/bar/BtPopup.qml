@@ -174,7 +174,7 @@ PanelWindow {
             Layout.fillWidth: true
             text: "Bluetooth"
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 8) : 18
             font.weight: Font.Bold
           }
@@ -242,7 +242,7 @@ PanelWindow {
             Layout.alignment: Qt.AlignHCenter
             text: "Bluetooth is turned off"
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 4) : 14
             font.weight: Font.Bold
           }
@@ -251,7 +251,7 @@ PanelWindow {
             Layout.alignment: Qt.AlignHCenter
             text: "Enable Bluetooth to view connected devices."
             color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 1) : 11
           }
         }
@@ -283,7 +283,7 @@ PanelWindow {
             visible: btListModel.count === 0 && !listQuery.running
             horizontalAlignment: Text.AlignHCenter
             color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? config.fontPixelSize + 2 : 12
           }
         }
@@ -322,7 +322,7 @@ PanelWindow {
             Layout.fillWidth: true
             text: model.name
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 3) : 13
             font.weight: Font.Medium
             elide: Text.ElideRight
@@ -332,7 +332,7 @@ PanelWindow {
             Layout.fillWidth: true
             text: model.mac
             color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize) : 10
             elide: Text.ElideRight
           }
@@ -346,7 +346,7 @@ PanelWindow {
           Text {
             text: model.battery + "%"
             color: colors_ ? colors_.primary : "#D0BCFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? config.fontPixelSize + 1 : 11
             font.weight: Font.Bold
             anchors.verticalCenter: parent.verticalCenter

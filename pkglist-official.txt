@@ -62,6 +62,7 @@ libva-intel-driver
 linux-firmware
 linux-zen
 linux-zen-headers
+matugen
 mold
 most
 mpv
@@ -78,6 +79,8 @@ noto-fonts-emoji
 noto-fonts-extra
 ntfsprogs
 nwg-look
+obs-studio
+obs-studio-plugin-browser
 opencode
 pacman-contrib
 pacutils
@@ -127,16 +130,17 @@ ttf-ubuntu-font-family
 udiskie
 ufw
 upower
+v4l2loopback-dkms
 vivaldi
 vivaldi-ffmpeg-codecs
 vulkan-headers
+wdisplays
 webp-pixbuf-loader
 wev
 wf-recorder
 wget
 wireplumber
 wlopm
-wlr-randr
 xdg-desktop-portal
 xdg-desktop-portal-gnome
 xdg-desktop-portal-gtk

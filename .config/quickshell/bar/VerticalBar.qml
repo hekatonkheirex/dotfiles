@@ -75,6 +75,9 @@ PanelWindow {
     }
   }
 
+  onExpandProgressChanged: console.log("DEBUG VerticalBar expandProgress changed to: " + expandProgress + ", expanded: " + expanded)
+  onExpandedChanged: console.log("DEBUG VerticalBar expanded changed to: " + expanded)
+
   Timer {
     id: collapseTimer
     interval: 5000
@@ -299,10 +302,13 @@ PanelWindow {
         Item {
           id: systemTrayWrapper
           Layout.preferredWidth: parent.width
-          Layout.preferredHeight: systemTray.Layout.preferredHeight * root.expandProgress
+          Layout.preferredHeight: systemTray.preferredHeight * root.expandProgress
           opacity: root.expandProgress
-          visible: systemTray.visible && (root.expandProgress > 0)
+          visible: systemTray.visibleCount > 0 && (root.expandProgress > 0)
           clip: true
+
+          onHeightChanged: console.log("DEBUG systemTrayWrapper height changed to: " + height + ", visible: " + visible + ", opacity: " + opacity + ", expandProgress: " + root.expandProgress + ", systemTray.visible: " + systemTray.visible + ", systemTray.preferredHeight: " + systemTray.preferredHeight)
+          onVisibleChanged: console.log("DEBUG systemTrayWrapper visible changed to: " + visible + ", height: " + height)
 
           SystemTrayArea {
             id: systemTray
@@ -352,7 +358,7 @@ PanelWindow {
               anchors.topMargin: 20
               text: root.now.toLocaleString(Qt.locale(), "HH:mm")
               color: colors_ ? colors_.primary : "#D0BCFF"
-              font.family: config ? config.fontFamily : "Google Sans Flex"
+              font.family: config ? config.fontFamily : "Roboto"
               font.pixelSize: config ? (config.fontPixelSize + 2) : 12
               font.weight: Font.Bold
               horizontalAlignment: Text.AlignHCenter

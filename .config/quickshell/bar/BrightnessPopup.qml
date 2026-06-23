@@ -141,7 +141,7 @@ PanelWindow {
         Text {
           text: "Brightness"
           color: colors_ ? colors_.fgSurface : "#FFFFFF"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? (config.fontPixelSize + 8) : 18
           font.weight: Font.Bold
         }
@@ -149,7 +149,7 @@ PanelWindow {
         Text {
           text: Math.round(root.pct) + "%"
           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? (config.fontPixelSize + 4) : 14
         }
 

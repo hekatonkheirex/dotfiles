@@ -82,7 +82,7 @@ Item {
         anchors.centerIn: parent
         text: notificationCount > 99 ? "99+" : notificationCount.toString()
         color: colors_ ? colors_.fgError : "#601410"
-        font.family: config ? config.fontFamily : "Google Sans Flex"
+        font.family: config ? config.fontFamily : "Roboto"
         font.pixelSize: config ? (config.fontPixelSize - 3) : 7
         font.weight: Font.Bold
         horizontalAlignment: Text.AlignHCenter

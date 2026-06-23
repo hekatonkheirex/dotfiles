@@ -335,7 +335,7 @@ PanelWindow {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: 16
             clip: true
             focus: true
@@ -466,7 +466,7 @@ PanelWindow {
                 anchors.centerIn: parent
                 text: model.name.charAt(0).toUpperCase()
                 color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                font.family: config ? config.fontFamily : "Google Sans Flex"
+                font.family: config ? config.fontFamily : "Roboto"
                 font.pixelSize: 14
                 font.weight: Font.Medium
                 visible: model.icon === ""
@@ -481,7 +481,7 @@ PanelWindow {
                 Layout.fillWidth: true
                 text: model.name
                 color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                font.family: config ? config.fontFamily : "Google Sans Flex"
+                font.family: config ? config.fontFamily : "Roboto"
                 font.pixelSize: 15
                 font.weight: Font.Medium
                 elide: Text.ElideRight
@@ -491,7 +491,7 @@ PanelWindow {
                 Layout.fillWidth: true
                 text: model.comment || ""
                 color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                font.family: config ? config.fontFamily : "Google Sans Flex"
+                font.family: config ? config.fontFamily : "Roboto"
                 font.pixelSize: 13
                 elide: Text.ElideRight
                 visible: text !== ""

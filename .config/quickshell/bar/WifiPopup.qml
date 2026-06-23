@@ -253,7 +253,7 @@ PanelWindow {
             Layout.fillWidth: true
             text: "Wi-Fi Networks"
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 8) : 18
             font.weight: Font.Bold
           }
@@ -315,7 +315,7 @@ PanelWindow {
             Layout.alignment: Qt.AlignHCenter
             text: "Wi-Fi is turned off"
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 4) : 14
             font.weight: Font.Bold
           }
@@ -324,7 +324,7 @@ PanelWindow {
             Layout.alignment: Qt.AlignHCenter
             text: "Enable Wi-Fi to scan and connect."
             color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? (config.fontPixelSize + 1) : 11
           }
         }
@@ -356,7 +356,7 @@ PanelWindow {
             visible: wifiListModel.count === 0 && !listQuery.running
             horizontalAlignment: Text.AlignHCenter
             color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? config.fontPixelSize + 2 : 12
           }
         }
@@ -364,7 +364,7 @@ PanelWindow {
         Text {
           text: root.statusMessage
           color: colors_ ? colors_.primary : "#D0BCFF"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? config.fontPixelSize + 1 : 11
           wrapMode: Text.Wrap
           width: parent.width
@@ -458,7 +458,7 @@ PanelWindow {
             Layout.fillWidth: true
             text: model.ssid
             color: isCurrent ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.fgSurface : "#FFFFFF")
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? config.fontPixelSize + 2 : 12
             font.weight: isCurrent ? Font.Bold : Font.Normal
             elide: Text.ElideRight
@@ -469,7 +469,7 @@ PanelWindow {
             text: "Connected"
             visible: isCurrent
             color: colors_ ? colors_.primary : "#D0BCFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? config.fontPixelSize : 10
             font.weight: Font.Medium
           }
@@ -478,7 +478,7 @@ PanelWindow {
         Text {
           text: model.signal + "%"
           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Google Sans Flex"
+          font.family: config ? config.fontFamily : "Roboto"
           font.pixelSize: config ? config.fontPixelSize : 10
           Layout.alignment: Qt.AlignVCenter
         }
@@ -533,7 +533,7 @@ PanelWindow {
             }
             verticalAlignment: TextInput.AlignVCenter
             color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? config.fontPixelSize + 2 : 12
             echoMode: TextInput.Password
 
@@ -558,7 +558,7 @@ PanelWindow {
             anchors.centerIn: parent
             text: isCurrent ? "Disconnect" : "Connect"
             color: colors_ ? colors_.fgPrimary : "#0F3C2C"
-            font.family: config ? config.fontFamily : "Google Sans Flex"
+            font.family: config ? config.fontFamily : "Roboto"
             font.pixelSize: config ? config.fontPixelSize + 1 : 11
             font.weight: Font.Bold
           }

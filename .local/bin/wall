@@ -1,8 +1,13 @@
 #!/bin/bash
 
-# Get random image file name
 IMG_NAME=$(ls /home/mura/Pictures/Walls | shuf -n 1)
-# full path to that random image file
 IMG_PATH=/home/mura/Pictures/Walls/$IMG_NAME
-# Command to change wallpaper
-awww img $IMG_PATH --transition-type grow --transition-pos 0,1080 --transition-fps 60 --transition-step 60
+
+awww img "$IMG_PATH" --transition-type grow --transition-pos 0,1080 --transition-fps 60 --transition-step 60
+
+$HOME/.local/bin/matugen-and-cache.sh "$IMG_PATH"
+
+$HOME/.local/bin/generate-all-themes.sh
+
+# Re-evaluate auto theme mode for the new wallpaper
+$HOME/.local/bin/sync-theme-mode.sh auto
