@@ -11,6 +11,12 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Lock screen** with PAM + fingerprint authentication
 - **Notification handling** with history and toasts, styled in Material Design 3
 - **App launcher** with fuzzy search and local offline **voice search** capabilities
+- **Tabbed Command Center / Control Panel**: A multi-functional panel launched via `XF86Tools` featuring:
+  - **Overview tab**: System greeting, profile avatar, active session info, system uptime, clock, date, and sliders
+  - **Media Player tab**: Audio playback widget with wave visualizer animation around album art, dynamic volume adjustment wheel, source mute toggle, device mixer shortcut (`pavucontrol`), and active player switcher (`mpris_monitor.py` IPC)
+  - **Wallpapers tab**: Visual selector grid displaying local wallpapers with auto-scrolling to the active image and a dynamic title naming the selected filename
+  - **Weather tab**: Detailed 5-day weather forecasts and a conditions grid (Feels Like, Humidity, Wind Speed, Pressure, UV Index, Precipitation chance)
+  - **Settings tab**: Quick toggles for alignment layouts, dark/light theme modes, caffeinate/sleep inhibit behavior, and live CPU/Memory/Disk storage diagnostics gauges
 
 ## Project Structure
 
@@ -23,6 +29,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 ├── bar/
 │   ├── VerticalBar.qml        # Main vertical panel — the side bar itself
 │   ├── HorizontalBar.qml      # Main horizontal panel — the top bar itself
+│   ├── CommandCenter.qml      # Centered tabbed command center (Session, Media, Wallpapers, Weather, Settings)
 │   ├── LockScreen.qml         # PAM auth, fingerprint, clock, power buttons (secure binding fixes)
 │   ├── WorkspaceIndicator.qml # Workspace/tag pills (Niri) for vertical mode
 │   ├── HorizontalWorkspaceIndicator.qml # Workspace/tag pills for horizontal mode
@@ -52,9 +59,12 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   └── vosk-model/            # Offline speech recognition acoustic model folder
 ├── scripts/
 │   ├── lock                   # Lock trigger (touches /tmp/qslock-trigger)
+│   ├── commandcenter          # Command Center trigger script (touches /tmp/qscommandcenter-trigger)
 │   ├── idle.sh                # swayidle: dim, lock, display off, suspend
 │   ├── idle.sh.bak            # Previous idle script backup
 │   ├── lid.sh                 # Lid close: lock + suspend
+│   ├── mpris_monitor.py       # Active MPRIS state broadcaster and /tmp/qsmpris-fifo listener
+│   ├── weather.py             # Open-Meteo weather fetcher script
 │   └── voice-search.py        # Local speech transcription via python-vosk
 └── bin/
     └── desktop-parser.py      # .desktop → JSON for launcher
@@ -109,12 +119,13 @@ Both compositors handle lid close via `~/.config/quickshell/scripts/lid.sh`, whi
 
 ## Keybindings
 
-Four keyboard shortcuts are handled by Quickshell:
+Five keyboard shortcuts are handled by Quickshell:
 
 | Key | Action | Mechanism |
 |---|---|---|
 | `SUPER+d` | Toggle app launcher popup | `touch /tmp/qslauncher-trigger` |
 | `SUPER+Escape` | Toggle quick menu (power/logout) | `touch /tmp/qsquickmenu-trigger` |
+| `XF86Tools` | Toggle Command Center popup | `~/.config/quickshell/scripts/commandcenter` |
 | `CTRL+ALT+l` | Lock screen | `~/.config/quickshell/scripts/lock` |
 | `SUPER+Alt+l` (Niri) | Lock screen | `~/.config/quickshell/scripts/lock` |
 
@@ -126,6 +137,7 @@ Any script or keybinding can trigger Quickshell actions by creating these files:
 
 - `/tmp/qslauncher-trigger` — toggles the launcher popup
 - `/tmp/qsquickmenu-trigger` — toggles the quick settings menu
+- `/tmp/qscommandcenter-trigger` — toggles the command center popup (created by `scripts/commandcenter`)
 - `/tmp/qslock-trigger` — activates the lock screen (created by `scripts/lock`)
 
 Quickshell watches for these files via `Process` + `inotifywait` (zero CPU while idle) and responds instantly. The file triggers delegate to `IpcHandler` methods, which can also be invoked directly via `quickshell ipc call shell.<name>`.
@@ -176,6 +188,7 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 | Calendar | Clock click | Month grid with navigation (M3 bordered) |
 | Notifications | `NotificationIndicator` click | M3-compliant card layout list tracked via `modelData` |
 | Quick Menu | `MenuIndicator` click / `SUPER+Escape` | Layout toggle, idle inhibit, dark mode, power (M3 bordered) |
+| Command Center | `XF86Tools` | 5 tabs: Session Overview, Media Player, Wallpapers selection, Weather forecasts, and Settings/System Diagnostics (M3 bordered, 800x600 size) |
 
 ## Configuration
 

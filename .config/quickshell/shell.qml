@@ -112,6 +112,10 @@ ShellRoot {
       bar.openPopup = bar.openPopup === "quickmenu" ? "" : "quickmenu"
     }
 
+    function commandcenter() {
+      bar.openPopup = bar.openPopup === "commandcenter" ? "" : "commandcenter"
+    }
+
   }
 
   FileTrigger {
@@ -122,6 +126,11 @@ ShellRoot {
   FileTrigger {
     triggerFile: "/tmp/qsquickmenu-trigger"
     onTriggered: ipc.quickmenu()
+  }
+
+  FileTrigger {
+    triggerFile: "/tmp/qscommandcenter-trigger"
+    onTriggered: ipc.commandcenter()
   }
 
   NotificationServer {
@@ -312,6 +321,16 @@ ShellRoot {
     margins.top: bar.horizontal
       ? (config ? config.barWidth + 4 : 48)
       : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+  }
+
+  CommandCenter {
+    id: commandCenter
+    colors_: colors
+    config: cfg
+    visible: bar.openPopup === "commandcenter" && !lockScreen.locked
+    onDismissed: bar.openPopup = ""
+    isHorizontal: shell.isHorizontal
+    onToggleHorizontal: shell.toggleLayout()
   }
 
   FileTrigger {
