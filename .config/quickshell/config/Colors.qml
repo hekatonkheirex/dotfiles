@@ -7,7 +7,7 @@ QtObject {
   // 0=system, 1=force-light, 2=force-dark
   property int themePreference: 0
 
-  property bool systemDark: false
+  property bool systemDark: true
 
   property bool darkMode: themePreference === 1 ? false : (themePreference === 2 ? true : systemDark)
 

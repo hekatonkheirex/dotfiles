@@ -348,6 +348,22 @@ ShellRoot {
     onTriggered: osd.show("mic")
   }
 
+  FileTrigger {
+    triggerFile: "/tmp/qsosd-airplane"
+    onTriggered: {
+      console.log("[Antigravity] qsosd-airplane triggered");
+      osd.show("airplane");
+    }
+  }
+
+  FileTrigger {
+    triggerFile: "/tmp/qsosd-bluetooth"
+    onTriggered: {
+      console.log("[Antigravity] qsosd-bluetooth triggered");
+      osd.show("bluetooth");
+    }
+  }
+
   OsdOverlay {
     id: osd
     colors_: colors

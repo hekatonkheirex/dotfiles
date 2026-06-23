@@ -53,11 +53,20 @@ PanelWindow {
     fadeOut.stop()
     hideTimer.restart()
     if (type === "volume") {
+      volQuery.running = false
       volQuery.running = true
     } else if (type === "brightness") {
+      brightQuery.running = false
       brightQuery.running = true
     } else if (type === "mic") {
+      micQuery.running = false
       micQuery.running = true
+    } else if (type === "airplane") {
+      airplaneQuery.running = false
+      airplaneQuery.running = true
+    } else if (type === "bluetooth") {
+      bluetoothQuery.running = false
+      bluetoothQuery.running = true
     }
   }
 
@@ -103,6 +112,33 @@ PanelWindow {
     }
   }
 
+  Process {
+    id: airplaneQuery
+    command: ["sh", "-c", "nmcli radio wifi | grep -q 'disabled' && echo on || echo off"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.muted = text.trim() === "on"
+        root.value = root.muted ? 1 : 0
+        console.log("[Antigravity] airplaneQuery finished. muted:", root.muted, "value:", root.value);
+      }
+    }
+  }
+
+  Process {
+    id: bluetoothQuery
+    command: ["sh", "-c", "bluetoothctl show | grep -q 'Powered: yes' && echo on || echo off"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var on = text.trim() === "on"
+        root.muted = !on
+        root.value = on ? 1 : 0
+        console.log("[Antigravity] bluetoothQuery finished. on:", on, "muted:", root.muted, "value:", root.value);
+      }
+    }
+  }
+
   Rectangle {
     anchors.centerIn: parent
     width: root.width
@@ -121,29 +157,52 @@ PanelWindow {
 
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: root.osdType === "volume" ? (root.muted ? "volume_mute" : "volume_up") :
-              root.osdType === "mic" ? (root.muted ? "mic_off" : "mic") : "brightness_high"
+        text: {
+          if (root.osdType === "volume") return root.muted ? "volume_off" : (root.value <= 0.01 ? "volume_mute" : (root.value <= 0.3 ? "volume_mute" : (root.value <= 0.7 ? "volume_down" : "volume_up")));
+          if (root.osdType === "mic") return root.muted ? "mic_off" : "mic";
+          if (root.osdType === "airplane") return root.muted ? "airplanemode_active" : "airplanemode_inactive";
+          if (root.osdType === "bluetooth") return root.muted ? "bluetooth_disabled" : "bluetooth";
+          return "brightness_high";
+        }
         font.family: config ? config.iconFont : "Material Symbols Outlined"
         font.pixelSize: 28
-        color: root.osdType === "volume" ? (root.muted ? "#F2B8B5" : "#D0BCFF") :
-               root.osdType === "brightness" ? "#FFD580" : "#D0BCFF"
+        color: {
+          if (root.osdType === "volume") return root.muted ? (colors_ ? colors_.error : "#F2B8B5") : (colors_ ? colors_.primary : "#D0BCFF");
+          if (root.osdType === "mic") return root.muted ? (colors_ ? colors_.error : "#F2B8B5") : (colors_ ? colors_.primary : "#D0BCFF");
+          if (root.osdType === "airplane") return root.muted ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0");
+          if (root.osdType === "bluetooth") return root.muted ? (colors_ ? colors_.error : "#F2B8B5") : (colors_ ? colors_.primary : "#D0BCFF");
+          return "#FFD580";
+        }
       }
 
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: root.osdType === "volume" ? "Volume" :
-              root.osdType === "brightness" ? "Brightness" : "Microphone"
+        text: {
+          if (root.osdType === "volume") return "Volume";
+          if (root.osdType === "brightness") return "Brightness";
+          if (root.osdType === "mic") return "Microphone";
+          if (root.osdType === "airplane") return "Airplane Mode";
+          if (root.osdType === "bluetooth") return "Bluetooth";
+          return "";
+        }
         color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
         font.pixelSize: 12
       }
 
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: root.osdType === "mic" ? (root.muted ? "Muted" : "Unmuted") : Math.round(root.value * 100) + "%"
+        text: {
+          if (root.osdType === "mic") return root.muted ? "Muted" : "Unmuted";
+          if (root.osdType === "airplane") return root.muted ? "Enabled" : "Disabled";
+          if (root.osdType === "bluetooth") return root.muted ? "Disabled" : "Enabled";
+          return Math.round(root.value * 100) + "%";
+        }
         color: {
-          if (root.osdType === "mic" && root.muted) return "#F2B8B5"
-          if (root.osdType === "volume" && root.muted) return "#F2B8B5"
-          return colors_ ? colors_.fgSurface : "#FFFFFF"
+          if (root.osdType === "mic" && root.muted) return colors_ ? colors_.error : "#F2B8B5";
+          if (root.osdType === "volume" && root.muted) return colors_ ? colors_.error : "#F2B8B5";
+          if (root.osdType === "bluetooth" && root.muted) return colors_ ? colors_.error : "#F2B8B5";
+          if (root.osdType === "airplane" && root.muted) return colors_ ? colors_.primary : "#D0BCFF";
+          return colors_ ? colors_.fgSurface : "#FFFFFF";
         }
         font.pixelSize: 20
         font.weight: Font.Bold
@@ -161,9 +220,10 @@ PanelWindow {
           height: parent.height
           radius: 2
           color: {
-            if (root.muted && (root.osdType === "volume" || root.osdType === "mic")) return "#F2B8B5"
-            if (root.osdType === "brightness") return "#FFD580"
-            return "#D0BCFF"
+            if (root.muted && (root.osdType === "volume" || root.osdType === "mic")) return colors_ ? colors_.error : "#F2B8B5";
+            if (root.osdType === "bluetooth" && root.muted) return colors_ ? colors_.error : "#F2B8B5";
+            if (root.osdType === "brightness") return "#FFD580";
+            return colors_ ? colors_.primary : "#D0BCFF";
           }
         }
       }

@@ -119,13 +119,15 @@ Both compositors handle lid close via `~/.config/quickshell/scripts/lid.sh`, whi
 
 ## Keybindings
 
-Five keyboard shortcuts are handled by Quickshell:
+Seven keyboard shortcuts are handled by Quickshell:
 
 | Key | Action | Mechanism |
 |---|---|---|
 | `SUPER+d` | Toggle app launcher popup | `touch /tmp/qslauncher-trigger` |
 | `SUPER+Escape` | Toggle quick menu (power/logout) | `touch /tmp/qsquickmenu-trigger` |
 | `XF86Tools` | Toggle Command Center popup | `~/.config/quickshell/scripts/commandcenter` |
+| `XF86WLAN` / `F8` / `Mod+F8` | Toggle Airplane Mode | `nmcli`/`bluetoothctl` toggle + `touch /tmp/qsosd-airplane` |
+| `XF86Bluetooth` / `F10` / `Mod+F10` | Toggle Bluetooth power | `bluetoothctl` toggle + `touch /tmp/qsosd-bluetooth` |
 | `CTRL+ALT+l` | Lock screen | `~/.config/quickshell/scripts/lock` |
 | `SUPER+Alt+l` (Niri) | Lock screen | `~/.config/quickshell/scripts/lock` |
 
@@ -147,6 +149,8 @@ Quickshell watches for these files via `Process` + `inotifywait` (zero CPU while
 - `/tmp/qsosd-vol` — show volume OSD
 - `/tmp/qsosd-bright` — show brightness OSD
 - `/tmp/qsosd-mic` — show mic mute OSD
+- `/tmp/qsosd-airplane` — show airplane mode status OSD
+- `/tmp/qsosd-bluetooth` — show bluetooth status OSD
 
 ## IPC
 

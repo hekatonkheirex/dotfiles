@@ -107,10 +107,27 @@ Item {
     command: ["fprintd-verify", root.username()]
     running: false
 
+    property var startTime: 0
+
+    onRunningChanged: {
+      if (running) {
+        startTime = Date.now()
+      }
+    }
+
     onExited: (exitCode, exitStatus) => {
       if (exitCode === 0 && root.locked && !root.authenticated) {
         root.unlockSession()
       } else if (root.locked && !root.authenticated) {
+        var elapsed = Date.now() - startTime
+        if (elapsed < 1500) {
+          // If the process exited very quickly, the device might be busy,
+          // unplugged, or recovering from sleep. Use a 5s cooldown.
+          fprintdRetry.interval = 5000
+        } else {
+          // Normal retry (e.g. wrong finger scanned).
+          fprintdRetry.interval = 2000
+        }
         fprintdRetry.start()
       }
     }
@@ -118,7 +135,7 @@ Item {
 
   Timer {
     id: fprintdRetry
-    interval: 300
+    interval: 2000
     onTriggered: {
       if (root.locked && !root.authenticated) {
         fprintdProcess.running = true
@@ -157,10 +174,9 @@ Item {
           running: root.locked
         }
 
-
         Rectangle {
           anchors.fill: parent
-          color: Qt.rgba(0, 0, 0, 0.45)
+          color: Qt.rgba(0, 0, 0, 0.15)
         }
 
         Rectangle {
@@ -378,10 +394,9 @@ Item {
         running: root.locked
       }
 
-
       Rectangle {
         anchors.fill: parent
-        color: Qt.rgba(0, 0, 0, 0.45)
+        color: Qt.rgba(0, 0, 0, 0.15)
       }
 
       Rectangle {
