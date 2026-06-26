@@ -23,22 +23,22 @@
     {
       "type": "memory",
       "key": " ",
-      "format": "{used} / {total}",
+      "format": "{1} / {2}",
     },
     {
       "type": "packages",
       "key": " ",
-      "format": "{all} packages",
+      "format": "{1} packages",
     },
     {
       "type": "terminal",
       "key": " ",
-      "format": "{pretty-name}",
+      "format": "{5}",
     },
     {
       "type": "wm",
       "key": " ",
-      "format": "{process-name}",
+      "format": "{1}",
     },
     {
       "type": "custom",

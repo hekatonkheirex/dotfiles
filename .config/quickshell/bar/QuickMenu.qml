@@ -42,7 +42,7 @@ PanelWindow {
   anchors.top: true
   margins.top: Math.max(0, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
 
-  property bool idleOn: false
+  property bool caffeineOn: false
 
   Process {
     id: idleCheck
@@ -50,7 +50,7 @@ PanelWindow {
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
-        root.idleOn = text.trim() !== "active"
+        root.caffeineOn = text.trim() !== "active"
       }
     }
   }
@@ -250,8 +250,8 @@ PanelWindow {
             width: (parent.width - 3 * 12) / 4
             height: width
             radius: 20
-            color: root.idleOn ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.surfaceContainer : "#211F26")
-            border.color: root.idleOn ? "transparent" : (colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15))
+            color: root.caffeineOn ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.surfaceContainer : "#211F26")
+            border.color: root.caffeineOn ? "transparent" : (colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15))
             border.width: 1
 
             Behavior on color {
@@ -266,7 +266,7 @@ PanelWindow {
                 id: idleToggle
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "coffee"
-                color: root.idleOn ? (colors_ ? colors_.fgPrimary : "#0F3C2C") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
+                color: root.caffeineOn ? (colors_ ? colors_.fgPrimary : "#0F3C2C") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
                 font.family: config ? config.iconFont : "Material Symbols Outlined"
                 font.pixelSize: config ? (config.iconSize + 4) : 26
               }
@@ -277,12 +277,12 @@ PanelWindow {
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
               onClicked: {
-                if (root.idleOn) {
+                if (root.caffeineOn) {
                   Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
-                  root.idleOn = false
+                  root.caffeineOn = false
                 } else {
                   Quickshell.execDetached(["killall", "swayidle"])
-                  root.idleOn = true
+                  root.caffeineOn = true
                 }
               }
             }
