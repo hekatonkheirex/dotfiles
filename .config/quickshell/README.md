@@ -12,8 +12,8 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Notification handling** with history and toasts, styled in Material Design 3
 - **App launcher** with fuzzy search and local offline **voice search** capabilities
 - **Tabbed Command Center / Control Panel**: A multi-functional panel launched via `XF86Tools` featuring:
-  - **Overview tab**: System greeting, profile avatar, active session info, system uptime, clock, date, and sliders
-  - **Media Player tab**: Audio playback widget with wave visualizer animation around album art, dynamic volume adjustment wheel, source mute toggle, device mixer shortcut (`pavucontrol`), and active player switcher (`mpris_monitor.py` IPC)
+  - **Overview tab**: System greeting, profile avatar, active session info, system uptime, clock, date, sliders, and a mini media player with a real-time circular waveform visualizer around the album art
+  - **Media Player tab**: Audio playback widget with a real-time **circular waveform visualizer** around the album art (driven by [cava](https://github.com/karlstav/cava) via PipeWire) — a smooth polar waveform that deforms organically with the music, dynamic volume adjustment wheel, source mute toggle, device mixer shortcut (`pavucontrol`), and active player switcher (`mpris_monitor.py` IPC)
   - **Wallpapers tab**: Visual selector grid displaying local wallpapers with auto-scrolling to the active image and a dynamic title naming the selected filename
   - **Weather tab**: Detailed 5-day weather forecasts and a conditions grid (Feels Like, Humidity, Wind Speed, Pressure, UV Index, Precipitation chance)
   - **Settings tab**: Quick toggles for alignment layouts, dark/light theme modes, caffeinate/sleep inhibit behavior, and live CPU/Memory/Disk storage diagnostics gauges
@@ -25,7 +25,8 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 ├── shell.qml                  # Entry point — ShellRoot, IpcHandler, layout toggle, triggers
 ├── config/
 │   ├── Config.qml             # Layout constants, centralized WM detection
-│   └── Colors.qml             # Material Design 3 light/dark theme color tokens
+│   ├── Colors.qml             # Material Design 3 light/dark theme color tokens
+│   └── cava.ini               # cava config for real-time audio visualizer (24 bars, 30fps, raw ASCII output)
 ├── bar/
 │   ├── VerticalBar.qml        # Main vertical panel — the side bar itself
 │   ├── HorizontalBar.qml      # Main horizontal panel — the top bar itself
@@ -53,7 +54,8 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── NotificationIndicator.qml # Notifications counter (orientation-aware)
 │   ├── NotificationPopup.qml  # M3 notification history popup list
 │   ├── NotificationToast.qml  # M3 notification toast banner
-│   └── WallpaperChanger.qml   # Periodic wallpaper rotation
+│   ├── WallpaperChanger.qml   # Periodic wallpaper rotation
+│   └── WaveProgressBar.qml    # Reusable wavy progress bar canvas (progress, lineWidth, dotRadius, trackLineWidth)
 ├── resources/
 │   ├── lock_bg.png            # Lock screen background wallpaper
 │   └── vosk-model/            # Offline speech recognition acoustic model folder
@@ -245,6 +247,7 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 - **ImageMagick** — wallpaper brightness detection for auto mode
 - **kvantummanager** — Kvantum theme switching
 - **awww** — wallpaper daemon
+- **cava** — real-time audio visualizer (raw ASCII output consumed by the Command Center waveform)
 
 ---
 

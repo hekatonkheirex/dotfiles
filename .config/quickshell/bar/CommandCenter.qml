@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Window
 import QtQuick.Dialogs
+import QtQuick.Effects
 import Quickshell.Services.UPower
 import Quickshell
 import Quickshell.Wayland
@@ -35,6 +36,34 @@ PanelWindow {
   property string weatherPressure: "--"
   property string weatherUV: "--"
   property string weatherPrecipChance: "--%"
+  property var weatherHourly: []
+
+  // Helper functions to map weather description to Material Symbols Rounded and beautiful colors
+  function getMaterialIcon(desc) {
+    var d = (desc || "").toLowerCase();
+    if (d.indexOf("clear") !== -1) return "sunny";
+    if (d.indexOf("partly") !== -1 || d.indexOf("mainly") !== -1) return "partly_cloudy_day";
+    if (d.indexOf("cloudy") !== -1 || d.indexOf("overcast") !== -1) return "cloud";
+    if (d.indexOf("fog") !== -1) return "foggy";
+    if (d.indexOf("drizzle") !== -1 || d.indexOf("shower") !== -1) return "rainy";
+    if (d.indexOf("rain") !== -1) return "rainy";
+    if (d.indexOf("snow") !== -1) return "snowing";
+    if (d.indexOf("thunder") !== -1) return "thunderstorm";
+    return "sunny";
+  }
+
+  function getMaterialColor(desc) {
+    var d = (desc || "").toLowerCase();
+    if (d.indexOf("clear") !== -1) return "#FFB703"; // warm amber
+    if (d.indexOf("partly") !== -1 || d.indexOf("mainly") !== -1) return "#90CAF9"; // soft blue
+    if (d.indexOf("cloudy") !== -1 || d.indexOf("overcast") !== -1) return "#B0BEC5"; // grey-blue
+    if (d.indexOf("fog") !== -1) return "#CFD8DC"; // light grey
+    if (d.indexOf("drizzle") !== -1 || d.indexOf("shower") !== -1) return "#4FC3F7"; // light rain
+    if (d.indexOf("rain") !== -1) return "#29B6F6"; // rain blue
+    if (d.indexOf("snow") !== -1) return "#E0F7FA"; // snowy white-cyan
+    if (d.indexOf("thunder") !== -1) return "#AB47BC"; // thunderstorm purple
+    return "#FFB703";
+  }
 
   // MPRIS Media properties
   property string mprisStatus: "NoPlayer"
@@ -47,6 +76,7 @@ PanelWindow {
 
   // Track elapsed seconds
   property int elapsedSeconds: 0
+  property var cavaBarValues: []
 
   // Reset elapsed time when track changes
   onMprisTitleChanged: {
@@ -432,7 +462,7 @@ PanelWindow {
 
   implicitWidth: 800
   visible: false
-  implicitHeight: 600
+  implicitHeight: 606
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-popup"
@@ -447,7 +477,7 @@ PanelWindow {
   anchors.top: true
   margins.top: (desktopH - implicitHeight) / 2
 
-  property bool idleOn: false
+  property bool caffeineOn: false
 
   // Find wallpapers on start
   Process {
@@ -465,6 +495,13 @@ PanelWindow {
         root.wallpapersList = arr;
       }
     }
+  }
+
+  // Pre-generate wallpaper thumbnails on start
+  Process {
+    id: genWallpapersThumbsProc
+    command: [Quickshell.env("HOME") + "/.config/quickshell/scripts/generate-thumbnails.sh"]
+    running: true
   }
 
   // Uptime Process
@@ -510,6 +547,7 @@ PanelWindow {
           root.weatherUV = info.uv_index;
           root.weatherPrecipChance = info.precipitation_chance;
           root.weatherForecast = info.forecast;
+          root.weatherHourly = info.hourly;
         } catch (e) {
           // Parse error
         }
@@ -566,12 +604,52 @@ PanelWindow {
   }
 
   Process {
+    id: cavaProcess
+    command: ["cava", "-p", Quickshell.env("HOME") + "/.config/quickshell/config/cava.ini"]
+    running: root.visible && (root.currentTab === 0 || root.currentTab === 1)
+    stdout: SplitParser {
+      onRead: function(data) {
+        var parts = data.trim().split(";");
+        var vals = [];
+        for (var i = 0; i < parts.length; i++) {
+          var n = parseInt(parts[i]);
+          if (!isNaN(n)) vals.push(n);
+        }
+        if (vals.length === 0) return;
+        var prev = root.cavaBarValues;
+        if (prev && prev.length === vals.length) {
+          var smoothed = [];
+          for (var j = 0; j < vals.length; j++)
+            smoothed.push(prev[j] * 0.4 + vals[j] * 0.6);
+          root.cavaBarValues = smoothed;
+        } else {
+          root.cavaBarValues = vals;
+        }
+      }
+    }
+    onRunningChanged: {
+      if (!running) {
+        root.cavaBarValues = [];
+        if (root.visible && root.currentTab === 1) cavaRetry.start();
+      }
+    }
+  }
+
+  Timer {
+    id: cavaRetry
+    interval: 2000
+    onTriggered: {
+      if (root.visible && root.currentTab === 1) cavaProcess.running = true;
+    }
+  }
+
+  Process {
     id: idleCheck
     command: ["sh", "-c", "pgrep -x swayidle >/dev/null 2>&1 && echo active || echo inactive"]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
-        root.idleOn = text.trim() !== "active"
+        root.caffeineOn = text.trim() !== "active"
       }
     }
   }
@@ -667,17 +745,16 @@ PanelWindow {
           fill: parent
           margins: 24
         }
-        spacing: 16
+        spacing: 12
 
         // Tab Bar (DankMaterialShell centered vertical icon-label design)
         Item {
           width: parent.width
-          height: 56
+          height: 64
 
-          Row {
-            anchors.horizontalCenter: parent.horizontalCenter
-            height: parent.height
-            spacing: 28
+          RowLayout {
+            anchors.fill: parent
+            spacing: 0
 
             Repeater {
               model: [
@@ -692,8 +769,8 @@ PanelWindow {
                 required property var modelData
                 required property int index
 
-                width: 72
-                height: 56
+                Layout.fillWidth: true
+                Layout.fillHeight: true
 
                 Column {
                   anchors.centerIn: parent
@@ -703,7 +780,7 @@ PanelWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: modelData.icon
                     font.family: config ? config.iconFont : "Material Symbols Outlined"
-                    font.pixelSize: 22
+                    font.pixelSize: 28
                     color: root.currentTab === index ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
 
                     Behavior on color { ColorAnimation { duration: 150 } }
@@ -713,7 +790,7 @@ PanelWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: modelData.label
                     font.family: config ? config.fontFamily : "Roboto"
-                    font.pixelSize: 11
+                    font.pixelSize: 13
                     font.weight: Font.Medium
                     color: root.currentTab === index ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
 
@@ -723,7 +800,7 @@ PanelWindow {
 
                 // Active indicator line below the text
                 Rectangle {
-                  width: 32
+                  width: 48
                   height: 3
                   radius: 1.5
                   color: colors_ ? colors_.primary : "#BEE8C7"
@@ -826,9 +903,11 @@ PanelWindow {
                   spacing: 8
 
                   Text {
-                    text: root.weatherIcon
+                    text: getMaterialIcon(root.weatherDesc)
                     anchors.horizontalCenter: parent.horizontalCenter
+                    font.family: "Material Symbols Rounded"
                     font.pixelSize: 64
+                    color: getMaterialColor(root.weatherDesc)
                     verticalAlignment: Text.AlignVCenter
                   }
 
@@ -873,14 +952,14 @@ PanelWindow {
 
                   Row {
                     anchors.centerIn: parent
-                    spacing: 12
+                    spacing: 16
 
                     Rectangle {
-                      width: 56
-                      height: 56
-                      radius: 28
+                      id: profilePicContainer
+                      width: 72
+                      height: 72
+                      radius: 36
                       color: colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
-                      clip: true
                       anchors.verticalCenter: parent.verticalCenter
 
                       Image {
@@ -888,12 +967,25 @@ PanelWindow {
                         source: "file://" + Quickshell.env("HOME") + "/.face.icon"
                         anchors.fill: parent
                         fillMode: Image.PreserveAspectCrop
-                        onStatusChanged: {
-                          if (status === Image.Error) {
-                            fallbackPicCC.visible = true
-                            profilePicCC.visible = false
-                          }
-                        }
+                        visible: false
+                      }
+
+                      Rectangle {
+                        id: profileMaskCC
+                        anchors.fill: parent
+                        radius: 36
+                        color: "black"
+                        visible: false
+                        layer.enabled: true
+                      }
+
+                      MultiEffect {
+                        id: profilePicEffect
+                        anchors.fill: parent
+                        source: profilePicCC
+                        visible: profilePicCC.status === Image.Ready
+                        maskEnabled: true
+                        maskSource: profileMaskCC
                       }
 
                       Text {
@@ -901,55 +993,55 @@ PanelWindow {
                         anchors.centerIn: parent
                         text: "person"
                         font.family: config ? config.iconFont : "Material Symbols Outlined"
-                        font.pixelSize: 28
+                        font.pixelSize: 36
                         color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                        visible: false
+                        visible: profilePicCC.status !== Image.Ready
                       }
                     }
 
                     Column {
                       anchors.verticalCenter: parent.verticalCenter
-                      spacing: 4
+                      spacing: 6
 
                       Text {
                         text: Quickshell.env("USER") || "User"
                         color: colors_ ? colors_.fgSurface : "#FFFFFF"
                         font.family: config ? config.fontFamily : "Roboto"
-                        font.pixelSize: 15
+                        font.pixelSize: 18
                         font.weight: Font.Bold
                       }
 
                       Row {
-                        spacing: 4
+                        spacing: 6
                         Text {
                           text: "navigation"
                           font.family: config ? config.iconFont : "Material Symbols Outlined"
-                          font.pixelSize: 12
+                          font.pixelSize: 14
                           color: colors_ ? colors_.primary : "#BEE8C7"
                         }
                         Text {
                           text: "on niri"
                           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
                           font.family: config ? config.fontFamily : "Roboto"
-                          font.pixelSize: 11
+                          font.pixelSize: 13
                         }
                       }
 
                       Row {
-                        spacing: 4
+                        spacing: 6
                         Text {
                           text: "schedule"
                           font.family: config ? config.iconFont : "Material Symbols Outlined"
-                          font.pixelSize: 12
+                          font.pixelSize: 14
                           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
                         }
                         Text {
                           text: root.uptimeText.replace("up ", "")
                           color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
                           font.family: config ? config.fontFamily : "Roboto"
-                          font.pixelSize: 11
+                          font.pixelSize: 13
                           elide: Text.ElideRight
-                          width: 80
+                          width: 120
                         }
                       }
                     }
@@ -1096,10 +1188,10 @@ PanelWindow {
                 // Rotating cover art blob
                 Item {
                   id: miniCoverArtContainer
-                  width: 110
-                  height: 110
+                  width: 160
+                  height: 160
                   anchors.horizontalCenter: parent.horizontalCenter
-                  
+
                   SequentialAnimation on scale {
                     loops: Animation.Infinite
                     running: root.visible && root.mprisStatus === "Playing"
@@ -1107,99 +1199,64 @@ PanelWindow {
                     NumberAnimation { to: 0.96; duration: 450; easing.type: Easing.InOutQuad }
                   }
 
-                  // Outer visualizer outline
-                  Rectangle {
-                    width: 104
-                    height: 104
-                    anchors.centerIn: parent
-                    color: "transparent"
-                    border.color: colors_ ? Qt.rgba(colors_.primary.r, colors_.primary.g, colors_.primary.b, 0.4) : "#80BEE8C7"
-                    border.width: 2
-                    
-                    topLeftRadius: 40
-                    topRightRadius: 52
-                    bottomLeftRadius: 44
-                    bottomRightRadius: 48
+                  Canvas {
+                    id: miniVizCanvas
+                    anchors.fill: parent
 
-                    RotationAnimation on rotation {
-                      from: 0
-                      to: -360
-                      duration: 15000
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
+                    Connections {
+                      target: root
+                      function onCavaBarValuesChanged() { miniVizCanvas.requestPaint() }
                     }
 
-                    SequentialAnimation on topLeftRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 52; duration: 1400; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 40; duration: 1200; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on topRightRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 38; duration: 1300; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 52; duration: 1500; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on bottomLeftRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 50; duration: 1500; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 40; duration: 1100; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on bottomRightRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 42; duration: 1100; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 50; duration: 1300; easing.type: Easing.InOutSine }
-                    }
-                  }
+                    onPaint: {
+                      var ctx = getContext("2d");
+                      ctx.clearRect(0, 0, width, height);
+                      var bars = root.cavaBarValues;
+                      if (!bars || bars.length === 0) return;
 
-                  // Inner visualizer outline
-                  Rectangle {
-                    width: 96
-                    height: 96
-                    anchors.centerIn: parent
-                    color: "transparent"
-                    border.color: colors_ ? colors_.primary : "#BEE8C7"
-                    border.width: 2.5
-                    
-                    topLeftRadius: 48
-                    topRightRadius: 36
-                    bottomLeftRadius: 46
-                    bottomRightRadius: 44
+                      var cx = width / 2;
+                      var cy = height / 2;
+                      var n = bars.length;
+                      var baseR = 48;
+                      var maxExtend = 28;
+                      var steps = 120;
 
-                    RotationAnimation on rotation {
-                      from: 0
-                      to: 360
-                      duration: 10000
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                    }
+                      var primary = colors_ ? colors_.primary : Qt.rgba(0.66, 0.78, 1, 1);
+                      var r = Math.round(primary.r * 255);
+                      var g = Math.round(primary.g * 255);
+                      var b = Math.round(primary.b * 255);
 
-                    SequentialAnimation on topLeftRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 38; duration: 900; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 48; duration: 1100; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on topRightRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 46; duration: 1000; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 36; duration: 900; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on bottomLeftRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 35; duration: 1100; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 46; duration: 800; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on bottomRightRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 48; duration: 800; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 36; duration: 1200; easing.type: Easing.InOutSine }
+                      var maxVal = 0;
+                      for (var k = 0; k < n; k++) maxVal = Math.max(maxVal, bars[k]);
+                      var intensity = maxVal / 100.0;
+
+                      ctx.beginPath();
+                      for (var s = 0; s <= steps; s++) {
+                        var angle = (s / steps) * 2 * Math.PI - Math.PI / 2;
+                        var binFloat = (s / steps) * n;
+                        var bin0 = Math.floor(binFloat) % n;
+                        var bin1 = (bin0 + 1) % n;
+                        var t = binFloat - Math.floor(binFloat);
+                        t = (1 - Math.cos(t * Math.PI)) / 2;
+                        var val = (bars[bin0] * (1 - t) + bars[bin1] * t) / 100.0;
+                        var radius = baseR + val * maxExtend;
+                        var x = cx + radius * Math.cos(angle);
+                        var y = cy + radius * Math.sin(angle);
+                        if (s === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                      }
+                      ctx.closePath();
+
+                      var grad = ctx.createRadialGradient(cx, cy, baseR * 0.6, cx, cy, baseR + maxExtend);
+                      grad.addColorStop(0, "rgba(" + r + "," + g + "," + b + "," + (intensity * 0.45).toFixed(2) + ")");
+                      grad.addColorStop(1, "rgba(" + r + "," + g + "," + b + ",0.0)");
+                      ctx.fillStyle = grad;
+                      ctx.fill();
+
+                      ctx.strokeStyle = "rgba(" + r + "," + g + "," + b + "," + (0.3 + intensity * 0.6).toFixed(2) + ")";
+                      ctx.lineWidth = 2;
+                      ctx.lineJoin = "round";
+                      ctx.stroke();
                     }
                   }
 
@@ -1260,47 +1317,15 @@ PanelWindow {
                   }
                 }
 
-                // Wavy progress canvas
-                Canvas {
-                  id: miniWaveCanvas
+                WaveProgressBar {
                   width: parent.width - 12
-                  height: 16
                   anchors.horizontalCenter: parent.horizontalCenter
-                  property real progress: root.mprisLengthSec > 0 ? (root.elapsedSeconds / root.mprisLengthSec) : 0.0
-
-                  onProgressChanged: requestPaint()
-                  onWidthChanged: requestPaint()
-
-                  onPaint: {
-                    var ctx = getContext("2d");
-                    ctx.clearRect(0, 0, width, height);
-                    var midY = height / 2;
-                    
-                    var limitX = width * progress;
-                    ctx.beginPath();
-                    ctx.lineWidth = 2.5;
-                    ctx.strokeStyle = colors_ ? colors_.primary : "#BEE8C7";
-                    for (var x = 0; x <= limitX; x++) {
-                      var y = midY + Math.sin(x * 0.15) * 3;
-                      if (x === 0) ctx.moveTo(x, y);
-                      else ctx.lineTo(x, y);
-                    }
-                    ctx.stroke();
-
-                    if (progress > 0 && progress < 1) {
-                      ctx.beginPath();
-                      ctx.fillStyle = colors_ ? colors_.primary : "#BEE8C7";
-                      ctx.arc(limitX, midY + Math.sin(limitX * 0.15) * 3, 4, 0, 2 * Math.PI);
-                      ctx.fill();
-                    }
-
-                    ctx.beginPath();
-                    ctx.lineWidth = 1.5;
-                    ctx.strokeStyle = colors_ ? colors_.surfaceContainerHighest : "#3C3A43";
-                    ctx.moveTo(limitX, midY);
-                    ctx.lineTo(width, midY);
-                    ctx.stroke();
-                  }
+                  progress: root.mprisLengthSec > 0 ? (root.elapsedSeconds / root.mprisLengthSec) : 0.0
+                  activeColor: colors_ ? colors_.primary : "#BEE8C7"
+                  trackColor: colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
+                  lineWidth: 2.5
+                  dotRadius: 4
+                  trackLineWidth: 1.5
                 }
 
                 // Playback Controls Row
@@ -1325,7 +1350,7 @@ PanelWindow {
                       anchors.fill: parent
                       cursorShape: Qt.PointingHandCursor
                       onClicked: {
-                        Quickshell.execDetached(["/home/mura/.config/quickshell/scripts/mpris_control.py", "prev"])
+                        Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "prev"])
                       }
                     }
                   }
@@ -1347,7 +1372,7 @@ PanelWindow {
                       anchors.fill: parent
                       cursorShape: Qt.PointingHandCursor
                       onClicked: {
-                        Quickshell.execDetached(["/home/mura/.config/quickshell/scripts/mpris_control.py", "play"])
+                        Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
                       }
                     }
                   }
@@ -1369,7 +1394,7 @@ PanelWindow {
                       anchors.fill: parent
                       cursorShape: Qt.PointingHandCursor
                       onClicked: {
-                        Quickshell.execDetached(["/home/mura/.config/quickshell/scripts/mpris_control.py", "next"])
+                        Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "next"])
                       }
                     }
                   }
@@ -1392,6 +1417,7 @@ PanelWindow {
               visible: root.mprisArtUrl !== ""
             }
 
+
             // Central Media Player Layout
             ColumnLayout {
               anchors.centerIn: parent
@@ -1401,172 +1427,70 @@ PanelWindow {
               // Centered Album Art & Rotating Wave outline
               Item {
                 Layout.alignment: Qt.AlignHCenter
-                width: 170
-                height: 170
+                width: 280
+                height: 280
 
-                // Morphing rotating organic border outline
-                Rectangle {
-                  id: wavyOutline
-                  width: 164
-                  height: 164
-                  anchors.centerIn: parent
-                  color: "transparent"
-                  
-                  SequentialAnimation on scale {
-                    loops: Animation.Infinite
-                    running: root.visible && root.mprisStatus === "Playing"
-                    NumberAnimation { to: 1.03; duration: 350; easing.type: Easing.OutQuad }
-                    NumberAnimation { to: 0.97; duration: 450; easing.type: Easing.InOutQuad }
+                Canvas {
+                  id: vizCanvas
+                  anchors.fill: parent
+
+                  Connections {
+                    target: root
+                    function onCavaBarValuesChanged() { vizCanvas.requestPaint() }
                   }
 
-                  // Layer 1: Outer Morphing border
-                  Rectangle {
-                    width: 160
-                    height: 160
-                    anchors.centerIn: parent
-                    color: "transparent"
-                    border.color: colors_ ? Qt.rgba(colors_.primary.r, colors_.primary.g, colors_.primary.b, 0.3) : "#40BEE8C7"
-                    border.width: 2
-                    
-                    topLeftRadius: 65
-                    topRightRadius: 75
-                    bottomLeftRadius: 70
-                    bottomRightRadius: 60
+                  onPaint: {
+                    var ctx = getContext("2d");
+                    ctx.clearRect(0, 0, width, height);
+                    var bars = root.cavaBarValues;
+                    if (!bars || bars.length === 0) return;
 
-                    RotationAnimation on rotation {
-                      from: 0
-                      to: -360
-                      duration: 18000
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                    }
+                    var cx = width / 2;
+                    var cy = height / 2;
+                    var n = bars.length;
+                    var baseR = 74;
+                    var maxExtend = 56;
+                    var steps = 180;
 
-                    SequentialAnimation on topLeftRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 82; duration: 1500; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 60; duration: 1300; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on topRightRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 58; duration: 1400; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 82; duration: 1600; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on bottomLeftRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 78; duration: 1600; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 62; duration: 1200; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on bottomRightRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 64; duration: 1200; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 78; duration: 1400; easing.type: Easing.InOutSine }
-                    }
-                  }
+                    var primary = colors_ ? colors_.primary : Qt.rgba(0.66, 0.78, 1, 1);
+                    var r = Math.round(primary.r * 255);
+                    var g = Math.round(primary.g * 255);
+                    var b = Math.round(primary.b * 255);
 
-                  // Layer 2: Middle Morphing border
-                  Rectangle {
-                    width: 152
-                    height: 152
-                    anchors.centerIn: parent
-                    color: "transparent"
-                    border.color: colors_ ? Qt.rgba(colors_.primary.r, colors_.primary.g, colors_.primary.b, 0.6) : "#80BEE8C7"
-                    border.width: 2.5
-                    
-                    topLeftRadius: 72
-                    topRightRadius: 62
-                    bottomLeftRadius: 66
-                    bottomRightRadius: 70
+                    var maxVal = 0;
+                    for (var k = 0; k < n; k++) maxVal = Math.max(maxVal, bars[k]);
+                    var intensity = maxVal / 100.0;
 
-                    RotationAnimation on rotation {
-                      from: 0
-                      to: 360
-                      duration: 13000
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
+                    ctx.beginPath();
+                    for (var s = 0; s <= steps; s++) {
+                      var angle = (s / steps) * 2 * Math.PI - Math.PI / 2;
+                      var binFloat = (s / steps) * n;
+                      var bin0 = Math.floor(binFloat) % n;
+                      var bin1 = (bin0 + 1) % n;
+                      var t = binFloat - Math.floor(binFloat);
+                      t = (1 - Math.cos(t * Math.PI)) / 2;
+                      var val = (bars[bin0] * (1 - t) + bars[bin1] * t) / 100.0;
+                      var radius = baseR + val * maxExtend;
+                      var x = cx + radius * Math.cos(angle);
+                      var y = cy + radius * Math.sin(angle);
+                      if (s === 0) ctx.moveTo(x, y);
+                      else ctx.lineTo(x, y);
                     }
+                    ctx.closePath();
 
-                    SequentialAnimation on topLeftRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 58; duration: 1100; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 76; duration: 1300; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on topRightRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 72; duration: 1200; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 56; duration: 1000; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on bottomLeftRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 54; duration: 1300; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 72; duration: 900; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on bottomRightRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 74; duration: 1000; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 58; duration: 1200; easing.type: Easing.InOutSine }
-                    }
-                  }
+                    var grad = ctx.createRadialGradient(cx, cy, baseR * 0.6, cx, cy, baseR + maxExtend);
+                    grad.addColorStop(0, "rgba(" + r + "," + g + "," + b + "," + (intensity * 0.45).toFixed(2) + ")");
+                    grad.addColorStop(1, "rgba(" + r + "," + g + "," + b + ",0.0)");
+                    ctx.fillStyle = grad;
+                    ctx.fill();
 
-                  // Layer 3: Inner Morphing border (responsive)
-                  Rectangle {
-                    width: 144
-                    height: 144
-                    anchors.centerIn: parent
-                    color: "transparent"
-                    border.color: colors_ ? colors_.primary : "#BEE8C7"
-                    border.width: 3.5
-                    
-                    topLeftRadius: 78
-                    topRightRadius: 68
-                    bottomLeftRadius: 62
-                    bottomRightRadius: 82
-
-                    RotationAnimation on rotation {
-                      from: 0
-                      to: -360
-                      duration: 9000
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                    }
-
-                    SequentialAnimation on topLeftRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 55; duration: 900; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 78; duration: 1100; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 65; duration: 800; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on topRightRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 72; duration: 1000; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 50; duration: 900; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 68; duration: 1200; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on bottomLeftRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 65; duration: 1100; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 52; duration: 800; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 75; duration: 1000; easing.type: Easing.InOutSine }
-                    }
-                    SequentialAnimation on bottomRightRadius {
-                      loops: Animation.Infinite
-                      running: root.visible && root.mprisStatus === "Playing"
-                      NumberAnimation { to: 58; duration: 800; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 82; duration: 1200; easing.type: Easing.InOutSine }
-                      NumberAnimation { to: 62; duration: 900; easing.type: Easing.InOutSine }
-                    }
+                    ctx.strokeStyle = "rgba(" + r + "," + g + "," + b + "," + (0.3 + intensity * 0.6).toFixed(2) + ")";
+                    ctx.lineWidth = 2.5;
+                    ctx.lineJoin = "round";
+                    ctx.stroke();
                   }
                 }
+
 
                 // Album Art Circular view
                 Rectangle {
@@ -1640,46 +1564,15 @@ PanelWindow {
                   font.pixelSize: 11
                 }
 
-                // Wavy progress canvas
-                Canvas {
-                  id: mediaWaveCanvas
+                WaveProgressBar {
                   Layout.fillWidth: true
                   Layout.preferredHeight: 16
-                  property real progress: root.mprisLengthSec > 0 ? (root.elapsedSeconds / root.mprisLengthSec) : 0.0
-
-                  onProgressChanged: requestPaint()
-                  onWidthChanged: requestPaint()
-
-                  onPaint: {
-                    var ctx = getContext("2d");
-                    ctx.clearRect(0, 0, width, height);
-                    var midY = height / 2;
-                    
-                    var limitX = width * progress;
-                    ctx.beginPath();
-                    ctx.lineWidth = 3;
-                    ctx.strokeStyle = colors_ ? colors_.primary : "#BEE8C7";
-                    for (var x = 0; x <= limitX; x++) {
-                      var y = midY + Math.sin(x * 0.15) * 3;
-                      if (x === 0) ctx.moveTo(x, y);
-                      else ctx.lineTo(x, y);
-                    }
-                    ctx.stroke();
-
-                    if (progress > 0 && progress < 1) {
-                      ctx.beginPath();
-                      ctx.fillStyle = colors_ ? colors_.primary : "#BEE8C7";
-                      ctx.arc(limitX, midY + Math.sin(limitX * 0.15) * 3, 5, 0, 2 * Math.PI);
-                      ctx.fill();
-                    }
-
-                    ctx.beginPath();
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = colors_ ? colors_.surfaceContainerHighest : "#3C3A43";
-                    ctx.moveTo(limitX, midY);
-                    ctx.lineTo(width, midY);
-                    ctx.stroke();
-                  }
+                  progress: root.mprisLengthSec > 0 ? (root.elapsedSeconds / root.mprisLengthSec) : 0.0
+                  activeColor: colors_ ? colors_.primary : "#BEE8C7"
+                  trackColor: colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
+                  lineWidth: 3
+                  dotRadius: 5
+                  trackLineWidth: 2
                 }
 
                 Text {
@@ -1714,7 +1607,7 @@ PanelWindow {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                      Quickshell.execDetached(["/home/mura/.config/quickshell/scripts/mpris_control.py", "prev"])
+                      Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "prev"])
                     }
                   }
                 }
@@ -1738,7 +1631,7 @@ PanelWindow {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                      Quickshell.execDetached(["/home/mura/.config/quickshell/scripts/mpris_control.py", "play"])
+                      Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
                     }
                   }
                 }
@@ -1762,7 +1655,7 @@ PanelWindow {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                      Quickshell.execDetached(["/home/mura/.config/quickshell/scripts/mpris_control.py", "next"])
+                      Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "next"])
                     }
                   }
                 }
@@ -1911,11 +1804,18 @@ PanelWindow {
                   border.color: isCurrent || wallDelegateMouse.containsMouse ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1))
 
                   Image {
-                    source: "file://" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData
+                    id: wallThumb
+                    source: "file://" + Quickshell.env("HOME") + "/.cache/quickshell/wallpaper-thumbs/" + modelData
                     sourceSize.width: 200
                     sourceSize.height: 130
                     anchors.fill: parent
                     fillMode: Image.PreserveAspectCrop
+
+                    onStatusChanged: {
+                      if (status === Image.Error && source !== "file://" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData) {
+                        source = "file://" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData;
+                      }
+                    }
                   }
 
                   // Selected checkmark badge
@@ -1961,58 +1861,147 @@ PanelWindow {
             spacing: 12
             visible: root.currentTab === 3
 
-            // Current Weather Summary Card
-            Rectangle {
+            // Top Row: Current Weather & Hourly Forecast
+            RowLayout {
               Layout.fillWidth: true
-              Layout.preferredHeight: 100
-              radius: 16
-              color: colors_ ? colors_.surfaceContainer : "#25232A"
-              border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
-              border.width: 1
+              Layout.preferredHeight: 115
+              spacing: 12
 
-              RowLayout {
-                anchors.fill: parent
-                anchors.margins: 14
-                spacing: 20
+              // Current Weather Summary Card
+              Rectangle {
+                Layout.preferredWidth: 260
+                Layout.fillHeight: true
+                radius: 16
+                color: colors_ ? colors_.surfaceContainer : "#25232A"
+                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                border.width: 1
+
+                RowLayout {
+                  anchors.centerIn: parent
+                  spacing: 16
+
+                  Text {
+                    text: getMaterialIcon(root.weatherDesc)
+                    font.family: "Material Symbols Rounded"
+                    font.pixelSize: 82
+                    color: getMaterialColor(root.weatherDesc)
+                    Layout.alignment: Qt.AlignVCenter
+                  }
+
+                  ColumnLayout {
+                    spacing: 1
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+
+                    Text {
+                      text: root.weatherTemp
+                      color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                      font.family: config ? config.fontFamily : "Roboto"
+                      font.pixelSize: 32
+                      font.weight: Font.Bold
+                    }
+
+                    Text {
+                      text: root.weatherDesc
+                      color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                      font.family: config ? config.fontFamily : "Roboto"
+                      font.pixelSize: 15
+                      font.weight: Font.Medium
+                      elide: Text.ElideRight
+                    }
+
+                    Text {
+                      text: root.weatherCity || "Location Auto"
+                      color: colors_ ? Qt.rgba(colors_.fgSurfaceVariant.r, colors_.fgSurfaceVariant.g, colors_.fgSurfaceVariant.b, 0.5) : "#70CAC4D0"
+                      font.family: config ? config.fontFamily : "Roboto"
+                      font.pixelSize: 11
+                    }
+                  }
+                }
+              }
+
+              // Hourly Forecast Card
+              Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: 16
+                color: colors_ ? colors_.surfaceContainer : "#25232A"
+                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                border.width: 1
 
                 Text {
-                  text: root.weatherIcon
-                  font.pixelSize: 56
-                  Layout.alignment: Qt.AlignVCenter
+                  anchors.centerIn: parent
+                  text: "Loading hourly forecast..."
+                  color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                  font.family: config ? config.fontFamily : "Roboto"
+                  font.pixelSize: 12
+                  visible: !root.weatherHourly || root.weatherHourly.length === 0
                 }
 
                 ColumnLayout {
-                  spacing: 2
-                  Layout.fillWidth: true
-                  Layout.alignment: Qt.AlignVCenter
+                  anchors.fill: parent
+                  anchors.margins: 12
+                  spacing: 4
+                  visible: root.weatherHourly && root.weatherHourly.length > 0
 
                   Text {
-                    text: root.weatherTemp
-                    color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                    font.family: config ? config.fontFamily : "Roboto"
-                    font.pixelSize: 26
-                    font.weight: Font.Bold
-                  }
-
-                  Text {
-                    text: root.weatherDesc
+                    text: "Hourly Forecast"
                     color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
                     font.family: config ? config.fontFamily : "Roboto"
-                    font.pixelSize: 14
+                    font.pixelSize: 11
                     font.weight: Font.Medium
                   }
 
-                  Text {
-                    text: root.weatherCity || "Location Auto"
-                    color: colors_ ? Qt.rgba(colors_.fgSurfaceVariant.r, colors_.fgSurfaceVariant.g, colors_.fgSurfaceVariant.b, 0.5) : "#70CAC4D0"
-                    font.family: config ? config.fontFamily : "Roboto"
-                    font.pixelSize: 10
+                  RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+
+                    Repeater {
+                      model: root.weatherHourly
+
+                      delegate: Item {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 80
+
+                        ColumnLayout {
+                          anchors.centerIn: parent
+                          spacing: 2
+
+                          Text {
+                            text: modelData.time
+                            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                            font.family: config ? config.fontFamily : "Roboto"
+                            font.pixelSize: 11
+                            font.weight: Font.Medium
+                            Layout.alignment: Qt.AlignHCenter
+                          }
+
+                          Text {
+                            text: getMaterialIcon(modelData.desc)
+                            font.family: "Material Symbols Rounded"
+                            font.pixelSize: 36
+                            color: getMaterialColor(modelData.desc)
+                            Layout.alignment: Qt.AlignHCenter
+                          }
+
+                          Text {
+                            text: modelData.temp
+                            color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                            font.family: config ? config.fontFamily : "Roboto"
+                            font.pixelSize: 12
+                            font.weight: Font.Bold
+                            Layout.alignment: Qt.AlignHCenter
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }
             }
 
-            // Weather Details Grid
+            // Weather Details Grid (6 Columns)
             ColumnLayout {
               Layout.fillWidth: true
               spacing: 6
@@ -2026,46 +2015,45 @@ PanelWindow {
               }
 
               GridLayout {
-                columns: 3
+                columns: 6
                 Layout.fillWidth: true
-                columnSpacing: 12
-                rowSpacing: 12
+                columnSpacing: 8
+                rowSpacing: 8
 
                 Repeater {
                   model: [
-                    { icon: "thermostat", label: "Feels Like", value: root.weatherFeelsLike },
-                    { icon: "water_drop", label: "Humidity", value: root.weatherHumidity },
-                    { icon: "air", label: "Wind Speed", value: root.weatherWind },
-                    { icon: "compress", label: "Pressure", value: root.weatherPressure },
-                    { icon: "sunny", label: "UV Index", value: root.weatherUV },
-                    { icon: "umbrella", label: "Precipitation", value: root.weatherPrecipChance }
+                    { icon: "thermostat", label: "Feels Like", value: root.weatherFeelsLike, color: "#FF5252" },
+                    { icon: "water_drop", label: "Humidity", value: root.weatherHumidity, color: "#26C6DA" },
+                    { icon: "air", label: "Wind", value: root.weatherWind, color: "#00F5D4" },
+                    { icon: "compress", label: "Pressure", value: root.weatherPressure, color: "#BA68C8" },
+                    { icon: "sunny", label: "UV Index", value: root.weatherUV, color: "#FFA726" },
+                    { icon: "umbrella", label: "Precipitation", value: root.weatherPrecipChance, color: "#4FC3F7" }
                   ]
 
                   delegate: Rectangle {
                     required property var modelData
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 52
+                    Layout.preferredHeight: 60
                     radius: 12
                     color: colors_ ? colors_.surfaceContainer : "#25232A"
                     border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
                     border.width: 1
 
                     RowLayout {
-                      anchors.fill: parent
-                      anchors.margins: 8
-                      spacing: 8
+                      anchors.centerIn: parent
+                      spacing: 10
 
                       Text {
                         text: modelData.icon
-                        font.family: config ? config.iconFont : "Material Symbols Outlined"
-                        font.pixelSize: 18
-                        color: colors_ ? colors_.primary : "#BEE8C7"
+                        font.family: "Material Symbols Rounded"
+                        font.pixelSize: 26
+                        font.weight: Font.Medium
+                        color: modelData.color
                         Layout.alignment: Qt.AlignVCenter
                       }
 
                       ColumnLayout {
                         spacing: 0
-                        Layout.fillWidth: true
                         Layout.alignment: Qt.AlignVCenter
 
                         Text {
@@ -2080,7 +2068,7 @@ PanelWindow {
                           text: modelData.value
                           color: colors_ ? colors_.fgSurface : "#FFFFFF"
                           font.family: config ? config.fontFamily : "Roboto"
-                          font.pixelSize: 11
+                          font.pixelSize: 12
                           font.weight: Font.Bold
                         }
                       }
@@ -2114,7 +2102,7 @@ PanelWindow {
                     required property var modelData
                     required property int index
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 110
+                    Layout.preferredHeight: 115
                     radius: 12
                     color: colors_ ? colors_.surfaceContainer : "#25232A"
                     border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
@@ -2140,8 +2128,10 @@ PanelWindow {
                       }
 
                       Text {
-                        text: modelData.emoji
-                        font.pixelSize: 26
+                        text: getMaterialIcon(modelData.desc)
+                        font.family: "Material Symbols Rounded"
+                        font.pixelSize: 46
+                        color: getMaterialColor(modelData.desc)
                         Layout.alignment: Qt.AlignHCenter
                       }
 
@@ -2167,6 +2157,11 @@ PanelWindow {
                   }
                 }
               }
+            }
+
+            // Spacer to push everything to the top and prevent weird vertical stretching
+            Item {
+              Layout.fillHeight: true
             }
           }
 
@@ -2516,9 +2511,13 @@ PanelWindow {
                 Layout.preferredWidth: 80
                 Layout.preferredHeight: 120
                 radius: 16
-                color: colors_ ? colors_.surfaceContainer : "#25232A"
-                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                color: root.caffeineOn ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.surfaceContainer : "#25232A")
+                border.color: root.caffeineOn ? "transparent" : (colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1))
                 border.width: 1
+
+                Behavior on color {
+                  ColorAnimation { duration: config ? config.animationDuration : 150 }
+                }
 
                 ColumnLayout {
                   anchors.centerIn: parent
@@ -2528,7 +2527,7 @@ PanelWindow {
                     text: "coffee"
                     font.family: config ? config.iconFont : "Material Symbols Outlined"
                     font.pixelSize: 32
-                    color: root.idleOn ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
+                    color: root.caffeineOn ? (colors_ ? colors_.fgPrimary : "#0F3C2C") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
                     Layout.alignment: Qt.AlignHCenter
                   }
                 }
@@ -2537,12 +2536,12 @@ PanelWindow {
                   anchors.fill: parent
                   cursorShape: Qt.PointingHandCursor
                   onClicked: {
-                    if (root.idleOn) {
+                    if (root.caffeineOn) {
                       Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
-                      root.idleOn = false
+                      root.caffeineOn = false
                     } else {
                       Quickshell.execDetached(["killall", "swayidle"])
-                      root.idleOn = true
+                      root.caffeineOn = true
                     }
                   }
                 }
