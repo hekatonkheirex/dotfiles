@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Services.Pam
 import Quickshell.Wayland
@@ -193,34 +194,53 @@ Item {
           anchors.centerIn: parent
           spacing: 16
 
-          Rectangle {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: 96
-            height: 96
-            radius: 48
-            clip: true
-            border.width: 3
-            border.color: accentGreen
-            color: colors_ ? colors_.primaryContainer : "#1E4F3E"
+            Rectangle {
+              anchors.horizontalCenter: parent.horizontalCenter
+              width: 96
+              height: 96
+              radius: 48
+              clip: true
+              border.width: 3
+              border.color: accentGreen
+              color: colors_ ? colors_.primaryContainer : "#1E4F3E"
 
-            Image {
-              id: profileImage
-              anchors.fill: parent
-              source: "file://" + root.home + "/Pictures/profile.jpg"
-              fillMode: Image.PreserveAspectCrop
-              asynchronous: true
-            }
+              Image {
+                id: profileImage
+                anchors.fill: parent
+                source: "file://" + root.home + "/Pictures/profile.jpg"
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                visible: false
+              }
 
-            Text {
-              anchors.centerIn: parent
-              text: root.username().charAt(0).toUpperCase()
-              color: colors_ ? colors_.fgPrimaryContainer : "#BEE8C7"
-              font.family: "Roboto"
-              font.pixelSize: 36
-              font.weight: Font.Bold
-              visible: profileImage.status !== Image.Ready
+              Rectangle {
+                id: profileMask
+                anchors.fill: parent
+                radius: 48
+                color: "black"
+                visible: false
+                layer.enabled: true
+              }
+
+              MultiEffect {
+                id: profileImageEffect
+                anchors.fill: parent
+                source: profileImage
+                visible: true
+                maskEnabled: true
+                maskSource: profileMask
+              }
+
+              Text {
+                anchors.centerIn: parent
+                text: root.username().charAt(0).toUpperCase()
+                color: colors_ ? colors_.fgPrimaryContainer : "#BEE8C7"
+                font.family: "Roboto"
+                font.pixelSize: 36
+                font.weight: Font.Bold
+                visible: profileImage.status !== Image.Ready
+              }
             }
-          }
 
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
