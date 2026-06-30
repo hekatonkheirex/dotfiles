@@ -2180,6 +2180,110 @@ PanelWindow {
               spacing: 24
               Layout.alignment: Qt.AlignTop
 
+            // Color Scheme Card
+            Rectangle {
+              Layout.fillWidth: true
+              Layout.preferredHeight: 100
+              radius: 16
+              color: colors_ ? colors_.surfaceContainer : "#25232A"
+              border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+              border.width: 1
+
+              ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
+
+                Text {
+                  text: "Color Scheme"
+                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                  font.family: config ? config.fontFamily : "Roboto"
+                  font.pixelSize: 13
+                  font.weight: Font.Bold
+                }
+
+                RowLayout {
+                  spacing: 8
+                  Layout.fillWidth: true
+
+                  Repeater {
+                    model: [
+                      { id: "matugen", label: "Matugen",
+                        swatch: ["#446829", "#795369", "#4c5d8b", "#11131a"] },
+                      { id: "claude",  label: "Claude",
+                        swatch: ["#BD5D3A", "#8492A3", "#B0BCB6", "#3D3929"] }
+                    ]
+
+                    delegate: Rectangle {
+                      required property var modelData
+                      property bool active: colors_ && colors_.colorScheme === modelData.id
+                      Layout.fillWidth: true
+                      height: 48
+                      radius: 12
+                      color: active
+                        ? (colors_ ? colors_.primaryContainer : "#2d4f13")
+                        : (colors_ ? colors_.surfaceContainerHigh : "#282A31")
+                      border.color: active
+                        ? (colors_ ? colors_.primary : "#a9d387")
+                        : (colors_ ? colors_.outlineVariant : Qt.rgba(255,255,255,0.08))
+                      border.width: active ? 2 : 1
+
+                      Behavior on color { ColorAnimation { duration: 150 } }
+
+                      RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        spacing: 8
+
+                        // colour swatches preview
+                        Row {
+                          spacing: 3
+                          Repeater {
+                            model: modelData.swatch
+                            Rectangle {
+                              width: 14; height: 14; radius: 3
+                              color: modelData
+                            }
+                          }
+                        }
+
+                        Text {
+                          text: modelData.label
+                          color: active
+                            ? (colors_ ? colors_.fgPrimaryContainer : "#c5efa1")
+                            : (colors_ ? colors_.fgSurface : "#FFFFFF")
+                          font.family: config ? config.fontFamily : "Roboto"
+                          font.pixelSize: 12
+                          font.weight: Font.Medium
+                          Layout.fillWidth: true
+                        }
+
+                        Text {
+                          visible: active
+                          text: "check_circle"
+                          font.family: config ? config.iconFont : "Material Symbols Outlined"
+                          font.pixelSize: 16
+                          color: colors_ ? colors_.primary : "#a9d387"
+                        }
+                      }
+
+                      MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                          if (colors_) {
+                            colors_.colorScheme = modelData.id
+                            Quickshell.execDetached(["sh", "-c",
+                              "echo " + modelData.id + " > " + Quickshell.env("HOME") + "/.config/quickshell/colorscheme"])
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
             RowLayout {
               Layout.fillWidth: true
               spacing: 24

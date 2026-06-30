@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Notifications
+import Quickshell.Services.UPower
 import Quickshell.Io
 import "config"
 import "bar"
@@ -14,6 +15,41 @@ ShellRoot {
     id: colors
   }
 
+  Process {
+    id: readColorScheme
+    command: ["sh", "-c", "cat " + Quickshell.env("HOME") + "/.config/quickshell/colorscheme 2>/dev/null || echo matugen"]
+    running: true
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var v = text.trim()
+        if (v === "claude" || v === "matugen") colors.colorScheme = v
+      }
+    }
+  }
+
+  // Battery low alert — fires notify-send once per discharge crossing of 20%
+  QtObject {
+    id: batteryAlert
+    property bool alerted: false
+    property var device: {
+      for (var i = 0; i < UPower.devices.count; i++) {
+        var d = UPower.devices.get(i)
+        if (d.ready && d.isLaptopBattery) return d
+      }
+      return UPower.displayDevice && UPower.displayDevice.ready ? UPower.displayDevice : null
+    }
+    property real pct: device ? device.percentage * 100 : 100
+    property bool discharging: device ? device.state === UPowerDeviceState.Discharging : false
+
+    onPctChanged: {
+      if (discharging && pct <= 20 && !alerted) {
+        alerted = true
+        Quickshell.execDetached(["notify-send", "-u", "critical", "-i", "battery-caution", "Battery Low", Math.round(pct) + "% remaining"])
+      }
+      if (pct > 25) alerted = false  // reset so next discharge triggers again
+    }
+  }
+
   property bool isHorizontal: true
 
   Process {
@@ -22,8 +58,8 @@ ShellRoot {
     running: true
     stdout: StdioCollector {
       onStreamFinished: {
-        var pref = text.trim();
-        shell.isHorizontal = (pref !== "vertical");
+        var pref = text.trim()
+        shell.isHorizontal = (pref !== "vertical")
       }
     }
   }

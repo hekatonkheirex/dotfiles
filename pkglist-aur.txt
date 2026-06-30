@@ -1,7 +1,7 @@
 antigravity-cli
 brave-origin-bin
+claude-code
 google-chrome
-krokiet
 libgnome-keyring
 localsend-bin
 onlyoffice-bin
@@ -9,4 +9,5 @@ paru
 raw-thumbnailer
 sunshine-bin
 timeshift-autosnap
+ttfautohint
 xnviewmp

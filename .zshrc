@@ -186,9 +186,8 @@ export EDITOR="nvim"
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 export DIFFPROG="nvim -d"
 export FZF_DEFAULT_OPTS=" \
---color=bg+:#313244,bg:#1e1e2e,spinner:#f5c2e7,hl:#f38ba8 \
---color=fg:#a6e3a1,header:#f38ba8,info:#89b4fa,pointer:#f5c2e7 \
---color=marker:#f5c2e7,fg+:#a6e3a1,prompt:#89b4fa,hl+:#f38ba8"
+--color=bg:#EEECE2,fg:#3D3929,hl:#BD5D3A,fg+:#EEECE2,bg+:#8492A3,hl+:#EEECE2,info:#6B8E23,prompt:#4682B4,pointer:#9370DB,marker:#20B2AA,spinner:#9ACD32,header:#696969,border:#DAA520 \
+"
 
 # export FZF_DEFAULT_OPTS=" \
 # --color=bg+:#2A2D35,bg:#1C1E24,spinner:#FF6489,hl:#0088FF \
