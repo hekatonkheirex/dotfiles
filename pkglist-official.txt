@@ -1,5 +1,6 @@
 acpi
 acpid
+android-tools
 avahi
 awww
 base
@@ -12,6 +13,7 @@ bluez-utils
 brightnessctl
 btop
 calf
+cava
 cliphist
 cmake
 cups
@@ -81,6 +83,8 @@ ntfsprogs
 nwg-look
 obs-studio
 obs-studio-plugin-browser
+obsidian
+openai-codex
 opencode
 pacman-contrib
 pacutils
@@ -92,6 +96,8 @@ pipewire-pulse
 plymouth
 polkit-gnome
 powertop
+python-pipx
+python-uv
 python-vosk
 qbittorrent
 qt5-wayland
