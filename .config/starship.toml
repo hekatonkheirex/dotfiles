@@ -22,20 +22,20 @@ symbol = ' '
 
 [directory]
 read_only = " 󰌾"
-style = "#eeece2"
+style = "#EDEDED"
 
 [character]
-success_symbol = "[❯](#6b8e23)"
-error_symbol = "[❯](#daa520)"
-vimcmd_symbol = "[❮](#8492A3)"
+success_symbol = "[❯](#7FB88A)"
+error_symbol = "[❯](#D47C92)"
+vimcmd_symbol = "[❮](#B5A29B)"
 
 [git_branch]
 format = "[$branch]($style)"
-style = "#BD5D3A"
+style = "#7FADE6"
 
 [git_status]
 format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)"
-style = "#3D3929"
+style = "#EDEDED"
 conflicted = "​"
 untracked = "​"
 modified = "​"
@@ -46,11 +46,11 @@ stashed = "≡"
 
 [git_state]
 format = '\([$state( $progress_current/$progress_total)]($style)\) '
-style = "#BD5D3A"
+style = "#DF8D72"
 
 [cmd_duration]
 format = " [$duration]($style) "
-style = "#BD5D3A"
+style = "#DF8D72"
 
 [time]
 disabled = false
@@ -59,33 +59,33 @@ format = '$time'
 
 [c]
 symbol = '󰙱 '
-style = "#BD5D3A"
+style = "#DF8D72"
 
 [lua]
 symbol = "󰢱 "
-style = "#BD5D3A"
+style = "#DF8D72"
 
 [nodejs]
 symbol = "⬢ "
-style = "#BD5D3A"
+style = "#DF8D72"
 
 [perl]
 symbol = " "
-style = "#BD5D3A"
+style = "#DF8D72"
 
 [php]
 symbol = " "
-style = "#BD5D3A"
+style = "#DF8D72"
 
 [python]
 symbol = " "
-style = "#BD5D3A"
+style = "#DF8D72"
 
 [ruby]
 symbol = " "
-style = "#BD5D3A"
+style = "#DF8D72"
 
 [rust]
 symbol = " "
-style = "#BD5D3A"
+style = "#DF8D72"
 
