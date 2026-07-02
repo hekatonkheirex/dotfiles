@@ -2273,8 +2273,10 @@ PanelWindow {
                         onClicked: {
                           if (colors_) {
                             colors_.colorScheme = modelData.id
+                            var mode = colors_.darkMode ? "dark" : "light"
                             Quickshell.execDetached(["sh", "-c",
-                              "echo " + modelData.id + " > " + Quickshell.env("HOME") + "/.config/quickshell/colorscheme"])
+                              "echo " + modelData.id + " > " + Quickshell.env("HOME") + "/.config/quickshell/colorscheme"
+                              + " && $HOME/.local/bin/sync-terminal-theme.sh " + mode + " " + modelData.id])
                           }
                         }
                       }

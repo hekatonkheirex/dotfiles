@@ -143,7 +143,7 @@ Item {
           radius: height / 2
 
           color: {
-            if (modelData.isFocused) return colors_ ? (colors_.darkMode ? colors_.primary : colors_.primaryContainer) : "#D0BCFF"
+            if (modelData.isFocused) return colors_ ? (colors_.darkMode ? colors_.primary : "#D77757") : "#D0BCFF"
             if (wsMouse.containsMouse) return colors_ ? colors_.outlineVariant : "#49454F"
             if (modelData.isOccupied) return colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
             return colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.2) : Qt.rgba(147/255, 143/255, 153/255, 0.2)

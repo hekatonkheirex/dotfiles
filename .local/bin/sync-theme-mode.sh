@@ -53,28 +53,6 @@ MODE="$1"
     echo "Verifying: color-scheme=$(gsettings get org.gnome.desktop.interface color-scheme) gtk-theme=$(gsettings get org.gnome.desktop.interface gtk-theme)"
   }
 
-  update_niri_colors() {
-    local mode="$1"
-    local cache_file="$HOME/.cache/matugen/current_palette.json"
-    if [ -f "$cache_file" ] && command -v jq &>/dev/null; then
-      local primary=$(jq -r ".\"scheme-expressive\".$mode.primary" "$cache_file")
-      local outline=$(jq -r ".\"scheme-expressive\".$mode.outline" "$cache_file")
-      
-      if [ -n "$primary" ] && [ "$primary" != "null" ]; then
-        cat <<EOF > "$HOME/.config/niri/colors.kdl"
-// Generated dynamically by sync-theme-mode.sh
-layout {
-    focus-ring {
-        active-color "$primary"
-        inactive-color "$outline"
-    }
-}
-EOF
-        echo "Niri colors updated: active=$primary inactive=$outline"
-      fi
-    fi
-  }
-
   if [ "$MODE" = "auto" ]; then
     echo "Auto-detecting from wallpaper..."
     DETECTED=$("$HOME/.local/bin/auto-detect-theme.sh")
@@ -82,11 +60,11 @@ EOF
     if [ "$DETECTED" = "light" ]; then
       gsettings set org.gnome.desktop.interface color-scheme "'prefer-light'"
       apply_theme "Material3-Expressive-Dynamic"
-      update_niri_colors "light"
+      "$HOME/.local/bin/sync-terminal-theme.sh" "light"
     elif [ "$DETECTED" = "dark" ]; then
       gsettings set org.gnome.desktop.interface color-scheme "'prefer-dark'"
       apply_theme "Material3-Expressive-Dynamic-Dark"
-      update_niri_colors "dark"
+      "$HOME/.local/bin/sync-terminal-theme.sh" "dark"
     else
       gsettings set org.gnome.desktop.interface color-scheme 'default'
       echo "Could not detect wallpaper, set color-scheme=default"
@@ -94,11 +72,11 @@ EOF
   elif [ "$MODE" = "light" ]; then
     gsettings set org.gnome.desktop.interface color-scheme "'prefer-light'"
     apply_theme "Material3-Expressive-Dynamic"
-    update_niri_colors "light"
+    "$HOME/.local/bin/sync-terminal-theme.sh" "light"
   elif [ "$MODE" = "dark" ]; then
     gsettings set org.gnome.desktop.interface color-scheme "'prefer-dark'"
     apply_theme "Material3-Expressive-Dynamic-Dark"
-    update_niri_colors "dark"
+    "$HOME/.local/bin/sync-terminal-theme.sh" "dark"
   fi
   
   echo "=== $(date) DONE ==="
