@@ -207,7 +207,9 @@ _theme_env_reload() {
 precmd_functions+=(_theme_env_reload)
 
 # Sourcing
-source /home/mura/.zsh
+# zsh-syntax-highlighting styles now come from theme-env.sh (sourced above),
+# generated per light/dark scheme by sync-terminal-theme.sh — replaces the
+# old static ~/.zsh (hardcoded Catppuccin Mocha, unreadable in light mode).
 # source /home/mura/.apple
 
 # Fetch
