@@ -27,10 +27,14 @@ ShellRoot {
     }
   }
 
-  // Battery low alert — fires notify-send once per discharge crossing of 20%
+  // Battery low alert — Warning at 20%, Alert at 10%. Persists until manually
+  // dismissed or the charger is plugged in (see checkLevel + notifServer capture below).
   QtObject {
     id: batteryAlert
-    property bool alerted: false
+    readonly property string appName: "Battery Monitor"
+    property string state: "none" // "none" | "warning" | "alert"
+    property var warningNotif: null
+    property var alertNotif: null
     property var device: {
       for (var i = 0; i < UPower.devices.count; i++) {
         var d = UPower.devices.get(i)
@@ -39,15 +43,48 @@ ShellRoot {
       return UPower.displayDevice && UPower.displayDevice.ready ? UPower.displayDevice : null
     }
     property real pct: device ? device.percentage * 100 : 100
-    property bool discharging: device ? device.state === UPowerDeviceState.Discharging : false
+    // UPower's own aggregate "running off AC" flag, not the battery's own
+    // charge state. This laptop uses a charge threshold/conservation mode
+    // that lets the battery sit in "Discharging" down to a floor and then
+    // briefly flip to "Charging" to top back up — all while the adapter
+    // stays physically connected. Inferring "plugged in" from battery.state
+    // followed that sawtooth and dismissed the alert with no user action.
+    property bool pluggedIn: !UPower.onBattery
 
-    onPctChanged: {
-      if (discharging && pct <= 20 && !alerted) {
-        alerted = true
-        Quickshell.execDetached(["notify-send", "-u", "critical", "-i", "battery-caution", "Battery Low", Math.round(pct) + "% remaining"])
-      }
-      if (pct > 25) alerted = false  // reset so next discharge triggers again
+    function dismissWarning() {
+      if (warningNotif) { warningNotif.dismiss(); warningNotif = null }
     }
+    function dismissAlert() {
+      if (alertNotif) { alertNotif.dismiss(); alertNotif = null }
+    }
+
+    function checkLevel() {
+      if (pluggedIn) {
+        dismissWarning()
+        dismissAlert()
+        state = "none"
+        return
+      }
+      if (pct <= 10) {
+        if (state !== "alert") {
+          dismissWarning()
+          state = "alert"
+          Quickshell.execDetached(["notify-send", "-a", appName, "-u", "critical", "-i", "battery-caution", "-t", "0", "Battery Alert", Math.round(pct) + "% remaining — plug in now"])
+        }
+      } else if (pct <= 20) {
+        if (state === "none") {
+          state = "warning"
+          Quickshell.execDetached(["notify-send", "-a", appName, "-u", "critical", "-i", "battery-caution", "-t", "0", "Battery Warning", Math.round(pct) + "% remaining"])
+        }
+      }
+      // No auto-reset on pct climbing back above 20 while unplugged: UPower's
+      // percentage reading wobbles under load. Only plugging in (above) or a
+      // manual dismiss clears the notification.
+    }
+
+    onPluggedInChanged: checkLevel()
+    onPctChanged: checkLevel()
+    Component.onCompleted: checkLevel()
   }
 
   property bool isHorizontal: true
@@ -184,6 +221,14 @@ ShellRoot {
     actionsSupported: true
     onNotification: function(notif) {
       notif.tracked = true
+      if (notif.appName === batteryAlert.appName) {
+        if (notif.summary === "Battery Alert") batteryAlert.alertNotif = notif
+        else if (notif.summary === "Battery Warning") batteryAlert.warningNotif = notif
+        notif.closed.connect(function() {
+          if (batteryAlert.warningNotif === notif) batteryAlert.warningNotif = null
+          if (batteryAlert.alertNotif === notif) batteryAlert.alertNotif = null
+        })
+      }
       notificationToast.show(notif)
       notificationPopup.onNotificationReceived(notif)
     }

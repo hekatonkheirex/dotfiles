@@ -2,7 +2,7 @@ return {
   "hekatonkheirex/claude-nvim",
   lazy = false,
   opts = {
-    flavor = "light", -- "dark" | "light" | "auto"
+    flavour = "light", -- "dark" | "light" | "auto"
     transparent = false,
     term_colors = false,
     styles = {
