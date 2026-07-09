@@ -1,3 +1,4 @@
+# Claude.ai Optimized Dark Theme — static, matches kitty claude-dark.conf
 format = """
 $username\
 $hostname\
@@ -70,22 +71,21 @@ symbol = "⬢ "
 style = "#DF8D72"
 
 [perl]
-symbol = " "
+symbol = " "
 style = "#DF8D72"
 
 [php]
-symbol = " "
+symbol = " "
 style = "#DF8D72"
 
 [python]
-symbol = " "
+symbol = " "
 style = "#DF8D72"
 
 [ruby]
-symbol = " "
+symbol = " "
 style = "#DF8D72"
 
 [rust]
-symbol = " "
+symbol = " "
 style = "#DF8D72"
-

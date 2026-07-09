@@ -1,3 +1,4 @@
+# Claude.ai Optimized Light Theme — static, matches kitty claude-light.conf
 format = """
 $username\
 $hostname\
@@ -22,20 +23,20 @@ symbol = ' '
 
 [directory]
 read_only = " 󰌾"
-style = "#EDEDED"
+style = "#615D52"
 
 [character]
-success_symbol = "[❯](#7FB88A)"
-error_symbol = "[❯](#D47C92)"
-vimcmd_symbol = "[❮](#B5A29B)"
+success_symbol = "[❯](#42734C)"
+error_symbol = "[❯](#8D2E45)"
+vimcmd_symbol = "[❮](#78645D)"
 
 [git_branch]
 format = "[$branch]($style)"
-style = "#7FADE6"
+style = "#2A77D5"
 
 [git_status]
 format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)"
-style = "#EDEDED"
+style = "#121212"
 conflicted = "​"
 untracked = "​"
 modified = "​"
@@ -46,11 +47,11 @@ stashed = "≡"
 
 [git_state]
 format = '\([$state( $progress_current/$progress_total)]($style)\) '
-style = "#DF8D72"
+style = "#D97757"
 
 [cmd_duration]
 format = " [$duration]($style) "
-style = "#DF8D72"
+style = "#D97757"
 
 [time]
 disabled = false
@@ -59,33 +60,32 @@ format = '$time'
 
 [c]
 symbol = '󰙱 '
-style = "#DF8D72"
+style = "#D97757"
 
 [lua]
 symbol = "󰢱 "
-style = "#DF8D72"
+style = "#D97757"
 
 [nodejs]
 symbol = "⬢ "
-style = "#DF8D72"
+style = "#D97757"
 
 [perl]
-symbol = " "
-style = "#DF8D72"
+symbol = " "
+style = "#D97757"
 
 [php]
-symbol = " "
-style = "#DF8D72"
+symbol = " "
+style = "#D97757"
 
 [python]
-symbol = " "
-style = "#DF8D72"
+symbol = " "
+style = "#D97757"
 
 [ruby]
-symbol = " "
-style = "#DF8D72"
+symbol = " "
+style = "#D97757"
 
 [rust]
-symbol = " "
-style = "#DF8D72"
-
+symbol = " "
+style = "#D97757"
