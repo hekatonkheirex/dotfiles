@@ -36,6 +36,7 @@ fi
 
   echo "kitty theme.conf -> $SCHEME-$MODE.conf"
   echo "theme-env.sh -> STARSHIP_CONFIG=$SCHEME-$MODE.toml, FZF from $SCHEME-$MODE.sh"
+  echo "open shells will pick this up on their next prompt (mtime-checked precmd hook in .zshrc)"
 
   # Niri focus-ring border colors
   if [ "$SCHEME" = "claude" ]; then

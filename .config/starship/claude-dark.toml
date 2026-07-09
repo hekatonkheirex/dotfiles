@@ -1,0 +1,91 @@
+# Claude.ai Optimized Dark Theme — static, matches kitty claude-dark.conf
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_state\
+$git_status\
+$fill\
+$cmd_duration\
+$line_break\
+$python\
+$lua\
+$c\
+$rust\
+$perl\
+$php\
+$ruby\
+$character"""
+
+[fill]
+symbol = ' '
+
+[directory]
+read_only = " 󰌾"
+style = "#EDEDED"
+
+[character]
+success_symbol = "[❯](#7FB88A)"
+error_symbol = "[❯](#D47C92)"
+vimcmd_symbol = "[❮](#B5A29B)"
+
+[git_branch]
+format = "[$branch]($style)"
+style = "#7FADE6"
+
+[git_status]
+format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)"
+style = "#EDEDED"
+conflicted = "​"
+untracked = "​"
+modified = "​"
+staged = "​"
+renamed = "​"
+deleted = "​"
+stashed = "≡"
+
+[git_state]
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+style = "#DF8D72"
+
+[cmd_duration]
+format = " [$duration]($style) "
+style = "#DF8D72"
+
+[time]
+disabled = false
+time_format = "%T"
+format = '$time'
+
+[c]
+symbol = '󰙱 '
+style = "#DF8D72"
+
+[lua]
+symbol = "󰢱 "
+style = "#DF8D72"
+
+[nodejs]
+symbol = "⬢ "
+style = "#DF8D72"
+
+[perl]
+symbol = " "
+style = "#DF8D72"
+
+[php]
+symbol = " "
+style = "#DF8D72"
+
+[python]
+symbol = " "
+style = "#DF8D72"
+
+[ruby]
+symbol = " "
+style = "#DF8D72"
+
+[rust]
+symbol = " "
+style = "#DF8D72"
