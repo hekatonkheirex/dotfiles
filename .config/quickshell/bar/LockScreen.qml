@@ -45,9 +45,14 @@ Item {
     return Quickshell.env("USER") || "user"
   }
 
-  function lockScreen() {
+  function clearPassword() {
     lockPassword = ""
     lockInputText = ""
+    lockPam.pendingPassword = ""
+  }
+
+  function lockScreen() {
+    clearPassword()
     lockError = ""
     authenticated = false
     root.locked = true
@@ -56,6 +61,7 @@ Item {
 
   function unlockSession() {
     authenticated = true
+    clearPassword()
     root.locked = false
     sessionLock.locked = false
     Quickshell.execDetached(["loginctl", "unlock-session"])
@@ -67,11 +73,6 @@ Item {
     lockPam.pendingPassword = lockPassword
     lockError = ""
     lockPam.start()
-  }
-
-  FileTrigger {
-    triggerFile: "/tmp/qslock-trigger"
-    onTriggered: root.lockScreen()
   }
 
   PamContext {
@@ -91,15 +92,13 @@ Item {
       if (result === PamResult.Success) {
         root.unlockSession()
       } else {
+        root.clearPassword()
         root.lockError = "Wrong password. Try again."
-        root.lockPassword = ""
-        root.lockInputText = ""
       }
     }
     onError: (error) => {
+      root.clearPassword()
       root.lockError = "Authentication error. Try again."
-      root.lockPassword = ""
-      root.lockInputText = ""
     }
   }
 
