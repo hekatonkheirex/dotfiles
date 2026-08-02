@@ -63,6 +63,49 @@ The theming flow:
 
 Accent color can also be set manually from the Command Center (Settings tab → Accent Color) which runs matugen with the chosen hex instead of wallpaper.
 
+### 🧭 Theme History and YADM Branches
+
+The repository's current `main` branch contains the newer Ghost theme. The last active Material 3 snapshot is commit `3f2160bd` from 2026-07-09, using `Material3-Expressive-Dynamic`.
+
+Check the working tree before switching branches:
+
+```bash
+yadm status
+```
+
+Create the local Material 3 branch once, then switch to it whenever you want that configuration active:
+
+```bash
+yadm switch --create material3 3f2160bd   # first time only
+yadm switch material3                     # later switches
+```
+
+Return to the current Ghost configuration with:
+
+```bash
+yadm switch main
+```
+
+Do not use `yadm bootstrap` just to change between these snapshots. Restart Quickshell or start a new session after switching. Avoid `yadm switch --discard-changes` or other force options unless you intentionally want to discard local changes.
+
+#### Pushing Branches
+
+This command always pushes the local `main` branch, even when `material3` is checked out:
+
+```bash
+yadm push origin main
+```
+
+It does not publish `material3`, change the active branch, or roll the remote repository back. It normally reports `Everything up-to-date` because `main` remains the Ghost branch.
+
+To publish the Material 3 branch as a separate remote branch, use this only when that is intentional:
+
+```bash
+yadm push --set-upstream origin material3
+```
+
+Do not push `material3:main` or force-push it merely to switch themes. That would attempt to rewrite the remote `main` history; branch switching is a local yadm operation.
+
 ### 🔋 Thinkpad / Laptop Optimizations (`.config/thinkpad/`)
 
 System-level rules located in `.config/thinkpad` automate power management, security, and hardware features:
