@@ -7,8 +7,8 @@ import wave
 import json
 
 # Paths
-model_dir = os.path.expanduser("~/.config/quickshell/resources/vosk-model")
-model_zip = os.path.expanduser("~/.config/quickshell/resources/vosk-model.zip")
+model_dir = os.path.expanduser("~/.local/share/vosk-model")
+model_zip = os.path.expanduser("~/.local/share/vosk-model.zip")
 
 # Ensure model exists
 if not os.path.exists(model_dir):

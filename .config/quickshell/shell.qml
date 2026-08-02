@@ -441,7 +441,6 @@ ShellRoot {
   FileTrigger {
     triggerFile: "/tmp/qsosd-airplane"
     onTriggered: {
-      console.log("[Antigravity] qsosd-airplane triggered");
       osd.show("airplane");
     }
   }
@@ -449,7 +448,6 @@ ShellRoot {
   FileTrigger {
     triggerFile: "/tmp/qsosd-bluetooth"
     onTriggered: {
-      console.log("[Antigravity] qsosd-bluetooth triggered");
       osd.show("bluetooth");
     }
   }

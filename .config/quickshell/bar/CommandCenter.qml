@@ -103,7 +103,7 @@ PanelWindow {
   }
 
   function applyPresetColor(hex) {
-    Quickshell.execDetached(["/bin/sh", "-c", "/usr/bin/matugen --json hex --type scheme-expressive color hex \"#" + hex + "\" 2>/dev/null | python3 -c \"import json,sys,os;d=json.load(sys.stdin)['colors'];p={'light':{t:m['light']['color'] for t,m in d.items()},'dark':{t:m['dark']['color'] for t,m in d.items()}};os.makedirs(os.path.expanduser('~/.cache/matugen'),exist_ok=True);json.dump({'scheme-expressive':p,'_seed':'picker'},open(os.path.expanduser('~/.cache/matugen/current_palette.json'),'w'))\" && /usr/bin/matugen --type scheme-expressive color hex \"#" + hex + "\" 2>/dev/null && $HOME/.local/bin/generate-all-themes.sh && $HOME/.local/bin/sync-theme-mode.sh auto"])
+    Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/apply-accent-color.sh", hex])
   }
 
   // UPower laptop battery detection
@@ -373,7 +373,6 @@ PanelWindow {
     stdout: StdioCollector {
       onStreamFinished: {
         root.currentWallpaper = text.trim()
-        console.log("[Antigravity] ccGetWallpaper output: '" + root.currentWallpaper + "'")
         if (root.currentTab === 2) {
           scrollTimer.start()
         }
@@ -382,7 +381,6 @@ PanelWindow {
     stderr: StdioCollector {
       onStreamFinished: {
         if (text.trim()) {
-          console.log("[Antigravity] ccGetWallpaper error: '" + text.trim() + "'")
         }
       }
     }
@@ -398,7 +396,6 @@ PanelWindow {
         var idx = root.wallpapersList.indexOf(root.currentWallpaper);
         if (idx >= 0 && typeof wallpaperGrid !== "undefined" && wallpaperGrid) {
           wallpaperGrid.positionViewAtIndex(idx, GridView.Center);
-          console.log("[Antigravity] Scroll to wallpaper index: " + idx);
         }
       }
     }
@@ -1845,8 +1842,7 @@ PanelWindow {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                      Quickshell.execDetached(["awww", "img", Quickshell.env("HOME") + "/Pictures/Walls/" + modelData, "--transition-type", "grow", "--transition-pos", "0,1080", "--transition-fps", "60", "--transition-step", "60"])
-                      Quickshell.execDetached(["/bin/sh", "-c", "$HOME/.local/bin/matugen-and-cache.sh \"" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData + "\" && $HOME/.local/bin/generate-all-themes.sh && $HOME/.local/bin/sync-theme-mode.sh auto"])
+                      Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/quickshell/scripts/apply-wallpaper.sh", modelData])
                       root.currentWallpaper = modelData
                     }
                   }
@@ -2827,7 +2823,7 @@ PanelWindow {
 
     onAccepted: {
       var hex = selectedColor.toString().slice(1, 7)
-      Quickshell.execDetached(["/bin/sh", "-c", "/usr/bin/matugen --json hex --type scheme-expressive color hex \"#" + hex + "\" 2>/dev/null | python3 -c \"import json,sys,os;d=json.load(sys.stdin)['colors'];p={'light':{t:m['light']['color'] for t,m in d.items()},'dark':{t:m['dark']['color'] for t,m in d.items()}};os.makedirs(os.path.expanduser('~/.cache/matugen'),exist_ok=True);json.dump({'scheme-expressive':p,'_seed':'picker'},open(os.path.expanduser('~/.cache/matugen/current_palette.json'),'w'))\" && /usr/bin/matugen --type scheme-expressive color hex \"#" + hex + "\" 2>/dev/null && $HOME/.local/bin/generate-all-themes.sh && $HOME/.local/bin/sync-theme-mode.sh auto"])
+      root.applyPresetColor(hex)
     }
   }
 }

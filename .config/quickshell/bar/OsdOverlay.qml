@@ -120,7 +120,6 @@ PanelWindow {
       onStreamFinished: {
         root.muted = text.trim() === "on"
         root.value = root.muted ? 1 : 0
-        console.log("[Antigravity] airplaneQuery finished. muted:", root.muted, "value:", root.value);
       }
     }
   }
@@ -134,7 +133,6 @@ PanelWindow {
         var on = text.trim() === "on"
         root.muted = !on
         root.value = on ? 1 : 0
-        console.log("[Antigravity] bluetoothQuery finished. on:", on, "muted:", root.muted, "value:", root.value);
       }
     }
   }
