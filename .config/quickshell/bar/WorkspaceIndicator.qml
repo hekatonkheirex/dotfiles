@@ -8,16 +8,16 @@ Item {
 
   property QtObject colors_: null
   property QtObject config: null
+  property bool horizontal: false
 
   signal clicked(var mouse)
 
   property var workspaces: []
-  property int pillHeight: 48
 
   readonly property string wmType: config ? config.wmType : "niri"
 
-  Layout.preferredWidth: config ? config.widgetSize : 50
-  Layout.preferredHeight: column.implicitHeight + 12
+  implicitWidth: horizontal ? grid.implicitWidth + 12 : (config ? config.widgetSize : 50)
+  implicitHeight: horizontal ? (config ? config.widgetSize : 50) : grid.implicitHeight + 12
 
   Process {
     id: refresher
@@ -38,7 +38,7 @@ Item {
     id: niriWatcher
     command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg event-stream"]
     running: root.visible && root.wmType === "niri"
-    
+
     stdout: SplitParser {
       onRead: function(data) {
         if (!refresher.running) refresher.running = true
@@ -107,13 +107,16 @@ Item {
       Quickshell.execDetached(["niri", "msg", "action", "focus-workspace-down"])
   }
 
-  Column {
-    id: column
+  Grid {
+    id: grid
+    columns: root.horizontal ? Math.max(1, root.workspaces.length) : 1
     anchors {
       left: parent.left
-      right: parent.right
+      right: root.horizontal ? undefined : parent.right
       top: parent.top
-      topMargin: 6
+      bottom: root.horizontal ? parent.bottom : undefined
+      leftMargin: root.horizontal ? 6 : 0
+      topMargin: root.horizontal ? 0 : 6
     }
     spacing: 6
 
@@ -123,11 +126,17 @@ Item {
       delegate: Item {
         id: delegateItem
         required property var modelData
-        width: parent.width
 
         readonly property bool active: modelData.isFocused || wsMouse.containsMouse
 
-        height: active ? 40 : 20
+        width: root.horizontal ? (active ? 40 : 20) : grid.width
+        height: root.horizontal ? grid.height : (active ? 40 : 20)
+        Behavior on width {
+          NumberAnimation {
+            duration: config ? config.animationDuration : 150
+            easing.type: Easing.OutBack
+          }
+        }
         Behavior on height {
           NumberAnimation {
             duration: config ? config.animationDuration : 150
@@ -138,8 +147,8 @@ Item {
         Rectangle {
           id: pillRect
           anchors.centerIn: parent
-          width: delegateItem.active ? 32 : (modelData.isOccupied ? 12 : 6)
-          height: delegateItem.active ? 40 : (modelData.isOccupied ? 12 : 6)
+          width: delegateItem.active ? (root.horizontal ? 40 : 32) : (modelData.isOccupied ? 12 : 6)
+          height: delegateItem.active ? (root.horizontal ? 32 : 40) : (modelData.isOccupied ? 12 : 6)
           radius: height / 2
 
           color: {

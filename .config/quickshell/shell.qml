@@ -198,6 +198,10 @@ ShellRoot {
       bar.openPopup = bar.openPopup === "commandcenter" ? "" : "commandcenter"
     }
 
+    function layout() {
+      shell.toggleLayout()
+    }
+
   }
 
   FileTrigger {
@@ -248,23 +252,14 @@ ShellRoot {
     onShieldClicked: bar.openPopup = ""
   }
 
-  HorizontalBar {
-    id: horizontalBar
+  Bar {
+    id: bar
+    horizontal: shell.isHorizontal
     colors_: colors
     config: cfg
     notificationServer: notifServer
-    visible: shell.isHorizontal && !lockScreen.locked
+    visible: !lockScreen.locked
   }
-
-  VerticalBar {
-    id: verticalBar
-    colors_: colors
-    config: cfg
-    notificationServer: notifServer
-    visible: !shell.isHorizontal && !lockScreen.locked
-  }
-
-  readonly property QtObject bar: isHorizontal ? horizontalBar : verticalBar
 
   AudioPopup {
     id: audioPopup

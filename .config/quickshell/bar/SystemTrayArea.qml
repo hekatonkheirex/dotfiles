@@ -10,23 +10,22 @@ Item {
   property QtObject colors_: null
   property QtObject config: null
   property var parentWindow: null
+  property bool horizontal: false
 
   property int visibleCount: 0
-  readonly property real preferredHeight: visibleCount * (config ? config.widgetSize : 50)
+  readonly property real preferredLength: visibleCount * (config ? config.widgetSize : 50)
 
-  onPreferredHeightChanged: {
-    console.log("DEBUG SystemTrayArea preferredHeight changed to: " + preferredHeight + " (count: " + visibleCount + ")")
-  }
-
-  Layout.preferredWidth: config ? config.widgetSize : 50
-  Layout.preferredHeight: preferredHeight
+  Layout.preferredWidth: horizontal ? preferredLength : (config ? config.widgetSize : 50)
+  Layout.preferredHeight: horizontal ? (config ? config.widgetSize : 50) : preferredLength
   visible: visibleCount > 0
 
   Rectangle {
     anchors {
       fill: parent
-      leftMargin: 6
-      rightMargin: 6
+      leftMargin: horizontal ? 0 : 6
+      rightMargin: horizontal ? 0 : 6
+      topMargin: horizontal ? 6 : 0
+      bottomMargin: horizontal ? 6 : 0
     }
     radius: config ? config.borderRadius : 14
     clip: true
@@ -35,10 +34,12 @@ Item {
     border.width: 1
   }
 
-  ColumnLayout {
-    id: trayColumn
+  GridLayout {
+    id: trayLayout
+    flow: systemTrayAreaRoot.horizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
     anchors.fill: parent
-    spacing: 0
+    columnSpacing: 0
+    rowSpacing: 0
 
     Repeater {
       id: trayRepeater
@@ -54,7 +55,7 @@ Item {
 
         Layout.preferredWidth: visible ? (config ? config.widgetSize : 50) : 0
         Layout.preferredHeight: visible ? (config ? config.widgetSize : 50) : 0
-        Layout.alignment: Qt.AlignHCenter
+        Layout.alignment: systemTrayAreaRoot.horizontal ? Qt.AlignVCenter : Qt.AlignHCenter
         width: visible ? (config ? config.widgetSize : 50) : 0
         height: visible ? (config ? config.widgetSize : 50) : 0
 
@@ -62,27 +63,20 @@ Item {
 
         function updateCount() {
           var shouldBeCounted = isIconVisible;
-          console.log("DEBUG [SystemTrayArea] updateCount: id=" + modelData.id + " isIconVisible=" + isIconVisible + " counted=" + counted + " shouldBeCounted=" + shouldBeCounted + " currentCount=" + systemTrayAreaRoot.visibleCount)
           if (shouldBeCounted && !counted) {
             systemTrayAreaRoot.visibleCount++;
             counted = true;
-            console.log("DEBUG [SystemTrayArea] Incremented: id=" + modelData.id + " newCount=" + systemTrayAreaRoot.visibleCount)
           } else if (!shouldBeCounted && counted) {
             systemTrayAreaRoot.visibleCount--;
             counted = false;
-            console.log("DEBUG [SystemTrayArea] Decremented: id=" + modelData.id + " newCount=" + systemTrayAreaRoot.visibleCount)
           }
         }
 
-        Component.onCompleted: {
-          console.log("DEBUG [SystemTrayArea] Delegate completed: id=" + modelData.id + " title=" + modelData.title + " icon=" + modelData.icon)
-          updateCount()
-        }
+        Component.onCompleted: updateCount()
         Component.onDestruction: {
           if (counted) {
             systemTrayAreaRoot.visibleCount--;
             counted = false;
-            console.log("DEBUG [SystemTrayArea] Destroyed/Decremented: id=" + modelData.id + " newCount=" + systemTrayAreaRoot.visibleCount)
           }
         }
 
@@ -112,8 +106,8 @@ Item {
           menu: modelData.menu
           anchor.window: parentWindow
           anchor.item: trayIconDelegate
-          anchor.edges: Edges.Right
-          anchor.gravity: Edges.Right
+          anchor.edges: systemTrayAreaRoot.horizontal ? Edges.Bottom : Edges.Right
+          anchor.gravity: systemTrayAreaRoot.horizontal ? Edges.Bottom : Edges.Right
         }
 
         MouseArea {
