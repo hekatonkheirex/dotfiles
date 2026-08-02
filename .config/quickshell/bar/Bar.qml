@@ -11,15 +11,19 @@ PanelWindow {
   property QtObject config: null
   property int notificationCount: 0
   property QtObject notificationServer: null
+  property bool horizontal: true
+
+  readonly property real wSize: config ? config.widgetSize : 50
 
   anchors {
     left: true
-    right: true
+    right: root.horizontal
     top: true
-    bottom: false
+    bottom: !root.horizontal
   }
 
   implicitHeight: (config ? config.barWidth : 50) + 16
+  implicitWidth: (config ? config.barWidth : 50) + 16
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
@@ -39,14 +43,19 @@ PanelWindow {
   property string openPopup: ""
   property int popupAnchorX: 0
   property int popupAnchorY: 0
-  readonly property bool horizontal: true
 
   function getLauncherX() {
+    if (!root.horizontal) return 0
     return launcherWidget ? launcherWidget.mapToItem(null, 0, 0).x + launcherWidget.width / 2 : 0
   }
 
   function getMenuIndicatorX() {
+    if (!root.horizontal) return 0
     return menuIndicator ? menuIndicator.mapToItem(null, 0, 0).x + menuIndicator.width / 2 : 0
+  }
+
+  function getMenuIndicatorY() {
+    return root.height - 6 - wSize - 6 - wSize - 6 - wSize
   }
 
   function togglePopup(name, widget) {
@@ -56,8 +65,12 @@ PanelWindow {
     if (openPopup === name) {
       openPopup = ""
     } else {
-      popupAnchorX = x + w / 2
-      popupAnchorY = root.height - 16 // sit exactly at the bottom of the barBg
+      if (root.horizontal) {
+        popupAnchorX = x + w / 2
+        popupAnchorY = root.height - 16 // sit exactly at the bottom of the barBg
+      } else {
+        popupAnchorY = y
+      }
       openPopup = name
     }
   }
@@ -105,14 +118,22 @@ PanelWindow {
 
     Rectangle {
       id: barBg
-      y: 8 * (1.0 - root.expandProgress)
-      height: (config ? config.barWidth : 50) - 8 * (1.0 - root.expandProgress)
-      x: ((config ? config.widgetSize : 50) + 6) * (1.0 - root.expandProgress)
-      width: (layout.implicitWidth + 12) + (parent.width - (layout.implicitWidth + 12)) * root.expandProgress
-      radius: (height / 2) * (1.0 - root.expandProgress) + (config ? config.borderRadius : 14) * root.expandProgress
+      x: root.horizontal
+        ? (root.wSize + 6) * (1.0 - root.expandProgress)
+        : 8 * (1.0 - root.expandProgress)
+      y: root.horizontal
+        ? 8 * (1.0 - root.expandProgress)
+        : (root.wSize + 6) * (1.0 - root.expandProgress)
+      width: root.horizontal
+        ? (layout.implicitWidth + 12) + (parent.width - (layout.implicitWidth + 12)) * root.expandProgress
+        : (config ? config.barWidth : 50) - 8 * (1.0 - root.expandProgress)
+      height: root.horizontal
+        ? (config ? config.barWidth : 50) - 8 * (1.0 - root.expandProgress)
+        : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress
+      radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + (config ? config.borderRadius : 14) * root.expandProgress
       color: colors_ ? colors_.bg : "#1C1B1F"
 
-      // Square-off helper for top-left corner (docks top)
+      // Square-off helper for the docked edge's near corner
       Rectangle {
         width: barBg.radius * root.expandProgress
         height: barBg.radius * root.expandProgress
@@ -120,11 +141,12 @@ PanelWindow {
         visible: width > 0
       }
 
-      // Square-off helper for top-right corner (docks top)
+      // Square-off helper for the docked edge's far corner
       Rectangle {
         width: barBg.radius * root.expandProgress
         height: barBg.radius * root.expandProgress
-        x: barBg.width - width
+        x: root.horizontal ? barBg.width - width : 0
+        y: root.horizontal ? 0 : barBg.height - height
         color: barBg.color
         visible: width > 0
       }
@@ -148,15 +170,23 @@ PanelWindow {
         }
       }
 
-      RowLayout {
+      GridLayout {
         id: layout
-        anchors { fill: parent; leftMargin: 6; rightMargin: 6 }
-        spacing: 6 * root.expandProgress
+        flow: root.horizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
+        anchors {
+          fill: parent
+          leftMargin: root.horizontal ? 6 : 0
+          rightMargin: root.horizontal ? 6 : 0
+          topMargin: root.horizontal ? 0 : 6
+          bottomMargin: root.horizontal ? 0 : 6
+        }
+        columnSpacing: 6 * root.expandProgress
+        rowSpacing: 6 * root.expandProgress
 
         Item {
           id: launcherWrapper
-          Layout.preferredHeight: parent.height
-          Layout.preferredWidth: (config ? config.widgetSize : 50) * root.expandProgress
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -174,25 +204,27 @@ PanelWindow {
           }
         }
 
-        HorizontalWorkspaceIndicator {
+        WorkspaceIndicator {
           id: wsIndicator
+          horizontal: root.horizontal
           colors_: root.colors_
           config: root.config
-          Layout.preferredHeight: parent.height
+          Layout.preferredWidth: root.horizontal ? implicitWidth : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : implicitHeight
         }
 
-
-
         Item {
-          Layout.fillWidth: root.expanded
+          Layout.fillWidth: root.horizontal && root.expanded
+          Layout.fillHeight: !root.horizontal && root.expanded
           Layout.preferredWidth: 0
+          Layout.preferredHeight: 0
           visible: root.expandProgress > 0
         }
 
         Item {
           id: wifiWrapper
-          Layout.preferredHeight: parent.height
-          Layout.preferredWidth: (config ? config.widgetSize : 50) * root.expandProgress
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -212,8 +244,8 @@ PanelWindow {
 
         Item {
           id: btWrapper
-          Layout.preferredHeight: parent.height
-          Layout.preferredWidth: (config ? config.widgetSize : 50) * root.expandProgress
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -233,8 +265,8 @@ PanelWindow {
 
         Item {
           id: audioWrapper
-          Layout.preferredHeight: parent.height
-          Layout.preferredWidth: (config ? config.widgetSize : 50) * root.expandProgress
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -254,8 +286,8 @@ PanelWindow {
 
         Item {
           id: brightnessWrapper
-          Layout.preferredHeight: parent.height
-          Layout.preferredWidth: (config ? config.widgetSize : 50) * root.expandProgress
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -275,8 +307,8 @@ PanelWindow {
 
         Item {
           id: batteryWrapper
-          Layout.preferredHeight: parent.height
-          Layout.preferredWidth: (config ? config.widgetSize : 50) * root.expandProgress
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -296,14 +328,15 @@ PanelWindow {
 
         Item {
           id: systemTrayWrapper
-          Layout.preferredHeight: parent.height
-          Layout.preferredWidth: systemTray.preferredWidth * root.expandProgress
+          Layout.preferredWidth: root.horizontal ? systemTray.preferredLength * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : systemTray.preferredLength * root.expandProgress
           opacity: root.expandProgress
           visible: systemTray.visibleCount > 0 && (root.expandProgress > 0)
           clip: true
 
-          HorizontalSystemTrayArea {
+          SystemTrayArea {
             id: systemTray
+            horizontal: root.horizontal
             anchors.fill: parent
             colors_: root.colors_
             config: root.config
@@ -313,8 +346,8 @@ PanelWindow {
 
         Item {
           id: menuWrapper
-          Layout.preferredHeight: parent.height
-          Layout.preferredWidth: (config ? config.widgetSize : 50) * root.expandProgress
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -334,8 +367,8 @@ PanelWindow {
 
         Item {
           id: clockWrapper
-          Layout.preferredHeight: parent.height
-          Layout.preferredWidth: (config ? config.widgetSize * 1.5 : 75) * root.expandProgress
+          Layout.preferredWidth: root.horizontal ? root.wSize * 1.5 * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -345,7 +378,10 @@ PanelWindow {
             anchors.fill: parent
 
             Text {
-              anchors.centerIn: parent
+              anchors.centerIn: root.horizontal ? parent : undefined
+              anchors.horizontalCenter: root.horizontal ? undefined : parent.horizontalCenter
+              anchors.top: root.horizontal ? undefined : parent.top
+              anchors.topMargin: root.horizontal ? 0 : 20
               text: root.now.toLocaleString(Qt.locale(), "HH:mm")
               color: colors_ ? colors_.primary : "#D0BCFF"
               font.family: config ? config.fontFamily : "Roboto"
@@ -368,8 +404,8 @@ PanelWindow {
 
         Item {
           id: notifWrapper
-          Layout.preferredHeight: parent.height
-          Layout.preferredWidth: (config ? config.widgetSize : 50) * root.expandProgress
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
