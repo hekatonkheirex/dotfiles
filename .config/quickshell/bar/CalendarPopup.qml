@@ -4,6 +4,7 @@ import QtQuick.Window
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
+import "CalendarLogic.js" as CalendarLogic
 
 PanelWindow {
   id: root
@@ -34,33 +35,15 @@ PanelWindow {
   property date displayMonth: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
   readonly property real cellWidth: ((config ? config.popupWidth : 340) - (config ? config.popupPadding : 16) * 2 - 6 * 4) / 7
-  readonly property var weekDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-  readonly property var monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+  readonly property var weekDays: CalendarLogic.weekDays
+  readonly property var monthNames: CalendarLogic.monthNames
 
-  function daysInMonth(d) {
-    return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
-  }
-
-  function monthStartDay(d) {
-    return new Date(d.getFullYear(), d.getMonth(), 1).getDay()
-  }
-
+  function daysInMonth(d) { return CalendarLogic.daysInMonth(d) }
+  function monthStartDay(d) { return CalendarLogic.monthStartDay(d) }
   function isToday(dayNum) {
-    return dayNum === root.currentDate.getDate()
-      && root.displayMonth.getMonth() === root.currentDate.getMonth()
-      && root.displayMonth.getFullYear() === root.currentDate.getFullYear()
+    return CalendarLogic.isToday(dayNum, root.displayMonth, root.currentDate)
   }
-
-  function buildDayModel(date) {
-    if (!date || isNaN(date.getTime())) return []
-    var list = []
-    var startDay = root.monthStartDay(date)
-    var days = root.daysInMonth(date)
-    for (var i = 0; i < startDay; i++) list.push(-1)
-    for (var d = 1; d <= days; d++) list.push(d)
-    while (list.length % 7 !== 0) list.push(-1)
-    return list
-  }
+  function buildDayModel(date) { return CalendarLogic.buildDayModel(date) }
 
   property var dayModel: root.buildDayModel(root.displayMonth)
 
