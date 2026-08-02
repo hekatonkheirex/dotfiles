@@ -31,6 +31,7 @@ PanelWindow {
   margins.top: Math.max(0, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
 
   property bool wifiOn: false
+  property string wifiDevice: ""
   property int selectedIndex: -1
   property string statusMessage: ""
   property bool connecting: false
@@ -119,7 +120,29 @@ PanelWindow {
       onStreamFinished: {
         root.wifiOn = text.trim() === "enabled"
         if (root.wifiOn) {
+          deviceQuery.running = true
           listQuery.running = true
+        } else {
+          root.wifiDevice = ""
+        }
+      }
+    }
+  }
+
+  Process {
+    id: deviceQuery
+    command: ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device", "status"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.wifiDevice = ""
+        var lines = text.trim().split("\n")
+        for (var i = 0; i < lines.length; i++) {
+          var parts = lines[i].split(":")
+          if (parts.length >= 3 && parts[1] === "wifi" && parts[2].indexOf("connected") === 0) {
+            root.wifiDevice = parts[0]
+            break
+          }
         }
       }
     }
@@ -133,7 +156,6 @@ PanelWindow {
       onStreamFinished: {
         var out = text.trim()
         var parsed = root.parseWifiList(out)
-        console.log("[Antigravity] Wifi list parsed: " + JSON.stringify(parsed))
         wifiListModel.clear()
         for (var i = 0; i < parsed.length; i++) {
           wifiListModel.append(parsed[i])
@@ -170,6 +192,7 @@ PanelWindow {
   onVisibleChanged: {
     if (visible) {
       statusQuery.running = true
+      deviceQuery.running = true
       root.statusMessage = ""
       root.selectedIndex = -1
       entryAnimation.start()
@@ -569,11 +592,16 @@ PanelWindow {
             enabled: !root.connecting
             onClicked: {
               if (isCurrent) {
-                // To disconnect, run nmcli con down
                 root.connecting = true
                 root.statusMessage = "Disconnecting..."
-                disconnectProcess.command = ["nmcli", "device", "disconnect", "wlan0"] // wait, or let nmcli handle it
-                disconnectProcess.running = true
+                if (root.wifiDevice) {
+                  disconnectProcess.command = ["nmcli", "device", "disconnect", root.wifiDevice]
+                  disconnectProcess.running = true
+                } else {
+                  root.connecting = false
+                  root.statusMessage = "Could not determine the Wi-Fi device."
+                  deviceQuery.running = true
+                }
               } else {
                 root.connectToNetwork(model.ssid, passInput.text, model.secured)
               }
@@ -587,11 +615,14 @@ PanelWindow {
   Process {
     id: disconnectProcess
     running: false
-    stdout: StdioCollector {
-      onStreamFinished: {
-        root.connecting = false
+    onExited: (exitCode) => {
+      root.connecting = false
+      if (exitCode === 0) {
         root.statusMessage = "Disconnected successfully!"
         listQuery.running = true
+        deviceQuery.running = true
+      } else {
+        root.statusMessage = "Disconnect failed."
       }
     }
   }
