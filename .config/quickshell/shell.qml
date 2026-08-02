@@ -101,6 +101,21 @@ ShellRoot {
     }
   }
 
+  // Shared popup anchoring: centered on the widget along the bar in horizontal
+  // mode, offset past the bar edge in vertical mode. Callers pass their own
+  // implicit size and Screen bound so bindings stay reactive.
+  function popupMarginLeft(w, screenW) {
+    return bar.horizontal
+      ? Math.max(0, Math.min(bar.popupAnchorX - w / 2, screenW - w))
+      : cfg.barWidth + 4
+  }
+
+  function popupMarginTop(h, screenH) {
+    return bar.horizontal
+      ? cfg.barWidth + 4
+      : Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h))
+  }
+
   function toggleLayout() {
     shell.isHorizontal = !shell.isHorizontal;
     var pref = shell.isHorizontal ? "horizontal" : "vertical";
@@ -147,15 +162,6 @@ ShellRoot {
     id: darkModeMonitorRetry
     interval: 5000
     onTriggered: darkModeMonitor.running = true
-  }
-
-  // Re-query system dark mode after Colors.qml hot-reloads (which resets systemDark)
-  Timer {
-    id: darkModeSync
-    interval: 3000
-    running: true
-    repeat: true
-    onTriggered: darkModeInitial.running = true
   }
 
   Config {
@@ -205,18 +211,30 @@ ShellRoot {
   }
 
   FileTrigger {
-    triggerFile: "/tmp/qslauncher-trigger"
-    onTriggered: ipc.launcher()
-  }
-
-  FileTrigger {
-    triggerFile: "/tmp/qsquickmenu-trigger"
-    onTriggered: ipc.quickmenu()
-  }
-
-  FileTrigger {
-    triggerFile: "/tmp/qscommandcenter-trigger"
-    onTriggered: ipc.commandcenter()
+    triggers: ({
+      "qslauncher-trigger": "launcher",
+      "qsquickmenu-trigger": "quickmenu",
+      "qscommandcenter-trigger": "commandcenter",
+      "qslock-trigger": "lock",
+      "qsosd-vol": "osd-volume",
+      "qsosd-bright": "osd-brightness",
+      "qsosd-mic": "osd-mic",
+      "qsosd-airplane": "osd-airplane",
+      "qsosd-bluetooth": "osd-bluetooth"
+    })
+    onTriggered: function(name) {
+      switch (name) {
+        case "launcher": ipc.launcher(); break
+        case "quickmenu": ipc.quickmenu(); break
+        case "commandcenter": ipc.commandcenter(); break
+        case "lock": ipc.lock(); break
+        case "osd-volume": osd.show("volume"); break
+        case "osd-brightness": osd.show("brightness"); break
+        case "osd-mic": osd.show("mic"); break
+        case "osd-airplane": osd.show("airplane"); break
+        case "osd-bluetooth": osd.show("bluetooth"); break
+      }
+    }
   }
 
   NotificationServer {
@@ -270,13 +288,9 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: bar.horizontal
-      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
-      : (config ? config.barWidth + 4 : 48)
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
     anchors.top: true
-    margins.top: bar.horizontal
-      ? (config ? config.barWidth + 4 : 48)
-      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 
   WifiPopup {
@@ -288,13 +302,9 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: bar.horizontal
-      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
-      : (config ? config.barWidth + 4 : 48)
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
     anchors.top: true
-    margins.top: bar.horizontal
-      ? (config ? config.barWidth + 4 : 48)
-      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 
   BtPopup {
@@ -307,13 +317,9 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: bar.horizontal
-      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
-      : (config ? config.barWidth + 4 : 48)
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
     anchors.top: true
-    margins.top: bar.horizontal
-      ? (config ? config.barWidth + 4 : 48)
-      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 
   BrightnessPopup {
@@ -325,13 +331,9 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: bar.horizontal
-      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
-      : (config ? config.barWidth + 4 : 48)
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
     anchors.top: true
-    margins.top: bar.horizontal
-      ? (config ? config.barWidth + 4 : 48)
-      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 
   BatteryPopup {
@@ -343,13 +345,9 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: bar.horizontal
-      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
-      : (config ? config.barWidth + 4 : 48)
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
     anchors.top: true
-    margins.top: bar.horizontal
-      ? (config ? config.barWidth + 4 : 48)
-      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 
   CalendarPopup {
@@ -361,13 +359,9 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: bar.horizontal
-      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
-      : (config ? config.barWidth + 4 : 48)
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
     anchors.top: true
-    margins.top: bar.horizontal
-      ? (config ? config.barWidth + 4 : 48)
-      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 
   NotificationPopup {
@@ -379,13 +373,9 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: bar.horizontal
-      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
-      : (config ? config.barWidth + 4 : 48)
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
     anchors.top: true
-    margins.top: bar.horizontal
-      ? (config ? config.barWidth + 4 : 48)
-      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 
   QuickMenu {
@@ -399,13 +389,9 @@ ShellRoot {
     onToggleHorizontal: shell.toggleLayout()
 
     anchors.left: true
-    margins.left: bar.horizontal
-      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
-      : (config ? config.barWidth + 4 : 48)
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
     anchors.top: true
-    margins.top: bar.horizontal
-      ? (config ? config.barWidth + 4 : 48)
-      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 
   CommandCenter {
@@ -416,35 +402,6 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
     isHorizontal: shell.isHorizontal
     onToggleHorizontal: shell.toggleLayout()
-  }
-
-  FileTrigger {
-    triggerFile: "/tmp/qsosd-vol"
-    onTriggered: osd.show("volume")
-  }
-
-  FileTrigger {
-    triggerFile: "/tmp/qsosd-bright"
-    onTriggered: osd.show("brightness")
-  }
-
-  FileTrigger {
-    triggerFile: "/tmp/qsosd-mic"
-    onTriggered: osd.show("mic")
-  }
-
-  FileTrigger {
-    triggerFile: "/tmp/qsosd-airplane"
-    onTriggered: {
-      osd.show("airplane");
-    }
-  }
-
-  FileTrigger {
-    triggerFile: "/tmp/qsosd-bluetooth"
-    onTriggered: {
-      osd.show("bluetooth");
-    }
   }
 
   OsdOverlay {
@@ -462,12 +419,8 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: bar.horizontal
-      ? Math.max(0, Math.min(bar.popupAnchorX - implicitWidth / 2, Screen.desktopAvailableWidth - implicitWidth))
-      : (config ? config.barWidth + 4 : 48)
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
     anchors.top: true
-    margins.top: bar.horizontal
-      ? (config ? config.barWidth + 4 : 48)
-      : Math.max(0, Math.min(bar.popupAnchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 }
