@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import "primitives"
 import "../config"
 
 PopupBase {
@@ -455,36 +456,12 @@ PopupBase {
         visible: delegateRoot.expanded
         spacing: 12
 
-        Rectangle {
+        TextFieldControl {
+          id: passField
           Layout.fillWidth: true
-          height: 36
-          radius: 8
-          color: Colors.surface
-          border.color: passInput.activeFocus ? (Colors.primary) : (Colors.outline)
-          border.width: passInput.activeFocus ? 2 : 1
           visible: model.secured
-
-          TextInput {
-            id: passInput
-            anchors {
-              fill: parent
-              leftMargin: 10
-              rightMargin: 10
-            }
-            verticalAlignment: TextInput.AlignVCenter
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 2
-            echoMode: TextInput.Password
-
-            Text {
-              text: "Password"
-              color: Colors.fgSurfaceVariant
-              visible: !parent.text && !parent.activeFocus
-              font: parent.font
-              anchors.verticalCenter: parent.verticalCenter
-            }
-          }
+          placeholder: "Password"
+          echoMode: TextInput.Password
         }
 
         Rectangle {
@@ -520,7 +497,7 @@ PopupBase {
                   deviceQuery.running = true
                 }
               } else {
-                root.connectToNetwork(model.ssid, passInput.text, model.secured)
+                root.connectToNetwork(model.ssid, passField.text, model.secured)
               }
             }
           }

@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
+import "primitives"
 import "../config"
 
 PanelWindow {
@@ -290,105 +291,63 @@ PanelWindow {
   Component {
     id: btItemDelegate
 
-    Rectangle {
+    ListItem {
       id: itemRow
       width: listView.width
-      height: 44
-      radius: 12
-      color: itemMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
+      leadingIcon: "bluetooth"
+      leadingIconColor: Colors.primary
+      title: model.name
+      subtitle: model.mac
 
-      RowLayout {
-        anchors.fill: parent
-        anchors.leftMargin: 8
-        anchors.rightMargin: 8
-        spacing: 10
+      Row {
+        spacing: 4
+        anchors.verticalCenter: parent.verticalCenter
+        visible: model.battery !== "" && !itemRow.hovered
 
         Text {
-          text: "bluetooth"
+          text: model.battery + "%"
+          color: Colors.primary
+          font.family: Config.fontFamily
+          font.pixelSize: Config.fontPixelSize + 1
+          font.weight: Font.Bold
+          anchors.verticalCenter: parent.verticalCenter
+        }
+
+        Text {
+          text: {
+            var b = parseInt(model.battery)
+            if (isNaN(b)) return "battery_unknown"
+            if (b <= 10) return "battery_alert"
+            if (b <= 20) return "battery_1_bar"
+            if (b <= 40) return "battery_2_bar"
+            if (b <= 60) return "battery_3_bar"
+            if (b <= 80) return "battery_4_bar"
+            if (b <= 95) return "battery_5_bar"
+            return "battery_full"
+          }
           color: Colors.primary
           font.family: Config.iconFont
-          font.pixelSize: 22
-        }
-
-        ColumnLayout {
-          Layout.fillWidth: true
-          spacing: 0
-
-          Text {
-            Layout.fillWidth: true
-            text: model.name
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: (Config.fontPixelSize + 3)
-            font.weight: Font.Medium
-            elide: Text.ElideRight
-          }
-
-          Text {
-            Layout.fillWidth: true
-            text: model.mac
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: (Config.fontPixelSize)
-            elide: Text.ElideRight
-          }
-        }
-
-        Row {
-          spacing: 4
-          Layout.alignment: Qt.AlignVCenter
-          visible: model.battery !== "" && !itemMouse.containsMouse
-
-          Text {
-            text: model.battery + "%"
-            color: Colors.primary
-            font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
-            font.weight: Font.Bold
-            anchors.verticalCenter: parent.verticalCenter
-          }
-
-          Text {
-            text: {
-              var b = parseInt(model.battery)
-              if (isNaN(b)) return "battery_unknown"
-              if (b <= 10) return "battery_alert"
-              if (b <= 20) return "battery_1_bar"
-              if (b <= 40) return "battery_2_bar"
-              if (b <= 60) return "battery_3_bar"
-              if (b <= 80) return "battery_4_bar"
-              if (b <= 95) return "battery_5_bar"
-              return "battery_full"
-            }
-            color: Colors.primary
-            font.family: Config.iconFont
-            font.pixelSize: 18
-            anchors.verticalCenter: parent.verticalCenter
-          }
-        }
-
-        Text {
-          text: "link_off"
-          color: Colors.error
-          font.family: Config.iconFont
-          font.pixelSize: 20
-          visible: itemMouse.containsMouse
-          
-          MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-              Quickshell.execDetached(["bluetoothctl", "disconnect", model.mac])
-              refreshTimer.start()
-            }
-          }
+          font.pixelSize: 18
+          anchors.verticalCenter: parent.verticalCenter
         }
       }
 
-      MouseArea {
-        id: itemMouse
-        anchors.fill: parent
-        hoverEnabled: true
+      Text {
+        text: "link_off"
+        color: Colors.error
+        font.family: Config.iconFont
+        font.pixelSize: 20
+        visible: itemRow.hovered
+        anchors.verticalCenter: parent.verticalCenter
+
+        MouseArea {
+          anchors.fill: parent
+          cursorShape: Qt.PointingHandCursor
+          onClicked: {
+            Quickshell.execDetached(["bluetoothctl", "disconnect", model.mac])
+            refreshTimer.start()
+          }
+        }
       }
     }
   }
