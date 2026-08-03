@@ -36,7 +36,6 @@ QtObject {
   readonly property string iconFont: "Material Symbols Outlined"
   readonly property int iconSize: 16
   readonly property int iconSizeSmall: 16
-  readonly property int iconSizeLarge: 28
   readonly property int fontPixelSize: 9
 
   // Small shape scale for compact controls and expressive containers.
@@ -59,8 +58,6 @@ QtObject {
   readonly property int popupPadding: spacingLarge
   readonly property int commandCenterMaxWidth: 800
   readonly property int commandCenterMaxHeight: 606
-  readonly property int commandCenterMinWidth: 640
-  readonly property int commandCenterMinHeight: 480
   readonly property int clockIntervalMs: 1000
   readonly property int volumeStep: 5
   readonly property int brightnessStep: 5
