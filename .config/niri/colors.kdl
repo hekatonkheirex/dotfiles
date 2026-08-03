@@ -1,7 +1,7 @@
 // Generated dynamically by sync-terminal-theme.sh
 layout {
     focus-ring {
-        active-color "#8acefd"
-        inactive-color "#a68a8b"
+        active-color "#ffacec"
+        inactive-color "#a3899a"
     }
 }

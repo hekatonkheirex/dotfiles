@@ -1,18 +1,18 @@
 import QtQuick
+import "../config"
 
 Item {
   id: bgContainer
   clip: true
 
-  property QtObject colors_: null
   property bool running: true
   property bool transparentBg: false
 
-  readonly property color bgColor: colors_ ? colors_.bg : "#141218"
-  readonly property color primaryContainerColor: colors_ ? colors_.primaryContainer : "#1E4F3E"
-  readonly property color secondaryContainerColor: colors_ ? colors_.secondaryContainer : "#D0EADB"
-  readonly property color primaryColor: colors_ ? colors_.primary : "#BEE8C7"
-  readonly property bool isDark: colors_ ? colors_.darkMode : true
+  readonly property color bgColor: Colors.bg
+  readonly property color primaryContainerColor: Colors.primaryContainer
+  readonly property color secondaryContainerColor: Colors.secondaryContainer
+  readonly property color primaryColor: Colors.primary
+  readonly property bool isDark: Colors.darkMode
 
   // Solid base layer
   Rectangle {

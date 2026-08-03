@@ -1,12 +1,13 @@
 import QtQuick
+import "../config"
 
 Canvas {
   id: root
   implicitHeight: 16
 
   property real progress: 0.0
-  property color activeColor: "#BEE8C7"
-  property color trackColor: "#3C3A43"
+  property color activeColor: Colors.primary
+  property color trackColor: Colors.surfaceContainerHighest
   property real lineWidth: 2.5
   property real dotRadius: 4
   property real trackLineWidth: 1.5

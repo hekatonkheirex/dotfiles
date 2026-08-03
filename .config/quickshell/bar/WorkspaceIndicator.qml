@@ -2,22 +2,25 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import "../config"
 
 Item {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
   property bool horizontal: false
 
   signal clicked(var mouse)
 
   property var workspaces: []
+  property string focusedWindowTitle: ""
+  property string focusedWindowAppId: ""
+  readonly property string focusedWindowInfo: focusedWindowTitle !== "" ? focusedWindowTitle : focusedWindowAppId
+  readonly property string focusedWindowProgram: formatProgramName(focusedWindowAppId)
 
-  readonly property string wmType: config ? config.wmType : "niri"
+  readonly property string wmType: Config.wmType
 
-  implicitWidth: horizontal ? grid.implicitWidth + 12 : (config ? config.widgetSize : 50)
-  implicitHeight: horizontal ? (config ? config.widgetSize : 50) : grid.implicitHeight + 12
+  implicitWidth: horizontal ? grid.implicitWidth + 12 : (Config.widgetSize)
+  implicitHeight: horizontal ? (Config.widgetSize) : grid.implicitHeight + 12
 
   Process {
     id: refresher
@@ -35,6 +38,42 @@ Item {
   }
 
   Process {
+    id: focusedWindowQuery
+    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j focused-window"]
+    running: false
+
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var raw = text.trim()
+        if (!raw || raw === "null") {
+          root.focusedWindowTitle = ""
+          root.focusedWindowAppId = ""
+          return
+        }
+
+        try {
+          var data = JSON.parse(raw)
+          var title = data && typeof data.title === "string" ? data.title : ""
+          root.focusedWindowTitle = title.replace(/\s+/g, " ").trim()
+          root.focusedWindowAppId = data && typeof data.app_id === "string" ? data.app_id : ""
+        } catch (e) {
+          root.focusedWindowTitle = ""
+          root.focusedWindowAppId = ""
+        }
+      }
+    }
+  }
+
+  Timer {
+    id: focusedWindowRefreshDebounce
+    interval: 80
+    repeat: false
+    onTriggered: {
+      if (!focusedWindowQuery.running) focusedWindowQuery.running = true
+    }
+  }
+
+  Process {
     id: niriWatcher
     command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg event-stream"]
     running: root.visible && root.wmType === "niri"
@@ -42,6 +81,7 @@ Item {
     stdout: SplitParser {
       onRead: function(data) {
         if (!refresher.running) refresher.running = true
+        focusedWindowRefreshDebounce.restart()
       }
     }
 
@@ -68,6 +108,7 @@ Item {
     if (visible) {
       if (root.wmType === "niri") {
         refresher.running = true
+        focusedWindowQuery.running = true
       }
     }
   }
@@ -76,6 +117,7 @@ Item {
     if (root.visible) {
       if (root.wmType === "niri") {
         refresher.running = true
+        focusedWindowQuery.running = true
       }
     }
   }
@@ -94,6 +136,29 @@ Item {
 
     list.sort(function(a, b) { return a.idx - b.idx })
     return list
+  }
+
+  function formatProgramName(appId) {
+    var knownNames = ({
+      "kitty": "Kitty",
+      "brave-origin": "Brave",
+      "brave-browser": "Brave",
+      "firefox": "Firefox",
+      "chromium": "Chromium",
+      "code": "VS Code",
+      "pavucontrol": "PulseAudio Volume Control"
+    })
+
+    if (!appId) return ""
+    if (knownNames[appId]) return knownNames[appId]
+
+    var words = appId.replace(/[._-]+/g, " ").split(" ")
+    for (var i = 0; i < words.length; i++) {
+      if (words[i].length > 0) {
+        words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1)
+      }
+    }
+    return words.join(" ")
   }
 
   function focusWorkspace(idx) {
@@ -133,13 +198,13 @@ Item {
         height: root.horizontal ? grid.height : (active ? 40 : 20)
         Behavior on width {
           NumberAnimation {
-            duration: config ? config.animationDuration : 150
+            duration: Config.animationDuration
             easing.type: Easing.OutBack
           }
         }
         Behavior on height {
           NumberAnimation {
-            duration: config ? config.animationDuration : 150
+            duration: Config.animationDuration
             easing.type: Easing.OutBack
           }
         }
@@ -147,30 +212,29 @@ Item {
         Rectangle {
           id: pillRect
           anchors.centerIn: parent
-          width: delegateItem.active ? (root.horizontal ? 40 : 32) : (modelData.isOccupied ? 12 : 6)
-          height: delegateItem.active ? (root.horizontal ? 32 : 40) : (modelData.isOccupied ? 12 : 6)
+          width: delegateItem.active ? (root.horizontal ? 40 : Math.min(32, delegateItem.width - 4)) : (modelData.isOccupied ? 12 : 6)
+          height: delegateItem.active ? (root.horizontal ? Math.min(32, delegateItem.height - 4) : 40) : (modelData.isOccupied ? 12 : 6)
           radius: height / 2
 
           color: {
-            if (modelData.isFocused) return colors_ ? colors_.primary : "#D0BCFF"
-            if (wsMouse.containsMouse) return colors_ ? colors_.outlineVariant : "#49454F"
-            if (modelData.isOccupied) return colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
-            return colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.2) : Qt.rgba(147/255, 143/255, 153/255, 0.2)
+            if (modelData.isFocused) return Colors.primary
+            var base = modelData.isOccupied ? Colors.surfaceContainerHighest : Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2)
+            return Qt.tint(base, wsMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
           }
           border.width: modelData.isFocused ? 0 : 1
           border.color: {
             if (modelData.isFocused) return "transparent"
-            return colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, modelData.isOccupied ? 0.3 : 0.1) : Qt.rgba(147/255, 143/255, 153/255, modelData.isOccupied ? 0.3 : 0.1)
+            return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, modelData.isOccupied ? 0.3 : 0.1)
           }
 
           Behavior on width {
-            NumberAnimation { duration: config ? config.animationDuration : 150; easing.type: Easing.OutBack }
+            NumberAnimation { duration: Config.animationDuration; easing.type: Easing.OutBack }
           }
           Behavior on height {
-            NumberAnimation { duration: config ? config.animationDuration : 150; easing.type: Easing.OutBack }
+            NumberAnimation { duration: Config.animationDuration; easing.type: Easing.OutBack }
           }
           Behavior on color {
-            ColorAnimation { duration: config ? config.animationDuration : 150 }
+            ColorAnimation { duration: Config.animationDuration}
           }
 
           Text {
@@ -179,15 +243,15 @@ Item {
             opacity: delegateItem.active ? 1.0 : 0.0
             visible: opacity > 0
             color: {
-              if (modelData.isFocused) return colors_ ? colors_.fgPrimary : "#FFFFFF"
-              return colors_ ? colors_.fgSurface : "#FFFFFF"
+              if (modelData.isFocused) return Colors.fgPrimary
+              return Colors.fgSurface
             }
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize + 4) : 14
+            font.family: Config.fontFamily
+            font.pixelSize: (Config.fontPixelSize + 4)
             font.weight: modelData.isFocused ? Font.Bold : Font.Normal
 
             Behavior on opacity {
-              NumberAnimation { duration: 100 }
+              NumberAnimation { duration: Config.motionShort}
             }
           }
         }

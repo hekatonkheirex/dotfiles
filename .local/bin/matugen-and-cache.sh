@@ -1,8 +1,9 @@
 #!/bin/bash
 IMG_PATH="$1"
 
-# Capture JSON palette to cache so generators get fresh colors
-/usr/bin/matugen --json hex --type scheme-expressive --prefer saturation image "$IMG_PATH" | \
+# Capture JSON palette to cache so generators get fresh colors. Fidelity keeps
+# the wallpaper's source hue instead of applying expressive hue rotations.
+/usr/bin/matugen --json hex --type scheme-fidelity --prefer saturation image "$IMG_PATH" | \
   python3 -c "
 import json, sys, os
 data = json.load(sys.stdin)
@@ -18,4 +19,4 @@ with open(cache, 'w') as f:
 "
 
 # Generate template (Colors.qml)
-/usr/bin/matugen --type scheme-expressive --prefer saturation image "$IMG_PATH"
+/usr/bin/matugen --type scheme-fidelity --prefer saturation image "$IMG_PATH"

@@ -5,12 +5,11 @@ import Quickshell.Services.Pam
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
+import "../config"
 
 Item {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
 
   property bool locked: false
   onLockedChanged: {
@@ -21,10 +20,13 @@ Item {
       fprintdRetry.stop()
     }
   }
-  readonly property color accentGreen: "#BEE8C7"
+  readonly property color accentColor: Colors.primary
+  // Lock screen sits on a fixed dark photo scrim independent of the desktop's
+  // light/dark mode, so text stays fixed white for legibility rather than
+  // following Colors.fgSurface (which would go near-black in light mode).
   readonly property color textColor: "#FFFFFF"
   readonly property color mutedText: Qt.rgba(1, 1, 1, 0.7)
-  readonly property color errorColor: "#ea1821"
+  readonly property color errorColor: Colors.destructive
 
   readonly property string home: Quickshell.env("HOME")
   property date now: new Date()
@@ -156,7 +158,7 @@ Item {
     }
     surface: Component {
       WlSessionLockSurface {
-        color: "#000000"
+        color: Colors.scrim
 
         PinchHandler { target: null }
         WheelHandler { target: null }
@@ -170,7 +172,6 @@ Item {
 
         AnimatedBackground {
           anchors.fill: parent
-          colors_: root.colors_
           running: root.locked
         }
 
@@ -200,8 +201,8 @@ Item {
               radius: 48
               clip: true
               border.width: 3
-              border.color: accentGreen
-              color: colors_ ? colors_.primaryContainer : "#1E4F3E"
+              border.color: accentColor
+              color: Colors.primaryContainer
 
               Image {
                 id: profileImage
@@ -233,8 +234,8 @@ Item {
               Text {
                 anchors.centerIn: parent
                 text: root.username().charAt(0).toUpperCase()
-                color: colors_ ? colors_.fgPrimaryContainer : "#BEE8C7"
-                font.family: "Roboto"
+                color: Colors.fgPrimaryContainer
+                font.family: Config.fontFamily
                 font.pixelSize: 36
                 font.weight: Font.Bold
                 visible: profileImage.status !== Image.Ready
@@ -248,7 +249,7 @@ Item {
               return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
             }
             color: textColor
-            font.family: "Roboto"
+            font.family: Config.fontFamily
             font.pixelSize: 72
             font.weight: Font.Bold
             style: Text.Sunken
@@ -264,7 +265,7 @@ Item {
               return days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear()
             }
             color: mutedText
-            font.family: "Roboto"
+            font.family: Config.fontFamily
             font.pixelSize: 20
           }
 
@@ -282,7 +283,7 @@ Item {
             TextInput {
               anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
               color: textColor
-              font.family: "Roboto"
+              font.family: Config.fontFamily
               font.pixelSize: 18
               text: root.lockInputText
               echoMode: TextInput.Password
@@ -317,7 +318,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.lockError
             color: errorColor
-            font.family: "Roboto"
+            font.family: Config.fontFamily
             font.pixelSize: 15
             font.weight: Font.Bold
             visible: root.lockError.length > 0
@@ -327,7 +328,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "or touch the fingerprint sensor"
             color: mutedText
-            font.family: "Roboto"
+            font.family: Config.fontFamily
             font.pixelSize: 14
             opacity: 0.8
           }
@@ -344,7 +345,7 @@ Item {
                 anchors.centerIn: parent
                 text: "power_settings_new"
                 color: mutedText
-                font.family: "Material Symbols Outlined"
+                font.family: Config.iconFont
                 font.pixelSize: 20
                 MouseArea {
                   anchors.fill: parent
@@ -362,7 +363,7 @@ Item {
                 anchors.centerIn: parent
                 text: "restart_alt"
                 color: mutedText
-                font.family: "Material Symbols Outlined"
+                font.family: Config.iconFont
                 font.pixelSize: 20
                 MouseArea {
                   anchors.fill: parent
@@ -380,7 +381,7 @@ Item {
                 anchors.centerIn: parent
                 text: "power_off"
                 color: mutedText
-                font.family: "Material Symbols Outlined"
+                font.family: Config.iconFont
                 font.pixelSize: 20
                 MouseArea {
                   anchors.fill: parent
@@ -396,9 +397,9 @@ Item {
   }
 
   Loader {
-    active: !config.isNiri && root.locked
+    active: !Config.isNiri && root.locked
     sourceComponent: PanelWindow {
-      color: "#000000"
+      color: Colors.scrim
       exclusionMode: ExclusionMode.Ignore
       WlrLayershell.namespace: "quickshell-lock"
       WlrLayershell.layer: WlrLayer.Overlay
@@ -409,7 +410,6 @@ Item {
 
       AnimatedBackground {
         anchors.fill: parent
-        colors_: root.colors_
         running: root.locked
       }
 
@@ -438,8 +438,8 @@ Item {
             var d = root.now
             return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
           }
-          color: "#FFFFFF"
-          font.family: "Roboto"
+          color: root.textColor
+          font.family: Config.fontFamily
           font.pixelSize: 72
           font.weight: Font.Bold
           style: Text.Sunken
@@ -454,8 +454,8 @@ Item {
             var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
             return days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear()
           }
-          color: Qt.rgba(1, 1, 1, 0.7)
-          font.family: "Roboto"
+          color: root.mutedText
+          font.family: Config.fontFamily
           font.pixelSize: 20
         }
 
@@ -472,8 +472,8 @@ Item {
 
           TextInput {
             anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
-            color: "#FFFFFF"
-            font.family: "Roboto"
+            color: root.textColor
+            font.family: Config.fontFamily
             font.pixelSize: 18
             text: root.lockInputText
             echoMode: TextInput.Password
@@ -507,8 +507,8 @@ Item {
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
           text: root.lockError
-          color: "#ea1821"
-          font.family: "Roboto"
+          color: Colors.destructive
+          font.family: Config.fontFamily
           font.pixelSize: 15
           font.weight: Font.Bold
           visible: root.lockError.length > 0
@@ -517,8 +517,8 @@ Item {
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
           text: "or touch the fingerprint sensor"
-          color: Qt.rgba(1, 1, 1, 0.7)
-          font.family: "Roboto"
+          color: root.mutedText
+          font.family: Config.fontFamily
           font.pixelSize: 14
           opacity: 0.8
         }

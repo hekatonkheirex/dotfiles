@@ -1,11 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import "../../config"
 
           ColumnLayout {
             property QtObject root: null
-            property QtObject colors_: null
-            property QtObject config: null
             anchors.fill: parent
             spacing: 12
             visible: root.currentTab === 3
@@ -21,8 +20,8 @@ import Quickshell
                 Layout.preferredWidth: 260
                 Layout.fillHeight: true
                 radius: 16
-                color: colors_ ? colors_.surfaceContainer : "#25232A"
-                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                color: Colors.surfaceContainer
+                border.color: Colors.outlineVariant
                 border.width: 1
 
                 RowLayout {
@@ -31,7 +30,7 @@ import Quickshell
 
                   Text {
                     text: root.getMaterialIcon(root.weatherDesc)
-                    font.family: "Material Symbols Rounded"
+                    font.family: Config.iconFont
                     font.pixelSize: 82
                     color: root.getMaterialColor(root.weatherDesc)
                     Layout.alignment: Qt.AlignVCenter
@@ -44,16 +43,16 @@ import Quickshell
 
                     Text {
                       text: root.weatherTemp
-                      color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                      font.family: config ? config.fontFamily : "Roboto"
+                      color: Colors.fgSurface
+                      font.family: Config.fontFamily
                       font.pixelSize: 32
                       font.weight: Font.Bold
                     }
 
                     Text {
                       text: root.weatherDesc
-                      color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                      font.family: config ? config.fontFamily : "Roboto"
+                      color: Colors.fgSurfaceVariant
+                      font.family: Config.fontFamily
                       font.pixelSize: 15
                       font.weight: Font.Medium
                       elide: Text.ElideRight
@@ -61,8 +60,8 @@ import Quickshell
 
                     Text {
                       text: root.weatherCity || "Location Auto"
-                      color: colors_ ? Qt.rgba(colors_.fgSurfaceVariant.r, colors_.fgSurfaceVariant.g, colors_.fgSurfaceVariant.b, 0.5) : "#70CAC4D0"
-                      font.family: config ? config.fontFamily : "Roboto"
+                      color: Qt.rgba(Colors.fgSurfaceVariant.r, Colors.fgSurfaceVariant.g, Colors.fgSurfaceVariant.b, 0.5)
+                      font.family: Config.fontFamily
                       font.pixelSize: 11
                     }
                   }
@@ -74,15 +73,15 @@ import Quickshell
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 16
-                color: colors_ ? colors_.surfaceContainer : "#25232A"
-                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                color: Colors.surfaceContainer
+                border.color: Colors.outlineVariant
                 border.width: 1
 
                 Text {
                   anchors.centerIn: parent
                   text: "Loading hourly forecast..."
-                  color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                  font.family: config ? config.fontFamily : "Roboto"
+                  color: Colors.fgSurfaceVariant
+                  font.family: Config.fontFamily
                   font.pixelSize: 12
                   visible: !root.weatherHourly || root.weatherHourly.length === 0
                 }
@@ -95,8 +94,8 @@ import Quickshell
 
                   Text {
                     text: "Hourly Forecast"
-                    color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                    font.family: config ? config.fontFamily : "Roboto"
+                    color: Colors.fgSurfaceVariant
+                    font.family: Config.fontFamily
                     font.pixelSize: 11
                     font.weight: Font.Medium
                   }
@@ -119,8 +118,8 @@ import Quickshell
 
                           Text {
                             text: modelData.time
-                            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                            font.family: config ? config.fontFamily : "Roboto"
+                            color: Colors.fgSurfaceVariant
+                            font.family: Config.fontFamily
                             font.pixelSize: 11
                             font.weight: Font.Medium
                             Layout.alignment: Qt.AlignHCenter
@@ -128,7 +127,7 @@ import Quickshell
 
                           Text {
                             text: root.getMaterialIcon(modelData.desc)
-                            font.family: "Material Symbols Rounded"
+                            font.family: Config.iconFont
                             font.pixelSize: 36
                             color: root.getMaterialColor(modelData.desc)
                             Layout.alignment: Qt.AlignHCenter
@@ -136,8 +135,8 @@ import Quickshell
 
                           Text {
                             text: modelData.temp
-                            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                            font.family: config ? config.fontFamily : "Roboto"
+                            color: Colors.fgSurface
+                            font.family: Config.fontFamily
                             font.pixelSize: 12
                             font.weight: Font.Bold
                             Layout.alignment: Qt.AlignHCenter
@@ -157,8 +156,8 @@ import Quickshell
 
               Text {
                 text: "Current Conditions Details"
-                color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                font.family: config ? config.fontFamily : "Roboto"
+                color: Colors.fgSurfaceVariant
+                font.family: Config.fontFamily
                 font.pixelSize: 12
                 font.weight: Font.Medium
               }
@@ -171,12 +170,12 @@ import Quickshell
 
                 Repeater {
                   model: [
-                    { icon: "thermostat", label: "Feels Like", value: root.weatherFeelsLike, color: "#FF5252" },
-                    { icon: "water_drop", label: "Humidity", value: root.weatherHumidity, color: "#26C6DA" },
-                    { icon: "air", label: "Wind", value: root.weatherWind, color: "#00F5D4" },
-                    { icon: "compress", label: "Pressure", value: root.weatherPressure, color: "#BA68C8" },
-                    { icon: "sunny", label: "UV Index", value: root.weatherUV, color: "#FFA726" },
-                    { icon: "umbrella", label: "Precipitation", value: root.weatherPrecipChance, color: "#4FC3F7" }
+                    { icon: "thermostat", label: "Feels Like", value: root.weatherFeelsLike, color: Colors.weatherFeelsLike},
+                    { icon: "water_drop", label: "Humidity", value: root.weatherHumidity, color: Colors.weatherHumidity},
+                    { icon: "air", label: "Wind", value: root.weatherWind, color: Colors.weatherWind},
+                    { icon: "compress", label: "Pressure", value: root.weatherPressure, color: Colors.weatherPressure},
+                    { icon: "sunny", label: "UV Index", value: root.weatherUV, color: Colors.weatherUv},
+                    { icon: "umbrella", label: "Precipitation", value: root.weatherPrecipChance, color: Colors.weatherPrecipitation}
                   ]
 
                   delegate: Rectangle {
@@ -184,8 +183,8 @@ import Quickshell
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60
                     radius: 12
-                    color: colors_ ? colors_.surfaceContainer : "#25232A"
-                    border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                    color: Colors.surfaceContainer
+                    border.color: Colors.outlineVariant
                     border.width: 1
 
                     RowLayout {
@@ -194,7 +193,7 @@ import Quickshell
 
                       Text {
                         text: modelData.icon
-                        font.family: "Material Symbols Rounded"
+                        font.family: Config.iconFont
                         font.pixelSize: 26
                         font.weight: Font.Medium
                         color: modelData.color
@@ -207,16 +206,16 @@ import Quickshell
 
                         Text {
                           text: modelData.label
-                          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                          font.family: config ? config.fontFamily : "Roboto"
+                          color: Colors.fgSurfaceVariant
+                          font.family: Config.fontFamily
                           font.pixelSize: 9
                           font.weight: Font.Medium
                         }
 
                         Text {
                           text: modelData.value
-                          color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                          font.family: config ? config.fontFamily : "Roboto"
+                          color: Colors.fgSurface
+                          font.family: Config.fontFamily
                           font.pixelSize: 12
                           font.weight: Font.Bold
                         }
@@ -234,8 +233,8 @@ import Quickshell
 
               Text {
                 text: "5-Day Weather Forecast"
-                color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                font.family: config ? config.fontFamily : "Roboto"
+                color: Colors.fgSurfaceVariant
+                font.family: Config.fontFamily
                 font.pixelSize: 12
                 font.weight: Font.Medium
               }
@@ -253,8 +252,8 @@ import Quickshell
                     Layout.fillWidth: true
                     Layout.preferredHeight: 115
                     radius: 12
-                    color: colors_ ? colors_.surfaceContainer : "#25232A"
-                    border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                    color: Colors.surfaceContainer
+                    border.color: Colors.outlineVariant
                     border.width: 1
 
                     ColumnLayout {
@@ -269,8 +268,8 @@ import Quickshell
                           if (index === 0) return "Today";
                           return days[d.getDay()];
                         }
-                        color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                        font.family: config ? config.fontFamily : "Roboto"
+                        color: Colors.fgSurface
+                        font.family: Config.fontFamily
                         font.pixelSize: 11
                         font.weight: Font.Bold
                         Layout.alignment: Qt.AlignHCenter
@@ -278,7 +277,7 @@ import Quickshell
 
                       Text {
                         text: root.getMaterialIcon(modelData.desc)
-                        font.family: "Material Symbols Rounded"
+                        font.family: Config.iconFont
                         font.pixelSize: 46
                         color: root.getMaterialColor(modelData.desc)
                         Layout.alignment: Qt.AlignHCenter
@@ -286,16 +285,16 @@ import Quickshell
 
                       Text {
                         text: modelData.max_temp + " / " + modelData.min_temp
-                        color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                        font.family: config ? config.fontFamily : "Roboto"
+                        color: Colors.fgSurface
+                        font.family: Config.fontFamily
                         font.pixelSize: 10
                         Layout.alignment: Qt.AlignHCenter
                       }
 
                       Text {
                         text: modelData.desc
-                        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                        font.family: config ? config.fontFamily : "Roboto"
+                        color: Colors.fgSurfaceVariant
+                        font.family: Config.fontFamily
                         font.pixelSize: 8
                         Layout.alignment: Qt.AlignHCenter
                         elide: Text.ElideRight

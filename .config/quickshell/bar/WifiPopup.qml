@@ -1,34 +1,13 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Window
 import Quickshell
-import Quickshell.Wayland
-import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
+import "../config"
 
-PanelWindow {
+PopupBase {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
-  property int anchorY: 0
-
-  signal dismissed()
-
-  implicitWidth: config ? config.popupWidth : 340
-  visible: false
   implicitHeight: Math.min(contentColumn.implicitHeight + 24, 450)
-  color: "transparent"
-  exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: "quickshell-popup"
-  WlrLayershell.layer: WlrLayer.Top
-
-  anchors.left: true
-  margins.left: config ? config.barWidth + 4 : 48
-  property int screenH: Screen.desktopAvailableHeight
-
-  anchors.top: true
-  margins.top: Math.max(0, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
 
   property bool wifiOn: false
   property string wifiDevice: ""
@@ -189,84 +168,20 @@ PanelWindow {
     onTriggered: statusQuery.running = true
   }
 
-  onVisibleChanged: {
-    if (visible) {
-      statusQuery.running = true
-      deviceQuery.running = true
-      root.statusMessage = ""
-      root.selectedIndex = -1
-      entryAnimation.start()
-    }
+  onShown: {
+    statusQuery.running = true
+    deviceQuery.running = true
+    root.statusMessage = ""
+    root.selectedIndex = -1
   }
 
-  WlrLayershell.focusable: true
-
-  Component.onCompleted: {
-    Qt.application.activeChanged.connect(function() {
-      if (!Qt.application.active && root.visible) root.dismissed()
-    })
-  }
-
-  Item {
-    anchors.fill: parent
-    focus: true
-    Keys.onEscapePressed: root.dismissed()
-
-    FocusDismiss {
-      target: root
-      config: root.config
-      onDismissed: root.dismissed()
+  Column {
+    id: contentColumn
+    anchors {
+      fill: parent
+      margins: 12
     }
-
-    Rectangle {
-      id: bg
-      anchors.fill: parent
-      radius: config ? config.borderRadius : 14
-      color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
-      clip: true
-      border.width: 1
-      border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
-
-      transform: [
-        Translate { id: transX; x: 0 },
-        Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
-      ]
-
-      ParallelAnimation {
-        id: entryAnimation
-        NumberAnimation {
-          target: scaleTransform
-          properties: "xScale,yScale"
-          from: 0.85
-          to: 1.0
-          duration: 250
-          easing.type: Easing.OutBack
-        }
-        NumberAnimation {
-          target: transX
-          property: "x"
-          from: -30
-          to: 0
-          duration: 250
-          easing.type: Easing.OutBack
-        }
-        NumberAnimation {
-          target: bg
-          property: "opacity"
-          from: 0.0
-          to: 1.0
-          duration: 200
-          easing.type: Easing.OutCubic
-        }
-      }
-
-      Column {
-        id: contentColumn
-        anchors {
-          fill: parent
-          margins: 12
-        }
-        spacing: 12
+    spacing: 12
 
         RowLayout {
           width: parent.width
@@ -275,16 +190,16 @@ PanelWindow {
           Text {
             Layout.fillWidth: true
             text: "Wi-Fi Networks"
-            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize + 8) : 18
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: (Config.fontPixelSize + 8)
             font.weight: Font.Bold
           }
 
           Text {
             text: "refresh"
-            color: colors_ ? colors_.primary : "#D0BCFF"
-            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            color: Colors.primary
+            font.family: Config.iconFont
             font.pixelSize: 20
             opacity: listQuery.running ? 0.5 : 1.0
             
@@ -301,10 +216,12 @@ PanelWindow {
           SwitchControl {
             id: wifiSwitch
             checked: root.wifiOn
-            activeColor: colors_ ? colors_.primary : "#D0BCFF"
-            surfaceContainerHighest: colors_ ? colors_.surfaceContainerHighest : "#36343B"
-            outline: colors_ ? colors_.outline : "#938F99"
-            checkmarkColor: colors_ ? (colors_.darkMode ? colors_.fgPrimary : colors_.primary) : "#0F3C2C"
+            activeColor: Colors.primary
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Wi-Fi enabled"
             
             onToggled: {
               var newState = !root.wifiOn
@@ -314,6 +231,8 @@ PanelWindow {
             }
           }
         }
+
+        PopupDivider {}
 
         // Wi-Fi is Off Screen
         ColumnLayout {
@@ -328,8 +247,8 @@ PanelWindow {
           Text {
             Layout.alignment: Qt.AlignHCenter
             text: "wifi"
-            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.iconFont
             font.pixelSize: 48
             opacity: 0.25
           }
@@ -337,18 +256,18 @@ PanelWindow {
           Text {
             Layout.alignment: Qt.AlignHCenter
             text: "Wi-Fi is turned off"
-            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize + 4) : 14
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: (Config.fontPixelSize + 4)
             font.weight: Font.Bold
           }
 
           Text {
             Layout.alignment: Qt.AlignHCenter
             text: "Enable Wi-Fi to scan and connect."
-            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize + 1) : 11
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: (Config.fontPixelSize + 1)
           }
         }
 
@@ -378,24 +297,22 @@ PanelWindow {
             text: "No networks found"
             visible: wifiListModel.count === 0 && !listQuery.running
             horizontalAlignment: Text.AlignHCenter
-            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? config.fontPixelSize + 2 : 12
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 2
           }
         }
 
         Text {
           text: root.statusMessage
-          color: colors_ ? colors_.primary : "#D0BCFF"
-          font.family: config ? config.fontFamily : "Roboto"
-          font.pixelSize: config ? config.fontPixelSize + 1 : 11
+          color: Colors.primary
+          font.family: Config.fontFamily
+          font.pixelSize: Config.fontPixelSize + 1
           wrapMode: Text.Wrap
           width: parent.width
           visible: root.statusMessage !== ""
         }
       }
-    }
-  }
 
   Component {
     id: wifiItemDelegate
@@ -411,7 +328,7 @@ PanelWindow {
 
       Behavior on height {
         NumberAnimation {
-          duration: 200
+          duration: Config.motionMedium
           easing.type: Easing.OutCubic
         }
       }
@@ -420,9 +337,9 @@ PanelWindow {
         anchors.fill: parent
         radius: 8
         color: isCurrent
-          ? (colors_ ? Qt.rgba(colors_.primary.r, colors_.primary.g, colors_.primary.b, 0.15) : Qt.rgba(208/255, 188/255, 255/255, 0.15))
-          : (delegateMouse.containsMouse ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : "transparent")
-        border.color: isCurrent ? (colors_ ? colors_.primary : "#D0BCFF") : "transparent"
+          ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15))
+          : (delegateMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent")
+        border.color: isCurrent ? (Colors.primary) : "transparent"
         border.width: 1
       }
 
@@ -442,25 +359,25 @@ PanelWindow {
         // Reserved space checkmark container to keep layout aligned
         Item {
           id: checkContainer
-          Layout.preferredWidth: config ? config.iconSize : 20
-          Layout.preferredHeight: config ? config.iconSize : 20
+          Layout.preferredWidth: Config.iconSize
+          Layout.preferredHeight: Config.iconSize
           Layout.alignment: Qt.AlignVCenter
 
           Text {
             anchors.centerIn: parent
             text: "check"
             visible: isCurrent
-            color: colors_ ? colors_.primary : "#D0BCFF"
-            font.family: config ? config.iconFont : "Material Symbols Outlined"
-            font.pixelSize: config ? config.iconSize : 20
+            color: Colors.primary
+            font.family: Config.iconFont
+            font.pixelSize: Config.iconSize
           }
         }
 
         Text {
           text: "wifi"
-          color: isCurrent ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.fgSurface : "#FFFFFF")
-          font.family: config ? config.iconFont : "Material Symbols Outlined"
-          font.pixelSize: config ? config.iconSize : 20
+          color: isCurrent ? (Colors.primary) : (Colors.fgSurface)
+          font.family: Config.iconFont
+          font.pixelSize: Config.iconSize
           Layout.alignment: Qt.AlignVCenter
           opacity: {
             var sig = model.signal
@@ -480,9 +397,9 @@ PanelWindow {
           Text {
             Layout.fillWidth: true
             text: model.ssid
-            color: isCurrent ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.fgSurface : "#FFFFFF")
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? config.fontPixelSize + 2 : 12
+            color: isCurrent ? (Colors.primary) : (Colors.fgSurface)
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 2
             font.weight: isCurrent ? Font.Bold : Font.Normal
             elide: Text.ElideRight
           }
@@ -491,26 +408,26 @@ PanelWindow {
             Layout.fillWidth: true
             text: "Connected"
             visible: isCurrent
-            color: colors_ ? colors_.primary : "#D0BCFF"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? config.fontPixelSize : 10
+            color: Colors.primary
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize
             font.weight: Font.Medium
           }
         }
 
         Text {
           text: model.signal + "%"
-          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Roboto"
-          font.pixelSize: config ? config.fontPixelSize : 10
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.fontPixelSize
           Layout.alignment: Qt.AlignVCenter
         }
 
         Text {
           text: "lock"
           visible: model.secured
-          color: colors_ ? colors_.outline : "#938F99"
-          font.family: config ? config.iconFont : "Material Symbols Outlined"
+          color: Colors.outline
+          font.family: Config.iconFont
           font.pixelSize: 16
           Layout.alignment: Qt.AlignVCenter
         }
@@ -542,8 +459,8 @@ PanelWindow {
           Layout.fillWidth: true
           height: 36
           radius: 8
-          color: colors_ ? colors_.surface : "#211F26"
-          border.color: passInput.activeFocus ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.outline : "#49454F")
+          color: Colors.surface
+          border.color: passInput.activeFocus ? (Colors.primary) : (Colors.outline)
           border.width: passInput.activeFocus ? 2 : 1
           visible: model.secured
 
@@ -555,14 +472,14 @@ PanelWindow {
               rightMargin: 10
             }
             verticalAlignment: TextInput.AlignVCenter
-            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? config.fontPixelSize + 2 : 12
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 2
             echoMode: TextInput.Password
 
             Text {
               text: "Password"
-              color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+              color: Colors.fgSurfaceVariant
               visible: !parent.text && !parent.activeFocus
               font: parent.font
               anchors.verticalCenter: parent.verticalCenter
@@ -574,15 +491,15 @@ PanelWindow {
           Layout.preferredWidth: model.secured ? 80 : parent.width
           Layout.preferredHeight: 36
           radius: 18
-          color: colors_ ? colors_.primary : "#D0BCFF"
+          color: Colors.primary
           opacity: root.connecting ? 0.6 : 1.0
 
           Text {
             anchors.centerIn: parent
             text: isCurrent ? "Disconnect" : "Connect"
-            color: colors_ ? colors_.fgPrimary : "#0F3C2C"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? config.fontPixelSize + 1 : 11
+            color: Colors.fgPrimary
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 1
             font.weight: Font.Bold
           }
 
