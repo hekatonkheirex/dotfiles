@@ -293,7 +293,7 @@ PanelWindow {
     Rectangle {
       id: itemRow
       width: listView.width
-      height: 48
+      height: 44
       radius: 12
       color: itemMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
 
