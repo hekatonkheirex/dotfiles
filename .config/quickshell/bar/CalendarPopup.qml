@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "CalendarLogic.js" as CalendarLogic
+import "primitives"
 import "../config"
 
 PopupBase {
@@ -53,31 +54,14 @@ PopupBase {
 
             Repeater {
               model: ["chevron_left", "chevron_right"]
-              Rectangle {
-                width: 32
-                height: 32
-                radius: 16
-                color: navArea.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
-                Behavior on color {
-                  ColorAnimation { duration: Config.animationDuration}
-                }
-                Text {
-                  anchors.centerIn: parent
-                  text: modelData
-                  color: Colors.fgSurface
-                  font.family: Config.iconFont
-                  font.pixelSize: 18
-                }
-                MouseArea {
-                  id: navArea
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: {
-                    var m = new Date(root.displayMonth)
-                    m.setMonth(m.getMonth() + (index === 0 ? -1 : 1))
-                    root.displayMonth = m
-                  }
+              IconButton {
+                iconLabel: modelData
+                size: 32
+                iconSize: 18
+                onClicked: {
+                  var m = new Date(root.displayMonth)
+                  m.setMonth(m.getMonth() + (index === 0 ? -1 : 1))
+                  root.displayMonth = m
                 }
               }
             }

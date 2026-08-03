@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
 import "commandcenter"
+import "primitives"
 import "../config"
 
 PanelWindow {
@@ -615,56 +616,11 @@ PanelWindow {
                   }
                 }
 
-                Column {
-                  anchors.centerIn: parent
-                  spacing: 4
-
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: modelData.icon
-                    font.family: Config.iconFont
-                    font.pixelSize: 28
-                    color: root.currentTab === index ? (Colors.primary) : (Colors.fgSurfaceVariant)
-
-                    Behavior on color { ColorAnimation { duration: Config.motionMedium} }
-                  }
-
-                  Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: modelData.label
-                    font.family: Config.fontFamily
-                    font.pixelSize: 13
-                    font.weight: Font.Medium
-                    color: root.currentTab === index ? (Colors.primary) : (Colors.fgSurfaceVariant)
-
-                    Behavior on color { ColorAnimation { duration: Config.motionMedium} }
-                  }
-                }
-
-                // Active indicator line below the text
-                Rectangle {
-                  width: 48
-                  height: 3
-                  radius: 1.5
-                  color: Colors.primary
-                  anchors.bottom: parent.bottom
-                  anchors.horizontalCenter: parent.horizontalCenter
-                  visible: root.currentTab === index
-                }
-
-                Rectangle {
+                TabItem {
                   anchors.fill: parent
-                  anchors.margins: -4
-                  radius: Config.shapeMedium
-                  color: tabMouse.pressed ? (Colors.pressOverlay)
-                    : (tabMouse.containsMouse ? (Colors.hoverOverlay) : "transparent")
-                }
-
-                MouseArea {
-                  id: tabMouse
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
+                  iconLabel: modelData.icon
+                  labelText: modelData.label
+                  selected: root.currentTab === index
                   onClicked: {
                     parent.forceActiveFocus()
                     root.currentTab = index

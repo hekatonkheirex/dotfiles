@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
+import "primitives"
 import "../config"
 
 PanelWindow {
@@ -176,240 +177,51 @@ PanelWindow {
           spacing: 12
           width: parent.width
 
-          Rectangle {
+          ActionButton {
             id: layoutBtn
             width: (parent.width - 3 * 12) / 4
             height: width
-            radius: 20
-            activeFocusOnTab: true
-            Keys.onPressed: function(event) {
-              if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                root.toggleHorizontal()
-                event.accepted = true
-              }
-            }
-            color: root.isHorizontal ? (Colors.primary) : (Colors.surfaceContainer)
-            border.color: root.isHorizontal ? "transparent" : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15))
-            border.width: 1
-
-            Behavior on color {
-              ColorAnimation { duration: Config.animationDuration}
-            }
-
-            Column {
-              anchors.centerIn: parent
-              spacing: 4
-
-              Text {
-                id: layoutToggleBtn
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: root.isHorizontal ? "horizontal_split" : "vertical_split"
-                color: root.isHorizontal ? (Colors.fgPrimary) : (Colors.fgSurfaceVariant)
-                font.family: Config.iconFont
-                font.pixelSize: (Config.iconSize + 4)
-              }
-            }
-
-            MouseArea {
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: {
-                layoutBtn.forceActiveFocus()
-                root.toggleHorizontal()
-              }
-            }
-
-            Rectangle {
-              anchors.fill: parent
-              anchors.margins: -4
-              radius: 24
-              color: "transparent"
-              border.width: layoutBtn.activeFocus ? 2 : 0
-              border.color: Colors.primary
-              visible: layoutBtn.activeFocus
-            }
+            iconLabel: root.isHorizontal ? "horizontal_split" : "vertical_split"
+            selected: root.isHorizontal
+            onActivated: root.toggleHorizontal()
           }
 
-          Rectangle {
+          ActionButton {
             id: wallBtn
             width: (parent.width - 3 * 12) / 4
             height: width
-            radius: 20
-            activeFocusOnTab: true
-            Keys.onPressed: function(event) {
-              if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                root.changeWallpaper()
-                event.accepted = true
-              }
-            }
-            color: Qt.tint(Colors.surfaceContainer, wallMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
-            border.color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
-            border.width: 1
-
-            Behavior on color {
-              ColorAnimation { duration: Config.animationDuration}
-            }
-
-            Column {
-              anchors.centerIn: parent
-              spacing: 4
-
-              Text {
-                id: wallToggle
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: "wallpaper"
-                color: Colors.primary
-                font.family: Config.iconFont
-                font.pixelSize: (Config.iconSize + 4)
-              }
-            }
-
-            MouseArea {
-              id: wallMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: {
-                wallBtn.forceActiveFocus()
-                root.changeWallpaper()
-              }
-            }
-
-            Rectangle {
-              anchors.fill: parent
-              anchors.margins: -4
-              radius: 24
-              color: "transparent"
-              border.width: wallBtn.activeFocus ? 2 : 0
-              border.color: Colors.primary
-              visible: wallBtn.activeFocus
-            }
+            iconLabel: "wallpaper"
+            iconColor: Colors.primary
+            onActivated: root.changeWallpaper()
           }
 
-          Rectangle {
+          ActionButton {
             id: idleBtn
             width: (parent.width - 3 * 12) / 4
             height: width
-            radius: 20
-            activeFocusOnTab: true
-            Keys.onPressed: function(event) {
-              if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                if (root.caffeineOn) {
-                  Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
-                  root.caffeineOn = false
-                } else {
-                  Quickshell.execDetached(["killall", "swayidle"])
-                  root.caffeineOn = true
-                }
-                event.accepted = true
+            iconLabel: "coffee"
+            selected: root.caffeineOn
+            onActivated: {
+              if (root.caffeineOn) {
+                Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
+                root.caffeineOn = false
+              } else {
+                Quickshell.execDetached(["killall", "swayidle"])
+                root.caffeineOn = true
               }
-            }
-            color: root.caffeineOn ? (Colors.primary) : (Colors.surfaceContainer)
-            border.color: root.caffeineOn ? "transparent" : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15))
-            border.width: 1
-
-            Behavior on color {
-              ColorAnimation { duration: Config.animationDuration}
-            }
-
-            Column {
-              anchors.centerIn: parent
-              spacing: 4
-
-              Text {
-                id: idleToggle
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: "coffee"
-                color: root.caffeineOn ? (Colors.fgPrimary) : (Colors.fgSurfaceVariant)
-                font.family: Config.iconFont
-                font.pixelSize: (Config.iconSize + 4)
-              }
-            }
-
-            MouseArea {
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: {
-                idleBtn.forceActiveFocus()
-                if (root.caffeineOn) {
-                  Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
-                  root.caffeineOn = false
-                } else {
-                  Quickshell.execDetached(["killall", "swayidle"])
-                  root.caffeineOn = true
-                }
-              }
-            }
-
-            Rectangle {
-              anchors.fill: parent
-              anchors.margins: -4
-              radius: 24
-              color: "transparent"
-              border.width: idleBtn.activeFocus ? 2 : 0
-              border.color: Colors.primary
-              visible: idleBtn.activeFocus
             }
           }
 
-          Rectangle {
+          ActionButton {
             id: dmBtn
             width: (parent.width - 3 * 12) / 4
             height: width
-            radius: 20
-            activeFocusOnTab: true
-            Keys.onPressed: function(event) {
-              if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                Colors.themePreference = (Colors.themePreference + 1) % 3
-                var keyModes = ["auto", "light", "dark"]
-                Quickshell.execDetached(["/bin/sh", "-c", "$HOME/.local/bin/sync-theme-mode.sh " + keyModes[Colors.themePreference]])
-                event.accepted = true
-              }
-            }
-            color: (Colors.darkMode || Colors.themePreference === 1 ? Colors.primary : Colors.surfaceContainer)
-            border.color: Colors.darkMode ? "transparent" : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15))
-            border.width: 1
-
-            Behavior on color {
-              ColorAnimation { duration: Config.animationDuration}
-            }
-
-            Column {
-              anchors.centerIn: parent
-              spacing: 4
-
-              Text {
-                id: dmToggle
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: ["brightness_auto", "light_mode", "dark_mode"][Colors.themePreference]
-                color: (Colors.darkMode || Colors.themePreference === 1 ? Colors.fgPrimary : Colors.fgSurfaceVariant)
-                font.family: Config.iconFont
-                font.pixelSize: (Config.iconSize + 4)
-              }
-            }
-
-            MouseArea {
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: {
-                dmBtn.forceActiveFocus()
-                Colors.themePreference = (Colors.themePreference + 1) % 3
-                var modes = ["auto", "light", "dark"]
-                Quickshell.execDetached(["/bin/sh", "-c", "$HOME/.local/bin/sync-theme-mode.sh " + modes[Colors.themePreference]])
-              }
-            }
-
-            Rectangle {
-              anchors.fill: parent
-              anchors.margins: -4
-              radius: 24
-              color: "transparent"
-              border.width: dmBtn.activeFocus ? 2 : 0
-              border.color: Colors.primary
-              visible: dmBtn.activeFocus
+            iconLabel: ["brightness_auto", "light_mode", "dark_mode"][Colors.themePreference]
+            selected: Colors.darkMode || Colors.themePreference === 1
+            onActivated: {
+              Colors.themePreference = (Colors.themePreference + 1) % 3
+              var modes = ["auto", "light", "dark"]
+              Quickshell.execDetached(["/bin/sh", "-c", "$HOME/.local/bin/sync-theme-mode.sh " + modes[Colors.themePreference]])
             }
           }
         }
