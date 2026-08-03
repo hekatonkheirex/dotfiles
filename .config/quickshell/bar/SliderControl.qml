@@ -1,69 +1,64 @@
 import QtQuick
+import "../config"
 
 Item {
   id: root
 
   property real value: 0.5
   property bool muted: false
-  property color activeColor: "#D0BCFF"
-  property color surfaceContainerHigh: "#2B2930"
-  property color surfaceContainerHighest: "#36343B"
-  property color outline: "#938F99"
+  property color activeColor: Colors.primary
+  property color surfaceContainerHigh: Colors.surfaceContainerHigh
+  property color surfaceContainerHighest: Colors.surfaceContainerHighest
+  property color outline: Colors.outline
+  property color focusColor: activeColor
+  property color hoverOverlay: Colors.hoverOverlay
+  property color pressOverlay: Colors.pressOverlay
+  readonly property color stateOverlay: root.pressed
+    ? root.pressOverlay
+    : (root.hovered || root.activeFocus ? root.hoverOverlay : Qt.rgba(0, 0, 0, 0))
+  property int motionDuration: 150
+  property bool reducedMotion: false
+  property real stepSize: 0.05
+  property string accessibleName: "Slider"
+  property string accessibleDescription: "Adjust value"
 
   signal changed(real value)
 
-  width: parent.width
-  height: 32
+  width: parent ? parent.width : 240
+  height: 40
+  activeFocusOnTab: true
 
-  readonly property bool active: sliderMouse.containsMouse || sliderMouse.pressed
-
-  // State-driven size parameters matching Material 3 Expressive spec:
+  readonly property bool hovered: sliderMouse.containsMouse
+  readonly property bool pressed: sliderMouse.pressed
+  readonly property bool active: hovered || pressed || activeFocus
   readonly property real trackHeight: 16
   readonly property real trackRadius: trackHeight / 2
   readonly property real trackInsideRadius: 2
-
-  // The thumb/handle is a very tall, thin vertical pill (4px width, 44px height).
-  readonly property real targetThumbWidth: {
-    if (sliderMouse.pressed) return 8;
-    if (sliderMouse.containsMouse) return 6;
-    return 4;
-  }
-  readonly property real targetThumbHeight: {
-    if (sliderMouse.pressed) return 48;
-    if (sliderMouse.containsMouse) return 46;
-    return 44;
-  }
-  readonly property real targetGap: {
-    if (sliderMouse.pressed) return 4;
-    if (sliderMouse.containsMouse) return 5;
-    return 6;
-  }
-
-  // Animated properties for smooth Material 3 Expressive spring-like motion:
+  readonly property real targetThumbWidth: pressed ? 8 : (hovered || activeFocus ? 6 : 4)
+  readonly property real targetThumbHeight: pressed ? 48 : (hovered || activeFocus ? 46 : 44)
+  readonly property real targetGap: pressed ? 4 : (hovered || activeFocus ? 5 : 6)
   property real thumbWidth: 4
   property real thumbHeight: 44
   property real gap: 6
 
-  Behavior on thumbWidth {
-    NumberAnimation {
-      duration: 150
-      easing.type: Easing.OutBack
-    }
-  }
-  Behavior on thumbHeight {
-    NumberAnimation {
-      duration: 150
-      easing.type: Easing.OutBack
-    }
-  }
-  Behavior on gap {
-    NumberAnimation {
-      duration: 150
-      easing.type: Easing.OutBack
-    }
+  function animateDuration(base) {
+    return root.reducedMotion ? 0 : Math.max(0, root.motionDuration || base)
   }
 
-  // Align thumbWidth/thumbHeight/gap to their targets
+  function setValue(nextValue) {
+    root.changed(Math.max(0, Math.min(1, nextValue)))
+  }
+
+  Behavior on thumbWidth {
+    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
+  }
+  Behavior on thumbHeight {
+    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
+  }
+  Behavior on gap {
+    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
+  }
+
   Component.onCompleted: {
     thumbWidth = targetThumbWidth
     thumbHeight = targetThumbHeight
@@ -74,15 +69,37 @@ Item {
   onTargetThumbHeightChanged: thumbHeight = targetThumbHeight
   onTargetGapChanged: gap = targetGap
 
-  // Horizontal position of the thumb center:
-  // Constrained to remain within the track boundaries.
-  readonly property real thumbCenter: thumbWidth / 2 + (width - thumbWidth) * value
+  Keys.onPressed: function(event) {
+    var delta = root.stepSize
+    if (event.key === Qt.Key_PageUp) delta *= 5
+    if (event.key === Qt.Key_PageDown) delta *= -5
+    if (event.key === Qt.Key_Left || event.key === Qt.Key_Down) delta *= -1
+    if (event.key === Qt.Key_Right || event.key === Qt.Key_Up || event.key === Qt.Key_PageUp || event.key === Qt.Key_PageDown) {
+      root.setValue(root.value + delta)
+      event.accepted = true
+    } else if (event.key === Qt.Key_Home) {
+      root.setValue(0)
+      event.accepted = true
+    } else if (event.key === Qt.Key_End) {
+      root.setValue(1)
+      event.accepted = true
+    }
+  }
 
-  // Dynamic gaps that shrink to 0 as the thumb approaches the edges:
+  readonly property real thumbCenter: thumbWidth / 2 + (width - thumbWidth) * value
   readonly property real leftGap: Math.min(gap, thumbCenter - thumbWidth / 2)
   readonly property real rightGap: Math.min(gap, width - thumbCenter - thumbWidth / 2)
 
-  // Active track (left side)
+  Rectangle {
+    anchors.fill: parent
+    anchors.margins: -4
+    radius: root.trackRadius + 4
+    color: root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
+    border.width: root.activeFocus ? 2 : 0
+    border.color: root.focusColor
+    visible: root.activeFocus
+  }
+
   Rectangle {
     id: activeTrack
     x: 0
@@ -90,22 +107,17 @@ Item {
     width: Math.max(0, thumbCenter - thumbWidth / 2 - leftGap)
     height: root.trackHeight
     radius: root.trackRadius
-    color: root.muted ? root.outline : root.activeColor
+    color: Qt.tint(root.muted ? root.outline : root.activeColor, root.stateOverlay)
+    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
 
-    // Inner corner overlay to set radius to 2
     Rectangle {
-      anchors {
-        top: parent.top
-        bottom: parent.bottom
-        right: parent.right
-      }
+      anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
       width: Math.min(parent.width, 8)
       radius: root.trackInsideRadius
       color: parent.color
     }
   }
 
-  // Inactive track (right side)
   Rectangle {
     id: inactiveTrack
     x: thumbCenter + thumbWidth / 2 + rightGap
@@ -115,35 +127,23 @@ Item {
     radius: root.trackRadius
     color: root.surfaceContainerHighest
 
-    // Inner corner overlay to set radius to 2
     Rectangle {
-      anchors {
-        top: parent.top
-        bottom: parent.bottom
-        left: parent.left
-      }
+      anchors { top: parent.top; bottom: parent.bottom; left: parent.left }
       width: Math.min(parent.width, 8)
       radius: root.trackInsideRadius
       color: parent.color
     }
 
-    // Small white dot at the right end of the track
     Rectangle {
-      id: endDot
-      anchors {
-        right: parent.right
-        rightMargin: 8
-        verticalCenter: parent.verticalCenter
-      }
+      anchors { right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
       width: 4
       height: 4
       radius: 2
-      color: root.muted ? root.outline : "#FFFFFF"
+      color: root.muted ? root.outline : root.activeColor
       visible: parent.width > 20
     }
   }
 
-  // Thumb / Handle (very tall vertical pill)
   Rectangle {
     id: knob
     x: thumbCenter - width / 2
@@ -151,11 +151,10 @@ Item {
     width: root.thumbWidth
     height: root.thumbHeight
     radius: width / 2
-    color: root.muted ? root.outline : root.activeColor
-
-    // Give it a subtle outline when pressed or hovered to stand out:
-    border.width: root.active ? 1.5 : 0
+    color: Qt.tint(root.muted ? root.outline : root.activeColor, root.stateOverlay)
+    border.width: root.pressed ? 2 : 0
     border.color: root.surfaceContainerHigh
+    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
   }
 
   MouseArea {
@@ -163,12 +162,14 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onPressed: function(mouse) { handleMouse(mouse.x) }
-    onPositionChanged: function(mouse) { if (pressed) handleMouse(mouse.x) }
+    onPressed: function(mouse) {
+      handleMouse(mouse.x)
+    }
+    onPositionChanged: function(mouse) {
+      if (pressed) handleMouse(mouse.x)
+    }
     function handleMouse(mx) {
-      var ratio = Math.max(0, Math.min(1, mx / parent.width))
-      root.changed(ratio)
+      root.setValue(mx / parent.width)
     }
   }
 }
-

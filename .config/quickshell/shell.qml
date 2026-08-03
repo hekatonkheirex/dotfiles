@@ -11,22 +11,6 @@ import "bar"
 ShellRoot {
   id: shell
 
-  Colors {
-    id: colors
-  }
-
-  Process {
-    id: readColorScheme
-    command: ["sh", "-c", "cat " + Quickshell.env("HOME") + "/.config/quickshell/colorscheme 2>/dev/null || echo matugen"]
-    running: true
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var v = text.trim()
-        if (v === "claude" || v === "matugen") colors.colorScheme = v
-      }
-    }
-  }
-
   // Battery low alert — Warning at 20%, Alert at 10%. Persists until manually
   // dismissed or the charger is plugged in (see checkLevel + notifServer capture below).
   QtObject {
@@ -88,6 +72,7 @@ ShellRoot {
   }
 
   property bool isHorizontal: true
+  property bool fullBar: Settings.fullBar
 
   Process {
     id: readLayoutPref
@@ -107,12 +92,12 @@ ShellRoot {
   function popupMarginLeft(w, screenW) {
     return bar.horizontal
       ? Math.max(0, Math.min(bar.popupAnchorX - w / 2, screenW - w))
-      : cfg.barWidth + 4
+      : Config.barWidth + 4
   }
 
   function popupMarginTop(h, screenH) {
     return bar.horizontal
-      ? cfg.barWidth + 4
+      ? Config.barWidth + 4
       : Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h))
   }
 
@@ -122,56 +107,13 @@ ShellRoot {
     Quickshell.execDetached(["sh", "-c", "echo " + pref + " > " + Quickshell.env("HOME") + "/.config/quickshell/layout"]);
   }
 
-  Process {
-    id: darkModeInitial
-    command: ["gsettings", "get", "org.gnome.desktop.interface", "color-scheme"]
-    running: true
-
-    stdout: StdioCollector {
-      onStreamFinished: {
-        colors.systemDark = text.trim() === "'prefer-dark'"
-      }
-    }
-  }
-
-  Process {
-    id: darkModeMonitor
-    command: ["gsettings", "monitor", "org.gnome.desktop.interface", "color-scheme"]
-    running: true
-
-    stdout: SplitParser {
-      onRead: function(data) {
-        var clean = data.trim()
-        var prefix = "color-scheme:"
-        var idx = clean.indexOf(prefix)
-        if (idx >= 0) {
-          var val = clean.substring(idx + prefix.length).trim()
-          colors.systemDark = val === "'prefer-dark'"
-        }
-      }
-    }
-
-    onRunningChanged: {
-      if (!running) {
-        darkModeMonitorRetry.start()
-      }
-    }
-  }
-
-  Timer {
-    id: darkModeMonitorRetry
-    interval: 5000
-    onTriggered: darkModeMonitor.running = true
-  }
-
-  Config {
-    id: cfg
+  function toggleFullBar() {
+    Settings.fullBar = !Settings.fullBar
+    Settings.save()
   }
 
   LockScreen {
     id: lockScreen
-    colors_: colors
-    config: cfg
   }
 
   IpcHandler {
@@ -201,6 +143,11 @@ ShellRoot {
     }
 
     function commandcenter() {
+      if (bar.horizontal) {
+        bar.popupAnchorX = bar.getCommandCenterX()
+      } else {
+        bar.popupAnchorY = bar.getCommandCenterY()
+      }
       bar.openPopup = bar.openPopup === "commandcenter" ? "" : "commandcenter"
     }
 
@@ -258,14 +205,11 @@ ShellRoot {
 
   NotificationToast {
     id: notificationToast
-    colors_: colors
-    config: cfg
     notificationServer: notifServer
   }
 
   PopupShield {
     id: shield
-    config: cfg
     visible: bar.openPopup !== "" && !lockScreen.locked
     onShieldClicked: bar.openPopup = ""
   }
@@ -273,16 +217,13 @@ ShellRoot {
   Bar {
     id: bar
     horizontal: shell.isHorizontal
-    colors_: colors
-    config: cfg
     notificationServer: notifServer
+    fullBar: shell.fullBar
     visible: !lockScreen.locked
   }
 
   AudioPopup {
     id: audioPopup
-    colors_: colors
-    config: cfg
     visible: bar.openPopup === "audio" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
@@ -295,8 +236,6 @@ ShellRoot {
 
   WifiPopup {
     id: wifiPopup
-    colors_: colors
-    config: cfg
     visible: bar.openPopup === "wifi" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
@@ -309,8 +248,6 @@ ShellRoot {
 
   BtPopup {
     id: btPopup
-    colors_: colors
-    config: cfg
     visible: bar.openPopup === "bluetooth" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     horizontal: bar.horizontal
@@ -324,8 +261,6 @@ ShellRoot {
 
   BrightnessPopup {
     id: brightnessPopup
-    colors_: colors
-    config: cfg
     visible: bar.openPopup === "brightness" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
@@ -338,8 +273,6 @@ ShellRoot {
 
   BatteryPopup {
     id: batteryPopup
-    colors_: colors
-    config: cfg
     visible: bar.openPopup === "battery" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
@@ -352,8 +285,6 @@ ShellRoot {
 
   CalendarPopup {
     id: calendarPopup
-    colors_: colors
-    config: cfg
     visible: bar.openPopup === "calendar" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
@@ -366,8 +297,6 @@ ShellRoot {
 
   NotificationPopup {
     id: notificationPopup
-    colors_: colors
-    config: cfg
     visible: bar.openPopup === "notification" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
@@ -380,8 +309,6 @@ ShellRoot {
 
   QuickMenu {
     id: quickMenu
-    colors_: colors
-    config: cfg
     visible: bar.openPopup === "quickmenu" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
@@ -396,24 +323,20 @@ ShellRoot {
 
   CommandCenter {
     id: commandCenter
-    colors_: colors
-    config: cfg
     visible: bar.openPopup === "commandcenter" && !lockScreen.locked
     onDismissed: bar.openPopup = ""
     isHorizontal: shell.isHorizontal
     onToggleHorizontal: shell.toggleLayout()
+    fullBar: shell.fullBar
+    onToggleFullBar: shell.toggleFullBar()
   }
 
   OsdOverlay {
     id: osd
-    colors_: colors
-    config: cfg
   }
 
   LauncherPopup {
     id: launcherPopup
-    colors_: colors
-    config: cfg
     visible: bar.openPopup === "launcher" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""

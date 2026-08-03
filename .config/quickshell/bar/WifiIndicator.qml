@@ -2,20 +2,19 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import "../config"
 
 Item {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
 
   property bool active: false
   property bool horizontal: false
 
   signal clicked(var mouse)
 
-  Layout.preferredWidth: config ? config.widgetSize : 50
-  Layout.preferredHeight: config ? config.widgetSize : 50
+  Layout.preferredWidth: Config.widgetSize
+  Layout.preferredHeight: Config.widgetSize
 
   property bool wifiOn: false
   property int wifiSignal: -1
@@ -77,18 +76,17 @@ Item {
     radius: root.horizontal ? height / 2 : width / 2
     clip: true
     color: {
-      if (root.active) return colors_ ? colors_.primary : "#D0BCFF"
-      if (mouseArea.containsMouse) return colors_ ? colors_.surfaceContainerHighest : "#36343B"
-      return colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+      var overlay = mouseArea.pressed ? Colors.pressOverlay : (mouseArea.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
+      return Qt.tint(root.active ? Colors.primary : Colors.surfaceContainerHigh, overlay)
     }
     border.color: {
       if (root.active) return "transparent"
-      return colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
+      return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
     }
     border.width: 1
 
     Behavior on color {
-      ColorAnimation { duration: config ? config.animationDuration : 150 }
+      ColorAnimation { duration: Config.animationDuration}
     }
   }
 
@@ -97,8 +95,8 @@ Item {
     anchors.centerIn: parent
     text: root.iconLabel
     color: {
-      if (root.active) return colors_ ? colors_.fgPrimary : "#0F3C2C"
-      return colors_ ? colors_.primary : "#D0BCFF"
+      if (root.active) return Colors.fgPrimary
+      return Colors.primary
     }
     opacity: {
       if (!root.wifiOn) return 0.25
@@ -108,8 +106,8 @@ Item {
       if (root.wifiSignal <= 75) return 0.85
       return 1.0
     }
-    font.family: config ? config.iconFont : "Material Symbols Outlined"
-    font.pixelSize: config ? config.iconSize : 22
+    font.family: Config.iconFont
+    font.pixelSize: Config.iconSize
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
   }
@@ -120,16 +118,16 @@ Item {
     anchors.bottomMargin: 4
     text: root.wifiOn && root.wifiSignal >= 0 ? root.wifiSignal + "%" : "--%"
     color: {
-      if (root.active) return colors_ ? colors_.fgPrimary : "#0F3C2C"
-      return colors_ ? colors_.primary : "#D0BCFF"
+      if (root.active) return Colors.fgPrimary
+      return Colors.primary
     }
     opacity: {
       if (!root.wifiOn) return 0.35
       if (root.wifiSignal < 0) return 0.5
       return 1.0
     }
-    font.family: config ? config.fontFamily : "Roboto"
-    font.pixelSize: config ? (config.fontPixelSize - 2) : 8
+    font.family: Config.fontFamily
+    font.pixelSize: (Config.fontPixelSize - 2)
     font.weight: Font.Medium
     horizontalAlignment: Text.AlignHCenter
   }

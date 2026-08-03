@@ -3,11 +3,10 @@ import QtQuick.Layouts
 import Quickshell
 import QtQuick.Effects
 import "../"
+import "../../config"
 
           Row {
             property QtObject root: null
-            property QtObject colors_: null
-            property QtObject config: null
             id: overviewTab
             anchors.fill: parent
             spacing: 16
@@ -24,8 +23,8 @@ import "../"
                 width: 148
                 height: 232
                 radius: 20
-                color: colors_ ? colors_.surfaceContainer : "#25232A"
-                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                color: Colors.surfaceContainer
+                border.color: Colors.outlineVariant
                 border.width: 1
 
                 Column {
@@ -35,8 +34,8 @@ import "../"
                   Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: root.clockHours
-                    color: colors_ ? colors_.primary : "#BEE8C7"
-                    font.family: config ? config.fontFamily : "Roboto"
+                    color: Colors.primary
+                    font.family: Config.fontFamily
                     font.pixelSize: 64
                     font.weight: Font.Bold
                   }
@@ -44,8 +43,8 @@ import "../"
                   Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: root.clockMinutes
-                    color: colors_ ? colors_.primary : "#BEE8C7"
-                    font.family: config ? config.fontFamily : "Roboto"
+                    color: Colors.primary
+                    font.family: Config.fontFamily
                     font.pixelSize: 64
                     font.weight: Font.Bold
                   }
@@ -53,8 +52,8 @@ import "../"
                   Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: root.clockDate
-                    color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                    font.family: config ? config.fontFamily : "Roboto"
+                    color: Colors.fgSurfaceVariant
+                    font.family: Config.fontFamily
                     font.pixelSize: 13
                     font.weight: Font.Medium
                   }
@@ -66,8 +65,8 @@ import "../"
                 width: 148
                 height: 232
                 radius: 20
-                color: colors_ ? colors_.surfaceContainer : "#25232A"
-                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                color: Colors.surfaceContainer
+                border.color: Colors.outlineVariant
                 border.width: 1
 
                 Column {
@@ -77,7 +76,7 @@ import "../"
                   Text {
                     text: root.getMaterialIcon(root.weatherDesc)
                     anchors.horizontalCenter: parent.horizontalCenter
-                    font.family: "Material Symbols Rounded"
+                    font.family: Config.iconFont
                     font.pixelSize: 64
                     color: root.getMaterialColor(root.weatherDesc)
                     verticalAlignment: Text.AlignVCenter
@@ -86,8 +85,8 @@ import "../"
                   Text {
                     text: root.weatherTemp
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                    font.family: config ? config.fontFamily : "Roboto"
+                    color: Colors.fgSurface
+                    font.family: Config.fontFamily
                     font.pixelSize: 22
                     font.weight: Font.Bold
                   }
@@ -95,8 +94,8 @@ import "../"
                   Text {
                     text: root.weatherDesc
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                    font.family: config ? config.fontFamily : "Roboto"
+                    color: Colors.fgSurfaceVariant
+                    font.family: Config.fontFamily
                     font.pixelSize: 12
                     font.weight: Font.Medium
                     elide: Text.ElideRight
@@ -118,8 +117,8 @@ import "../"
                   width: 408
                   height: 120
                   radius: 20
-                  color: colors_ ? colors_.surfaceContainer : "#25232A"
-                  border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                  color: Colors.surfaceContainer
+                  border.color: Colors.outlineVariant
                   border.width: 1
 
                   Row {
@@ -131,7 +130,7 @@ import "../"
                       width: 72
                       height: 72
                       radius: 36
-                      color: colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
+                      color: Colors.surfaceContainerHighest
                       anchors.verticalCenter: parent.verticalCenter
 
                       Image {
@@ -164,9 +163,9 @@ import "../"
                         id: fallbackPicCC
                         anchors.centerIn: parent
                         text: "person"
-                        font.family: config ? config.iconFont : "Material Symbols Outlined"
+                        font.family: Config.iconFont
                         font.pixelSize: 36
-                        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                        color: Colors.fgSurfaceVariant
                         visible: profilePicCC.status !== Image.Ready
                       }
                     }
@@ -177,8 +176,8 @@ import "../"
 
                       Text {
                         text: Quickshell.env("USER") || "User"
-                        color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                        font.family: config ? config.fontFamily : "Roboto"
+                        color: Colors.fgSurface
+                        font.family: Config.fontFamily
                         font.pixelSize: 18
                         font.weight: Font.Bold
                       }
@@ -187,14 +186,14 @@ import "../"
                         spacing: 6
                         Text {
                           text: "navigation"
-                          font.family: config ? config.iconFont : "Material Symbols Outlined"
+                          font.family: Config.iconFont
                           font.pixelSize: 14
-                          color: colors_ ? colors_.primary : "#BEE8C7"
+                          color: Colors.primary
                         }
                         Text {
                           text: "on niri"
-                          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                          font.family: config ? config.fontFamily : "Roboto"
+                          color: Colors.fgSurfaceVariant
+                          font.family: Config.fontFamily
                           font.pixelSize: 13
                         }
                       }
@@ -203,14 +202,14 @@ import "../"
                         spacing: 6
                         Text {
                           text: "schedule"
-                          font.family: config ? config.iconFont : "Material Symbols Outlined"
+                          font.family: Config.iconFont
                           font.pixelSize: 14
-                          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                          color: Colors.fgSurfaceVariant
                         }
                         Text {
                           text: root.uptimeText.replace("up ", "")
-                          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                          font.family: config ? config.fontFamily : "Roboto"
+                          color: Colors.fgSurfaceVariant
+                          font.family: Config.fontFamily
                           font.pixelSize: 13
                           elide: Text.ElideRight
                           width: 120
@@ -225,8 +224,8 @@ import "../"
                 width: 408
                 height: 344
                 radius: 20
-                color: colors_ ? colors_.surfaceContainer : "#25232A"
-                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                color: Colors.surfaceContainer
+                border.color: Colors.outlineVariant
                 border.width: 1
 
                 ColumnLayout {
@@ -241,8 +240,8 @@ import "../"
 
                     Text {
                       text: root.monthNames[root.displayMonth.getMonth()] + " " + root.displayMonth.getFullYear()
-                      color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                      font.family: config ? config.fontFamily : "Roboto"
+                      color: Colors.fgSurface
+                      font.family: Config.fontFamily
                       font.pixelSize: 16
                       font.weight: Font.Bold
                       anchors.left: parent.left
@@ -261,15 +260,15 @@ import "../"
                           width: 32
                           height: 32
                           radius: 16
-                          color: calNavArea.containsMouse ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : "transparent"
+                          color: calNavArea.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
                           Behavior on color {
-                            ColorAnimation { duration: config ? config.animationDuration : 150 }
+                            ColorAnimation { duration: Config.animationDuration}
                           }
                           Text {
                             anchors.centerIn: parent
                             text: modelData
-                            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                            font.family: config ? config.iconFont : "Material Symbols Outlined"
+                            color: Colors.fgSurface
+                            font.family: Config.iconFont
                             font.pixelSize: 18
                           }
                           MouseArea {
@@ -296,8 +295,8 @@ import "../"
                       model: root.weekDays
                       Text {
                         text: modelData
-                        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                        font.family: config ? config.fontFamily : "Roboto"
+                        color: Colors.fgSurfaceVariant
+                        font.family: Config.fontFamily
                         font.pixelSize: 12
                         font.weight: Font.Medium
                         width: 50
@@ -324,15 +323,15 @@ import "../"
                         width: 50
                         height: (parent.height / 6) - 6
                         radius: 15
-                        color: root.isToday(dayNum) ? (colors_ ? colors_.primary : "#BEE8C7") : "transparent"
+                        color: root.isToday(dayNum) ? (Colors.primary) : "transparent"
 
                         Text {
                           anchors.centerIn: parent
                           text: dayNum > 0 ? dayNum.toString() : ""
                           color: root.isToday(dayNum)
-                            ? (colors_ ? colors_.fgPrimary : "#0F3C2C")
-                            : (colors_ ? colors_.fgSurface : "#FFFFFF")
-                          font.family: config ? config.fontFamily : "Roboto"
+                            ? (Colors.fgPrimary)
+                            : (Colors.fgSurface)
+                          font.family: Config.fontFamily
                           font.pixelSize: 12
                           font.weight: root.isToday(dayNum) ? Font.Bold : Font.Normal
                         }
@@ -348,8 +347,8 @@ import "../"
               width: 164
               height: parent.height
               radius: 20
-              color: colors_ ? colors_.surfaceContainer : "#25232A"
-              border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+              color: Colors.surfaceContainer
+              border.color: Colors.outlineVariant
               border.width: 1
 
               Column {
@@ -366,9 +365,9 @@ import "../"
 
                   SequentialAnimation on scale {
                     loops: Animation.Infinite
-                    running: root.visible && root.mprisStatus === "Playing"
-                    NumberAnimation { to: 1.04; duration: 350; easing.type: Easing.OutQuad }
-                    NumberAnimation { to: 0.96; duration: 450; easing.type: Easing.InOutQuad }
+                    running: root.visible && root.mprisStatus === "Playing" && !(Config.reducedMotion)
+                    NumberAnimation { to: 1.04; duration: Config.motionLong; easing.type: Easing.OutQuad }
+                    NumberAnimation { to: 0.96; duration: Config.motionExtraLong; easing.type: Easing.InOutQuad }
                   }
 
                   Canvas {
@@ -393,7 +392,7 @@ import "../"
                       var maxExtend = 28;
                       var steps = 120;
 
-                      var primary = colors_ ? colors_.primary : Qt.rgba(0.66, 0.78, 1, 1);
+                      var primary = Colors.primary;
                       var r = Math.round(primary.r * 255);
                       var g = Math.round(primary.g * 255);
                       var b = Math.round(primary.b * 255);
@@ -438,7 +437,7 @@ import "../"
                     radius: 43
                     clip: true
                     anchors.centerIn: parent
-                    color: colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
+                    color: Colors.surfaceContainerHighest
 
                     Image {
                       source: root.mprisArtUrl ? root.mprisArtUrl : ""
@@ -454,9 +453,9 @@ import "../"
                       Text {
                         anchors.centerIn: parent
                         text: "music_note"
-                        font.family: config ? config.iconFont : "Material Symbols Outlined"
+                        font.family: Config.iconFont
                         font.pixelSize: 32
-                        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                        color: Colors.fgSurfaceVariant
                       }
                     }
                   }
@@ -470,8 +469,8 @@ import "../"
                   Text {
                     width: parent.width
                     text: root.mprisTitle ? root.mprisTitle : "No Media"
-                    color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                    font.family: config ? config.fontFamily : "Roboto"
+                    color: Colors.fgSurface
+                    font.family: Config.fontFamily
                     font.pixelSize: 13
                     font.weight: Font.Bold
                     elide: Text.ElideRight
@@ -481,8 +480,8 @@ import "../"
                   Text {
                     width: parent.width
                     text: root.mprisArtist ? root.mprisArtist : "Unknown Artist"
-                    color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                    font.family: config ? config.fontFamily : "Roboto"
+                    color: Colors.fgSurfaceVariant
+                    font.family: Config.fontFamily
                     font.pixelSize: 10
                     elide: Text.ElideRight
                     horizontalAlignment: Text.AlignHCenter
@@ -493,8 +492,8 @@ import "../"
                   width: parent.width - 12
                   anchors.horizontalCenter: parent.horizontalCenter
                   progress: root.mprisLengthSec > 0 ? (root.elapsedSeconds / root.mprisLengthSec) : 0.0
-                  activeColor: colors_ ? colors_.primary : "#BEE8C7"
-                  trackColor: colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
+                  activeColor: Colors.primary
+                  trackColor: Colors.surfaceContainerHighest
                   lineWidth: 2.5
                   dotRadius: 4
                   trackLineWidth: 1.5
@@ -514,9 +513,9 @@ import "../"
                     Text {
                       anchors.centerIn: parent
                       text: "skip_previous"
-                      font.family: config ? config.iconFont : "Material Symbols Outlined"
+                      font.family: Config.iconFont
                       font.pixelSize: 18
-                      color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                      color: Colors.fgSurface
                     }
                     MouseArea {
                       anchors.fill: parent
@@ -532,13 +531,13 @@ import "../"
                     width: 38
                     height: 38
                     radius: 19
-                    color: colors_ ? colors_.primary : "#BEE8C7"
+                    color: Colors.primary
                     Text {
                       anchors.centerIn: parent
                       text: root.mprisStatus === "Playing" ? "pause" : "play_arrow"
-                      font.family: config ? config.iconFont : "Material Symbols Outlined"
+                      font.family: Config.iconFont
                       font.pixelSize: 20
-                      color: colors_ ? colors_.fgPrimary : "#0F3C2C"
+                      color: Colors.fgPrimary
                     }
                     MouseArea {
                       anchors.fill: parent
@@ -558,9 +557,9 @@ import "../"
                     Text {
                       anchors.centerIn: parent
                       text: "skip_next"
-                      font.family: config ? config.iconFont : "Material Symbols Outlined"
+                      font.family: Config.iconFont
                       font.pixelSize: 18
-                      color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                      color: Colors.fgSurface
                     }
                     MouseArea {
                       anchors.fill: parent

@@ -3,20 +3,19 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
+import "../config"
 
 Item {
   id: systemTrayAreaRoot
 
-  property QtObject colors_: null
-  property QtObject config: null
   property var parentWindow: null
   property bool horizontal: false
 
   property int visibleCount: 0
-  readonly property real preferredLength: visibleCount * (config ? config.widgetSize : 50)
+  readonly property real preferredLength: visibleCount * (Config.widgetSize)
 
-  Layout.preferredWidth: horizontal ? preferredLength : (config ? config.widgetSize : 50)
-  Layout.preferredHeight: horizontal ? (config ? config.widgetSize : 50) : preferredLength
+  Layout.preferredWidth: horizontal ? preferredLength : (Config.widgetSize)
+  Layout.preferredHeight: horizontal ? (Config.widgetSize) : preferredLength
   visible: visibleCount > 0
 
   Rectangle {
@@ -27,10 +26,10 @@ Item {
       topMargin: horizontal ? 6 : 0
       bottomMargin: horizontal ? 6 : 0
     }
-    radius: config ? config.borderRadius : 14
+    radius: Config.borderRadius
     clip: true
-    color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
-    border.color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
+    color: Colors.surfaceContainerHigh
+    border.color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
     border.width: 1
   }
 
@@ -53,11 +52,11 @@ Item {
         readonly property bool isIconVisible: modelData.id !== "blueman" && modelData.id !== "udiskie"
         visible: isIconVisible
 
-        Layout.preferredWidth: visible ? (config ? config.widgetSize : 50) : 0
-        Layout.preferredHeight: visible ? (config ? config.widgetSize : 50) : 0
+        Layout.preferredWidth: visible ? (Config.widgetSize) : 0
+        Layout.preferredHeight: visible ? (Config.widgetSize) : 0
         Layout.alignment: systemTrayAreaRoot.horizontal ? Qt.AlignVCenter : Qt.AlignHCenter
-        width: visible ? (config ? config.widgetSize : 50) : 0
-        height: visible ? (config ? config.widgetSize : 50) : 0
+        width: visible ? (Config.widgetSize) : 0
+        height: visible ? (Config.widgetSize) : 0
 
         property bool counted: false
 
@@ -86,7 +85,7 @@ Item {
           id: trayThemeIcon
           anchors.centerIn: parent
           source: modelData.icon
-          width: config ? (config.iconSize + 2) : 24
+          width: (Config.iconSize + 2)
           height: width
           visible: !isPixmapIcon
         }
@@ -95,7 +94,7 @@ Item {
           id: trayPixmapIcon
           anchors.centerIn: parent
           source: modelData.icon
-          width: config ? (config.iconSize + 2) : 24
+          width: (Config.iconSize + 2)
           height: width
           fillMode: Image.PreserveAspectFit
           visible: isPixmapIcon

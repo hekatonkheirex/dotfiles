@@ -5,18 +5,17 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
+import "../config"
 
 PanelWindow {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
   property int anchorY: 0
   property bool horizontal: false
 
   signal dismissed()
 
-  implicitWidth: config ? config.popupWidth : 340
+  implicitWidth: Config.popupWidth
   visible: false
   implicitHeight: Math.min(contentColumn.implicitHeight + 32, 500)
   color: "transparent"
@@ -25,7 +24,7 @@ PanelWindow {
   WlrLayershell.layer: WlrLayer.Top
 
   anchors.left: true
-  margins.left: config ? config.barWidth + 4 : 48
+  margins.left: Config.barWidth + 4
   property int screenH: Screen.desktopAvailableHeight
 
   anchors.top: true
@@ -103,18 +102,17 @@ PanelWindow {
 
     FocusDismiss {
       target: root
-      config: root.config
       onDismissed: root.dismissed()
     }
 
     Rectangle {
       id: bg
       anchors.fill: parent
-      radius: config ? config.borderRadius : 14
-      color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+      radius: Config.borderRadius
+      color: Colors.surfaceContainerHigh
       clip: true
       border.width: 1
-      border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+      border.color: Colors.outlineVariant
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -129,7 +127,7 @@ PanelWindow {
           properties: "xScale,yScale"
           from: 0.85
           to: 1.0
-          duration: 250
+          duration: Config.motionLong
           easing.type: Easing.OutBack
         }
         NumberAnimation {
@@ -137,7 +135,7 @@ PanelWindow {
           property: "x"
           from: root.horizontal ? 0 : -30
           to: 0
-          duration: 250
+          duration: Config.motionLong
           easing.type: Easing.OutBack
         }
         NumberAnimation {
@@ -145,7 +143,7 @@ PanelWindow {
           property: "y"
           from: root.horizontal ? -30 : 0
           to: 0
-          duration: 250
+          duration: Config.motionLong
           easing.type: Easing.OutBack
         }
         NumberAnimation {
@@ -153,7 +151,7 @@ PanelWindow {
           property: "opacity"
           from: 0.0
           to: 1.0
-          duration: 200
+          duration: Config.motionMedium
           easing.type: Easing.OutCubic
         }
       }
@@ -173,16 +171,16 @@ PanelWindow {
           Text {
             Layout.fillWidth: true
             text: "Bluetooth"
-            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize + 8) : 18
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: (Config.fontPixelSize + 8)
             font.weight: Font.Bold
           }
 
           Text {
             text: "refresh"
-            color: colors_ ? colors_.primary : "#D0BCFF"
-            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            color: Colors.primary
+            font.family: Config.iconFont
             font.pixelSize: 20
             opacity: listQuery.running ? 0.5 : 1.0
             
@@ -199,10 +197,12 @@ PanelWindow {
           SwitchControl {
             id: btSwitch
             checked: root.btOn
-            activeColor: colors_ ? colors_.primary : "#D0BCFF"
-            surfaceContainerHighest: colors_ ? colors_.surfaceContainerHighest : "#36343B"
-            outline: colors_ ? colors_.outline : "#938F99"
-            checkmarkColor: colors_ ? (colors_.darkMode ? colors_.fgPrimary : colors_.primary) : "#0F3C2C"
+            activeColor: Colors.primary
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Bluetooth enabled"
             
             onToggled: {
               var newState = !root.btOn
@@ -213,11 +213,7 @@ PanelWindow {
           }
         }
 
-        Rectangle {
-          width: parent.width
-          height: 1
-          color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
-        }
+        PopupDivider {}
 
         // Bluetooth is Off
         ColumnLayout {
@@ -232,8 +228,8 @@ PanelWindow {
           Text {
             Layout.alignment: Qt.AlignHCenter
             text: "bluetooth_disabled"
-            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.iconFont
             font.pixelSize: 48
             opacity: 0.25
           }
@@ -241,18 +237,18 @@ PanelWindow {
           Text {
             Layout.alignment: Qt.AlignHCenter
             text: "Bluetooth is turned off"
-            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize + 4) : 14
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: (Config.fontPixelSize + 4)
             font.weight: Font.Bold
           }
 
           Text {
             Layout.alignment: Qt.AlignHCenter
             text: "Enable Bluetooth to view connected devices."
-            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize + 1) : 11
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: (Config.fontPixelSize + 1)
           }
         }
 
@@ -282,9 +278,9 @@ PanelWindow {
             text: "No connected devices found"
             visible: btListModel.count === 0 && !listQuery.running
             horizontalAlignment: Text.AlignHCenter
-            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? config.fontPixelSize + 2 : 12
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 2
           }
         }
       }
@@ -299,7 +295,7 @@ PanelWindow {
       width: listView.width
       height: 48
       radius: 12
-      color: colors_ ? (itemMouse.containsMouse ? colors_.surfaceContainerHighest : "transparent") : (itemMouse.containsMouse ? "#36343B" : "transparent")
+      color: itemMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
 
       RowLayout {
         anchors.fill: parent
@@ -309,8 +305,8 @@ PanelWindow {
 
         Text {
           text: "bluetooth"
-          color: colors_ ? colors_.primary : "#D0BCFF"
-          font.family: config ? config.iconFont : "Material Symbols Outlined"
+          color: Colors.primary
+          font.family: Config.iconFont
           font.pixelSize: 22
         }
 
@@ -321,9 +317,9 @@ PanelWindow {
           Text {
             Layout.fillWidth: true
             text: model.name
-            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize + 3) : 13
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: (Config.fontPixelSize + 3)
             font.weight: Font.Medium
             elide: Text.ElideRight
           }
@@ -331,9 +327,9 @@ PanelWindow {
           Text {
             Layout.fillWidth: true
             text: model.mac
-            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize) : 10
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: (Config.fontPixelSize)
             elide: Text.ElideRight
           }
         }
@@ -345,9 +341,9 @@ PanelWindow {
 
           Text {
             text: model.battery + "%"
-            color: colors_ ? colors_.primary : "#D0BCFF"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? config.fontPixelSize + 1 : 11
+            color: Colors.primary
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 1
             font.weight: Font.Bold
             anchors.verticalCenter: parent.verticalCenter
           }
@@ -364,8 +360,8 @@ PanelWindow {
               if (b <= 95) return "battery_5_bar"
               return "battery_full"
             }
-            color: colors_ ? colors_.primary : "#D0BCFF"
-            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            color: Colors.primary
+            font.family: Config.iconFont
             font.pixelSize: 18
             anchors.verticalCenter: parent.verticalCenter
           }
@@ -373,8 +369,8 @@ PanelWindow {
 
         Text {
           text: "link_off"
-          color: colors_ ? colors_.error : "#F2B8B5"
-          font.family: config ? config.iconFont : "Material Symbols Outlined"
+          color: Colors.error
+          font.family: Config.iconFont
           font.pixelSize: 20
           visible: itemMouse.containsMouse
           

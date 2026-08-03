@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import "../../config"
 
 ColumnLayout {
   anchors.fill: parent
@@ -9,8 +10,6 @@ ColumnLayout {
   visible: root.currentTab === 2
 
   property QtObject root: null
-  property QtObject colors_: null
-  property QtObject config: null
 
   property var wallpapersList: []
   property string currentWallpaper: ""
@@ -87,8 +86,8 @@ ColumnLayout {
 
   Text {
     text: "Visual Wallpaper Selector (" + wallpapersList.length + " walls found) • Active: " + (currentWallpaper || "None")
-    color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-    font.family: config ? config.fontFamily : "Roboto"
+    color: Colors.fgSurfaceVariant
+    font.family: Config.fontFamily
     font.pixelSize: 12
     font.weight: Font.Medium
   }
@@ -97,8 +96,8 @@ ColumnLayout {
     Layout.fillWidth: true
     Layout.fillHeight: true
     radius: 16
-    color: colors_ ? colors_.surfaceContainer : "#25232A"
-    border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+    color: Colors.surfaceContainer
+    border.color: Colors.outlineVariant
     border.width: 1
     clip: true
 
@@ -117,13 +116,17 @@ ColumnLayout {
         width: 160
         height: 104
         radius: 10
-        color: colors_ ? colors_.surfaceContainerHigh : "#312F37"
+        color: Qt.tint(Colors.surfaceContainerHigh, wallDelegateMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
         clip: true
+
+        Behavior on color {
+          ColorAnimation { duration: Config.animationDuration }
+        }
 
         readonly property bool isCurrent: modelData === currentWallpaper
 
         border.width: isCurrent ? 3 : (wallDelegateMouse.containsMouse ? 2 : 1)
-        border.color: isCurrent || wallDelegateMouse.containsMouse ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1))
+        border.color: isCurrent || wallDelegateMouse.containsMouse ? (Colors.primary) : (Colors.outlineVariant)
 
         Image {
           id: wallThumb
@@ -145,7 +148,7 @@ ColumnLayout {
           width: 20
           height: 20
           radius: 10
-          color: colors_ ? colors_.primary : "#BEE8C7"
+          color: Colors.primary
           anchors.top: parent.top
           anchors.right: parent.right
           anchors.margins: 6
@@ -154,10 +157,10 @@ ColumnLayout {
           Text {
             anchors.centerIn: parent
             text: "check"
-            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            font.family: Config.iconFont
             font.pixelSize: 12
             font.weight: Font.Bold
-            color: colors_ ? colors_.fgPrimary : "#0F3C2C"
+            color: Colors.fgPrimary
           }
         }
 

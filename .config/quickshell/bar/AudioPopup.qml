@@ -1,34 +1,14 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Window
 import Quickshell
-import Quickshell.Wayland
-import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
+import "../config"
 
-PanelWindow {
+PopupBase {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
-  property int anchorY: 0
-
-  signal dismissed()
-
-  implicitWidth: config ? config.popupWidth : 340
-  visible: false
   implicitHeight: Math.min(contentColumn.implicitHeight + 32, 400)
-  color: "transparent"
-  exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: "quickshell-popup"
-  WlrLayershell.layer: WlrLayer.Top
 
-  anchors.left: true
-  margins.left: config ? config.barWidth + 4 : 48
-  property int screenH: Screen.desktopAvailableHeight
-
-  anchors.top: true
-  margins.top: Math.max(0, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
   property real volume: 0.5
   property bool muted: false
   property real micVolume: 0.5
@@ -91,174 +71,118 @@ PanelWindow {
     onTriggered: root.pollAudio()
   }
 
-  onVisibleChanged: {
-    if (root.visible) {
-      root.pollAudio()
-      entryAnimation.start()
+  onShown: root.pollAudio()
+
+  Column {
+    id: contentColumn
+    anchors {
+      fill: parent
+      margins: Config.popupPadding
     }
-  }
+    spacing: 16
 
-  WlrLayershell.focusable: true
+    Item {
+      width: parent.width
+      height: 32
 
-  Component.onCompleted: {
-    Qt.application.activeChanged.connect(function() {
-      if (!Qt.application.active && root.visible) root.dismissed()
-    })
-  }
-
-  Item {
-    anchors.fill: parent
-    focus: true
-    Keys.onEscapePressed: root.dismissed()
-
-    FocusDismiss {
-      target: root
-      config: root.config
-      onDismissed: root.dismissed()
-    }
-
-    Rectangle {
-      id: bg
-      anchors.fill: parent
-      radius: config ? config.borderRadius : 14
-      color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
-      clip: true
-      border.width: 1
-      border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
-
-      transform: [
-        Translate { id: transX; x: 0 },
-        Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
-      ]
-
-      ParallelAnimation {
-        id: entryAnimation
-        NumberAnimation {
-          target: scaleTransform
-          properties: "xScale,yScale"
-          from: 0.85
-          to: 1.0
-          duration: 250
-          easing.type: Easing.OutBack
-        }
-        NumberAnimation {
-          target: transX
-          property: "x"
-          from: -30
-          to: 0
-          duration: 250
-          easing.type: Easing.OutBack
-        }
-        NumberAnimation {
-          target: bg
-          property: "opacity"
-          from: 0.0
-          to: 1.0
-          duration: 200
-          easing.type: Easing.OutCubic
-        }
+      Text {
+        text: "Volume"
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: (Config.fontPixelSize + 8)
+        font.weight: Font.Bold
+        anchors.verticalCenter: parent.verticalCenter
       }
 
-      Column {
-        id: contentColumn
-        anchors {
-          fill: parent
-          margins: config ? config.popupPadding : 16
-        }
-        spacing: 16
-
-        Item {
-          width: parent.width
-          height: 32
-
-          Text {
-            text: "Volume"
-            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize + 8) : 18
-            font.weight: Font.Bold
-            anchors.verticalCenter: parent.verticalCenter
-          }
-
-          SwitchControl {
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            checked: !root.muted
-            activeColor: colors_ ? colors_.primary : "#D0BCFF"
-            checkmarkColor: colors_ ? (colors_.darkMode ? colors_.fgPrimary : colors_.primary) : "#0F3C2C"
-            surfaceContainerHigh: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
-            surfaceContainerHighest: colors_ ? colors_.surfaceContainerHighest : "#36343B"
-            outline: colors_ ? colors_.outline : "#938F99"
-            onToggled: root.toggleMute()
-          }
-        }
-
-        Text {
-          text: muted ? "Muted" : Math.round(volume * 100) + "%"
-          color: muted ? (colors_ ? colors_.error : "#F2B8B5") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
-          font.family: config ? config.fontFamily : "Roboto"
-          font.pixelSize: config ? (config.fontPixelSize + 4) : 14
-        }
-
-        SliderControl {
-          value: root.volume
-          muted: root.muted
-          activeColor: colors_ ? colors_.primary : "#D0BCFF"
-          surfaceContainerHigh: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
-          surfaceContainerHighest: colors_ ? colors_.surfaceContainerHighest : "#36343B"
-          outline: colors_ ? colors_.outline : "#938F99"
-          onChanged: function(val) { root.setVolume(val) }
-        }
-
-        Rectangle {
-          width: parent.width
-          height: 1
-          color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
-        }
-
-        Item {
-          width: parent.width
-          height: 32
-
-          Text {
-            text: "Microphone"
-            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Roboto"
-            font.pixelSize: config ? (config.fontPixelSize + 8) : 18
-            font.weight: Font.Bold
-            anchors.verticalCenter: parent.verticalCenter
-          }
-
-          SwitchControl {
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            checked: !root.micMuted
-            activeColor: colors_ ? colors_.primary : "#D0BCFF"
-            checkmarkColor: colors_ ? (colors_.darkMode ? colors_.fgPrimary : colors_.primary) : "#0F3C2C"
-            surfaceContainerHigh: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
-            surfaceContainerHighest: colors_ ? colors_.surfaceContainerHighest : "#36343B"
-            outline: colors_ ? colors_.outline : "#938F99"
-            onToggled: root.toggleMicMute()
-          }
-        }
-
-        Text {
-          text: micMuted ? "Muted" : Math.round(micVolume * 100) + "%"
-          color: micMuted ? (colors_ ? colors_.error : "#F2B8B5") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
-          font.family: config ? config.fontFamily : "Roboto"
-          font.pixelSize: config ? (config.fontPixelSize + 4) : 14
-        }
-
-        SliderControl {
-          value: root.micVolume
-          muted: root.micMuted
-          activeColor: colors_ ? colors_.primary : "#D0BCFF"
-          surfaceContainerHigh: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
-          surfaceContainerHighest: colors_ ? colors_.surfaceContainerHighest : "#36343B"
-          outline: colors_ ? colors_.outline : "#938F99"
-          onChanged: function(val) { root.setMicVolume(val) }
-        }
+      SwitchControl {
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        checked: !root.muted
+        activeColor: Colors.primary
+        surfaceContainerHigh: Colors.surfaceContainerHigh
+        surfaceContainerHighest: Colors.surfaceContainerHighest
+        outline: Colors.outline
+        motionDuration: Config.motionMedium
+        reducedMotion: Config.reducedMotion
+        accessibleName: "Volume enabled"
+        onToggled: root.toggleMute()
       }
+    }
+
+    PopupDivider {}
+
+    Text {
+      text: muted ? "Muted" : Math.round(volume * 100) + "%"
+      color: muted ? (Colors.error) : (Colors.fgSurfaceVariant)
+      font.family: Config.fontFamily
+      font.pixelSize: (Config.fontPixelSize + 4)
+    }
+
+      SliderControl {
+      value: root.volume
+      muted: root.muted
+      activeColor: Colors.primary
+      surfaceContainerHigh: Colors.surfaceContainerHigh
+      surfaceContainerHighest: Colors.surfaceContainerHighest
+        outline: Colors.outline
+        focusColor: Colors.primary
+        motionDuration: Config.motionMedium
+        reducedMotion: Config.reducedMotion
+        accessibleName: "Volume"
+        accessibleDescription: "Adjust output volume"
+        onChanged: function(val) { root.setVolume(val) }
+    }
+
+    PopupDivider {}
+
+    Item {
+      width: parent.width
+      height: 32
+
+      Text {
+        text: "Microphone"
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: (Config.fontPixelSize + 8)
+        font.weight: Font.Bold
+        anchors.verticalCenter: parent.verticalCenter
+      }
+
+      SwitchControl {
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        checked: !root.micMuted
+        activeColor: Colors.primary
+        surfaceContainerHigh: Colors.surfaceContainerHigh
+        surfaceContainerHighest: Colors.surfaceContainerHighest
+        outline: Colors.outline
+        motionDuration: Config.motionMedium
+        reducedMotion: Config.reducedMotion
+        accessibleName: "Microphone enabled"
+        onToggled: root.toggleMicMute()
+      }
+    }
+
+    Text {
+      text: micMuted ? "Muted" : Math.round(micVolume * 100) + "%"
+      color: micMuted ? (Colors.error) : (Colors.fgSurfaceVariant)
+      font.family: Config.fontFamily
+      font.pixelSize: (Config.fontPixelSize + 4)
+    }
+
+      SliderControl {
+      value: root.micVolume
+      muted: root.micMuted
+      activeColor: Colors.primary
+      surfaceContainerHigh: Colors.surfaceContainerHigh
+      surfaceContainerHighest: Colors.surfaceContainerHighest
+        outline: Colors.outline
+        focusColor: Colors.primary
+        motionDuration: Config.motionMedium
+        reducedMotion: Config.reducedMotion
+        accessibleName: "Microphone volume"
+        accessibleDescription: "Adjust microphone volume"
+        onChanged: function(val) { root.setMicVolume(val) }
     }
   }
 }

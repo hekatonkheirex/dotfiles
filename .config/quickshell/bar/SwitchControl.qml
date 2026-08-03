@@ -1,52 +1,59 @@
 import QtQuick
+import "../config"
 
 Item {
   id: root
 
   property bool checked: false
-  property color activeColor: "#D0BCFF"
-  property color surfaceContainerHigh: "#2B2930"
-  property color surfaceContainerHighest: "#36343B"
-  property color outline: "#938F99"
+  property color activeColor: Colors.primary
+  property color activeContentColor: Colors.fgPrimary
+  // Compatibility name retained for existing callers. Contrasts against the
+  // knob (which is filled with activeContentColor when checked), not against it.
   property color checkmarkColor: activeColor
+  property color surfaceContainerHigh: Colors.surfaceContainerHigh
+  property color surfaceContainerHighest: Colors.surfaceContainerHighest
+  property color outline: Colors.outline
+  property color focusColor: activeColor
+  property color hoverOverlay: Colors.hoverOverlay
+  property color pressOverlay: Colors.pressOverlay
+  readonly property color stateOverlay: root.pressed
+    ? root.pressOverlay
+    : (root.hovered || root.activeFocus ? root.hoverOverlay : Qt.rgba(0, 0, 0, 0))
+  property int motionDuration: 150
+  property bool reducedMotion: false
+  property string accessibleName: "Switch"
+  property string accessibleDescription: "Toggle setting"
 
   signal toggled()
 
   width: 52
   height: 32
+  activeFocusOnTab: true
 
-  readonly property bool active: switchMouse.containsMouse || switchMouse.pressed
-
-  // State-driven sizes matching Material 3 Switch spec:
-  readonly property real targetThumbSize: {
-    if (switchMouse.pressed) return 28;
-    if (checked) return 24;
-    return 16;
-  }
-
-  readonly property real targetX: {
-    if (checked) {
-      return switchMouse.pressed ? (width - 28 - 2) : (width - 24 - 4);
-    } else {
-      return switchMouse.pressed ? 2 : 8;
-    }
-  }
+  readonly property bool hovered: switchMouse.containsMouse
+  readonly property bool pressed: switchMouse.pressed
+  readonly property bool active: hovered || pressed || activeFocus
+  readonly property real targetThumbSize: pressed ? 28 : (checked ? 24 : 16)
+  readonly property real targetX: checked
+    ? (pressed ? width - 28 - 2 : width - 24 - 4)
+    : (pressed ? 2 : 8)
 
   property real thumbSize: 16
   property real thumbX: 8
 
-  Behavior on thumbSize {
-    NumberAnimation {
-      duration: 150
-      easing.type: Easing.OutBack
-    }
+  function animateDuration(base) {
+    return root.reducedMotion ? 0 : Math.max(0, root.motionDuration || base)
   }
 
+  function activate() {
+    if (root.enabled) root.toggled()
+  }
+
+  Behavior on thumbSize {
+    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
+  }
   Behavior on thumbX {
-    NumberAnimation {
-      duration: 150
-      easing.type: Easing.OutBack
-    }
+    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
   }
 
   Component.onCompleted: {
@@ -57,21 +64,37 @@ Item {
   onTargetThumbSizeChanged: thumbSize = targetThumbSize
   onTargetXChanged: thumbX = targetX
 
-  // Track (pill shape)
+  Keys.onPressed: function(event) {
+    if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+      activate()
+      event.accepted = true
+    }
+  }
+
+  Rectangle {
+    anchors.fill: parent
+    anchors.margins: -4
+    radius: height / 2 + 4
+    color: root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
+    border.width: root.activeFocus ? 2 : 0
+    border.color: root.focusColor
+    visible: root.activeFocus
+  }
+
   Rectangle {
     id: track
     anchors.fill: parent
     radius: height / 2
-    color: root.checked ? root.activeColor : root.surfaceContainerHighest
-    border.width: root.checked ? 0 : 2
+    color: root.enabled
+      ? Qt.tint(root.checked ? root.activeColor : root.surfaceContainerHighest, root.stateOverlay)
+      : root.surfaceContainerHighest
+    border.width: root.checked || !root.enabled ? 0 : 2
     border.color: root.outline
+    opacity: root.enabled ? 1 : 0.55
 
-    Behavior on color {
-      ColorAnimation { duration: 150 }
-    }
+    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
   }
 
-  // Thumb / Handle (circle)
   Rectangle {
     id: knob
     x: root.thumbX
@@ -79,25 +102,21 @@ Item {
     width: root.thumbSize
     height: root.thumbSize
     radius: width / 2
-    color: root.checked ? "#FFFFFF" : root.outline
+    color: root.enabled
+      ? Qt.tint(root.checked ? root.activeContentColor : root.outline, root.stateOverlay)
+      : root.outline
 
-    Behavior on color {
-      ColorAnimation { duration: 150 }
-    }
+    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
 
-    // Centered checkmark icon for Checked state
     Text {
       anchors.centerIn: parent
-      text: "✓"
-      font.pixelSize: 14
-      font.bold: true
-      color: root.checkmarkColor
+      text: "check"
+      font.family: "Material Symbols Outlined"
+      font.pixelSize: 16
+      color: root.checked ? root.checkmarkColor : "transparent"
       visible: root.checked
-
-      opacity: root.checked ? 1.0 : 0.0
-      Behavior on opacity {
-        NumberAnimation { duration: 150 }
-      }
+      opacity: root.checked ? 1 : 0
+      Behavior on opacity { NumberAnimation { duration: root.animateDuration(150) } }
     }
   }
 
@@ -105,7 +124,8 @@ Item {
     id: switchMouse
     anchors.fill: parent
     hoverEnabled: true
+    enabled: root.enabled
     cursorShape: Qt.PointingHandCursor
-    onClicked: root.toggled()
+    onClicked: root.activate()
   }
 }

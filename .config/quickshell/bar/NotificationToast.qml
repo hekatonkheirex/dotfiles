@@ -2,15 +2,14 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import "../config"
 
 PanelWindow {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
   property QtObject notificationServer: null
   property var notif: null
-  property int displayMs: config ? config.notificationToastDurationMs : 5000
+  property int displayMs: Config.notificationToastDurationMs
 
   implicitWidth: 280
   implicitHeight: cardLayout.implicitHeight + 24
@@ -58,10 +57,10 @@ PanelWindow {
   Rectangle {
     id: bg
     anchors.fill: parent
-    radius: config ? config.borderRadius : 14
-    color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+    radius: Config.borderRadius
+    color: Colors.surfaceContainerHigh
     border.width: 1
-    border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+    border.color: Colors.outlineVariant
 
     transform: [
       Translate { id: transX; x: 0 },
@@ -75,7 +74,7 @@ PanelWindow {
         properties: "xScale,yScale"
         from: 0.8
         to: 1.0
-        duration: 250
+        duration: Config.motionLong
         easing.type: Easing.OutBack
       }
       NumberAnimation {
@@ -83,7 +82,7 @@ PanelWindow {
         property: "x"
         from: 50
         to: 0
-        duration: 250
+        duration: Config.motionLong
         easing.type: Easing.OutBack
       }
       NumberAnimation {
@@ -91,7 +90,7 @@ PanelWindow {
         property: "opacity"
         from: 0.0
         to: 1.0
-        duration: 200
+        duration: Config.motionMedium
         easing.type: Easing.OutCubic
       }
     }
@@ -115,13 +114,13 @@ PanelWindow {
           width: 20
           height: 20
           radius: 10
-          color: colors_ ? colors_.primaryContainer : "#4F378B"
+          color: Colors.primaryContainer
 
           Text {
             anchors.centerIn: parent
             text: notif ? (notif.appName.length > 0 ? notif.appName.charAt(0).toUpperCase() : "?") : "?"
-            color: colors_ ? colors_.fgPrimaryContainer : "#EADDFF"
-            font.family: config ? config.fontFamily : "Roboto"
+            color: Colors.fgPrimaryContainer
+            font.family: Config.fontFamily
             font.pixelSize: 10
             font.weight: Font.Bold
           }
@@ -129,8 +128,8 @@ PanelWindow {
 
         Text {
           text: notif ? (notif.appName || "Notification") : "Notification"
-          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Roboto"
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
           font.pixelSize: 11
           font.weight: Font.Medium
           Layout.fillWidth: true
@@ -139,8 +138,8 @@ PanelWindow {
 
         Text {
           text: "now"
-          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Roboto"
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
           font.pixelSize: 10
           opacity: 0.7
         }
@@ -149,7 +148,7 @@ PanelWindow {
       Rectangle {
         Layout.fillWidth: true
         height: 1
-        color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.1) : Qt.rgba(255, 255, 255, 0.05)
+        color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.1)
       }
 
       ColumnLayout {
@@ -159,8 +158,8 @@ PanelWindow {
         Text {
           Layout.fillWidth: true
           text: notif ? (notif.summary || "") : ""
-          color: colors_ ? colors_.fgSurface : "#FFFFFF"
-          font.family: config ? config.fontFamily : "Roboto"
+          color: Colors.fgSurface
+          font.family: Config.fontFamily
           font.pixelSize: 14
           font.weight: Font.Bold
           elide: Text.ElideRight
@@ -170,8 +169,8 @@ PanelWindow {
         Text {
           Layout.fillWidth: true
           text: notif ? (notif.body || "") : ""
-          color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-          font.family: config ? config.fontFamily : "Roboto"
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
           font.pixelSize: 12
           elide: Text.ElideRight
           maximumLineCount: 3

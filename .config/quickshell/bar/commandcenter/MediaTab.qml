@@ -2,11 +2,10 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "../"
+import "../../config"
 
           Item {
             property QtObject root: null
-            property QtObject colors_: null
-            property QtObject config: null
             anchors.fill: parent
             visible: root.currentTab === 1
 
@@ -54,7 +53,7 @@ import "../"
                     var maxExtend = 56;
                     var steps = 180;
 
-                    var primary = colors_ ? colors_.primary : Qt.rgba(0.66, 0.78, 1, 1);
+                    var primary = Colors.primary;
                     var r = Math.round(primary.r * 255);
                     var g = Math.round(primary.g * 255);
                     var b = Math.round(primary.b * 255);
@@ -101,7 +100,7 @@ import "../"
                   radius: 68
                   clip: true
                   anchors.centerIn: parent
-                  color: colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
+                  color: Colors.surfaceContainerHighest
 
                   Image {
                     source: root.mprisArtUrl ? root.mprisArtUrl : ""
@@ -118,9 +117,9 @@ import "../"
                     Text {
                       anchors.centerIn: parent
                       text: "music_note"
-                      font.family: config ? config.iconFont : "Material Symbols Outlined"
+                      font.family: Config.iconFont
                       font.pixelSize: 48
-                      color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+                      color: Colors.fgSurfaceVariant
                     }
                   }
                 }
@@ -134,8 +133,8 @@ import "../"
 
                 Text {
                   text: root.mprisTitle ? root.mprisTitle : "No Media Playing"
-                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                  font.family: config ? config.fontFamily : "Roboto"
+                  color: Colors.fgSurface
+                  font.family: Config.fontFamily
                   font.pixelSize: 18
                   font.weight: Font.Bold
                   elide: Text.ElideRight
@@ -145,8 +144,8 @@ import "../"
 
                 Text {
                   text: root.mprisArtist ? root.mprisArtist : "Unknown Artist"
-                  color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                  font.family: config ? config.fontFamily : "Roboto"
+                  color: Colors.fgSurfaceVariant
+                  font.family: Config.fontFamily
                   font.pixelSize: 13
                   elide: Text.ElideRight
                   Layout.fillWidth: true
@@ -161,8 +160,8 @@ import "../"
 
                 Text {
                   text: root.formatTime(root.elapsedSeconds)
-                  color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                  font.family: config ? config.fontFamily : "Roboto"
+                  color: Colors.fgSurfaceVariant
+                  font.family: Config.fontFamily
                   font.pixelSize: 11
                 }
 
@@ -170,8 +169,8 @@ import "../"
                   Layout.fillWidth: true
                   Layout.preferredHeight: 16
                   progress: root.mprisLengthSec > 0 ? (root.elapsedSeconds / root.mprisLengthSec) : 0.0
-                  activeColor: colors_ ? colors_.primary : "#BEE8C7"
-                  trackColor: colors_ ? colors_.surfaceContainerHighest : "#3C3A43"
+                  activeColor: Colors.primary
+                  trackColor: Colors.surfaceContainerHighest
                   lineWidth: 3
                   dotRadius: 5
                   trackLineWidth: 2
@@ -179,8 +178,8 @@ import "../"
 
                 Text {
                   text: root.mprisLengthStr
-                  color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                  font.family: config ? config.fontFamily : "Roboto"
+                  color: Colors.fgSurfaceVariant
+                  font.family: Config.fontFamily
                   font.pixelSize: 11
                 }
               }
@@ -200,9 +199,9 @@ import "../"
                   Text {
                     anchors.centerIn: parent
                     text: "skip_previous"
-                    font.family: config ? config.iconFont : "Material Symbols Outlined"
+                    font.family: Config.iconFont
                     font.pixelSize: 24
-                    color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                    color: Colors.fgSurface
                   }
 
                   MouseArea {
@@ -219,14 +218,14 @@ import "../"
                   width: 52
                   height: 52
                   radius: 26
-                  color: colors_ ? colors_.primary : "#BEE8C7"
+                  color: Colors.primary
 
                   Text {
                     anchors.centerIn: parent
                     text: root.mprisStatus === "Playing" ? "pause" : "play_arrow"
-                    font.family: config ? config.iconFont : "Material Symbols Outlined"
+                    font.family: Config.iconFont
                     font.pixelSize: 26
-                    color: colors_ ? colors_.fgPrimary : "#0F3C2C"
+                    color: Colors.fgPrimary
                   }
 
                   MouseArea {
@@ -248,9 +247,9 @@ import "../"
                   Text {
                     anchors.centerIn: parent
                     text: "skip_next"
-                    font.family: config ? config.iconFont : "Material Symbols Outlined"
+                    font.family: Config.iconFont
                     font.pixelSize: 24
-                    color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                    color: Colors.fgSurface
                   }
 
                   MouseArea {
@@ -275,16 +274,16 @@ import "../"
                 width: 36
                 height: 36
                 radius: 18
-                color: colors_ ? colors_.surfaceContainer : "#25232A"
-                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                color: Colors.surfaceContainer
+                border.color: Colors.outlineVariant
                 border.width: 1
 
                 Text {
                   anchors.centerIn: parent
                   text: root.systemMuted ? "volume_off" : (root.systemVolume <= 0.01 ? "volume_mute" : (root.systemVolume <= 0.3 ? "volume_mute" : (root.systemVolume <= 0.7 ? "volume_down" : "volume_up")))
-                  font.family: config ? config.iconFont : "Material Symbols Outlined"
+                  font.family: Config.iconFont
                   font.pixelSize: 18
-                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                  color: Colors.fgSurface
                 }
 
                 MouseArea {
@@ -308,16 +307,16 @@ import "../"
                 width: 36
                 height: 36
                 radius: 18
-                color: colors_ ? colors_.surfaceContainer : "#25232A"
-                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                color: Colors.surfaceContainer
+                border.color: Colors.outlineVariant
                 border.width: 1
 
                 Text {
                   anchors.centerIn: parent
                   text: "devices"
-                  font.family: config ? config.iconFont : "Material Symbols Outlined"
+                  font.family: Config.iconFont
                   font.pixelSize: 18
-                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                  color: Colors.fgSurface
                 }
 
                 MouseArea {
@@ -335,16 +334,16 @@ import "../"
                 width: 36
                 height: 36
                 radius: 18
-                color: colors_ ? colors_.surfaceContainer : "#25232A"
-                border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+                color: Colors.surfaceContainer
+                border.color: Colors.outlineVariant
                 border.width: 1
 
                 Text {
                   anchors.centerIn: parent
                   text: "queue_music"
-                  font.family: config ? config.iconFont : "Material Symbols Outlined"
+                  font.family: Config.iconFont
                   font.pixelSize: 18
-                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
+                  color: Colors.fgSurface
                 }
 
                 MouseArea {
