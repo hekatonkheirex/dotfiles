@@ -9,14 +9,14 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Vertical & Horizontal panel layouts** with workspace/tag indicators, system status widgets, and popup panels
 - **Layout Toggling**: Switch between vertical and horizontal layouts dynamically via a toggle button in the Quick Settings menu, with selection persistent across reboots (saved to `~/.config/quickshell/layout`)
 - **Lock screen** with PAM + fingerprint authentication
-- **Notification handling** with history and toasts, styled in Material Design 3
+- **Notification handling** with history and toasts, styled in Material 3 Expressive
 - **App launcher** with fuzzy search and local offline **voice search** capabilities
 - **Tabbed Command Center / Control Panel**: A multi-functional panel launched via `XF86Tools` featuring:
   - **Overview tab**: System greeting, profile avatar, active session info, system uptime, clock, date, sliders, and a mini media player with a real-time circular waveform visualizer around the album art
   - **Media Player tab**: Audio playback widget with a real-time **circular waveform visualizer** around the album art (driven by [cava](https://github.com/karlstav/cava) via PipeWire) — a smooth polar waveform that deforms organically with the music, dynamic volume adjustment wheel, source mute toggle, device mixer shortcut (`pavucontrol`), and active player switcher (`mpris_monitor.py` IPC)
   - **Wallpapers tab**: Visual selector grid displaying local wallpapers with auto-scrolling to the active image and a dynamic title naming the selected filename
   - **Weather tab**: Detailed 5-day weather forecasts and a conditions grid (Feels Like, Humidity, Wind Speed, Pressure, UV Index, Precipitation chance)
-  - **Settings tab**: Quick toggles for alignment layouts, dark/light theme modes, caffeinate/sleep inhibit behavior, and live CPU/Memory/Disk storage diagnostics gauges
+  - **Settings tab**: Quick toggles for alignment layouts, dark/light theme modes, reduced motion, caffeinate/sleep inhibit behavior, and live CPU/Memory/Disk storage diagnostics gauges
 
 ## Project Structure
 
@@ -24,15 +24,15 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 ~/.config/quickshell/
 ├── shell.qml                  # Entry point — ShellRoot, IpcHandler, layout toggle, triggers
 ├── config/
-│   ├── Config.qml             # Layout constants, centralized WM detection
-│   ├── Colors.qml             # Material Design 3 light/dark theme color tokens
+│   ├── Config.qml             # Layout, typography, shape, and motion tokens
+│   ├── Colors.qml             # Matugen-backed Material You roles with fallbacks
 │   └── cava.ini               # cava config for real-time audio visualizer (24 bars, 30fps, raw ASCII output)
 ├── bar/
 │   ├── VerticalBar.qml        # Main vertical panel — the side bar itself
 │   ├── HorizontalBar.qml      # Main horizontal panel — the top bar itself
 │   ├── CommandCenter.qml      # Centered tabbed command center (Session, Media, Wallpapers, Weather, Settings)
 │   ├── LockScreen.qml         # PAM auth, fingerprint, clock, power buttons (secure binding fixes)
-│   ├── WorkspaceIndicator.qml # Workspace/tag pills (Niri) for vertical mode
+│   ├── WorkspaceIndicator.qml # Workspace/tag pills + focused-window state
 │   ├── HorizontalWorkspaceIndicator.qml # Workspace/tag pills for horizontal mode
 │   ├── Launcher.qml           # App launcher button
 │   ├── LauncherPopup.qml      # App search (text/voice input) popup
@@ -48,7 +48,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── BtPopup.qml            # Bluetooth devices + battery info & disconnect hover action
 │   ├── SystemTrayArea.qml     # StatusNotifier tray icons for vertical bar
 │   ├── HorizontalSystemTrayArea.qml # StatusNotifier tray icons for horizontal bar
-│   ├── MenuIndicator.qml      # Quick settings trigger
+│   ├── MenuIndicator.qml      # Quick settings and Command Center bar triggers
 │   ├── QuickMenu.qml          # Layout toggle, idle, dark mode, power options (wallpaper changer relocated here)
 │   ├── CalendarPopup.qml      # Calendar month grid (M3 bordered)
 │   ├── NotificationIndicator.qml # Notifications counter (orientation-aware)
@@ -62,6 +62,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 ├── scripts/
 │   ├── lock                   # Lock trigger (touches /tmp/qslock-trigger)
 │   ├── commandcenter          # Command Center trigger script (touches /tmp/qscommandcenter-trigger)
+│   ├── apply-wallpaper.sh     # Wallpaper selection + Matugen/theme refresh
 │   ├── idle.sh                # swayidle: dim, lock, display off, suspend
 │   ├── idle.sh.bak            # Previous idle script backup
 │   ├── lid.sh                 # Lid close: lock + suspend
@@ -144,7 +145,7 @@ Any script or keybinding can trigger Quickshell actions by creating these files:
 - `/tmp/qscommandcenter-trigger` — toggles the command center popup (created by `scripts/commandcenter`)
 - `/tmp/qslock-trigger` — activates the lock screen (created by `scripts/lock`)
 
-Quickshell watches for these files via `Process` + `inotifywait` (zero CPU while idle) and responds instantly. The file triggers delegate to `IpcHandler` methods, which can also be invoked directly via `quickshell ipc call shell.<name>`.
+Quickshell watches for these files via `Process` + `inotifywait` (zero CPU while idle) and responds instantly. The file triggers delegate to `IpcHandler` methods, which can also be invoked directly via `quickshell ipc call shell <name>`.
 
 ### OSD Triggers (Quick Settings toggles)
 
@@ -162,7 +163,7 @@ Quickshell watches for these files via `Process` + `inotifywait` (zero CPU while
 - `ipc.lock()` — activate lock screen
 - `ipc.quickmenu()` — toggle quick menu
 
-These are callable externally via `quickshell ipc call shell.launcher` (and similar) and are also invoked by the file trigger watchers for backward compatibility.
+These are callable externally via `quickshell ipc call shell launcher` (and similar) and are also invoked by the file trigger watchers for backward compatibility.
 
 ## Lock Screen
 
@@ -194,21 +195,21 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 | Calendar | Clock click | Month grid with navigation (M3 bordered) |
 | Notifications | `NotificationIndicator` click | M3-compliant card layout list tracked via `modelData` |
 | Quick Menu | `MenuIndicator` click / `SUPER+Escape` | Layout toggle, idle inhibit, dark mode, power (M3 bordered) |
-| Command Center | `XF86Tools` | 5 tabs: Session Overview, Media Player, Wallpapers selection, Weather forecasts, and Settings/System Diagnostics (M3 bordered, 800x600 size) |
+| Command Center | `Command Center bar icon` / `XF86Tools` | 5 tabs: Session Overview, Media Player, Wallpapers selection, Weather forecasts, and Settings/System Diagnostics (responsive M3 surface) |
 
 ## Configuration
 
 ### `config/Config.qml`
 
-Layout and behavior constants: `barWidth`, `widgetSize`, `iconSize`, `fontPixelSize`, `animationDuration`, `popupWidth`, `borderRadius`, etc.
+Layout, typography, shape, and motion tokens: `barWidth`, `widgetSize`, M3 type sizes, spacing, shape scale, `animationDuration`, `popupWidth`, and the `reducedMotion` switch.
 
 ### `config/Colors.qml`
 
-Material Design 3 color tokens generated by **matugen** from the current wallpaper/accent color. Auto-generated on wallpaper changes or manual color picker via `matugen-and-cache.sh` → matugen template → hot-reloaded by Quickshell.
+Material You / Material 3 semantic roles are resolved in `Colors.qml` from Matugen's `~/.cache/matugen/current_palette.json`. The file keeps authored light/dark fallbacks for first boot and generator failures, while the active light and dark roles are shared by the bar, popups, Command Center, OSD, notifications, and lock screen.
 
 Format: `l_<token>` (light), `d_<token>` (dark), and flat resolved `<token>` properties (no prefix) for current mode. Text/icon colors are prefixed with `fg` (e.g. `fgSurface`, `fgPrimary`) to prevent conflicts with QML's internal signal handler compiler rules.
 
-System dark mode is detected by polling `gsettings get org.gnome.desktop.interface color-scheme` every 5s and on a 3s timer after hot-reloads (since `systemDark` resets to the template default). Mode toggles in QuickMenu or CommandCenter call `sync-theme-mode.sh` which updates gsettings, GTK `settings.ini`, Kvantum theme, and icon theme.
+System dark mode is read once and monitored through `gsettings`. Mode toggles in QuickMenu or CommandCenter call the existing desktop mode synchronizer, while the shell selects the matching Matugen light/dark roles locally.
 
 ### `bar/PopupShield.qml`
 
@@ -227,7 +228,7 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 - **QuickMenu (Layout Toggle)**: The WiFi button was replaced with a layout toggle. When clicked, it toggles `isHorizontal` and persists the state. The wallpaper changer was relocated inside the Quick Settings layout.
 - **BtIndicator & BtPopup**: Displays the battery percentage of the connected device directly underneath the bluetooth icon. The popup lists connected devices with their MAC, names, and battery level, offering a `link_off` disconnect button on hover.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a 3-second polling timer in `shell.qml` re-queries gsettings after reloads.
-- **Theme Generation**: `Colors.qml` is generated by [matugen](https://github.com/InioX/matugen) (Material You color engine). The template is at `~/.config/matugen/templates/Colors.qml` with config in `~/.config/matugen/config.toml`. On wallpaper change or manual color picker, matugen extracts M3 colors → `generate-all-themes.sh` rebuilds all 5 desktop themes → `sync-theme-mode.sh` applies the mode across GTK, Kvantum, icons, and Nautilus.
+- **Theme ownership**: Matugen is the dynamic palette source. `scripts/apply-wallpaper.sh` applies the wallpaper, refreshes the Matugen cache, regenerates the existing Material 3 desktop themes, and re-runs the light/dark synchronizer. `config/Colors.qml` consumes the cached semantic roles with authored fallbacks.
 - **Lock Screen Security**: Employs imperative start/stop handlers in `onLockedChanged` for `fprintdProcess` to prevent QML declarative property binding breaks.
 
 ## Dependencies
@@ -243,8 +244,8 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 - **fprintd** — fingerprint authentication
 - **brightnessctl**, **nmcli**, **bluetoothctl** — quick settings
 - **swayosd-client** — OSD feedback for media keys
-- **matugen** — Material You color extraction from wallpaper/accent
 - **ImageMagick** — wallpaper brightness detection for auto mode
+- **Matugen** — wallpaper-derived Material You palette generation
 - **kvantummanager** — Kvantum theme switching
 - **awww** — wallpaper daemon
 - **cava** — real-time audio visualizer (raw ASCII output consumed by the Command Center waveform)

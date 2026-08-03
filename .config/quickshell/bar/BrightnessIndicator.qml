@@ -2,18 +2,17 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import "../config"
 
 Item {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
   property bool horizontal: false
 
   signal clicked(var mouse)
 
-  Layout.preferredWidth: config ? config.widgetSize : 50
-  Layout.preferredHeight: config ? config.widgetSize : 50
+  Layout.preferredWidth: Config.widgetSize
+  Layout.preferredHeight: Config.widgetSize
 
   property real pct: 0
   property bool initialized: false
@@ -92,18 +91,17 @@ Item {
     radius: root.horizontal ? height / 2 : width / 2
     clip: true
     color: {
-      if (root.active) return colors_ ? colors_.primary : "#D0BCFF"
-      if (mouseArea.containsMouse) return colors_ ? colors_.surfaceContainerHighest : "#36343B"
-      return colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+      var overlay = mouseArea.pressed ? Colors.pressOverlay : (mouseArea.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
+      return Qt.tint(root.active ? Colors.brightness : Colors.surfaceContainerHigh, overlay)
     }
     border.color: {
       if (root.active) return "transparent"
-      return colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.15) : Qt.rgba(147/255, 143/255, 153/255, 0.15)
+      return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
     }
     border.width: 1
 
     Behavior on color {
-      ColorAnimation { duration: config ? config.animationDuration : 150 }
+      ColorAnimation { duration: Config.animationDuration}
     }
   }
 
@@ -112,11 +110,11 @@ Item {
     anchors.centerIn: parent
     text: root.iconLabel
     color: {
-      if (root.active) return colors_ ? colors_.fgPrimary : "#0F3C2C"
-      return colors_ ? colors_.primary : "#D0BCFF"
+      if (root.active) return Colors.fgPrimary
+      return Colors.brightness
     }
-    font.family: config ? config.iconFont : "Material Symbols Outlined"
-    font.pixelSize: config ? config.iconSize : 22
+    font.family: Config.iconFont
+    font.pixelSize: Config.iconSize
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
   }
@@ -127,11 +125,11 @@ Item {
     anchors.bottomMargin: 4
     text: root.initialized ? Math.round(root.pct) + "%" : ""
     color: {
-      if (root.active) return colors_ ? colors_.fgPrimary : "#0F3C2C"
-      return colors_ ? colors_.primary : "#D0BCFF"
+      if (root.active) return Colors.fgPrimary
+      return Colors.brightness
     }
-    font.family: config ? config.fontFamily : "Roboto"
-    font.pixelSize: config ? (config.fontPixelSize - 2) : 8
+    font.family: Config.fontFamily
+    font.pixelSize: (Config.fontPixelSize - 2)
     font.weight: Font.Medium
     horizontalAlignment: Text.AlignHCenter
   }
@@ -145,7 +143,7 @@ Item {
       root.clicked(mouse)
     }
     onWheel: function(wheel) {
-      var delta = wheel.angleDelta.y > 0 ? (config ? config.brightnessStep : 5) : -(config ? config.brightnessStep : 5)
+      var delta = wheel.angleDelta.y > 0 ? (Config.brightnessStep) : -(Config.brightnessStep)
       root.setBrightness(root.pct + delta)
     }
   }

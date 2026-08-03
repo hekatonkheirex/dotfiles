@@ -1,40 +1,19 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Window
 import Quickshell
-import Quickshell.Wayland
-import Quickshell.Wayland._WlrLayerShell
 import "CalendarLogic.js" as CalendarLogic
+import "../config"
 
-PanelWindow {
+PopupBase {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
-  property int anchorY: 0
-
-  signal dismissed()
-
-  implicitWidth: config ? config.popupWidth : 340
-  visible: false
   implicitHeight: Math.min(contentBody.implicitHeight + 24, 450)
-  color: "transparent"
-  exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: "quickshell-popup"
-  WlrLayershell.layer: WlrLayer.Top
-
-  anchors.left: true
-  margins.left: config ? config.barWidth + 4 : 48
-
-  property int screenH: Screen.desktopAvailableHeight
-
-  anchors.top: true
-  margins.top: Math.max(0, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight - 5))
+  bottomMarginPad: 5
 
   property date currentDate: new Date()
   property date displayMonth: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
-  readonly property real cellWidth: ((config ? config.popupWidth : 340) - (config ? config.popupPadding : 16) * 2 - 6 * 4) / 7
+  readonly property real cellWidth: ((Config.popupWidth) - (Config.popupPadding) * 2 - 6 * 4) / 7
   readonly property var weekDays: CalendarLogic.weekDays
   readonly property var monthNames: CalendarLogic.monthNames
 
@@ -47,79 +26,13 @@ PanelWindow {
 
   property var dayModel: root.buildDayModel(root.displayMonth)
 
-  onVisibleChanged: {
-    if (visible) {
-      entryAnimation.start()
+  Column {
+    id: contentBody
+    anchors {
+      fill: parent
+      margins: 12
     }
-  }
-
-  WlrLayershell.focusable: true
-
-  Component.onCompleted: {
-    Qt.application.activeChanged.connect(function() {
-      if (!Qt.application.active && root.visible) root.dismissed()
-    })
-  }
-
-  Item {
-    anchors.fill: parent
-    focus: true
-    Keys.onEscapePressed: root.dismissed()
-
-    FocusDismiss {
-      target: root
-      config: root.config
-      onDismissed: root.dismissed()
-    }
-
-    Rectangle {
-      id: bg
-      anchors.fill: parent
-      radius: config ? config.borderRadius : 14
-      color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
-      border.width: 1
-      border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
-
-      transform: [
-        Translate { id: transX; x: 0 },
-        Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
-      ]
-
-      ParallelAnimation {
-        id: entryAnimation
-        NumberAnimation {
-          target: scaleTransform
-          properties: "xScale,yScale"
-          from: 0.85
-          to: 1.0
-          duration: 250
-          easing.type: Easing.OutBack
-        }
-        NumberAnimation {
-          target: transX
-          property: "x"
-          from: -30
-          to: 0
-          duration: 250
-          easing.type: Easing.OutBack
-        }
-        NumberAnimation {
-          target: bg
-          property: "opacity"
-          from: 0.0
-          to: 1.0
-          duration: 200
-          easing.type: Easing.OutCubic
-        }
-      }
-
-      Column {
-        id: contentBody
-        anchors {
-          fill: parent
-          margins: 12
-        }
-        spacing: 12
+    spacing: 12
 
         Row {
           width: parent.width
@@ -127,8 +40,8 @@ PanelWindow {
 
           Text {
             text: root.monthNames[root.displayMonth.getMonth()] + " " + root.displayMonth.getFullYear()
-            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Roboto"
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
             font.pixelSize: 18
             font.weight: Font.Bold
           }
@@ -144,15 +57,15 @@ PanelWindow {
                 width: 32
                 height: 32
                 radius: 16
-                color: navArea.containsMouse ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : "transparent"
+                color: navArea.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
                 Behavior on color {
-                  ColorAnimation { duration: config ? config.animationDuration : 150 }
+                  ColorAnimation { duration: Config.animationDuration}
                 }
                 Text {
                   anchors.centerIn: parent
                   text: modelData
-                  color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                  font.family: config ? config.iconFont : "Material Symbols Outlined"
+                  color: Colors.fgSurface
+                  font.family: Config.iconFont
                   font.pixelSize: 18
                 }
                 MouseArea {
@@ -171,14 +84,16 @@ PanelWindow {
           }
         }
 
+        PopupDivider {}
+
         Row {
           spacing: 4
           Repeater {
             model: root.weekDays
             Text {
               text: modelData
-              color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-              font.family: config ? config.fontFamily : "Roboto"
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
               font.pixelSize: 14
               font.weight: Font.Medium
               width: root.cellWidth
@@ -204,21 +119,19 @@ PanelWindow {
               width: root.cellWidth
               height: 32
               radius: height / 2
-              color: root.isToday(dayNum) ? (colors_ ? colors_.primary : "#4F378B") : "transparent"
+              color: root.isToday(dayNum) ? (Colors.primary) : "transparent"
 
               Text {
                 anchors.centerIn: parent
                 text: dayNum > 0 ? dayNum.toString() : ""
                 color: root.isToday(dayNum)
-                  ? (colors_ ? colors_.fgPrimary : "#FFFFFF")
-                  : (colors_ ? colors_.fgSurface : "#FFFFFF")
-                font.family: config ? config.fontFamily : "Roboto"
+                  ? (Colors.fgPrimary)
+                  : (Colors.fgSurface)
+                font.family: Config.fontFamily
                 font.pixelSize: 14
               }
             }
           }
         }
       }
-    }
-  }
 }

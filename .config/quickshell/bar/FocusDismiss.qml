@@ -1,13 +1,13 @@
 import QtQuick
+import "../config"
 
 Item {
   id: focusDismiss
   property var target: parent
-  property var config: null
   signal dismissed()
 
   Component.onCompleted: {
-    if (focusDismiss.parent && config && config.isNiri) {
+    if (focusDismiss.parent && Config.isNiri) {
       focusDismiss.parent.activeFocusChanged.connect(function() {
         if (!focusDismiss.parent.activeFocus && focusDismiss.target && focusDismiss.target.visible) focusDismiss.dismissed()
       })

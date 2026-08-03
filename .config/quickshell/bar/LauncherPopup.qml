@@ -5,17 +5,16 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
+import "../config"
 
 PanelWindow {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
   property int anchorY: 0
 
   signal dismissed()
 
-  implicitWidth: config ? config.popupWidth : 340
+  implicitWidth: Config.popupWidth
   visible: false
   implicitHeight: Math.min(clipItem.implicitHeight + 32, 500)
   color: "transparent"
@@ -25,7 +24,7 @@ PanelWindow {
   WlrLayershell.focusable: true
 
   anchors.left: true
-  margins.left: config ? config.barWidth + 4 : 48
+  margins.left: Config.barWidth + 4
   property int screenH: Screen.desktopAvailableHeight
 
   anchors.top: true
@@ -88,7 +87,7 @@ PanelWindow {
   Component.onCompleted: {
     desktopProc.running = true
     Qt.application.activeChanged.connect(function() {
-      if (!Qt.application.active && root.visible && config && config.isNiri) root.dismissed()
+      if (!Qt.application.active && root.visible && Config.isNiri) root.dismissed()
     })
   }
 
@@ -265,9 +264,9 @@ PanelWindow {
   Rectangle {
     id: bg
     anchors.fill: parent
-    color: colors_ ? colors_.surfaceContainer : "#211F26"
+    color: Colors.surfaceContainer
     radius: 24
-    border.color: colors_ ? colors_.outlineVariant : "#49454F"
+    border.color: Colors.outlineVariant
     border.width: 1
 
     transform: [
@@ -282,7 +281,7 @@ PanelWindow {
         properties: "xScale,yScale"
         from: 0.85
         to: 1.0
-        duration: 250
+        duration: Config.motionLong
         easing.type: Easing.OutBack
       }
       NumberAnimation {
@@ -290,7 +289,7 @@ PanelWindow {
         property: "x"
         from: -30
         to: 0
-        duration: 250
+        duration: Config.motionLong
         easing.type: Easing.OutBack
       }
       NumberAnimation {
@@ -298,7 +297,7 @@ PanelWindow {
         property: "opacity"
         from: 0.0
         to: 1.0
-        duration: 200
+        duration: Config.motionMedium
         easing.type: Easing.OutCubic
       }
     }
@@ -314,9 +313,9 @@ PanelWindow {
         Layout.fillWidth: true
         height: 46
         radius: height / 2
-        color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+        color: Colors.surfaceContainerHigh
         border.width: 1
-        border.color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.1) : "transparent"
+        border.color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.1)
 
         RowLayout {
           anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
@@ -324,8 +323,8 @@ PanelWindow {
 
           Text {
             text: "search"
-            color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.iconFont
             font.pixelSize: 22
             Layout.alignment: Qt.AlignVCenter
           }
@@ -334,8 +333,8 @@ PanelWindow {
             id: searchInput
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
-            color: colors_ ? colors_.fgSurface : "#FFFFFF"
-            font.family: config ? config.fontFamily : "Roboto"
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
             font.pixelSize: 16
             clip: true
             focus: true
@@ -351,7 +350,7 @@ PanelWindow {
 
             Text {
               text: root.voiceRecording ? "Listening... Click mic to stop." : (root.voiceTranscribing ? "Transcribing..." : "Search apps...")
-              color: root.voiceRecording ? (colors_ ? colors_.error : "#ea1821") : (colors_ ? colors_.fgSurfaceVariant : "#888888")
+            color: root.voiceRecording ? (Colors.destructive) : (Colors.fgSurfaceVariant)
               font.family: searchInput.font.family
               font.pixelSize: searchInput.font.pixelSize
               visible: searchInput.text === ""
@@ -384,8 +383,8 @@ PanelWindow {
           Text {
             id: micIcon
             text: root.voiceRecording ? "stop" : (root.voiceTranscribing ? "sync" : "mic")
-            color: root.voiceRecording ? (colors_ ? colors_.error : "#ea1821") : (root.voiceTranscribing ? (colors_ ? colors_.tertiary : "#FFD580") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"))
-            font.family: config ? config.iconFont : "Material Symbols Outlined"
+            color: root.voiceRecording ? (Colors.destructive) : (root.voiceTranscribing ? (Colors.info) : (Colors.fgSurfaceVariant))
+            font.family: Config.iconFont
             font.pixelSize: 22
             Layout.alignment: Qt.AlignVCenter
 
@@ -397,7 +396,7 @@ PanelWindow {
 
             RotationAnimator {
               target: micIcon
-              running: root.voiceTranscribing
+              running: root.voiceTranscribing && !(Config.reducedMotion)
               loops: Animation.Infinite
               from: 0
               to: 360
@@ -438,7 +437,7 @@ PanelWindow {
           width: appList.width
           height: 48
           radius: 24 // Pill shape selection
-          color: root.selectedIndex === index ? (colors_ ? colors_.surfaceContainerHighest : "#36343B") : "transparent"
+          color: root.selectedIndex === index ? (Colors.surfaceContainerHighest) : "transparent"
 
           RowLayout {
             anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
@@ -448,7 +447,7 @@ PanelWindow {
               width: 30
               height: 30
               radius: 15 // Circle avatar/icon background
-              color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+              color: Colors.surfaceContainerHigh
 
               Image {
                 anchors.centerIn: parent
@@ -465,8 +464,8 @@ PanelWindow {
               Text {
                 anchors.centerIn: parent
                 text: model.name.charAt(0).toUpperCase()
-                color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                font.family: config ? config.fontFamily : "Roboto"
+                color: Colors.fgSurface
+                font.family: Config.fontFamily
                 font.pixelSize: 14
                 font.weight: Font.Medium
                 visible: model.icon === ""
@@ -480,8 +479,8 @@ PanelWindow {
               Text {
                 Layout.fillWidth: true
                 text: model.name
-                color: colors_ ? colors_.fgSurface : "#FFFFFF"
-                font.family: config ? config.fontFamily : "Roboto"
+                color: Colors.fgSurface
+                font.family: Config.fontFamily
                 font.pixelSize: 15
                 font.weight: Font.Medium
                 elide: Text.ElideRight
@@ -490,8 +489,8 @@ PanelWindow {
               Text {
                 Layout.fillWidth: true
                 text: model.comment || ""
-                color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
-                font.family: config ? config.fontFamily : "Roboto"
+                color: Colors.fgSurfaceVariant
+                font.family: Config.fontFamily
                 font.pixelSize: 13
                 elide: Text.ElideRight
                 visible: text !== ""

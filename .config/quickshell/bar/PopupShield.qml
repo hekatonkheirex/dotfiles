@@ -6,7 +6,6 @@ import Quickshell.Wayland._WlrLayerShell
 PanelWindow {
   id: root
 
-  property QtObject config: null
 
   signal shieldClicked()
 

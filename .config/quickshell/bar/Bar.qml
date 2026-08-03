@@ -3,17 +3,16 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
+import "../config"
 
 PanelWindow {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
   property int notificationCount: 0
   property QtObject notificationServer: null
   property bool horizontal: true
 
-  readonly property real wSize: config ? config.widgetSize : 50
+  readonly property real wSize: Config.widgetSize
 
   anchors {
     left: true
@@ -22,19 +21,19 @@ PanelWindow {
     bottom: !root.horizontal
   }
 
-  implicitHeight: (config ? config.barWidth : 50) + 16
-  implicitWidth: (config ? config.barWidth : 50) + 16
+  implicitHeight: (Config.barWidth) + 16
+  implicitWidth: (Config.barWidth) + 16
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
-  exclusiveZone: config ? config.barWidth : 50
+  exclusiveZone: Config.barWidth
   WlrLayershell.namespace: "quickshell-panel"
   WlrLayershell.layer: WlrLayer.Top
 
   property date now: new Date()
 
   Timer {
-    interval: config ? config.clockIntervalMs : 1000
+    interval: Config.clockIntervalMs
     running: root.visible
     repeat: true
     onTriggered: now = new Date()
@@ -52,6 +51,15 @@ PanelWindow {
   function getMenuIndicatorX() {
     if (!root.horizontal) return 0
     return menuIndicator ? menuIndicator.mapToItem(null, 0, 0).x + menuIndicator.width / 2 : 0
+  }
+
+  function getCommandCenterX() {
+    if (!root.horizontal) return 0
+    return commandCenterIndicator ? commandCenterIndicator.mapToItem(null, 0, 0).x + commandCenterIndicator.width / 2 : getMenuIndicatorX()
+  }
+
+  function getCommandCenterY() {
+    return commandCenterIndicator ? commandCenterIndicator.mapToItem(null, 0, 0).y : getMenuIndicatorY()
   }
 
   function getMenuIndicatorY() {
@@ -76,11 +84,21 @@ PanelWindow {
   }
 
   property bool expanded: false
+  property bool fullBar: false
   property real expandProgress: expanded ? 1.0 : 0.0
+
+  onFullBarChanged: {
+    if (root.fullBar) {
+      collapseTimer.stop()
+      root.expanded = true
+    } else if (root.openPopup === "" && !barMouseArea.containsMouse) {
+      collapseTimer.restart()
+    }
+  }
 
   Behavior on expandProgress {
     NumberAnimation {
-      duration: 450
+      duration: Config.motionExtraLong
       easing.type: Easing.OutBack
       easing.amplitude: 0.8
     }
@@ -92,7 +110,7 @@ PanelWindow {
     running: false
     repeat: false
     onTriggered: {
-      if (!barMouseArea.containsMouse && root.openPopup === "") {
+      if (!root.fullBar && !barMouseArea.containsMouse && root.openPopup === "") {
         root.expanded = false
       }
     }
@@ -100,7 +118,7 @@ PanelWindow {
 
   onOpenPopupChanged: {
     if (openPopup === "") {
-      if (!barMouseArea.containsMouse) {
+      if (!root.fullBar && !barMouseArea.containsMouse) {
         collapseTimer.restart()
       }
     } else {
@@ -126,12 +144,12 @@ PanelWindow {
         : (root.wSize + 6) * (1.0 - root.expandProgress)
       width: root.horizontal
         ? (layout.implicitWidth + 12) + (parent.width - (layout.implicitWidth + 12)) * root.expandProgress
-        : (config ? config.barWidth : 50) - 8 * (1.0 - root.expandProgress)
+        : (Config.barWidth) - 8 * (1.0 - root.expandProgress)
       height: root.horizontal
-        ? (config ? config.barWidth : 50) - 8 * (1.0 - root.expandProgress)
+        ? (Config.barWidth) - 8 * (1.0 - root.expandProgress)
         : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress
-      radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + (config ? config.borderRadius : 14) * root.expandProgress
-      color: colors_ ? colors_.bg : "#1C1B1F"
+      radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + (Config.borderRadius) * root.expandProgress
+      color: Colors.bg
 
       // Square-off helper for the docked edge's near corner
       Rectangle {
@@ -163,7 +181,7 @@ PanelWindow {
             collapseTimer.stop()
             root.expanded = true
           } else {
-            if (root.openPopup === "") {
+            if (root.openPopup === "" && !root.fullBar) {
               collapseTimer.restart()
             }
           }
@@ -194,8 +212,6 @@ PanelWindow {
           Launcher {
             id: launcherWidget
             anchors.fill: parent
-            colors_: root.colors_
-            config: root.config
             active: root.openPopup === "launcher"
             horizontal: root.horizontal
             onClicked: function(mouse) {
@@ -207,10 +223,53 @@ PanelWindow {
         WorkspaceIndicator {
           id: wsIndicator
           horizontal: root.horizontal
-          colors_: root.colors_
-          config: root.config
           Layout.preferredWidth: root.horizontal ? implicitWidth : parent.width
           Layout.preferredHeight: root.horizontal ? parent.height : implicitHeight
+        }
+
+        Item {
+          id: focusedWindowWrapper
+          property string programText: wsIndicator.focusedWindowProgram
+          property string detailText: wsIndicator.focusedWindowInfo
+          Layout.preferredWidth: root.horizontal && (programText !== "" || detailText !== "")
+            ? Math.min(320, Math.max(140, Math.max(focusedWindowProgramText.implicitWidth, focusedWindowDetailText.implicitWidth) + 16)) * root.expandProgress
+            : 0
+          Layout.preferredHeight: root.horizontal ? parent.height : 0
+          opacity: root.expandProgress
+          visible: root.horizontal && root.expandProgress > 0 && (programText !== "" || detailText !== "")
+          clip: true
+
+          ColumnLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 8
+            anchors.rightMargin: 8
+            anchors.topMargin: 4
+            anchors.bottomMargin: 4
+            spacing: 0
+
+            Text {
+              id: focusedWindowProgramText
+              text: focusedWindowWrapper.programText
+              color: Colors.primary
+              font.family: Config.fontFamily
+              font.pixelSize: Config.labelSmallSize
+              font.weight: Font.Bold
+              elide: Text.ElideRight
+              maximumLineCount: 1
+              Layout.fillWidth: true
+            }
+
+            Text {
+              id: focusedWindowDetailText
+              text: focusedWindowWrapper.detailText
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.labelSmallSize
+              elide: Text.ElideRight
+              maximumLineCount: 1
+              Layout.fillWidth: true
+            }
+          }
         }
 
         Item {
@@ -232,8 +291,6 @@ PanelWindow {
           WifiIndicator {
             id: wifiIndicator
             anchors.fill: parent
-            colors_: root.colors_
-            config: root.config
             active: root.openPopup === "wifi"
             horizontal: root.horizontal
             onClicked: function(mouse) {
@@ -253,8 +310,6 @@ PanelWindow {
           BtIndicator {
             id: btIndicator
             anchors.fill: parent
-            colors_: root.colors_
-            config: root.config
             active: root.openPopup === "bluetooth"
             horizontal: root.horizontal
             onClicked: function(mouse) {
@@ -274,8 +329,6 @@ PanelWindow {
           AudioIndicator {
             id: audioIndicator
             anchors.fill: parent
-            colors_: root.colors_
-            config: root.config
             active: root.openPopup === "audio"
             horizontal: root.horizontal
             onClicked: function(mouse) {
@@ -295,8 +348,6 @@ PanelWindow {
           BrightnessIndicator {
             id: brightnessIndicator
             anchors.fill: parent
-            colors_: root.colors_
-            config: root.config
             active: root.openPopup === "brightness"
             horizontal: root.horizontal
             onClicked: function(mouse) {
@@ -316,8 +367,6 @@ PanelWindow {
           BatteryIndicator {
             id: batteryIndicator
             anchors.fill: parent
-            colors_: root.colors_
-            config: root.config
             active: root.openPopup === "battery"
             horizontal: root.horizontal
             onClicked: function(mouse) {
@@ -338,9 +387,27 @@ PanelWindow {
             id: systemTray
             horizontal: root.horizontal
             anchors.fill: parent
-            colors_: root.colors_
-            config: root.config
             parentWindow: root
+          }
+        }
+
+        Item {
+          id: commandCenterWrapper
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
+          opacity: root.expandProgress
+          visible: root.expandProgress > 0
+          clip: true
+
+          MenuIndicator {
+            id: commandCenterIndicator
+            anchors.fill: parent
+            iconLabel: "space_dashboard"
+            active: root.openPopup === "commandcenter"
+            horizontal: root.horizontal
+            onClicked: function(mouse) {
+              root.togglePopup("commandcenter", commandCenterIndicator)
+            }
           }
         }
 
@@ -355,8 +422,6 @@ PanelWindow {
           MenuIndicator {
             id: menuIndicator
             anchors.fill: parent
-            colors_: root.colors_
-            config: root.config
             active: root.openPopup === "quickmenu"
             horizontal: root.horizontal
             onClicked: function(mouse) {
@@ -377,18 +442,26 @@ PanelWindow {
             id: clockWidget
             anchors.fill: parent
 
-            Text {
-              anchors.centerIn: root.horizontal ? parent : undefined
-              anchors.horizontalCenter: root.horizontal ? undefined : parent.horizontalCenter
-              anchors.top: root.horizontal ? undefined : parent.top
-              anchors.topMargin: root.horizontal ? 0 : 20
-              text: root.now.toLocaleString(Qt.locale(), "HH:mm")
-              color: colors_ ? colors_.primary : "#D0BCFF"
-              font.family: config ? config.fontFamily : "Roboto"
-              font.pixelSize: config ? (config.fontPixelSize + 2) : 12
-              font.weight: Font.Bold
-              horizontalAlignment: Text.AlignHCenter
-              verticalAlignment: Text.AlignVCenter
+            Column {
+              anchors.centerIn: parent
+              spacing: 0
+
+              Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: root.now.toLocaleString(Qt.locale(), "HH:mm")
+                color: Colors.primary
+                font.family: Config.fontFamily
+                font.pixelSize: (Config.fontPixelSize + 2)
+                font.weight: Font.Bold
+              }
+
+              Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: root.now.toLocaleDateString(Qt.locale(), "MMM dd")
+                color: Colors.fgSurfaceVariant
+                font.family: Config.fontFamily
+                font.pixelSize: Config.labelSmallSize
+              }
             }
 
             MouseArea {
@@ -413,8 +486,6 @@ PanelWindow {
           NotificationIndicator {
             id: notifIndicator
             anchors.fill: parent
-            colors_: root.colors_
-            config: root.config
             notificationCount: root.notificationCount
             active: root.openPopup === "notification"
             horizontal: root.horizontal

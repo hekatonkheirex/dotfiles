@@ -3,12 +3,11 @@ import QtQuick.Window
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import "../config"
 
 PanelWindow {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
   property string osdType: ""
   property real value: 0
   property bool muted: false
@@ -26,7 +25,7 @@ PanelWindow {
   property real osdOpacity: 0
 
   Behavior on osdOpacity {
-    NumberAnimation { duration: 150 }
+    NumberAnimation { duration: Config.motionMedium}
   }
 
   NumberAnimation {
@@ -34,7 +33,7 @@ PanelWindow {
     target: root
     property: "osdOpacity"
     to: 0
-    duration: 300
+    duration: (Config.reducedMotion ? 0 : 300)
     onStopped: {
       if (root.osdOpacity === 0) root.visible = false
     }
@@ -44,6 +43,30 @@ PanelWindow {
     id: hideTimer
     interval: 1500
     onTriggered: fadeOut.start()
+  }
+
+  // ThinkPad keyboard backlight is cycled by the EC firmware itself (Fn+Space
+  // never reaches niri/quickshell as a key event). The sysfs brightness value
+  // is EC-polled on read rather than push-notified, so inotify never fires;
+  // we poll it ourselves inside one persistent process instead.
+  Process {
+    id: kbdlightWatcher
+    command: ["sh", "-c", "prev=$(cat /sys/class/leds/tpacpi::kbd_backlight/brightness); while true; do sleep 0.2; cur=$(cat /sys/class/leds/tpacpi::kbd_backlight/brightness); if [ $cur != $prev ]; then echo $cur; prev=$cur; fi; done"]
+    running: true
+    stdout: SplitParser {
+      onRead: function(data) {
+        root.show("kbdlight")
+      }
+    }
+    onRunningChanged: {
+      if (!running) kbdlightWatcherRetry.start()
+    }
+  }
+
+  Timer {
+    id: kbdlightWatcherRetry
+    interval: 1000
+    onTriggered: kbdlightWatcher.running = true
   }
 
   function show(type) {
@@ -67,6 +90,9 @@ PanelWindow {
     } else if (type === "bluetooth") {
       bluetoothQuery.running = false
       bluetoothQuery.running = true
+    } else if (type === "kbdlight") {
+      kbdlightQuery.running = false
+      kbdlightQuery.running = true
     }
   }
 
@@ -137,6 +163,21 @@ PanelWindow {
     }
   }
 
+  Process {
+    id: kbdlightQuery
+    command: ["brightnessctl", "--class=leds", "-d", "tpacpi::kbd_backlight", "-m"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var parts = text.trim().split(",")
+        if (parts.length < 5) return
+        var pctStr = parts[3].replace("%", "")
+        var val = parseFloat(pctStr)
+        if (!isNaN(val)) root.value = val / 100
+      }
+    }
+  }
+
   Rectangle {
     anchors.centerIn: parent
     width: root.width
@@ -144,8 +185,7 @@ PanelWindow {
     radius: 16
     opacity: root.osdOpacity
     color: {
-      if (!colors_) return Qt.rgba(0.13, 0.13, 0.14, 0.9)
-      var c = colors_.surfaceContainerHigh
+      var c = Colors.surfaceContainerHigh
       return Qt.rgba(c.r, c.g, c.b, 0.92)
     }
 
@@ -160,16 +200,18 @@ PanelWindow {
           if (root.osdType === "mic") return root.muted ? "mic_off" : "mic";
           if (root.osdType === "airplane") return root.muted ? "airplanemode_active" : "airplanemode_inactive";
           if (root.osdType === "bluetooth") return root.muted ? "bluetooth_disabled" : "bluetooth";
+          if (root.osdType === "kbdlight") return "keyboard";
           return "brightness_high";
         }
-        font.family: config ? config.iconFont : "Material Symbols Outlined"
+        font.family: Config.iconFont
         font.pixelSize: 28
         color: {
-          if (root.osdType === "volume") return root.muted ? (colors_ ? colors_.error : "#F2B8B5") : (colors_ ? colors_.primary : "#D0BCFF");
-          if (root.osdType === "mic") return root.muted ? (colors_ ? colors_.error : "#F2B8B5") : (colors_ ? colors_.primary : "#D0BCFF");
-          if (root.osdType === "airplane") return root.muted ? (colors_ ? colors_.primary : "#D0BCFF") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0");
-          if (root.osdType === "bluetooth") return root.muted ? (colors_ ? colors_.error : "#F2B8B5") : (colors_ ? colors_.primary : "#D0BCFF");
-          return "#FFD580";
+          if (root.osdType === "volume") return root.muted ? (Colors.error) : (Colors.primary);
+          if (root.osdType === "mic") return root.muted ? (Colors.error) : (Colors.primary);
+          if (root.osdType === "airplane") return root.muted ? (Colors.primary) : (Colors.fgSurfaceVariant);
+          if (root.osdType === "bluetooth") return root.muted ? (Colors.error) : (Colors.primary);
+          if (root.osdType === "kbdlight") return Colors.primary;
+          return Colors.brightness;
         }
       }
 
@@ -181,9 +223,11 @@ PanelWindow {
           if (root.osdType === "mic") return "Microphone";
           if (root.osdType === "airplane") return "Airplane Mode";
           if (root.osdType === "bluetooth") return "Bluetooth";
+          if (root.osdType === "kbdlight") return "Keyboard Backlight";
           return "";
         }
-        color: colors_ ? colors_.fgSurfaceVariant : "#CAC4D0"
+        color: Colors.fgSurfaceVariant
+        font.family: Config.fontFamily
         font.pixelSize: 12
       }
 
@@ -196,12 +240,13 @@ PanelWindow {
           return Math.round(root.value * 100) + "%";
         }
         color: {
-          if (root.osdType === "mic" && root.muted) return colors_ ? colors_.error : "#F2B8B5";
-          if (root.osdType === "volume" && root.muted) return colors_ ? colors_.error : "#F2B8B5";
-          if (root.osdType === "bluetooth" && root.muted) return colors_ ? colors_.error : "#F2B8B5";
-          if (root.osdType === "airplane" && root.muted) return colors_ ? colors_.primary : "#D0BCFF";
-          return colors_ ? colors_.fgSurface : "#FFFFFF";
+          if (root.osdType === "mic" && root.muted) return Colors.error;
+          if (root.osdType === "volume" && root.muted) return Colors.error;
+          if (root.osdType === "bluetooth" && root.muted) return Colors.error;
+          if (root.osdType === "airplane" && root.muted) return Colors.primary;
+          return Colors.fgSurface;
         }
+        font.family: Config.fontFamily
         font.pixelSize: 20
         font.weight: Font.Bold
       }
@@ -211,17 +256,17 @@ PanelWindow {
         width: root.width * 0.6
         height: 4
         radius: 2
-        color: colors_ ? colors_.surfaceContainerHighest : "#36343B"
+        color: Colors.surfaceContainerHighest
 
         Rectangle {
           width: parent.width * root.value
           height: parent.height
           radius: 2
           color: {
-            if (root.muted && (root.osdType === "volume" || root.osdType === "mic")) return colors_ ? colors_.error : "#F2B8B5";
-            if (root.osdType === "bluetooth" && root.muted) return colors_ ? colors_.error : "#F2B8B5";
-            if (root.osdType === "brightness") return "#FFD580";
-            return colors_ ? colors_.primary : "#D0BCFF";
+            if (root.muted && (root.osdType === "volume" || root.osdType === "mic")) return Colors.error;
+            if (root.osdType === "bluetooth" && root.muted) return Colors.error;
+            if (root.osdType === "brightness" || root.osdType === "kbdlight") return Colors.brightness;
+            return Colors.primary;
           }
         }
       }

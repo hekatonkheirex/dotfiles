@@ -1,23 +1,23 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Window
-import QtQuick.Dialogs
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
 import "commandcenter"
+import "../config"
 
 PanelWindow {
   id: root
 
-  property QtObject colors_: null
-  property QtObject config: null
 
   signal dismissed()
 
   property bool isHorizontal: false
   signal toggleHorizontal()
+  property bool fullBar: false
+  signal toggleFullBar()
 
   property int currentTab: 0 // Default to Overview tab
   property double openTime: 0
@@ -37,7 +37,7 @@ PanelWindow {
   property string weatherPrecipChance: "--%"
   property var weatherHourly: []
 
-  // Helper functions to map weather description to Material Symbols Rounded and beautiful colors
+  // Helper functions to map weather descriptions to semantic M3 roles.
   function getMaterialIcon(desc) {
     var d = (desc || "").toLowerCase();
     if (d.indexOf("clear") !== -1) return "sunny";
@@ -53,15 +53,15 @@ PanelWindow {
 
   function getMaterialColor(desc) {
     var d = (desc || "").toLowerCase();
-    if (d.indexOf("clear") !== -1) return "#FFB703"; // warm amber
-    if (d.indexOf("partly") !== -1 || d.indexOf("mainly") !== -1) return "#90CAF9"; // soft blue
-    if (d.indexOf("cloudy") !== -1 || d.indexOf("overcast") !== -1) return "#B0BEC5"; // grey-blue
-    if (d.indexOf("fog") !== -1) return "#CFD8DC"; // light grey
-    if (d.indexOf("drizzle") !== -1 || d.indexOf("shower") !== -1) return "#4FC3F7"; // light rain
-    if (d.indexOf("rain") !== -1) return "#29B6F6"; // rain blue
-    if (d.indexOf("snow") !== -1) return "#E0F7FA"; // snowy white-cyan
-    if (d.indexOf("thunder") !== -1) return "#AB47BC"; // thunderstorm purple
-    return "#FFB703";
+    if (d.indexOf("clear") !== -1) return Colors.weatherClear;
+    if (d.indexOf("partly") !== -1 || d.indexOf("mainly") !== -1) return Colors.weatherPartlyCloudy;
+    if (d.indexOf("cloudy") !== -1 || d.indexOf("overcast") !== -1) return Colors.weatherCloud;
+    if (d.indexOf("fog") !== -1) return Colors.weatherFog;
+    if (d.indexOf("drizzle") !== -1 || d.indexOf("shower") !== -1) return Colors.weatherRain;
+    if (d.indexOf("rain") !== -1) return Colors.weatherRain;
+    if (d.indexOf("snow") !== -1) return Colors.weatherSnow;
+    if (d.indexOf("thunder") !== -1) return Colors.weatherThunder;
+    return Colors.weatherClear;
   }
 
   // MPRIS Media properties
@@ -99,10 +99,6 @@ PanelWindow {
     var m = Math.floor(sec / 60)
     var s = sec % 60
     return m + ":" + (s < 10 ? "0" : "") + s
-  }
-
-  function applyPresetColor(hex) {
-    Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/apply-accent-color.sh", hex])
   }
 
   // Volume state
@@ -308,9 +304,11 @@ PanelWindow {
     }
   }
 
-  implicitWidth: 800
+  implicitWidth: Math.min(Config.commandCenterMaxWidth,
+                          Math.max(320, desktopW - 32))
   visible: false
-  implicitHeight: 606
+  implicitHeight: Math.min(Config.commandCenterMaxHeight,
+                           Math.max(360, desktopH - 32))
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-popup"
@@ -371,9 +369,7 @@ PanelWindow {
           root.weatherPrecipChance = info.precipitation_chance;
           root.weatherForecast = info.forecast;
           root.weatherHourly = info.hourly;
-        } catch (e) {
-          // Parse error
-        }
+        } catch (e) { print("CommandCenter weather parse error:", e) }
       }
     }
   }
@@ -405,9 +401,7 @@ PanelWindow {
           root.mprisArtUrl = info.artUrl;
           root.mprisLengthSec = info.length_sec;
           root.mprisLengthStr = info.length_str;
-        } catch (e) {
-          // Parse error
-        }
+        } catch (e) { print("CommandCenter mpris parse error:", e) }
       }
     }
 
@@ -481,7 +475,15 @@ PanelWindow {
     if (visible) {
       idleCheck.running = true
       entryAnimation.start()
-      mainItem.forceActiveFocus()
+      // Focus the current tab delegate (not mainItem) so arrow-key tab
+      // navigation works immediately on open, without requiring a mouse
+      // click first. mainItem isn't a FocusScope, so focus: true on the
+      // delegate alone never receives active focus otherwise.
+      if (tabRepeater.count > 0) {
+        tabRepeater.itemAt(root.currentTab).forceActiveFocus()
+      } else {
+        mainItem.forceActiveFocus()
+      }
       root.openTime = Date.now()
 
       // Refresh dynamic content
@@ -521,11 +523,11 @@ PanelWindow {
     Rectangle {
       id: bg
       anchors.fill: parent
-      radius: config ? config.borderRadius : 16
-      color: colors_ ? colors_.surfaceContainerHigh : "#2B2930"
+      radius: Config.borderRadius
+      color: Colors.surfaceContainerHigh
       clip: true
       border.width: 1
-      border.color: colors_ ? colors_.outlineVariant : Qt.rgba(255, 255, 255, 0.1)
+      border.color: Colors.outlineVariant
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -539,7 +541,7 @@ PanelWindow {
           properties: "xScale,yScale"
           from: 0.85
           to: 1.0
-          duration: 250
+          duration: Config.motionLong
           easing.type: Easing.OutBack
         }
         NumberAnimation {
@@ -547,7 +549,7 @@ PanelWindow {
           property: "x"
           from: -30
           to: 0
-          duration: 250
+          duration: Config.motionLong
           easing.type: Easing.OutBack
         }
         NumberAnimation {
@@ -555,7 +557,7 @@ PanelWindow {
           property: "opacity"
           from: 0.0
           to: 1.0
-          duration: 200
+          duration: Config.motionMedium
           easing.type: Easing.OutCubic
         }
       }
@@ -564,20 +566,22 @@ PanelWindow {
         id: contentColumn
         anchors {
           fill: parent
-          margins: 24
+          margins: (root.implicitHeight < 540 ? Config.spacingMedium : Config.spacingExtraLarge)
         }
-        spacing: 12
+        spacing: Config.spacingMedium
 
         // Tab Bar (DankMaterialShell centered vertical icon-label design)
         Item {
+          id: tabBar
           width: parent.width
-          height: 64
+          height: Math.min(64, Math.max(48, parent.height * 0.12))
 
           RowLayout {
             anchors.fill: parent
             spacing: 0
 
             Repeater {
+              id: tabRepeater
               model: [
                 { icon: "grid_view", label: "Overview" },
                 { icon: "music_note", label: "Media" },
@@ -592,6 +596,24 @@ PanelWindow {
 
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                activeFocusOnTab: true
+                focus: root.currentTab === index
+
+                Keys.onPressed: function(event) {
+                  if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) {
+                    root.currentTab = (index + 4) % 5
+                    event.accepted = true
+                  } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) {
+                    root.currentTab = (index + 1) % 5
+                    event.accepted = true
+                  } else if (event.key === Qt.Key_Home) {
+                    root.currentTab = 0
+                    event.accepted = true
+                  } else if (event.key === Qt.Key_End) {
+                    root.currentTab = 4
+                    event.accepted = true
+                  }
+                }
 
                 Column {
                   anchors.centerIn: parent
@@ -600,22 +622,22 @@ PanelWindow {
                   Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: modelData.icon
-                    font.family: config ? config.iconFont : "Material Symbols Outlined"
+                    font.family: Config.iconFont
                     font.pixelSize: 28
-                    color: root.currentTab === index ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
+                    color: root.currentTab === index ? (Colors.primary) : (Colors.fgSurfaceVariant)
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Config.motionMedium} }
                   }
 
                   Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: modelData.label
-                    font.family: config ? config.fontFamily : "Roboto"
+                    font.family: Config.fontFamily
                     font.pixelSize: 13
                     font.weight: Font.Medium
-                    color: root.currentTab === index ? (colors_ ? colors_.primary : "#BEE8C7") : (colors_ ? colors_.fgSurfaceVariant : "#CAC4D0")
+                    color: root.currentTab === index ? (Colors.primary) : (Colors.fgSurfaceVariant)
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { ColorAnimation { duration: Config.motionMedium} }
                   }
                 }
 
@@ -624,17 +646,27 @@ PanelWindow {
                   width: 48
                   height: 3
                   radius: 1.5
-                  color: colors_ ? colors_.primary : "#BEE8C7"
+                  color: Colors.primary
                   anchors.bottom: parent.bottom
                   anchors.horizontalCenter: parent.horizontalCenter
                   visible: root.currentTab === index
                 }
 
+                Rectangle {
+                  anchors.fill: parent
+                  anchors.margins: -4
+                  radius: Config.shapeMedium
+                  color: tabMouse.pressed ? (Colors.pressOverlay)
+                    : (tabMouse.containsMouse ? (Colors.hoverOverlay) : "transparent")
+                }
+
                 MouseArea {
+                  id: tabMouse
                   anchors.fill: parent
                   hoverEnabled: true
                   cursorShape: Qt.PointingHandCursor
                   onClicked: {
+                    parent.forceActiveFocus()
                     root.currentTab = index
                   }
                 }
@@ -644,60 +676,42 @@ PanelWindow {
         }
 
         Rectangle {
+          id: tabDivider
           width: parent.width
           height: 1
-          color: colors_ ? Qt.rgba(colors_.outline.r, colors_.outline.g, colors_.outline.b, 0.12) : Qt.rgba(255, 255, 255, 0.08)
+          color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.12)
         }
 
         // Tab Content Area Container
         Item {
           id: tabContainer
           width: parent.width
-          height: 480
+          height: Math.max(0, contentColumn.height - tabBar.height - tabDivider.height - contentColumn.spacing * 2)
+          clip: true
 
           // Tab 0: Overview (Session Card, Status Info, System Stats Greeting)
           OverviewTab {
             root: root
-            colors_: root.colors_
-            config: root.config
           }
 
           MediaTab {
             root: root
-            colors_: root.colors_
-            config: root.config
           }
 
           WallpapersTab {
             root: root
-            colors_: root.colors_
-            config: root.config
           }
 
           WeatherTab {
             root: root
-            colors_: root.colors_
-            config: root.config
           }
 
           SettingsTab {
             root: root
-            colors_: root.colors_
-            config: root.config
           }
       }
     }
   }
 
-  ColorDialog {
-    id: colorDialog
-    title: "Pick Accent Color"
-    selectedColor: colors_ ? colors_.primary : "#D0BCFF"
-
-    onAccepted: {
-      var hex = selectedColor.toString().slice(1, 7)
-      root.applyPresetColor(hex)
-    }
-  }
 }
 }
