@@ -6,82 +6,103 @@ A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/)
 
 This replaces a traditional status bar (waybar) and panel infrastructure with a unified QML-based shell. It provides:
 
-- **Vertical & Horizontal panel layouts** with workspace/tag indicators, system status widgets, and popup panels
-- **Layout Toggling**: Switch between vertical and horizontal layouts dynamically via a toggle button in the Quick Settings menu, with selection persistent across reboots (saved to `~/.config/quickshell/layout`)
-- **Lock screen** with PAM + fingerprint authentication
-- **Notification handling** with history and toasts, styled in Material 3 Expressive
-- **App launcher** with fuzzy search and local offline **voice search** capabilities
+- **A single collapsible bar** (`bar/Bar.qml`) that toggles between vertical and horizontal orientation, and between a collapsed pill and an expanded strip. The collapsed state shows only the workspace indicator; hovering (or opening a popup) expands the rest of the widgets in with a spring animation. A "keep expanded" setting (`fullBar`) pins it open permanently.
+- **Layout Toggling**: Switch orientation via the Quick Settings menu or Command Center, persisted across reboots (saved to `~/.config/quickshell/layout`).
+- **Lock screen** with PAM + fingerprint authentication.
+- **Notification handling** with history and toasts, styled in Material 3 Expressive.
+- **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
+- **App launcher** with fuzzy search and local offline **voice search**.
+- **On-Screen Display (OSD)** overlay for volume, brightness, mic mute, airplane mode, bluetooth, and keyboard backlight (polled from sysfs since the EC never emits a key event for it).
 - **Tabbed Command Center / Control Panel**: A multi-functional panel launched via `XF86Tools` featuring:
-  - **Overview tab**: System greeting, profile avatar, active session info, system uptime, clock, date, sliders, and a mini media player with a real-time circular waveform visualizer around the album art
-  - **Media Player tab**: Audio playback widget with a real-time **circular waveform visualizer** around the album art (driven by [cava](https://github.com/karlstav/cava) via PipeWire) — a smooth polar waveform that deforms organically with the music, dynamic volume adjustment wheel, source mute toggle, device mixer shortcut (`pavucontrol`), and active player switcher (`mpris_monitor.py` IPC)
-  - **Wallpapers tab**: Visual selector grid displaying local wallpapers with auto-scrolling to the active image and a dynamic title naming the selected filename
-  - **Weather tab**: Detailed 5-day weather forecasts and a conditions grid (Feels Like, Humidity, Wind Speed, Pressure, UV Index, Precipitation chance)
-  - **Settings tab**: Quick toggles for alignment layouts, dark/light theme modes, reduced motion, caffeinate/sleep inhibit behavior, and live CPU/Memory/Disk storage diagnostics gauges
+  - **Overview tab**: System greeting, profile avatar, active session info, uptime, clock, date, sliders, and a mini media player with a real-time circular waveform visualizer around the album art
+  - **Media tab**: Audio playback widget with a real-time **circular waveform visualizer** around the album art (driven by [cava](https://github.com/karlstav/cava) via PipeWire), volume wheel, source mute toggle, `pavucontrol` shortcut, and active player switcher (`mpris_monitor.py` IPC over a FIFO + DBus)
+  - **Wallpapers tab**: Visual selector grid of local wallpapers (`~/Pictures/Walls`) with cached, auto-generated thumbnails, auto-scroll to the active image, and a title reflecting the selected filename
+  - **Weather tab**: Detailed 5-day forecast and a conditions grid (Feels Like, Humidity, Wind Speed, Pressure, UV Index, Precipitation chance)
+  - **Settings tab**: Quick toggles for alignment layouts, reduced motion, keep-expanded bar, and live CPU/Memory/Disk diagnostics gauges
+- **Persisted user settings** (`settings.json`, `config/Settings.qml`) separate from build-time layout/typography tokens (`config/Config.qml`).
 
 ## Project Structure
 
 ```
 ~/.config/quickshell/
-├── shell.qml                  # Entry point — ShellRoot, IpcHandler, layout toggle, triggers
+├── shell.qml                  # Entry point — ShellRoot, IpcHandler, popups, battery alert, file triggers
+├── settings.json              # Persisted user settings (JsonAdapter-backed, gitignored/local)
+├── layout                     # Persisted orientation preference ("horizontal" | "vertical")
 ├── config/
-│   ├── Config.qml             # Layout, typography, shape, and motion tokens
-│   ├── Colors.qml             # Matugen-backed Material You roles with fallbacks
-│   └── cava.ini               # cava config for real-time audio visualizer (24 bars, 30fps, raw ASCII output)
+│   ├── Config.qml             # Build-time layout, typography, shape, and motion tokens
+│   ├── Settings.qml           # Persisted preferences singleton (FileView + JsonAdapter over settings.json)
+│   ├── Colors.qml             # Matugen-backed Material You roles with fallbacks + system dark-mode tracking
+│   └── cava.ini                # cava config for the real-time audio visualizer
 ├── bar/
-│   ├── VerticalBar.qml        # Main vertical panel — the side bar itself
-│   ├── HorizontalBar.qml      # Main horizontal panel — the top bar itself
-│   ├── CommandCenter.qml      # Centered tabbed command center (Session, Media, Wallpapers, Weather, Settings)
-│   ├── LockScreen.qml         # PAM auth, fingerprint, clock, power buttons (secure binding fixes)
-│   ├── WorkspaceIndicator.qml # Workspace/tag pills + focused-window state
-│   ├── HorizontalWorkspaceIndicator.qml # Workspace/tag pills for horizontal mode
-│   ├── Launcher.qml           # App launcher button
-│   ├── LauncherPopup.qml      # App search (text/voice input) popup
-│   ├── AudioIndicator.qml     # Volume icon + scroll control (orientation-aware)
-│   ├── AudioPopup.qml         # Volume + mic sliders (M3 bordered, correct active/mute states)
+│   ├── Bar.qml                 # The panel itself — collapsible/expandable, orientation-aware, all indicators
+│   ├── CommandCenter.qml       # Tabbed command center shell (state, processes, tab bar) — content in commandcenter/
+│   ├── commandcenter/
+│   │   ├── OverviewTab.qml
+│   │   ├── MediaTab.qml
+│   │   ├── WallpapersTab.qml
+│   │   ├── WeatherTab.qml
+│   │   └── SettingsTab.qml
+│   ├── LockScreen.qml          # PAM auth, fingerprint, clock, power buttons (secure binding fixes)
+│   ├── WorkspaceIndicator.qml  # Workspace/tag pills + focused-window state (orientation-aware)
+│   ├── Launcher.qml            # App launcher button
+│   ├── LauncherPopup.qml       # App search (text/voice input) popup
+│   ├── AudioIndicator.qml      # Volume icon + scroll control (orientation-aware)
+│   ├── AudioPopup.qml          # Volume + mic sliders (M3 bordered, correct active/mute states)
 │   ├── BrightnessIndicator.qml # Brightness icon (orientation-aware)
-│   ├── BrightnessPopup.qml    # Brightness slider (M3 bordered)
-│   ├── BatteryIndicator.qml   # Battery via UPower (orientation-aware)
-│   ├── BatteryPopup.qml       # Detailed battery info (M3 bordered)
-│   ├── WifiIndicator.qml      # Wifi strength indicator (orientation-aware)
-│   ├── WifiPopup.qml          # Wifi scan/connect (checkmark contrast fix)
-│   ├── BtIndicator.qml        # Bluetooth status + connected device battery (orientation-aware)
-│   ├── BtPopup.qml            # Bluetooth devices + battery info & disconnect hover action
-│   ├── SystemTrayArea.qml     # StatusNotifier tray icons for vertical bar
-│   ├── HorizontalSystemTrayArea.qml # StatusNotifier tray icons for horizontal bar
-│   ├── MenuIndicator.qml      # Quick settings and Command Center bar triggers
-│   ├── QuickMenu.qml          # Layout toggle, idle, dark mode, power options (wallpaper changer relocated here)
-│   ├── CalendarPopup.qml      # Calendar month grid (M3 bordered)
+│   ├── BrightnessPopup.qml     # Brightness slider (M3 bordered)
+│   ├── BatteryIndicator.qml    # Battery via UPower (orientation-aware)
+│   ├── BatteryPopup.qml        # Detailed battery info (M3 bordered)
+│   ├── WifiIndicator.qml       # Wifi strength indicator (orientation-aware)
+│   ├── WifiPopup.qml           # Wifi scan/connect (checkmark contrast fix)
+│   ├── BtIndicator.qml         # Bluetooth status + connected device battery (orientation-aware)
+│   ├── BtPopup.qml             # Bluetooth devices + battery info & disconnect hover action
+│   ├── SystemTrayArea.qml      # StatusNotifier tray icons (orientation-aware)
+│   ├── MenuIndicator.qml       # Quick settings and Command Center bar triggers
+│   ├── QuickMenu.qml           # Layout toggle, idle inhibit, dark mode, power options
+│   ├── OsdOverlay.qml          # Volume/brightness/mic/airplane/bluetooth/kbd-backlight OSD popup
+│   ├── CalendarPopup.qml       # Calendar month grid (M3 bordered)
 │   ├── NotificationIndicator.qml # Notifications counter (orientation-aware)
-│   ├── NotificationPopup.qml  # M3 notification history popup list
-│   ├── NotificationToast.qml  # M3 notification toast banner
-│   ├── WallpaperChanger.qml   # Periodic wallpaper rotation
-│   └── WaveProgressBar.qml    # Reusable wavy progress bar canvas (progress, lineWidth, dotRadius, trackLineWidth)
+│   ├── NotificationPopup.qml   # M3 notification history popup list
+│   ├── NotificationToast.qml   # M3 notification toast banner
+│   ├── AnimatedBackground.qml  # Reusable animated M3 blob background (popups/Command Center)
+│   ├── PopupBase.qml           # Shared popup chrome (background, border, entry animation)
+│   ├── PopupShield.qml         # Full-screen click-outside-to-dismiss surface
+│   ├── PopupDivider.qml        # Reusable popup section divider
+│   ├── FocusDismiss.qml        # Popup dismissal on app focus loss
+│   ├── FileTrigger.qml         # Generic /tmp trigger-file watcher (single inotifywait for all triggers)
+│   ├── SliderControl.qml       # Reusable M3 slider (volume/brightness/etc.)
+│   ├── SwitchControl.qml       # Reusable M3 switch/toggle
+│   └── WaveProgressBar.qml     # Reusable wavy progress bar canvas (progress, lineWidth, dotRadius, trackLineWidth)
 ├── resources/
-│   ├── lock_bg.png            # Lock screen background wallpaper
-│   └── vosk-model/            # Offline speech recognition acoustic model folder
+│   └── lock_bg.png             # Lock screen background wallpaper
 ├── scripts/
-│   ├── lock                   # Lock trigger (touches /tmp/qslock-trigger)
-│   ├── commandcenter          # Command Center trigger script (touches /tmp/qscommandcenter-trigger)
-│   ├── apply-wallpaper.sh     # Wallpaper selection + Matugen/theme refresh
-│   ├── idle.sh                # swayidle: dim, lock, display off, suspend
-│   ├── idle.sh.bak            # Previous idle script backup
-│   ├── lid.sh                 # Lid close: lock + suspend
-│   ├── mpris_monitor.py       # Active MPRIS state broadcaster and /tmp/qsmpris-fifo listener
-│   ├── weather.py             # Open-Meteo weather fetcher script
-│   └── voice-search.py        # Local speech transcription via python-vosk
+│   ├── launcher                # Launcher trigger (touches /tmp/qslauncher-trigger)
+│   ├── quickmenu                # Quick menu trigger (touches /tmp/qsquickmenu-trigger)
+│   ├── commandcenter            # Command Center trigger (touches /tmp/qscommandcenter-trigger)
+│   ├── lock                     # Lock trigger (touches /tmp/qslock-trigger)
+│   ├── apply-wallpaper.sh       # Wallpaper selection + Matugen/theme refresh
+│   ├── apply-accent-color.sh    # Compatibility stub — palette is fixed by Matugen, not user-selectable
+│   ├── generate-thumbnails.sh   # Generates/caches wallpaper thumbnails for the Wallpapers tab
+│   ├── idle.sh                  # swayidle: dim, lock, display off, suspend
+│   ├── lid.sh                   # Lid close: lock
+│   ├── safe-logout.sh           # Clean Niri quit, falls back to a session kill
+│   ├── mpris_monitor.py         # Active MPRIS state broadcaster (DBus + /tmp/qsmpris-fifo listener)
+│   ├── mpris_control.py         # MPRIS play/pause/next/prev control for the active player
+│   ├── weather.py               # Open-Meteo weather fetcher script
+│   └── voice-search.py          # Local speech transcription via python-vosk (downloads its model to ~/.local/share/vosk-model on first use)
 └── bin/
-    └── desktop-parser.py      # .desktop → JSON for launcher
+    └── desktop-parser.py        # .desktop → JSON for launcher
 ```
 
 ## WM Integration
 
-Quickshell runs as a Wayland layer surface (side panel) on top of the compositor. It integrates with **Niri** using the Niri socket.
+Quickshell runs as a Wayland layer surface (panel) on top of the compositor. It integrates with **Niri** using the Niri socket.
 
 ### Niri Startup
 
-Quickshell can be managed via a systemd user service to ensure rate-limiting and session-binding (recommended to prevent infinite coredump storms in case of Wayland crashes/logouts).
+Quickshell is managed via a systemd user service to ensure rate-limiting and session-binding (prevents infinite coredump storms in case of Wayland crashes/logouts).
 
-Create a service file at `~/.config/systemd/user/quickshell.service`:
+Service file at `~/.config/systemd/user/quickshell.service`:
 
 ```ini
 [Unit]
@@ -101,107 +122,113 @@ StartLimitBurst=5
 WantedBy=graphical-session.target
 ```
 
-Then in `~/.config/niri/startup.kdl`:
+In `~/.config/niri/startup.kdl`:
 
 ```
 spawn-sh-at-startup "~/.config/quickshell/scripts/idle.sh"
-spawn-at-startup "systemctl" "--user" "start" "quickshell.service"
+spawn-sh-at-startup "dbus-update-activation-environment --systemd --all && systemctl --user start quickshell.service"
 ```
 
 Quickshell auto-discovers `~/.config/quickshell/shell.qml` as the default config when run without arguments.
 
-
-
 ### Lid Switch
 
-Both compositors handle lid close via `~/.config/quickshell/scripts/lid.sh`, which locks then suspends:
+Lid close is handled in `~/.config/niri/config.kdl`:
 
-| WM | Lid Close Handler |
-|---|---|
-| **Niri** | `config.kdl`: `switch-events { lid-close { spawn "/home/mura/.config/quickshell/scripts/lock"; } }` |
+```kdl
+switch-events {
+  lid-close { spawn "/home/mura/.config/quickshell/scripts/lock"; }
+}
+```
+
+`scripts/lid.sh` (an equivalent standalone entry point for non-Niri lid handlers) locks via the same `scripts/lock` trigger.
 
 ## Keybindings
 
-Seven keyboard shortcuts are handled by Quickshell:
+Keybindings live in Niri's `~/.config/niri/keybinds.kdl` and spawn Quickshell's trigger scripts or `wpctl`/`brightnessctl`/`nmcli`/`bluetoothctl` directly:
 
 | Key | Action | Mechanism |
 |---|---|---|
-| `SUPER+d` | Toggle app launcher popup | `touch /tmp/qslauncher-trigger` |
-| `SUPER+Escape` | Toggle quick menu (power/logout) | `touch /tmp/qsquickmenu-trigger` |
-| `XF86Tools` | Toggle Command Center popup | `~/.config/quickshell/scripts/commandcenter` |
-| `XF86WLAN` / `F8` / `Mod+F8` | Toggle Airplane Mode | `nmcli`/`bluetoothctl` toggle + `touch /tmp/qsosd-airplane` |
-| `XF86Bluetooth` / `F10` / `Mod+F10` | Toggle Bluetooth power | `bluetoothctl` toggle + `touch /tmp/qsosd-bluetooth` |
-| `CTRL+ALT+l` | Lock screen | `~/.config/quickshell/scripts/lock` |
-| `SUPER+Alt+l` (Niri) | Lock screen | `~/.config/quickshell/scripts/lock` |
+| `Mod+D` | Toggle app launcher popup | `scripts/launcher` → `touch /tmp/qslauncher-trigger` |
+| `Mod+Escape` | Toggle quick settings menu | `scripts/quickmenu` → `touch /tmp/qsquickmenu-trigger` |
+| `XF86Tools` | Toggle Command Center popup | `scripts/commandcenter` → `touch /tmp/qscommandcenter-trigger` |
+| `Mod+Alt+L` | Lock screen | `scripts/lock` → `touch /tmp/qslock-trigger` |
+| `XF86AudioRaiseVolume` / `LowerVolume` / `Mute` | Volume up/down/mute | `wpctl` + `touch /tmp/qsosd-vol` |
+| `XF86AudioMicMute` | Mic mute toggle | `wpctl` + `touch /tmp/qsosd-mic` |
+| `XF86AudioPlay/Stop/Prev/Next` | Media transport controls | `playerctl` |
+| `XF86MonBrightnessUp/Down` | Brightness up/down | `brightnessctl` + `touch /tmp/qsosd-bright` |
+| `XF86WLAN` / `Mod+F8` / `F8` | Toggle airplane mode (wifi + bluetooth) | `nmcli`/`bluetoothctl` + `touch /tmp/qsosd-airplane` |
+| `XF86Bluetooth` / `Mod+F10` / `F10` | Toggle bluetooth power | `bluetoothctl` + `touch /tmp/qsosd-bluetooth` |
 
-On Niri, these keybindings are managed by Niri's config instead.
+Keyboard backlight brightness is controlled by the ThinkPad EC firmware directly (`Fn+Space`), not by a Niri bind — `OsdOverlay.qml` polls the sysfs LED brightness file to show its OSD.
 
 ### External Triggers
 
-Any script or keybinding can trigger Quickshell actions by creating these files:
+Any script or keybinding can trigger Quickshell actions by creating these files under `/tmp`:
 
 - `/tmp/qslauncher-trigger` — toggles the launcher popup
 - `/tmp/qsquickmenu-trigger` — toggles the quick settings menu
-- `/tmp/qscommandcenter-trigger` — toggles the command center popup (created by `scripts/commandcenter`)
-- `/tmp/qslock-trigger` — activates the lock screen (created by `scripts/lock`)
+- `/tmp/qscommandcenter-trigger` — toggles the command center popup
+- `/tmp/qslock-trigger` — activates the lock screen
+- `/tmp/qsosd-vol` / `qsosd-bright` / `qsosd-mic` / `qsosd-airplane` / `qsosd-bluetooth` — show the corresponding OSD
 
-Quickshell watches for these files via `Process` + `inotifywait` (zero CPU while idle) and responds instantly. The file triggers delegate to `IpcHandler` methods, which can also be invoked directly via `quickshell ipc call shell <name>`.
-
-### OSD Triggers (Quick Settings toggles)
-
-- `/tmp/qsosd-vol` — show volume OSD
-- `/tmp/qsosd-bright` — show brightness OSD
-- `/tmp/qsosd-mic` — show mic mute OSD
-- `/tmp/qsosd-airplane` — show airplane mode status OSD
-- `/tmp/qsosd-bluetooth` — show bluetooth status OSD
+`bar/FileTrigger.qml` watches `/tmp` with a single persistent `inotifywait` process (zero CPU while idle, one watcher for every registered trigger) and dispatches to the matching `IpcHandler` method or `OsdOverlay.show()` call. Any trigger file already present on startup fires immediately. Triggers can also be invoked directly via `quickshell ipc call shell <name>`.
 
 ## IPC
 
-`shell.qml` defines an `IpcHandler` with `target: "shell"` exposing three functions:
+`shell.qml` defines an `IpcHandler` with `target: "shell"` exposing:
 
 - `ipc.launcher()` — toggle launcher popup
 - `ipc.lock()` — activate lock screen
 - `ipc.quickmenu()` — toggle quick menu
+- `ipc.commandcenter()` — toggle Command Center popup
+- `ipc.layout()` — toggle bar orientation
 
-These are callable externally via `quickshell ipc call shell launcher` (and similar) and are also invoked by the file trigger watchers for backward compatibility.
+Callable externally via `quickshell ipc call shell launcher` (and similarly for the others).
 
 ## Lock Screen
 
-The lock screen (`bar/LockScreen.qml`) was extracted from `shell.qml` as a standalone component. It uses `WlSessionLock` with:
+`bar/LockScreen.qml` is a standalone component using `WlSessionLock` with:
 
 - **PAM password auth** via `Quickshell.Services.Pam`
-- **Fingerprint reader** via `fprintd-verify` (auto-retries on failure)
+- **Fingerprint reader** via `fprintd-verify` (auto-retries on failure), started/stopped imperatively in `onLockedChanged` to avoid QML declarative binding breaks
 - Profile image, live clock, suspend/reboot/poweroff buttons
-- Background image from `resources/lock_bg.png`
+- Background image from `resources/lock_bg.png`, with text colors fixed to white regardless of the desktop's light/dark mode
 - Controlled via `IpcHandler.lock()`, `scripts/lock`, or directly via `touch /tmp/qslock-trigger`
 
 ## Popup System
 
-Popup visibility is driven entirely by the bar's `openPopup` string property. Each indicator widget signals a popup name, and the corresponding popup shows/hides accordingly.
+Popup visibility is driven entirely by the bar's `openPopup` string property, held on `Bar.qml` and read by `shell.qml`. Each indicator widget signals a popup name, and the corresponding popup shows/hides accordingly.
 
-Popup positioning and animations are dynamic depending on the active bar orientation:
-- **Vertical mode**: Anchored to the triggering widget's Y coordinate, sliding out from the left.
-- **Horizontal mode**: Anchored directly beneath the bar (`barWidth + 4`), horizontally centered on the clicked widget's X coordinate, and clamped to fit the screen.
+Popup positioning is dynamic depending on the active bar orientation (computed in `shell.qml`'s `popupMarginLeft`/`popupMarginTop`):
+- **Horizontal mode**: Anchored beneath the bar, horizontally centered on the clicked widget's X coordinate, clamped to fit the screen.
+- **Vertical mode**: Anchored past the bar's right edge, vertically aligned to the triggering widget's Y coordinate.
 
-Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` handles dismissal on app focus loss with platform-specific gating for the `activeFocusChanged` check.
+Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` handles dismissal on app focus loss with platform-specific gating for the `activeFocusChanged` check. `PopupBase.qml` supplies the shared M3 background/border/entry-animation chrome that most popups build on.
 
 | Popup | Trigger | Content |
 |---|---|---|
-| Launcher | `Launcher` button / `SUPER+d` | App search bar (I-beam text pointer + offline voice search) + `.desktop` list |
+| Launcher | `Launcher` button / `Mod+D` | App search bar (I-beam text pointer + offline voice search) + `.desktop` list |
 | Audio | `AudioIndicator` click | Volume + mic sliders (M3 switches; active check = sound enabled, unchecked = muted) |
 | Brightness | `BrightnessIndicator` click | Brightness slider (M3 bordered) |
 | Battery | `BatteryIndicator` click | Percentage, energy capacity, status, rate, cycles, model (M3 bordered) |
 | Bluetooth | `BtIndicator` click | Bluetooth devices, battery percentages, disconnect button, power switch |
+| Wifi | `WifiIndicator` click | Network scan/connect list |
 | Calendar | Clock click | Month grid with navigation (M3 bordered) |
 | Notifications | `NotificationIndicator` click | M3-compliant card layout list tracked via `modelData` |
-| Quick Menu | `MenuIndicator` click / `SUPER+Escape` | Layout toggle, idle inhibit, dark mode, power (M3 bordered) |
-| Command Center | `Command Center bar icon` / `XF86Tools` | 5 tabs: Session Overview, Media Player, Wallpapers selection, Weather forecasts, and Settings/System Diagnostics (responsive M3 surface) |
+| Quick Menu | `MenuIndicator` click / `Mod+Escape` | Layout toggle, idle inhibit, dark mode, power (M3 bordered) |
+| Command Center | Command Center bar icon / `XF86Tools` | 5 tabs: Overview, Media, Wallpapers, Weather, Settings (responsive M3 surface) |
+| OSD | volume/brightness/mic/airplane/bluetooth/kbd-backlight keys | Auto-dismissing bottom-anchored status card (not part of the `openPopup` system — a separate always-on-top window) |
 
 ## Configuration
 
 ### `config/Config.qml`
 
-Layout, typography, shape, and motion tokens: `barWidth`, `widgetSize`, M3 type sizes, spacing, shape scale, `animationDuration`, `popupWidth`, and the `reducedMotion` switch.
+Build-time layout, typography, shape, and motion tokens: `barWidth`, `widgetSize`, M3 type sizes, spacing, shape scale, motion durations (`motionShort`/`Medium`/`Long`/`ExtraLong`, all zeroed when `reducedMotion` is on), `popupWidth`, Command Center min/max dimensions, and step sizes for volume/brightness.
+
+### `config/Settings.qml`
+
+Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs things like `fullBar` (keep bar expanded), `reduceMotion`, clock format, Command Center tab visibility toggles, lock screen options, media widget options, and weather city. Values round-trip live via `watchChanges: true`; call `Settings.save()` after mutating an alias to persist.
 
 ### `config/Colors.qml`
 
@@ -209,7 +236,7 @@ Material You / Material 3 semantic roles are resolved in `Colors.qml` from Matug
 
 Format: `l_<token>` (light), `d_<token>` (dark), and flat resolved `<token>` properties (no prefix) for current mode. Text/icon colors are prefixed with `fg` (e.g. `fgSurface`, `fgPrimary`) to prevent conflicts with QML's internal signal handler compiler rules.
 
-System dark mode is read once and monitored through `gsettings`. Mode toggles in QuickMenu or CommandCenter call the existing desktop mode synchronizer, while the shell selects the matching Matugen light/dark roles locally.
+System dark mode is read once and monitored through `gsettings` (owned by `Colors.qml` itself, since it's the single instance everyone reads from). Mode toggles in QuickMenu or CommandCenter call the existing desktop mode synchronizer, while the shell selects the matching Matugen light/dark roles locally.
 
 ### `bar/PopupShield.qml`
 
@@ -221,34 +248,40 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 
 ## Widget Details
 
-- **WorkspaceIndicator / HorizontalWorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri (`niri msg event-stream`) using `SplitParser`. Runs only when visible. When the bar is in its collapsed pill state, the container is anchored directly in the workspace zone (50px offset) instead of centered on the screen, keeping the workspace indicator completely stationary during the entire expand/collapse transition in both orientations.
+- **Bar.qml**: Single component for both orientations and both bar states (collapsed pill / expanded strip), driven by `horizontal`, `expanded`/`expandProgress`, and `fullBar` properties. Hovering the bar (or opening a popup while hovering) expands it; a 5-second `collapseTimer` re-collapses it once the mouse leaves and no popup is open, unless `fullBar` is set. `mask: Region { item: barBg }` keeps the click/hover region matched to the visible pill/strip shape during the animation.
+- **WorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri (`niri msg event-stream`) using `SplitParser`. Runs only when visible. Anchored directly in the workspace zone so it stays stationary through the bar's expand/collapse transition in both orientations.
 - **AudioIndicator / BrightnessIndicator / BtIndicator / WifiIndicator**: Event-driven watchers and polling loops are bound to `root.visible`, so they are fully suspended when their parent bar is hidden, saving CPU wakeups and RAM.
 - **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
-- **SystemTrayArea / HorizontalSystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu.
-- **QuickMenu (Layout Toggle)**: The WiFi button was replaced with a layout toggle. When clicked, it toggles `isHorizontal` and persists the state. The wallpaper changer was relocated inside the Quick Settings layout.
+- **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu, orientation-aware layout.
+- **QuickMenu**: Layout (orientation) toggle, idle inhibit, dark mode toggle, and power options.
 - **BtIndicator & BtPopup**: Displays the battery percentage of the connected device directly underneath the bluetooth icon. The popup lists connected devices with their MAC, names, and battery level, offering a `link_off` disconnect button on hover.
-- **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a 3-second polling timer in `shell.qml` re-queries gsettings after reloads.
-- **Theme ownership**: Matugen is the dynamic palette source. `scripts/apply-wallpaper.sh` applies the wallpaper, refreshes the Matugen cache, regenerates the existing Material 3 desktop themes, and re-runs the light/dark synchronizer. `config/Colors.qml` consumes the cached semantic roles with authored fallbacks.
+- **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a polling re-query runs in `shell.qml` after reloads.
+- **Theme ownership**: Matugen is the dynamic palette source. `scripts/apply-wallpaper.sh` applies the wallpaper via `awww`, refreshes the Matugen cache, regenerates the existing Material 3 desktop themes, and re-runs the light/dark synchronizer. `config/Colors.qml` consumes the cached semantic roles with authored fallbacks. `scripts/apply-accent-color.sh` is a compatibility stub — the palette is fully wallpaper-derived and not user-selectable at runtime.
+- **Wallpapers tab**: Lists images from `~/Pictures/Walls`; `scripts/generate-thumbnails.sh` produces and caches 200×130 center-cropped thumbnails under `~/.cache/quickshell/wallpaper-thumbs`, regenerating only when the source is newer than the cached thumbnail.
+- **Media / MPRIS**: `scripts/mpris_monitor.py` broadcasts the active player's state as newline-delimited JSON over stdout (consumed via `SplitParser`), and also listens on a `/tmp/qsmpris-fifo` named pipe for out-of-band pokes. `scripts/mpris_control.py` sends play/pause/next/prev to whichever player is currently active (preferring a "Playing" one).
+- **OSD**: A separate always-on-top `PanelWindow` (`bar/OsdOverlay.qml`), not part of the popup/`openPopup` system. Auto-hides after 1.5s. Polls sysfs directly for the ThinkPad keyboard backlight since the EC never emits a Wayland key event for `Fn+Space`.
 - **Lock Screen Security**: Employs imperative start/stop handlers in `onLockedChanged` for `fprintdProcess` to prevent QML declarative property binding breaks.
 
 ## Dependencies
 
 - **Quickshell** — the shell framework
 - **Qt6** (QtQuick, QtWayland)
-- **Python 3** — for `.desktop` parsing & `vosk` voice search
-- **python-vosk** — offline speech recognition API
+- **Python 3** — for `.desktop` parsing, weather, MPRIS, and voice search
+- **python-vosk** — offline speech recognition (model auto-downloaded to `~/.local/share/vosk-model` on first use)
+- **python-dbus** / **PyGObject** — MPRIS monitoring and control
 - **pw-record** (from `pipewire-utils`) — recording mic input
 - **wpctl** (WirePlumber) — audio control
-- **brightnessctl** — backlight control
+- **playerctl** — media transport keys
+- **brightnessctl** — backlight and keyboard-LED control
 - **UPower** — battery monitoring
 - **fprintd** — fingerprint authentication
-- **brightnessctl**, **nmcli**, **bluetoothctl** — quick settings
-- **swayosd-client** — OSD feedback for media keys
-- **ImageMagick** — wallpaper brightness detection for auto mode
+- **nmcli**, **bluetoothctl** — quick settings, airplane mode, OSD
+- **ImageMagick** (`magick`/`convert`) — wallpaper thumbnail generation
 - **Matugen** — wallpaper-derived Material You palette generation
-- **kvantummanager** — Kvantum theme switching
 - **awww** — wallpaper daemon
 - **cava** — real-time audio visualizer (raw ASCII output consumed by the Command Center waveform)
+- **swayidle** — idle timeout handling (dim/lock/DPMS/suspend)
+- **inotify-tools** (`inotifywait`) — trigger-file and brightness-file watching
 
 ---
 

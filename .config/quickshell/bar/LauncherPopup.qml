@@ -435,8 +435,8 @@ PanelWindow {
 
         delegate: Rectangle {
           width: appList.width
-          height: 48
-          radius: 24 // Pill shape selection
+          height: 44
+          radius: 22 // Pill shape selection
           color: root.selectedIndex === index ? (Colors.surfaceContainerHighest) : "transparent"
 
           RowLayout {
