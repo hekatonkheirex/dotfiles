@@ -5,6 +5,7 @@ import Quickshell.Services.Pam
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
+import "primitives"
 import "../config"
 
 Item {
@@ -337,58 +338,40 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 24
 
-            Rectangle {
-              width: 40; height: 40; radius: 20
-              color: "transparent"
-              border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.3)
-              Text {
-                anchors.centerIn: parent
-                text: "power_settings_new"
-                color: mutedText
-                font.family: Config.iconFont
-                font.pixelSize: 20
-                MouseArea {
-                  anchors.fill: parent
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: Quickshell.execDetached(["systemctl", "suspend"])
-                }
-              }
+            IconButton {
+              size: 40
+              iconSize: 20
+              iconLabel: "power_settings_new"
+              iconColor: mutedText
+              outlined: true
+              borderColor: Qt.rgba(1, 1, 1, 0.3)
+              accessibleName: "Suspend computer"
+              tooltipText: "Suspend computer"
+              onClicked: Quickshell.execDetached(["systemctl", "suspend"])
             }
 
-            Rectangle {
-              width: 40; height: 40; radius: 20
-              color: "transparent"
-              border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.3)
-              Text {
-                anchors.centerIn: parent
-                text: "restart_alt"
-                color: mutedText
-                font.family: Config.iconFont
-                font.pixelSize: 20
-                MouseArea {
-                  anchors.fill: parent
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: Quickshell.execDetached(["systemctl", "reboot"])
-                }
-              }
+            IconButton {
+              size: 40
+              iconSize: 20
+              iconLabel: "restart_alt"
+              iconColor: mutedText
+              outlined: true
+              borderColor: Qt.rgba(1, 1, 1, 0.3)
+              accessibleName: "Restart computer"
+              tooltipText: "Restart computer"
+              onClicked: Quickshell.execDetached(["systemctl", "reboot"])
             }
 
-            Rectangle {
-              width: 40; height: 40; radius: 20
-              color: "transparent"
-              border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.3)
-              Text {
-                anchors.centerIn: parent
-                text: "power_off"
-                color: mutedText
-                font.family: Config.iconFont
-                font.pixelSize: 20
-                MouseArea {
-                  anchors.fill: parent
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: Quickshell.execDetached(["systemctl", "poweroff"])
-                }
-              }
+            IconButton {
+              size: 40
+              iconSize: 20
+              iconLabel: "power_off"
+              iconColor: mutedText
+              outlined: true
+              borderColor: Qt.rgba(1, 1, 1, 0.3)
+              accessibleName: "Power off computer"
+              tooltipText: "Power off computer"
+              onClicked: Quickshell.execDetached(["systemctl", "poweroff"])
             }
           }
         }

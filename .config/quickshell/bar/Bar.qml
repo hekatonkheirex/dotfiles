@@ -403,6 +403,7 @@ PanelWindow {
             id: commandCenterIndicator
             anchors.fill: parent
             iconLabel: "space_dashboard"
+            accessibleName: "Command Center"
             active: root.openPopup === "commandcenter"
             horizontal: root.horizontal
             onClicked: function(mouse) {

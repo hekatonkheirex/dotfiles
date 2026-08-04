@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
+import "primitives"
 import "../config"
 
 PanelWindow {
@@ -75,7 +76,7 @@ PanelWindow {
         root.voiceTranscribing = false
         var t = text.trim()
         if (t.length > 0) {
-          searchInput.text = t
+          searchInputControl.text = t
           root.searchText = t
           root.selectedIndex = 0
           filterApps()
@@ -219,7 +220,7 @@ PanelWindow {
     id: focusTimer
     interval: 1
     running: visible
-    onTriggered: searchInput.forceActiveFocus()
+    onTriggered: searchInputControl.input.forceActiveFocus()
   }
 
   Timer {
@@ -228,7 +229,7 @@ PanelWindow {
     running: visible
     repeat: true
     onTriggered: {
-      if (!searchInput.activeFocus) {
+      if (!searchInputControl.input.activeFocus) {
         stop()
         dismissed()
       }
@@ -237,7 +238,7 @@ PanelWindow {
 
   onVisibleChanged: {
     if (visible) {
-      searchInput.text = ""
+      searchInputControl.text = ""
       searchText = ""
       selectedIndex = 0
       filteredModel.clear()
@@ -307,120 +308,80 @@ PanelWindow {
       anchors { fill: parent; margins: 12 }
       spacing: 12
 
-      // Pill-shaped search bar container
-      Rectangle {
-        id: searchBarContainer
+      TextFieldControl {
+        id: searchInputControl
         Layout.fillWidth: true
         height: 46
-        radius: height / 2
-        color: Colors.surfaceContainerHigh
-        border.width: 1
-        border.color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.1)
+        leadingIcon: "search"
+        leadingIconSize: 22
+        placeholder: root.voiceRecording
+          ? "Listening... Click mic to stop."
+          : (root.voiceTranscribing ? "Transcribing..." : "Search apps...")
+        showPlaceholderOnFocus: true
+        accessibleName: "Search applications"
 
-        RowLayout {
-          anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
-          spacing: 12
+        onAccepted: {
+          if (filteredModel.count > 0 && root.selectedIndex >= 0 && root.selectedIndex < filteredModel.count) {
+            var app = filteredModel.get(root.selectedIndex)
+            root.launchApp(app.exec, app.terminal)
+          }
+        }
+        onEscapePressed: root.dismissed()
+        onUpPressed: {
+          root.selectedIndex = Math.max(0, root.selectedIndex - 1)
+          root.ensureVisible(root.selectedIndex)
+        }
+        onDownPressed: {
+          root.selectedIndex = Math.min(filteredModel.count - 1, root.selectedIndex + 1)
+          root.ensureVisible(root.selectedIndex)
+        }
 
-          Text {
-            text: "search"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.iconFont
-            font.pixelSize: 22
-            Layout.alignment: Qt.AlignVCenter
+        Text {
+          id: micIcon
+          text: root.voiceRecording ? "stop" : (root.voiceTranscribing ? "sync" : "mic")
+          color: root.voiceRecording ? Colors.destructive : (root.voiceTranscribing ? Colors.info : Colors.fgSurfaceVariant)
+          font.family: Config.iconFont
+          font.pixelSize: 22
+
+          onRotationChanged: {
+            if (!root.voiceTranscribing && rotation !== 0) rotation = 0
           }
 
-          TextInput {
-            id: searchInput
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: 16
-            clip: true
-            focus: true
-            cursorVisible: true
-            activeFocusOnPress: true
-            selectByMouse: true
+          RotationAnimator {
+            target: micIcon
+            running: root.voiceTranscribing && !Config.reducedMotion
+            loops: Animation.Infinite
+            from: 0
+            to: 360
+            duration: 1200
+          }
 
-            MouseArea {
-              anchors.fill: parent
-              cursorShape: Qt.IBeamCursor
-              acceptedButtons: Qt.NoButton
-            }
-
-            Text {
-              text: root.voiceRecording ? "Listening... Click mic to stop." : (root.voiceTranscribing ? "Transcribing..." : "Search apps...")
-            color: root.voiceRecording ? (Colors.destructive) : (Colors.fgSurfaceVariant)
-              font.family: searchInput.font.family
-              font.pixelSize: searchInput.font.pixelSize
-              visible: searchInput.text === ""
-            }
-
-            onTextChanged: {
-              root.searchText = text
-              root.selectedIndex = 0
-              filterApps()
-            }
-
-            Keys.onPressed: function(event) {
-              if (event.key === Qt.Key_Escape) {
-                dismissed()
-              } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                if (filteredModel.count > 0 && selectedIndex >= 0 && selectedIndex < filteredModel.count) {
-                  var app = filteredModel.get(selectedIndex)
-                  root.launchApp(app.exec, app.terminal)
-                }
-              } else if (event.key === Qt.Key_Up) {
-                selectedIndex = Math.max(0, selectedIndex - 1)
-                ensureVisible(selectedIndex)
-              } else if (event.key === Qt.Key_Down) {
-                selectedIndex = Math.min(filteredModel.count - 1, selectedIndex + 1)
-                ensureVisible(selectedIndex)
+          MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+              if (!root.voiceRecording && !root.voiceTranscribing) {
+                root.voiceRecording = true
+                Quickshell.execDetached(["rm", "-f", "/tmp/qs-voice.wav"])
+                recorderProc.running = true
+              } else if (root.voiceRecording) {
+                root.voiceRecording = false
+                root.voiceTranscribing = true
+                recorderProc.running = false
+                transcriberProc.running = true
               }
             }
           }
+        }
+      }
 
-          Text {
-            id: micIcon
-            text: root.voiceRecording ? "stop" : (root.voiceTranscribing ? "sync" : "mic")
-            color: root.voiceRecording ? (Colors.destructive) : (root.voiceTranscribing ? (Colors.info) : (Colors.fgSurfaceVariant))
-            font.family: Config.iconFont
-            font.pixelSize: 22
-            Layout.alignment: Qt.AlignVCenter
-
-            onRotationChanged: {
-              if (!root.voiceTranscribing && rotation !== 0) {
-                rotation = 0
-              }
-            }
-
-            RotationAnimator {
-              target: micIcon
-              running: root.voiceTranscribing && !(Config.reducedMotion)
-              loops: Animation.Infinite
-              from: 0
-              to: 360
-              duration: 1200
-            }
-
-            MouseArea {
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: {
-                if (!root.voiceRecording && !root.voiceTranscribing) {
-                  root.voiceRecording = true
-                  Quickshell.execDetached(["rm", "-f", "/tmp/qs-voice.wav"])
-                  recorderProc.running = true
-                } else if (root.voiceRecording) {
-                  root.voiceRecording = false
-                  root.voiceTranscribing = true
-                  recorderProc.running = false
-                  transcriberProc.running = true
-                }
-              }
-            }
-          }
+      Connections {
+        target: searchInputControl.input
+        function onTextChanged() {
+          root.searchText = searchInputControl.text
+          root.selectedIndex = 0
+          root.filterApps()
         }
       }
 
@@ -433,80 +394,23 @@ PanelWindow {
         currentIndex: root.selectedIndex
         spacing: 4
 
-        delegate: Rectangle {
+        delegate: ListItem {
           width: appList.width
           height: 44
-          radius: 22 // Pill shape selection
-          color: root.selectedIndex === index ? (Colors.surfaceContainerHighest) : "transparent"
-
-          RowLayout {
-            anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-            spacing: 12
-
-            Rectangle {
-              width: 30
-              height: 30
-              radius: 15 // Circle avatar/icon background
-              color: Colors.surfaceContainerHigh
-
-              Image {
-                anchors.centerIn: parent
-                width: 20
-                height: 20
-                source: model.icon !== "" ? "file://" + model.icon : ""
-                sourceSize.width: 20
-                sourceSize.height: 20
-                smooth: true
-                fillMode: Image.PreserveAspectFit
-                visible: model.icon !== ""
-              }
-
-              Text {
-                anchors.centerIn: parent
-                text: model.name.charAt(0).toUpperCase()
-                color: Colors.fgSurface
-                font.family: Config.fontFamily
-                font.pixelSize: 14
-                font.weight: Font.Medium
-                visible: model.icon === ""
-              }
-            }
-
-            ColumnLayout {
-              Layout.fillWidth: true
-              spacing: 1
-
-              Text {
-                Layout.fillWidth: true
-                text: model.name
-                color: Colors.fgSurface
-                font.family: Config.fontFamily
-                font.pixelSize: 15
-                font.weight: Font.Medium
-                elide: Text.ElideRight
-              }
-
-              Text {
-                Layout.fillWidth: true
-                text: model.comment || ""
-                color: Colors.fgSurfaceVariant
-                font.family: Config.fontFamily
-                font.pixelSize: 13
-                elide: Text.ElideRight
-                visible: text !== ""
-              }
-            }
+          radius: 22
+          leadingImageSource: model.icon !== "" ? "file://" + model.icon : ""
+          leadingFallbackText: model.icon === "" ? model.name.charAt(0).toUpperCase() : ""
+          title: model.name
+          subtitle: model.comment || ""
+          selected: root.selectedIndex === index
+          accessibleName: model.name
+          accessibleDescription: model.comment || "Application"
+          onHoveredChanged: {
+            if (hovered) root.selectedIndex = index
           }
-
-          MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-              root.selectedIndex = index
-              root.launchApp(model.exec, model.terminal)
-            }
-            onEntered: { root.selectedIndex = index }
+          onClicked: {
+            root.selectedIndex = index
+            root.launchApp(model.exec, model.terminal)
           }
         }
       }

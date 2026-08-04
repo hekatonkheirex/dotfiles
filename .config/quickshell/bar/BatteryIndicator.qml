@@ -9,6 +9,7 @@ StatusIndicator {
   id: root
 
   accentColor: Colors.primary
+  accessibleName: "Battery"
 
   readonly property var batteryDevice: {
     for (var i = 0; i < UPower.devices.count; i++) {

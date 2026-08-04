@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "../"
+import "../primitives"
 import "../../config"
 
           Item {
@@ -189,76 +190,33 @@ import "../../config"
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 20
 
-                // Prev
-                Rectangle {
-                  width: 44
-                  height: 44
-                  radius: 22
-                  color: "transparent"
-
-                  Text {
-                    anchors.centerIn: parent
-                    text: "skip_previous"
-                    font.family: Config.iconFont
-                    font.pixelSize: 24
-                    color: Colors.fgSurface
-                  }
-
-                  MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                      Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "prev"])
-                    }
-                  }
+                IconButton {
+                  size: 44
+                  iconSize: 24
+                  iconLabel: "skip_previous"
+                  accessibleName: "Previous track"
+                  tooltipText: "Previous track"
+                  onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "prev"])
                 }
 
-                // Play/Pause
-                Rectangle {
-                  width: 52
-                  height: 52
-                  radius: 26
-                  color: Colors.primary
-
-                  Text {
-                    anchors.centerIn: parent
-                    text: root.mprisStatus === "Playing" ? "pause" : "play_arrow"
-                    font.family: Config.iconFont
-                    font.pixelSize: 26
-                    color: Colors.fgPrimary
-                  }
-
-                  MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                      Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
-                    }
-                  }
+                IconButton {
+                  size: 52
+                  iconSize: 26
+                  iconLabel: root.mprisStatus === "Playing" ? "pause" : "play_arrow"
+                  iconColor: Colors.fgPrimary
+                  backgroundColor: Colors.primary
+                  accessibleName: root.mprisStatus === "Playing" ? "Pause playback" : "Play playback"
+                  tooltipText: root.mprisStatus === "Playing" ? "Pause playback" : "Play playback"
+                  onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
                 }
 
-                // Next
-                Rectangle {
-                  width: 44
-                  height: 44
-                  radius: 22
-                  color: "transparent"
-
-                  Text {
-                    anchors.centerIn: parent
-                    text: "skip_next"
-                    font.family: Config.iconFont
-                    font.pixelSize: 24
-                    color: Colors.fgSurface
-                  }
-
-                  MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                      Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "next"])
-                    }
-                  }
+                IconButton {
+                  size: 44
+                  iconSize: 24
+                  iconLabel: "skip_next"
+                  accessibleName: "Next track"
+                  tooltipText: "Next track"
+                  onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "next"])
                 }
               }
             }
@@ -269,91 +227,46 @@ import "../../config"
               anchors.verticalCenter: parent.verticalCenter
               spacing: 12
 
-              // Volume Button
-              Rectangle {
-                width: 36
-                height: 36
-                radius: 18
-                color: Colors.surfaceContainer
-                border.color: Colors.outlineVariant
-                border.width: 1
-
-                Text {
-                  anchors.centerIn: parent
-                  text: root.systemMuted ? "volume_off" : (root.systemVolume <= 0.01 ? "volume_mute" : (root.systemVolume <= 0.3 ? "volume_mute" : (root.systemVolume <= 0.7 ? "volume_down" : "volume_up")))
-                  font.family: Config.iconFont
-                  font.pixelSize: 18
-                  color: Colors.fgSurface
+              IconButton {
+                size: 36
+                iconSize: 18
+                iconLabel: root.systemMuted ? "volume_off" : (root.systemVolume <= 0.3 ? "volume_mute" : (root.systemVolume <= 0.7 ? "volume_down" : "volume_up"))
+                backgroundColor: Colors.surfaceContainer
+                outlined: true
+                accessibleName: root.systemMuted ? "Unmute output" : "Mute output"
+                accessibleDescription: "Scroll to adjust output volume"
+                tooltipText: root.systemMuted ? "Unmute output" : "Mute output"
+                onClicked: {
+                  Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", root.systemMuted ? "0" : "1"])
+                  Quickshell.execDetached(["touch", "/tmp/qsosd-vol"])
                 }
-
-                MouseArea {
-                  anchors.fill: parent
-                  cursorShape: Qt.PointingHandCursor
-                  hoverEnabled: true
-                  onClicked: {
-                    Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", root.systemMuted ? "0" : "1"])
-                    Quickshell.execDetached(["touch", "/tmp/qsosd-vol"])
-                  }
-                  onWheel: function(wheel) {
-                    var diff = wheel.angleDelta.y > 0 ? 0.02 : -0.02;
-                    root.ccSetVolume(root.systemVolume + diff);
-                    Quickshell.execDetached(["touch", "/tmp/qsosd-vol"])
-                  }
+                onWheel: function(wheel) {
+                  var diff = wheel.angleDelta.y > 0 ? 0.02 : -0.02
+                  root.ccSetVolume(root.systemVolume + diff)
+                  Quickshell.execDetached(["touch", "/tmp/qsosd-vol"])
                 }
               }
 
-              // Devices Button
-              Rectangle {
-                width: 36
-                height: 36
-                radius: 18
-                color: Colors.surfaceContainer
-                border.color: Colors.outlineVariant
-                border.width: 1
-
-                Text {
-                  anchors.centerIn: parent
-                  text: "devices"
-                  font.family: Config.iconFont
-                  font.pixelSize: 18
-                  color: Colors.fgSurface
-                }
-
-                MouseArea {
-                  anchors.fill: parent
-                  cursorShape: Qt.PointingHandCursor
-                  hoverEnabled: true
-                  onClicked: {
-                    Quickshell.execDetached(["pavucontrol"])
-                  }
-                }
+              IconButton {
+                size: 36
+                iconSize: 18
+                iconLabel: "devices"
+                backgroundColor: Colors.surfaceContainer
+                outlined: true
+                accessibleName: "Open audio devices"
+                tooltipText: "Open audio devices"
+                onClicked: Quickshell.execDetached(["pavucontrol"])
               }
 
-              // Shift Active Player Button (queue_music)
-              Rectangle {
-                width: 36
-                height: 36
-                radius: 18
-                color: Colors.surfaceContainer
-                border.color: Colors.outlineVariant
-                border.width: 1
-
-                Text {
-                  anchors.centerIn: parent
-                  text: "queue_music"
-                  font.family: Config.iconFont
-                  font.pixelSize: 18
-                  color: Colors.fgSurface
-                }
-
-                MouseArea {
-                  anchors.fill: parent
-                  cursorShape: Qt.PointingHandCursor
-                  hoverEnabled: true
-                  onClicked: {
-                    Quickshell.execDetached(["sh", "-c", "echo shift > /tmp/qsmpris-fifo"])
-                  }
-                }
+              IconButton {
+                size: 36
+                iconSize: 18
+                iconLabel: "queue_music"
+                backgroundColor: Colors.surfaceContainer
+                outlined: true
+                accessibleName: "Switch active player"
+                tooltipText: "Switch active player"
+                onClicked: Quickshell.execDetached(["sh", "-c", "echo shift > /tmp/qsmpris-fifo"])
               }
             }
           }

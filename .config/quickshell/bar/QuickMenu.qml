@@ -34,6 +34,12 @@ PanelWindow {
       "[ -n \"$selected\" ] && exec bash \"$HOME/.config/quickshell/scripts/apply-wallpaper.sh\" \"${selected##*/}\""])
   }
 
+  function focusPower(index) {
+    root.activePowerIndex = index
+    var item = powerRepeater.itemAt(index)
+    if (item) item.forceActiveFocus()
+  }
+
   implicitWidth: Config.popupWidth
   visible: false
   implicitHeight: Math.min(contentColumn.implicitHeight + 32, 500)
@@ -93,11 +99,13 @@ PanelWindow {
         event.accepted = true
       } else if (event.key === Qt.Key_Left) {
         var len = root.powerOptions.length;
-        root.activePowerIndex = (root.activePowerIndex === -1) ? 0 : (root.activePowerIndex === len - 1 ? 0 : root.activePowerIndex + 1);
+        var nextIndex = (root.activePowerIndex === -1) ? 0 : (root.activePowerIndex === len - 1 ? 0 : root.activePowerIndex + 1);
+        root.focusPower(nextIndex)
         event.accepted = true
       } else if (event.key === Qt.Key_Right) {
         var len = root.powerOptions.length;
-        root.activePowerIndex = (root.activePowerIndex === -1) ? len - 1 : (root.activePowerIndex === 0 ? len - 1 : root.activePowerIndex - 1);
+        var nextIndex = (root.activePowerIndex === -1) ? len - 1 : (root.activePowerIndex === 0 ? len - 1 : root.activePowerIndex - 1);
+        root.focusPower(nextIndex)
         event.accepted = true
       } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
         if (root.activePowerIndex >= 0 && root.activePowerIndex < root.powerOptions.length) {
@@ -183,6 +191,8 @@ PanelWindow {
             height: width
             iconLabel: root.isHorizontal ? "horizontal_split" : "vertical_split"
             selected: root.isHorizontal
+            accessibleName: "Toggle bar orientation"
+            tooltipText: root.isHorizontal ? "Use vertical bar" : "Use horizontal bar"
             onActivated: root.toggleHorizontal()
           }
 
@@ -192,6 +202,8 @@ PanelWindow {
             height: width
             iconLabel: "wallpaper"
             iconColor: Colors.primary
+            accessibleName: "Change wallpaper"
+            tooltipText: "Change wallpaper"
             onActivated: root.changeWallpaper()
           }
 
@@ -201,6 +213,8 @@ PanelWindow {
             height: width
             iconLabel: "coffee"
             selected: root.caffeineOn
+            accessibleName: "Toggle caffeine mode"
+            tooltipText: root.caffeineOn ? "Disable caffeine mode" : "Enable caffeine mode"
             onActivated: {
               if (root.caffeineOn) {
                 Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
@@ -218,6 +232,8 @@ PanelWindow {
             height: width
             iconLabel: ["brightness_auto", "light_mode", "dark_mode"][Colors.themePreference]
             selected: Colors.darkMode || Colors.themePreference === 1
+            accessibleName: "Change color mode"
+            tooltipText: "Cycle color mode"
             onActivated: {
               Colors.themePreference = (Colors.themePreference + 1) % 3
               var modes = ["auto", "light", "dark"]
@@ -232,90 +248,42 @@ PanelWindow {
           color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
         }
 
-        Row {
-          spacing: 8
-          width: parent.width
-          layoutDirection: Qt.RightToLeft
+      Row {
+        spacing: 8
+        width: parent.width
+        layoutDirection: Qt.RightToLeft
 
-          Repeater {
-            model: root.powerOptions
+        Repeater {
+          id: powerRepeater
+          model: root.powerOptions
 
-            delegate: Rectangle {
-              required property var modelData
-              required property int index
+          delegate: ActionButton {
+            required property var modelData
+            required property int index
 
-              readonly property bool active: index === root.activePowerIndex
-              activeFocusOnTab: true
-
-              Keys.onPressed: function(event) {
-                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                  Quickshell.execDetached(modelData.cmd)
-                  if (modelData.label !== "Sleep") root.dismissed()
-                  event.accepted = true
-                }
-              }
-
-              width: (parent.width - 3 * 8) / 4
-              height: width
-              radius: 20
-              color: (pwArea.containsMouse || active) ? (Colors.primary) : (Colors.surfaceContainer)
-              border.color: (pwArea.containsMouse || active) ? "transparent" : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15))
-              border.width: 1
-
-              Behavior on color {
-                ColorAnimation { duration: Config.animationDuration}
-              }
-
-              Column {
-                anchors.centerIn: parent
-                spacing: 4
-
-                Text {
-                  anchors.horizontalCenter: parent.horizontalCenter
-                  text: {
-                    var icons = { "Sleep": "bedtime", "Restart": "restart_alt", "Shut Down": "power_settings_new", "Log Out": "logout" }
-                    return icons[modelData.label] || "power_settings_new"
-                  }
-                  color: (pwArea.containsMouse || active) ? (Colors.fgPrimary) : (Colors.fgSurfaceVariant)
-                  font.family: Config.iconFont
-                  font.pixelSize: (Config.iconSize + 4)
-                }
-
-                Text {
-                  anchors.horizontalCenter: parent.horizontalCenter
-                  text: modelData.label
-                  color: (pwArea.containsMouse || active) ? (Colors.fgPrimary) : (Colors.fgSurfaceVariant)
-                  font.family: Config.fontFamily
-                  font.pixelSize: (Config.fontPixelSize - 1)
-                  font.weight: Font.Medium
-                }
-              }
-
-              MouseArea {
-                id: pwArea
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onEntered: root.activePowerIndex = index
-                onClicked: {
-                  parent.forceActiveFocus()
-                  Quickshell.execDetached(modelData.cmd)
-                  if (modelData.label !== "Sleep") root.dismissed()
-                }
-              }
-
-              Rectangle {
-                anchors.fill: parent
-                anchors.margins: -4
-                radius: 24
-                color: "transparent"
-                border.width: parent.activeFocus ? 2 : 0
-                border.color: Colors.primary
-                visible: parent.activeFocus
-              }
+            width: (parent.width - 3 * 8) / 4
+            height: width
+            iconLabel: {
+              var icons = { "Sleep": "bedtime", "Restart": "restart_alt", "Shut Down": "power_settings_new", "Log Out": "logout" }
+              return icons[modelData.label] || "power_settings_new"
+            }
+            labelText: modelData.label
+            selected: index === root.activePowerIndex
+            accessibleName: modelData.label
+            accessibleDescription: "Power action"
+            onActiveFocusChanged: {
+              if (activeFocus) root.activePowerIndex = index
+            }
+            onHoveredChanged: {
+              if (hovered) root.activePowerIndex = index
+            }
+            onActivated: {
+              Quickshell.execDetached(modelData.cmd)
+              if (modelData.label !== "Sleep") root.dismissed()
             }
           }
         }
+      }
 
       }
     }

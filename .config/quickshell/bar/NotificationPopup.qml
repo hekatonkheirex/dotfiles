@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import "primitives"
 import "../config"
 
 PopupBase {
@@ -75,32 +76,15 @@ PopupBase {
             font.pixelSize: (Config.fontPixelSize + 4)
           }
 
-          Rectangle {
-            width: 24
-            height: 24
-            radius: width / 2
+          IconButton {
+            size: 24
+            iconSize: 16
             visible: count > 0
-            color: clearAllMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
-
-            Behavior on color {
-              ColorAnimation { duration: Config.animationDuration}
-            }
-
-            Text {
-              anchors.centerIn: parent
-              text: "delete_sweep"
-              color: Colors.fgSurfaceVariant
-              font.family: Config.iconFont
-              font.pixelSize: 16
-            }
-
-            MouseArea {
-              id: clearAllMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.clearAll()
-            }
+            iconLabel: "delete_sweep"
+            iconColor: Colors.fgSurfaceVariant
+            accessibleName: "Clear notifications"
+            tooltipText: "Clear notifications"
+            onClicked: root.clearAll()
           }
         }
 
@@ -188,33 +172,16 @@ PopupBase {
                       elide: Text.ElideRight
                     }
 
-                    Rectangle {
-                      width: 20
-                      height: 20
-                      radius: width / 2
-                      color: dismissMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
-
-                      Behavior on color {
-                        ColorAnimation { duration: Config.animationDuration}
-                      }
-
-                      Text {
-                        anchors.centerIn: parent
-                        text: "close"
-                        color: Colors.fgSurfaceVariant
-                        font.family: Config.iconFont
-                        font.pixelSize: 12
-                      }
-
-                      MouseArea {
-                        id: dismissMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                          if (index >= 0 && index < root.notifications.length) {
-                            root.notifications[index].dismiss()
-                          }
+                    IconButton {
+                      size: 20
+                      iconSize: 12
+                      iconLabel: "close"
+                      iconColor: Colors.fgSurfaceVariant
+                      accessibleName: "Dismiss notification"
+                      tooltipText: "Dismiss notification"
+                      onClicked: {
+                        if (index >= 0 && index < root.notifications.length) {
+                          root.notifications[index].dismiss()
                         }
                       }
                     }
