@@ -58,6 +58,8 @@ PopupBase {
                 iconLabel: modelData
                 size: 32
                 iconSize: 18
+                accessibleName: index === 0 ? "Previous month" : "Next month"
+                tooltipText: accessibleName
                 onClicked: {
                   var m = new Date(root.displayMonth)
                   m.setMonth(m.getMonth() + (index === 0 ? -1 : 1))

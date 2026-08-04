@@ -22,6 +22,10 @@ Item {
   property string accessibleName: "Slider"
   property string accessibleDescription: "Adjust value"
 
+  Accessible.role: Accessible.Slider
+  Accessible.name: root.accessibleName
+  Accessible.description: root.accessibleDescription + " Current value " + Math.round(root.value * 100) + " percent"
+
   signal changed(real value)
 
   width: parent ? parent.width : 240

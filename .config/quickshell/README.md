@@ -83,6 +83,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── apply-wallpaper.sh       # Wallpaper selection + Matugen/theme refresh
 │   ├── apply-accent-color.sh    # Compatibility stub — palette is fixed by Matugen, not user-selectable
 │   ├── generate-thumbnails.sh   # Generates/caches wallpaper thumbnails for the Wallpapers tab
+│   ├── m3-qmllint-gate.sh       # QML regression gate for the M3 refactor, including shared primitives
 │   ├── idle.sh                  # swayidle: dim, lock, display off, suspend
 │   ├── lid.sh                   # Lid close: lock
 │   ├── safe-logout.sh           # Clean Niri quit, falls back to a session kill

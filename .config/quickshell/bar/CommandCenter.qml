@@ -306,10 +306,10 @@ PanelWindow {
   }
 
   implicitWidth: Math.min(Config.commandCenterMaxWidth,
-                          Math.max(320, desktopW - 32))
+                          Math.max(Config.commandCenterMinWidth, desktopW - 32))
   visible: false
   implicitHeight: Math.min(Config.commandCenterMaxHeight,
-                           Math.max(360, desktopH - 32))
+                           Math.max(Config.commandCenterMinHeight, desktopH - 32))
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-popup"
@@ -601,7 +601,10 @@ PanelWindow {
                 focus: root.currentTab === index
 
                 Keys.onPressed: function(event) {
-                  if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) {
+                  if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    root.currentTab = index
+                    event.accepted = true
+                  } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) {
                     root.currentTab = (index + 4) % 5
                     event.accepted = true
                   } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) {
@@ -621,6 +624,8 @@ PanelWindow {
                   iconLabel: modelData.icon
                   labelText: modelData.label
                   selected: root.currentTab === index
+                  tabFocusable: false
+                  accessibleName: modelData.label + " tab"
                   onClicked: {
                     parent.forceActiveFocus()
                     root.currentTab = index

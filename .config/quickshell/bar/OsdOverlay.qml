@@ -182,12 +182,14 @@ PanelWindow {
     anchors.centerIn: parent
     width: root.width
     height: root.height
-    radius: 16
+    radius: Config.shapeLarge
     opacity: root.osdOpacity
     color: {
       var c = Colors.surfaceContainerHigh
       return Qt.rgba(c.r, c.g, c.b, 0.92)
     }
+    border.width: 1
+    border.color: Colors.outlineVariant
 
     Column {
       anchors.centerIn: parent

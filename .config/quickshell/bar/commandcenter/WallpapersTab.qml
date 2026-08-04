@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -115,8 +116,14 @@ ColumnLayout {
         id: wallDelegate
         width: 160
         height: 104
-        radius: 10
-        color: Qt.tint(Colors.surfaceContainerHigh, wallDelegateMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
+        radius: Config.shapeMedium
+        activeFocusOnTab: true
+        color: {
+          var overlay = wallDelegateMouse.pressed ? Colors.pressOverlay
+            : (wallDelegateMouse.containsMouse ? Colors.hoverOverlay
+              : (wallDelegate.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
+          return Qt.tint(Colors.surfaceContainerHigh, overlay)
+        }
         clip: true
 
         Behavior on color {
@@ -125,8 +132,25 @@ ColumnLayout {
 
         readonly property bool isCurrent: modelData === currentWallpaper
 
-        border.width: isCurrent ? 3 : (wallDelegateMouse.containsMouse ? 2 : 1)
-        border.color: isCurrent || wallDelegateMouse.containsMouse ? (Colors.primary) : (Colors.outlineVariant)
+        border.width: isCurrent ? 3 : (wallDelegate.activeFocus || wallDelegateMouse.containsMouse ? 2 : 1)
+        border.color: isCurrent || wallDelegate.activeFocus || wallDelegateMouse.containsMouse
+          ? (Colors.primary) : (Colors.outlineVariant)
+
+        Accessible.role: Accessible.Button
+        Accessible.name: modelData
+        Accessible.description: isCurrent ? "Current wallpaper" : "Apply wallpaper"
+
+        Keys.onPressed: function(event) {
+          if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            applyWallpaper()
+            event.accepted = true
+          }
+        }
+
+        function applyWallpaper() {
+          Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/quickshell/scripts/apply-wallpaper.sh", modelData])
+          currentWallpaper = modelData
+        }
 
         Image {
           id: wallThumb
@@ -170,8 +194,8 @@ ColumnLayout {
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
           onClicked: {
-            Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/quickshell/scripts/apply-wallpaper.sh", modelData])
-            currentWallpaper = modelData
+            wallDelegate.forceActiveFocus()
+            wallDelegate.applyWallpaper()
           }
         }
       }

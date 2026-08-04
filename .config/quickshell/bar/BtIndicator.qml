@@ -1,19 +1,15 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import "primitives"
 import "../config"
 
-Item {
+StatusIndicator {
   id: root
 
-  property bool active: false
-  property bool horizontal: false
-
-  signal clicked(var mouse)
-
-  Layout.preferredWidth: Config.widgetSize
-  Layout.preferredHeight: Config.widgetSize
+  accentColor: Colors.primary
+  accessibleName: "Bluetooth"
+  tooltipText: "Bluetooth"
 
   property bool btOn: false
   property string btDeviceMac: ""
@@ -37,7 +33,7 @@ Item {
 
   Timer {
     id: pollTimer
-    interval: 5000 // 5s
+    interval: 5000
     running: root.visible
     repeat: true
     triggeredOnStart: true
@@ -52,83 +48,14 @@ Item {
     if (root.visible) btQuery.running = true
   }
 
-  readonly property string iconLabel: {
+  iconLabel: {
     if (!root.btOn) return "bluetooth_disabled"
     if (root.btDeviceMac !== "") return "bluetooth_connected"
     return "bluetooth"
   }
-
-  Rectangle {
-    id: bgOverlay
-    anchors {
-      fill: parent
-      leftMargin: root.horizontal ? 0 : 6
-      rightMargin: root.horizontal ? 0 : 6
-      topMargin: root.horizontal ? 6 : 0
-      bottomMargin: root.horizontal ? 6 : 0
-    }
-    radius: root.horizontal ? height / 2 : width / 2
-    clip: true
-    color: {
-      var overlay = mouseArea.pressed ? Colors.pressOverlay : (mouseArea.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
-      return Qt.tint(root.active ? Colors.primary : Colors.surfaceContainerHigh, overlay)
-    }
-    border.color: {
-      if (root.active) return "transparent"
-      return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
-    }
-    border.width: 1
-
-    Behavior on color {
-      ColorAnimation { duration: Config.animationDuration}
-    }
-  }
-
-  Text {
-    id: iconText
-    anchors.centerIn: parent
-    text: root.iconLabel
-    color: {
-      if (root.active) return Colors.fgPrimary
-      return Colors.primary
-    }
-    font.family: Config.iconFont
-    font.pixelSize: Config.iconSize
-    horizontalAlignment: Text.AlignHCenter
-    verticalAlignment: Text.AlignVCenter
-  }
-
-  Text {
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.bottom: parent.bottom
-    anchors.bottomMargin: 4
-    text: {
-      if (!root.btOn) return "Off"
-      if (root.btDeviceMac !== "") {
-        if (root.btDeviceBattery !== "") {
-          return root.btDeviceBattery + "%"
-        }
-        return "On"
-      }
-      return "On"
-    }
-    color: {
-      if (root.active) return Colors.fgPrimary
-      return Colors.primary
-    }
-    font.family: Config.fontFamily
-    font.pixelSize: (Config.fontPixelSize - 2)
-    font.weight: Font.Medium
-    horizontalAlignment: Text.AlignHCenter
-  }
-
-  MouseArea {
-    id: mouseArea
-    anchors.fill: parent
-    hoverEnabled: true
-    cursorShape: Qt.PointingHandCursor
-    onClicked: function(mouse) {
-      root.clicked(mouse)
-    }
+  labelText: {
+    if (!root.btOn) return "Off"
+    if (root.btDeviceMac !== "" && root.btDeviceBattery !== "") return root.btDeviceBattery + "%"
+    return "On"
   }
 }

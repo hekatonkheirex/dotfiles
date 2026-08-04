@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import ".."
+import "../primitives"
 import "../../config"
 
           Flickable {
@@ -56,67 +57,30 @@ import "../../config"
 
                     Row {
                       anchors.fill: parent
+                      spacing: 0
 
-                      Rectangle {
+                      ActionButton {
                         width: parent.width / 2
                         height: parent.height
-                        radius: 20
-                        color: root.isHorizontal ? (Colors.primary) : "transparent"
-
-                        Row {
-                          anchors.centerIn: parent
-                          spacing: 6
-                          Text {
-                            text: "horizontal_split"
-                            font.family: Config.iconFont
-                            font.pixelSize: 16
-                            color: root.isHorizontal ? (Colors.fgPrimary) : (Colors.fgSurfaceVariant)
-                          }
-                          Text {
-                            text: "Horiz"
-                            font.family: Config.fontFamily
-                            font.pixelSize: 11
-                            font.weight: Font.Bold
-                            color: root.isHorizontal ? (Colors.fgPrimary) : (Colors.fgSurfaceVariant)
-                          }
-                        }
-
-                        MouseArea {
-                          anchors.fill: parent
-                          cursorShape: Qt.PointingHandCursor
-                          onClicked: { if (!root.isHorizontal) root.toggleHorizontal() }
-                        }
+                        iconLabel: "horizontal_split"
+                        iconSize: 15
+                        labelText: "Horiz"
+                        selected: root.isHorizontal
+                        accessibleName: "Horizontal bar"
+                        accessibleDescription: root.isHorizontal ? "Selected" : "Switch bar to horizontal"
+                        onActivated: { if (!root.isHorizontal) root.toggleHorizontal() }
                       }
 
-                      Rectangle {
+                      ActionButton {
                         width: parent.width / 2
                         height: parent.height
-                        radius: 20
-                        color: !root.isHorizontal ? (Colors.primary) : "transparent"
-
-                        Row {
-                          anchors.centerIn: parent
-                          spacing: 6
-                          Text {
-                            text: "vertical_split"
-                            font.family: Config.iconFont
-                            font.pixelSize: 16
-                            color: !root.isHorizontal ? (Colors.fgPrimary) : (Colors.fgSurfaceVariant)
-                          }
-                          Text {
-                            text: "Vert"
-                            font.family: Config.fontFamily
-                            font.pixelSize: 11
-                            font.weight: Font.Bold
-                            color: !root.isHorizontal ? (Colors.fgPrimary) : (Colors.fgSurfaceVariant)
-                          }
-                        }
-
-                        MouseArea {
-                          anchors.fill: parent
-                          cursorShape: Qt.PointingHandCursor
-                          onClicked: { if (root.isHorizontal) root.toggleHorizontal() }
-                        }
+                        iconLabel: "vertical_split"
+                        iconSize: 15
+                        labelText: "Vert"
+                        selected: !root.isHorizontal
+                        accessibleName: "Vertical bar"
+                        accessibleDescription: !root.isHorizontal ? "Selected" : "Switch bar to vertical"
+                        onActivated: { if (root.isHorizontal) root.toggleHorizontal() }
                       }
                     }
                   }
@@ -155,6 +119,7 @@ import "../../config"
 
                     Row {
                       anchors.fill: parent
+                      spacing: 0
 
                       Repeater {
                         model: [
@@ -163,41 +128,19 @@ import "../../config"
                           { value: 2, icon: "dark_mode", label: "Dark" }
                         ]
 
-                        delegate: Rectangle {
+                        delegate: ActionButton {
                           required property var modelData
                           width: parent.width / 3
                           height: parent.height
-                          radius: 20
-                          color: (Colors.themePreference === modelData.value) ? Colors.primary : "transparent"
-
-                          Column {
-                            anchors.centerIn: parent
-                            spacing: 1
-                            Text {
-                              anchors.horizontalCenter: parent.horizontalCenter
-                              text: modelData.icon
-                              font.family: Config.iconFont
-                              font.pixelSize: 15
-                              color: (Colors.themePreference === modelData.value) ? Colors.fgPrimary : Colors.fgSurfaceVariant
-                            }
-                            Text {
-                              anchors.horizontalCenter: parent.horizontalCenter
-                              text: modelData.label
-                              font.family: Config.fontFamily
-                              font.pixelSize: 8
-                              font.weight: Font.Bold
-                              color: (Colors.themePreference === modelData.value) ? Colors.fgPrimary : Colors.fgSurfaceVariant
-                            }
-                          }
-
-                          MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                              Colors.themePreference = modelData.value
-                              var modes = ["auto", "light", "dark"]
-                              Quickshell.execDetached(["/bin/sh", "-c", "$HOME/.local/bin/sync-theme-mode.sh " + modes[modelData.value]])
-                            }
+                          iconLabel: modelData.icon
+                          iconSize: 15
+                          labelText: modelData.label
+                          selected: Colors.themePreference === modelData.value
+                          accessibleName: modelData.label + " theme"
+                          onActivated: {
+                            Colors.themePreference = modelData.value
+                            var modes = ["auto", "light", "dark"]
+                            Quickshell.execDetached(["/bin/sh", "-c", "$HOME/.local/bin/sync-theme-mode.sh " + modes[modelData.value]])
                           }
                         }
                       }
@@ -347,52 +290,23 @@ import "../../config"
                 }
               }
 
-              // Caffeine Box
-              Rectangle {
+              // Caffeine action
+              ActionButton {
                 Layout.preferredWidth: 80
                 Layout.preferredHeight: 113
-                radius: 16
-                color: root.caffeineOn ? (Colors.primary) : (Colors.surfaceContainer)
-                border.color: root.caffeineOn ? "transparent" : (Colors.outlineVariant)
-                border.width: 1
-
-                Behavior on color {
-                  ColorAnimation { duration: Config.animationDuration}
-                }
-
-                ColumnLayout {
-                  anchors.centerIn: parent
-                  spacing: 4
-
-                  Text {
-                    text: "coffee"
-                    font.family: Config.iconFont
-                    font.pixelSize: 32
-                    color: root.caffeineOn ? (Colors.fgPrimary) : (Colors.fgSurfaceVariant)
-                    Layout.alignment: Qt.AlignHCenter
-                  }
-
-                  Text {
-                    text: "Caffeine"
-                    color: root.caffeineOn ? (Colors.fgPrimary) : (Colors.fgSurfaceVariant)
-                    font.family: Config.fontFamily
-                    font.pixelSize: 11
-                    font.weight: Font.Medium
-                    Layout.alignment: Qt.AlignHCenter
-                  }
-                }
-
-                MouseArea {
-                  anchors.fill: parent
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: {
-                    if (root.caffeineOn) {
-                      Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
-                      root.caffeineOn = false
-                    } else {
-                      Quickshell.execDetached(["killall", "swayidle"])
-                      root.caffeineOn = true
-                    }
+                iconLabel: "coffee"
+                iconSize: 32
+                labelText: "Caffeine"
+                selected: root.caffeineOn
+                accessibleName: "Caffeine mode"
+                accessibleDescription: root.caffeineOn ? "Enabled" : "Disabled"
+                onActivated: {
+                  if (root.caffeineOn) {
+                    Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
+                    root.caffeineOn = false
+                  } else {
+                    Quickshell.execDetached(["killall", "swayidle"])
+                    root.caffeineOn = true
                   }
                 }
               }

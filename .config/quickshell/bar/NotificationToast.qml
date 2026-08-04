@@ -1,7 +1,10 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Window
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Wayland._WlrLayerShell
 import "../config"
 
 PanelWindow {
@@ -9,17 +12,24 @@ PanelWindow {
 
   property QtObject notificationServer: null
   property var notif: null
-  property int displayMs: Config.notificationToastDurationMs
+  property int displayMs: Settings.notificationToastDurationMs
+  property bool horizontal: true
+  property int anchorY: Screen.desktopAvailableHeight / 2
 
   implicitWidth: 280
   implicitHeight: cardLayout.implicitHeight + 24
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-toast"
-  anchors.right: true
+  WlrLayershell.layer: WlrLayer.Top
+  anchors.left: !root.horizontal
+  anchors.right: root.horizontal
   anchors.top: true
-  margins.right: 16
-  margins.top: 16
+  margins.left: root.horizontal ? 0 : Config.barWidth + 4
+  margins.right: root.horizontal ? 16 : 0
+  margins.top: root.horizontal
+    ? Config.barWidth + 4
+    : Math.max(0, Math.min(root.anchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
   visible: notif !== null
 
   function show(n) {
@@ -51,16 +61,31 @@ PanelWindow {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: root.dismiss()
+    onClicked: {
+      bg.forceActiveFocus()
+      root.dismiss()
+    }
   }
 
   Rectangle {
     id: bg
     anchors.fill: parent
     radius: Config.borderRadius
+    activeFocusOnTab: true
     color: Colors.surfaceContainerHigh
     border.width: 1
     border.color: Colors.outlineVariant
+
+    Accessible.role: Accessible.Button
+    Accessible.name: notif ? ((notif.appName || "Notification") + ": " + (notif.summary || "Dismiss notification")) : "Notification"
+    Accessible.description: "Dismiss notification"
+
+    Keys.onPressed: function(event) {
+      if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+        root.dismiss()
+        event.accepted = true
+      }
+    }
 
     transform: [
       Translate { id: transX; x: 0 },
