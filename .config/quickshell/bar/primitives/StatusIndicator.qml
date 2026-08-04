@@ -3,6 +3,7 @@
 // menu, notification, and launcher indicators all repeated this Rectangle +
 // Text + MouseArea block verbatim before this primitive existed.
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import "../../config"
 
@@ -16,16 +17,44 @@ Item {
   property string labelText: ""
   property real labelOpacity: 1.0
   property color accentColor: Colors.primary
+  property color iconColor: root.active ? Colors.fgPrimary : root.accentColor
+  property color labelColor: root.active ? Colors.fgPrimary : root.accentColor
   property color inactiveBg: Colors.surfaceContainerHigh
   // Menu/notification/launcher indicators sit on a transparent bg and only
   // reveal their outline on hover; other indicators show it whenever inactive.
   property bool borderOnHoverOnly: false
+  property string accessibleName: ""
+  property string accessibleDescription: ""
+  property string tooltipText: ""
+  property string badgeText: ""
+  property color badgeColor: Colors.error
+  property color badgeTextColor: Colors.fgError
 
   signal clicked(var mouse)
   signal wheel(var wheel)
 
   Layout.preferredWidth: Config.widgetSize
   Layout.preferredHeight: Config.widgetSize
+  activeFocusOnTab: root.enabled
+  opacity: root.enabled ? 1.0 : 0.38
+
+  readonly property bool hovered: mouseArea.containsMouse
+  readonly property bool pressed: mouseArea.pressed
+
+  Accessible.role: Accessible.Button
+  Accessible.name: root.accessibleName !== ""
+    ? root.accessibleName
+    : (root.labelText !== "" ? root.labelText : (root.tooltipText !== "" ? root.tooltipText : "Status indicator"))
+  Accessible.description: root.accessibleDescription !== ""
+    ? root.accessibleDescription
+    : (root.active ? "Active" : "")
+
+  Keys.onPressed: function(event) {
+    if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
+      root.clicked(null)
+      event.accepted = true
+    }
+  }
 
   Rectangle {
     id: bgOverlay
@@ -39,7 +68,9 @@ Item {
     radius: root.horizontal ? height / 2 : width / 2
     clip: true
     color: {
-      var overlay = mouseArea.pressed ? Colors.pressOverlay : (mouseArea.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
+      var overlay = mouseArea.pressed ? Colors.pressOverlay
+        : (mouseArea.containsMouse ? Colors.hoverOverlay
+          : (root.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
       var base = root.active ? root.accentColor : (root.borderOnHoverOnly ? "transparent" : root.inactiveBg)
       return Qt.tint(base, overlay)
     }
@@ -60,7 +91,7 @@ Item {
     anchors.centerIn: parent
     text: root.iconLabel
     opacity: root.iconOpacity
-    color: root.active ? Colors.fgPrimary : root.accentColor
+    color: root.iconColor
     font.family: Config.iconFont
     font.pixelSize: Config.iconSize
     horizontalAlignment: Text.AlignHCenter
@@ -75,19 +106,52 @@ Item {
     anchors.bottomMargin: 4
     text: root.labelText
     opacity: root.labelOpacity
-    color: root.active ? Colors.fgPrimary : root.accentColor
+    color: root.labelColor
     font.family: Config.fontFamily
     font.pixelSize: (Config.fontPixelSize - 2)
     font.weight: Font.Medium
     horizontalAlignment: Text.AlignHCenter
   }
 
+  Item {
+    anchors.fill: parent
+    visible: root.badgeText !== ""
+
+    Rectangle {
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.rightMargin: 4
+      anchors.topMargin: 4
+      width: badgeLabel.implicitWidth + 6
+      height: 14
+      radius: 7
+      color: root.badgeColor
+
+      Text {
+        id: badgeLabel
+        anchors.centerIn: parent
+        text: root.badgeText
+        color: root.badgeTextColor
+        font.family: Config.fontFamily
+        font.pixelSize: Config.fontPixelSize - 3
+        font.weight: Font.Bold
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+      }
+    }
+  }
+
   MouseArea {
     id: mouseArea
     anchors.fill: parent
     hoverEnabled: true
+    enabled: root.enabled
     cursorShape: Qt.PointingHandCursor
-    onClicked: function(mouse) { root.clicked(mouse) }
+    onClicked: function(mouse) {
+      root.forceActiveFocus()
+      root.clicked(mouse)
+    }
     onWheel: function(wheelEvent) { root.wheel(wheelEvent) }
   }
+
 }

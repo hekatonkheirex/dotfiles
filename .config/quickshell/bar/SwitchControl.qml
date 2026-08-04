@@ -24,6 +24,10 @@ Item {
   property string accessibleName: "Switch"
   property string accessibleDescription: "Toggle setting"
 
+  Accessible.role: Accessible.CheckBox
+  Accessible.name: root.accessibleName
+  Accessible.description: root.accessibleDescription + (root.checked ? " On" : " Off")
+
   signal toggled()
 
   width: 52

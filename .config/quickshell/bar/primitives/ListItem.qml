@@ -1,5 +1,5 @@
 // Dense list row: leading icon, title/subtitle stack, optional selected
-// accent, hover overlay, and a trailing slot for status text or actions.
+// accent, hover/focus state layers, and a trailing slot for status text or actions.
 // Lifted out of BtPopup's device-row delegate; Wi-Fi/launcher rows share the
 // same shape.
 import QtQuick
@@ -12,25 +12,61 @@ Rectangle {
   default property alias trailingContent: trailingRow.data
 
   property string leadingIcon: ""
+  property real leadingIconOpacity: 1.0
+  property string leadingImageSource: ""
+  property string leadingFallbackText: ""
   property string title: ""
   property string subtitle: ""
   property bool selected: false
   property color leadingIconColor: root.selected ? Colors.primary : Colors.fgSurface
-  readonly property alias hovered: itemMouse.containsMouse
+  property string accessibleName: ""
+  property string accessibleDescription: ""
+  readonly property bool hovered: itemMouse.containsMouse
+  readonly property bool pressed: itemMouse.pressed
 
   signal clicked(var mouse)
 
   height: 44
-  radius: 12
+  radius: Config.shapeMedium
+  activeFocusOnTab: root.enabled
+  opacity: root.enabled ? 1.0 : 0.38
+
+  Accessible.role: Accessible.ListItem
+  Accessible.name: root.accessibleName !== "" ? root.accessibleName : root.title
+  Accessible.description: root.accessibleDescription !== ""
+    ? root.accessibleDescription
+    : (root.selected ? root.subtitle + " Selected" : root.subtitle)
+
+  Keys.onPressed: function(event) {
+    if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
+      root.clicked(null)
+      event.accepted = true
+    }
+  }
   color: {
     if (root.selected) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
-    return itemMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
+    if (itemMouse.containsMouse) return Qt.tint("transparent", Colors.hoverOverlay)
+    return root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
   }
   border.color: root.selected ? Colors.primary : "transparent"
   border.width: 1
 
   Behavior on color {
     ColorAnimation { duration: Config.animationDuration }
+  }
+
+  // Keep the row hit target below its content so trailing controls can still
+  // receive clicks. Non-interactive text falls through to this MouseArea.
+  MouseArea {
+    id: itemMouse
+    anchors.fill: parent
+    hoverEnabled: true
+    enabled: root.enabled
+    cursorShape: Qt.PointingHandCursor
+    onClicked: function(mouse) {
+      root.forceActiveFocus()
+      root.clicked(mouse)
+    }
   }
 
   RowLayout {
@@ -40,11 +76,42 @@ Rectangle {
     spacing: 10
 
     Text {
-      visible: root.leadingIcon !== ""
+      visible: root.leadingIcon !== "" && root.leadingImageSource === ""
       text: root.leadingIcon
       color: root.leadingIconColor
+      opacity: root.leadingIconOpacity
       font.family: Config.iconFont
       font.pixelSize: 22
+    }
+
+    Rectangle {
+      visible: root.leadingImageSource !== "" || root.leadingFallbackText !== ""
+      width: 30
+      height: 30
+      radius: 15
+      color: Colors.surfaceContainerHigh
+
+      Image {
+        anchors.centerIn: parent
+        width: 20
+        height: 20
+        source: root.leadingImageSource
+        sourceSize.width: 20
+        sourceSize.height: 20
+        smooth: true
+        fillMode: Image.PreserveAspectFit
+        visible: root.leadingImageSource !== ""
+      }
+
+      Text {
+        anchors.centerIn: parent
+        text: root.leadingFallbackText
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: 14
+        font.weight: Font.Medium
+        visible: root.leadingImageSource === "" && root.leadingFallbackText !== ""
+      }
     }
 
     ColumnLayout {
@@ -79,11 +146,4 @@ Rectangle {
     }
   }
 
-  MouseArea {
-    id: itemMouse
-    anchors.fill: parent
-    hoverEnabled: true
-    cursorShape: Qt.PointingHandCursor
-    onClicked: function(mouse) { root.clicked(mouse) }
-  }
 }

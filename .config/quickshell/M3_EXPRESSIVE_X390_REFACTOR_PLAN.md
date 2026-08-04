@@ -1,6 +1,6 @@
 # Material 3 Expressive Refactor Plan for the ThinkPad X390
 
-Status: in progress — Phases 0-2 complete, Phase 3 not started
+Status: implementation complete in worktree — Phases 0-3.5 applied; focused Phase 4/5 checks passed; full light/dark and vertical-mode manual matrix remains to be exercised. Phase commits were intentionally not created per AGENTS.md.
 
 ## Goal
 
@@ -26,7 +26,7 @@ The primary input model is pointer plus keyboard:
 - Do not inflate every control to a mobile 48dp touch target. Preserve compact visual bounds appropriate to the X390, using a larger invisible pointer hit area only where it does not change layout density.
 - Preserve the current horizontal and vertical bar modes, popup anchors, keyboard shortcuts, and reduced-motion preference.
 
-A full pre-Phase-2 audit of `bar/*.qml` and `bar/commandcenter/*.qml` found no `SwipeView`, `PinchArea`, `MultiPointTouchArea`, `Drawer`, `DragHandler`, FAB, or bottom-nav pattern anywhere — the shell was already clean of touch-first components. Two isolated 48dp mobile-touch-target row heights were found and fixed ahead of the refactor: [`bar/BtPopup.qml`](bar/BtPopup.qml) and [`bar/LauncherPopup.qml`](bar/LauncherPopup.qml) device/app list rows now use `height: 44`, matching the row height already used by the equivalent list in [`bar/WifiPopup.qml`](bar/WifiPopup.qml) rather than Android's 48dp minimum. `LauncherPopup.qml`'s pill radius was adjusted from 24 to 22 to stay a true pill (`height / 2`) at the new row height. `Config.qml`'s `iconSizeLarge` (28) was also found to have zero consumers anywhere in the tree — add it to the Phase 1 dead-token cleanup alongside `commandCenterMinWidth`/`commandCenterMinHeight` and the eleven dead `Settings.qml` properties.
+A full pre-Phase-2 audit of `bar/*.qml` and `bar/commandcenter/*.qml` found no `SwipeView`, `PinchArea`, `MultiPointTouchArea`, `Drawer`, `DragHandler`, FAB, or bottom-nav pattern anywhere — the shell was already clean of touch-first components. Two isolated 48dp mobile-touch-target row heights were found and fixed ahead of the refactor: [`bar/BtPopup.qml`](bar/BtPopup.qml) and [`bar/LauncherPopup.qml`](bar/LauncherPopup.qml) device/app list rows now use `height: 44`, matching the row height already used by the equivalent list in [`bar/WifiPopup.qml`](bar/WifiPopup.qml) rather than Android's 48dp minimum. `LauncherPopup.qml`'s pill radius was adjusted from 24 to 22 to stay a true pill (`height / 2`) at the new row height. `Config.qml`'s `iconSizeLarge` (28) was also found to have zero consumers anywhere in the tree and was removed in Phase 1 along with the other dead build-time tokens.
 
 Expressiveness should come from clear state changes, restrained shape transitions, semantic color, and purposeful motion. It should not come from taller bars, oversized headers, or decorative cards that consume workspace.
 
@@ -36,7 +36,7 @@ Before any edit, commit a clean baseline (`yadm status --short` must be empty or
 
 ## Phase 1: establish ownership and tokens — DONE (commit fb6bce6a)
 
-Theme ownership confirmed already resolved (Matugen), no change needed there. Dead-token cleanup done: removed `commandCenterMinWidth`/`commandCenterMinHeight`/`iconSizeLarge` from `Config.qml` and the eleven dead `Settings.qml` aliases (`barHeight`, `collapsedWidth`, `cornerRadius`, `expandedHeight`, `gapFromScreenEdge`, `motionBouncePercent`, `motionFadeMs`, `motionHoverMs`, `motionMovementMs`, `notchFlare`, `spacingUnit`) after confirming zero consumers via repo-wide grep.
+Theme ownership confirmed already resolved (Matugen), no change needed there. Dead-token cleanup in commit `fb6bce6a` removed `commandCenterMinWidth`/`commandCenterMinHeight`/`iconSizeLarge` from `Config.qml` and the eleven dead `Settings.qml` aliases (`barHeight`, `collapsedWidth`, `cornerRadius`, `expandedHeight`, `gapFromScreenEdge`, `motionBouncePercent`, `motionFadeMs`, `motionHoverMs`, `motionMovementMs`, `notchFlare`, `spacingUnit`) after confirming zero consumers via repo-wide grep. The active Command Center minimum bounds were subsequently reintroduced as `Config.qml` tokens and wired to `CommandCenter.qml` in the Phase 3 preflight, while the remaining persisted settings schema is retained until an explicit migration can remove unused keys safely.
 
 Theme ownership is already resolved, not open: Matugen is the authoritative, wallpaper-derived palette source. `Colors.qml`'s `l_*`/`d_*` constants are deterministic fallbacks for first boot and generator failure only, documented as such in the file's own header comment. The `customize-rodrigo-linux` skill's "Ghost" description is stale relative to the current Matugen pipeline (`scripts/apply-wallpaper.sh` → `matugen-and-cache.sh` → `generate-all-themes.sh` → `sync-theme-mode.sh` → `sync-terminal-theme.sh`) and must not be treated as a second source of truth. This phase's job is to make every visual token route through `Config.qml`/`Colors.qml`, not to re-litigate which palette wins.
 
@@ -47,7 +47,7 @@ Inspect and, if needed, consolidate:
 - [`config/Settings.qml`](config/Settings.qml): remove or reconnect unused visual preferences rather than adding more duplicated tokens.
 - Existing theme scripts: change them only if the ownership decision requires it. Generated files remain generated.
 
-The first token pass should define desktop density tiers, not mobile touch sizes. It should also make existing values such as popup minimum dimensions and reduced-motion behavior actual sources of truth instead of unused declarations. This is not hypothetical: `Config.qml`'s `commandCenterMinWidth`/`commandCenterMinHeight` are declared and never read anywhere, and eleven of `Settings.qml`'s twenty-five aliased preferences (`motionBouncePercent`, `motionFadeMs`, `motionHoverMs`, `motionMovementMs`, `notchFlare`, `cornerRadius`, `spacingUnit`, `barHeight`, `collapsedWidth`, `expandedHeight`, `gapFromScreenEdge`) are read only inside `Settings.qml` itself and consumed nowhere else. Either wire each into the component that should honor it, or delete it — do not carry dead preferences forward into the refactored primitives.
+The first token pass should define desktop density tiers, not mobile touch sizes. It should also make existing values such as popup dimensions and reduced-motion behavior actual sources of truth. Build-time tokens must be wired or deleted. Persisted `Settings.qml` fields are a separate schema concern: retain an unused key only when it is documented as compatibility data and remove it only with an explicit settings migration.
 
 ## Phase 2: build only the shared primitives that have repeated consumers — DONE (commit dfce1aff)
 
@@ -74,7 +74,7 @@ Create shared components incrementally under the existing `bar` component area. 
 
 3. `StatusIndicator`
 
-   For the repeated bar pattern used by audio, brightness, battery, Wi-Fi, Bluetooth, notifications, launcher, menu, and related indicators. It should own icon/label layout, hover and pressed overlays, focus treatment, tooltip text, and semantic status coloring while allowing each indicator to supply its value and action.
+   For the repeated bar pattern used by audio, brightness, battery, Wi-Fi, Bluetooth, notifications, launcher, menu, and related indicators. It should own icon/label layout, hover and pressed overlays, keyboard semantics, tooltip text, and semantic status coloring while allowing each indicator to supply its value and action. Compact indicators use their existing state layers rather than an enclosing rounded focus border.
 
 4. `ListItem` and `TextFieldControl`
 
@@ -82,7 +82,7 @@ Create shared components incrementally under the existing `bar` component area. 
 
 5. `TabItem` or a similarly small tab primitive
 
-   For Command Center navigation. Keep the existing horizontal icon-plus-label layout and arrow-key navigation, but centralize selected, hover, pressed, focus, and indicator behavior.
+   For Command Center navigation. Keep the existing horizontal icon-plus-label layout and arrow-key navigation, but centralize selected, hover, pressed, focus, and indicator behavior. The selected underline is the tab strip's visual focus/selection cue; do not add an enclosing focus box.
 
 6. Progress and surface primitives only where duplication justifies them
 
@@ -92,31 +92,31 @@ The existing `SwitchControl`, `SliderControl`, `WaveProgressBar`, and `PopupDivi
 
 ## Phase 3: refactor by vertical slices
 
-### 3.1 Bar and indicators
+### 3.1 Bar and indicators — APPLIED
 
 Refactor [`bar/Bar.qml`](bar/Bar.qml) and the indicator components first. Replace duplicated `Rectangle` plus `MouseArea` button chrome with `StatusIndicator` and `IconButton` where appropriate. Preserve workspace expansion, collapsed mode, vertical orientation, tray behavior, clock layout, and existing IPC triggers.
 
 The workspace indicator is already a good expressive pattern because its active state changes shape and width. Keep that behavior and use it as the reference for restrained stateful motion.
 
-### 3.2 Quick Menu and launcher
+### 3.2 Quick Menu and launcher — APPLIED
 
 Refactor [`bar/QuickMenu.qml`](bar/QuickMenu.qml) and [`bar/LauncherPopup.qml`](bar/LauncherPopup.qml) around the shared action, list, and field primitives. Make the action grid fully keyboard traversable and keep pointer hover feedback. Preserve the current search keyboard behavior.
 
 Power, reboot, suspend, and logout actions must retain the existing safety policy. Destructive actions should not become more immediate merely because their visual treatment is standardized.
 
-### 3.3 Edge popups and forms
+### 3.3 Edge popups and forms — APPLIED
 
 Keep [`bar/PopupBase.qml`](bar/PopupBase.qml) as the common edge-popup owner. Move the manually duplicated popup chrome in Bluetooth, launcher, Quick Menu, and related surfaces into the shared overlay contract only where their behavior is genuinely shared. The centered Command Center can remain a distinct layout mode while sharing surface, focus, and motion rules.
 
 Apply the primitives to audio, brightness, battery, Wi-Fi, Bluetooth, calendar, and notifications. This should cover refresh/close/navigation buttons, device rows, password input, selected networks, calendar navigation, and notification action rows without increasing popup height unnecessarily.
 
-### 3.4 Command Center
+### 3.4 Command Center — APPLIED
 
-Refactor [`bar/CommandCenter.qml`](bar/CommandCenter.qml) and its tab files — [`bar/commandcenter/OverviewTab.qml`](bar/commandcenter/OverviewTab.qml), [`bar/commandcenter/MediaTab.qml`](bar/commandcenter/MediaTab.qml), [`bar/commandcenter/WallpapersTab.qml`](bar/commandcenter/WallpapersTab.qml), [`bar/commandcenter/WeatherTab.qml`](bar/commandcenter/WeatherTab.qml), and [`bar/commandcenter/SettingsTab.qml`](bar/commandcenter/SettingsTab.qml) — after the smaller surfaces are stable. Make `Config.qml`'s `commandCenterMinWidth`/`commandCenterMinHeight` effective (they are currently unused; see Phase 1). Keep the desktop three-column overview at normal X390 size, then provide a compact fallback that reflows or scrolls rather than allowing fixed cards to overflow.
+Refactor [`bar/CommandCenter.qml`](bar/CommandCenter.qml) and its tab files — [`bar/commandcenter/OverviewTab.qml`](bar/commandcenter/OverviewTab.qml), [`bar/commandcenter/MediaTab.qml`](bar/commandcenter/MediaTab.qml), [`bar/commandcenter/WallpapersTab.qml`](bar/commandcenter/WallpapersTab.qml), [`bar/commandcenter/WeatherTab.qml`](bar/commandcenter/WeatherTab.qml), and [`bar/commandcenter/SettingsTab.qml`](bar/commandcenter/SettingsTab.qml) — after the smaller surfaces are stable. Preserve the active `Config.qml` minimum and maximum bounds. The overview's compact fallback uses a bounded horizontal `Flickable` below its 752px content width; verify that behavior at the 320px minimum before marking this slice complete. Reflow other tabs only when their actual content requires it.
 
 Media controls, tab items, settings rows, wallpaper tiles, and diagnostics should all share the same focus and selection conventions. `WaveProgressBar` in `OverviewTab.qml`/`MediaTab.qml` and `SwitchControl`/`SliderControl` in `SettingsTab.qml` are the primitives already in the heaviest reuse here — extend them, do not fork per-tab variants. No swipe-based tab or carousel behavior is needed.
 
-### 3.5 Feedback and security surfaces
+### 3.5 Feedback and security surfaces — APPLIED
 
 Unify the state language of [`bar/NotificationToast.qml`](bar/NotificationToast.qml), [`bar/NotificationPopup.qml`](bar/NotificationPopup.qml), and [`bar/OsdOverlay.qml`](bar/OsdOverlay.qml), while keeping their different purposes. If notification actions are supported by the service, expose them as focused action buttons instead of treating the whole notification as an unlabeled mouse target.
 
@@ -138,7 +138,7 @@ Add actual Qt accessibility roles, names, descriptions, checked/selected states,
 
 Run the narrowest checks after each slice, then the complete matrix. The first three checks are gate checks: deterministic, free, and must run on every commit in this refactor, not just at the end.
 
-- automated regression guard: a small script (`qmllint shell.qml config/*.qml bar/*.qml bar/commandcenter/*.qml`, non-zero exit fails the phase) run before every phase commit, so a broken binding or missing import in slice N is caught before slice N+1 builds on it, not discovered during the final manual pass;
+- automated regression guard: [`scripts/m3-qmllint-gate.sh`](scripts/m3-qmllint-gate.sh) (`qmllint` over shell, config, bar, command-center, and `bar/primitives` files; non-zero exit fails the phase) run before every phase commit, so a broken binding or missing import in slice N is caught before slice N+1 builds on it, not discovered during the final manual pass;
 - `qmllint shell.qml` and the affected QML files;
 - `bash -n` for every changed shell script;
 - `yadm status --short` and a review for unrelated changes;
@@ -162,5 +162,4 @@ The refactor is complete when:
 5. Light, dark, reduced-motion, horizontal-bar, and vertical-bar behavior remains intact.
 6. No new dependency, generated-file edit, mobile navigation pattern, or second theme/token owner is introduced without an explicit reason.
 7. Every phase landed as its own commit with a passing `qmllint` gate check, so any regression can be reverted at phase granularity instead of unwound by hand.
-8. No property remains declared in `Config.qml`/`Settings.qml` without a consumer; anything found dead during the refactor is deleted, not carried forward.
-
+8. No unused build-time property remains in `Config.qml`. Persisted `Settings.qml` fields are either consumed by an owning surface or explicitly documented as compatibility schema with a migration plan before removal.

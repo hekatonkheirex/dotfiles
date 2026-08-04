@@ -3,17 +3,25 @@ import QtQuick.Layouts
 import Quickshell
 import QtQuick.Effects
 import "../"
+import "../primitives"
 import "../../config"
 
-          Row {
+          Flickable {
             property QtObject root: null
             id: overviewTab
             anchors.fill: parent
-            spacing: 16
+            clip: true
             visible: root.currentTab === 0
+            readonly property int columnGap: 16
+            readonly property int overviewContentWidth: 148 + columnGap + 408 + columnGap + 164
+            contentWidth: Math.max(width, overviewContentWidth)
+            contentHeight: height
+            interactive: width < overviewContentWidth
+            boundsBehavior: Flickable.StopAtBounds
 
             // Column 1: Clock & Weather
             Column {
+              x: 0
               width: 148
               height: parent.height
               spacing: 16
@@ -108,6 +116,7 @@ import "../../config"
 
             // Column 2: Profile + Calendar
             Column {
+              x: 148 + overviewTab.columnGap
               width: 408
               height: parent.height
               spacing: 16
@@ -256,31 +265,16 @@ import "../../config"
 
                       Repeater {
                         model: ["chevron_left", "chevron_right"]
-                        Rectangle {
-                          width: 32
-                          height: 32
-                          radius: 16
-                          color: calNavArea.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
-                          Behavior on color {
-                            ColorAnimation { duration: Config.animationDuration}
-                          }
-                          Text {
-                            anchors.centerIn: parent
-                            text: modelData
-                            color: Colors.fgSurface
-                            font.family: Config.iconFont
-                            font.pixelSize: 18
-                          }
-                          MouseArea {
-                            id: calNavArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                              var m = new Date(root.displayMonth)
-                              m.setMonth(m.getMonth() + (index === 0 ? -1 : 1))
-                              root.displayMonth = m
-                            }
+                        IconButton {
+                          size: 32
+                          iconSize: 18
+                          iconLabel: modelData
+                          accessibleName: index === 0 ? "Previous month" : "Next month"
+                          tooltipText: accessibleName
+                          onClicked: {
+                            var m = new Date(root.displayMonth)
+                            m.setMonth(m.getMonth() + (index === 0 ? -1 : 1))
+                            root.displayMonth = m
                           }
                         }
                       }
@@ -344,6 +338,7 @@ import "../../config"
 
             // Column 3: Mini Media Player Card
             Rectangle {
+              x: 148 + overviewTab.columnGap + 408 + overviewTab.columnGap
               width: 164
               height: parent.height
               radius: 20
@@ -504,70 +499,33 @@ import "../../config"
                   anchors.horizontalCenter: parent.horizontalCenter
                   spacing: 10
 
-                  // Prev
-                  Rectangle {
-                    width: 32
-                    height: 32
-                    radius: 16
-                    color: "transparent"
-                    Text {
-                      anchors.centerIn: parent
-                      text: "skip_previous"
-                      font.family: Config.iconFont
-                      font.pixelSize: 18
-                      color: Colors.fgSurface
-                    }
-                    MouseArea {
-                      anchors.fill: parent
-                      cursorShape: Qt.PointingHandCursor
-                      onClicked: {
-                        Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "prev"])
-                      }
-                    }
+                  IconButton {
+                    size: 32
+                    iconSize: 18
+                    iconLabel: "skip_previous"
+                    accessibleName: "Previous track"
+                    tooltipText: "Previous track"
+                    onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "prev"])
                   }
 
-                  // Play/Pause (circular accent)
-                  Rectangle {
-                    width: 38
-                    height: 38
-                    radius: 19
-                    color: Colors.primary
-                    Text {
-                      anchors.centerIn: parent
-                      text: root.mprisStatus === "Playing" ? "pause" : "play_arrow"
-                      font.family: Config.iconFont
-                      font.pixelSize: 20
-                      color: Colors.fgPrimary
-                    }
-                    MouseArea {
-                      anchors.fill: parent
-                      cursorShape: Qt.PointingHandCursor
-                      onClicked: {
-                        Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
-                      }
-                    }
+                  IconButton {
+                    size: 38
+                    iconSize: 20
+                    iconLabel: root.mprisStatus === "Playing" ? "pause" : "play_arrow"
+                    iconColor: Colors.fgPrimary
+                    backgroundColor: Colors.primary
+                    accessibleName: root.mprisStatus === "Playing" ? "Pause playback" : "Play playback"
+                    tooltipText: root.mprisStatus === "Playing" ? "Pause playback" : "Play playback"
+                    onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
                   }
 
-                  // Next
-                  Rectangle {
-                    width: 32
-                    height: 32
-                    radius: 16
-                    color: "transparent"
-                    Text {
-                      anchors.centerIn: parent
-                      text: "skip_next"
-                      font.family: Config.iconFont
-                      font.pixelSize: 18
-                      color: Colors.fgSurface
-                    }
-                    MouseArea {
-                      anchors.fill: parent
-                      cursorShape: Qt.PointingHandCursor
-                      onClicked: {
-                        Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "next"])
-                      }
-                    }
+                  IconButton {
+                    size: 32
+                    iconSize: 18
+                    iconLabel: "skip_next"
+                    accessibleName: "Next track"
+                    tooltipText: "Next track"
+                    onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "next"])
                   }
                 }
               }

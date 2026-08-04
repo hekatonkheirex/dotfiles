@@ -16,6 +16,9 @@ FileView {
     if (error === FileViewError.FileNotFound) root.writeAdapter()
   }
 
+  // These aliases are persisted schema fields. Some are waiting for their
+  // owning surface to be reconnected; keep them until a deliberate migration
+  // can remove the corresponding settings.json keys without losing user data.
   property alias calendarWeekStartsMonday: adapter.calendarWeekStartsMonday
   property alias ccShowAudio: adapter.ccShowAudio
   property alias ccShowBluetooth: adapter.ccShowBluetooth

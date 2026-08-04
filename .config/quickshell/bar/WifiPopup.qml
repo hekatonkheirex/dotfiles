@@ -197,21 +197,14 @@ PopupBase {
             font.weight: Font.Bold
           }
 
-          Text {
-            text: "refresh"
-            color: Colors.primary
-            font.family: Config.iconFont
-            font.pixelSize: 20
-            opacity: listQuery.running ? 0.5 : 1.0
-            
-            MouseArea {
-              anchors.fill: parent
-              cursorShape: Qt.PointingHandCursor
-              enabled: !listQuery.running
-              onClicked: {
-                listQuery.running = true
-              }
-            }
+          IconButton {
+            iconLabel: "refresh"
+            size: 28
+            iconSize: 20
+            enabled: !listQuery.running
+            accessibleName: "Refresh Wi-Fi networks"
+            tooltipText: "Refresh Wi-Fi networks"
+            onClicked: listQuery.running = true
           }
 
           SwitchControl {
@@ -334,87 +327,26 @@ PopupBase {
         }
       }
 
-      Rectangle {
-        anchors.fill: parent
-        radius: 8
-        color: isCurrent
-          ? (Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15))
-          : (delegateMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent")
-        border.color: isCurrent ? (Colors.primary) : "transparent"
-        border.width: 1
-      }
-
-      RowLayout {
+      ListItem {
         id: collapsedRow
-        anchors {
-          left: parent.left
-          right: parent.right
-          top: parent.top
-          topMargin: 2
-          leftMargin: 12
-          rightMargin: 12
-        }
+        width: parent.width
         height: 44
-        spacing: 12
-
-        // Reserved space checkmark container to keep layout aligned
-        Item {
-          id: checkContainer
-          Layout.preferredWidth: Config.iconSize
-          Layout.preferredHeight: Config.iconSize
-          Layout.alignment: Qt.AlignVCenter
-
-          Text {
-            anchors.centerIn: parent
-            text: "check"
-            visible: isCurrent
-            color: Colors.primary
-            font.family: Config.iconFont
-            font.pixelSize: Config.iconSize
-          }
+        radius: 8
+        leadingIcon: "wifi"
+        leadingIconColor: isCurrent ? Colors.primary : Colors.fgSurface
+        leadingIconOpacity: {
+          var sig = model.signal
+          if (sig <= 25) return 0.4
+          if (sig <= 50) return 0.6
+          if (sig <= 75) return 0.8
+          return 1.0
         }
-
-        Text {
-          text: "wifi"
-          color: isCurrent ? (Colors.primary) : (Colors.fgSurface)
-          font.family: Config.iconFont
-          font.pixelSize: Config.iconSize
-          Layout.alignment: Qt.AlignVCenter
-          opacity: {
-            var sig = model.signal
-            if (sig <= 25) return 0.4
-            if (sig <= 50) return 0.6
-            if (sig <= 75) return 0.8
-            return 1.0
-          }
-        }
-
-        // Two-line title + connection status layout
-        ColumnLayout {
-          Layout.fillWidth: true
-          spacing: 1
-          Layout.alignment: Qt.AlignVCenter
-
-          Text {
-            Layout.fillWidth: true
-            text: model.ssid
-            color: isCurrent ? (Colors.primary) : (Colors.fgSurface)
-            font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 2
-            font.weight: isCurrent ? Font.Bold : Font.Normal
-            elide: Text.ElideRight
-          }
-
-          Text {
-            Layout.fillWidth: true
-            text: "Connected"
-            visible: isCurrent
-            color: Colors.primary
-            font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize
-            font.weight: Font.Medium
-          }
-        }
+        title: model.ssid
+        subtitle: isCurrent ? "Connected" : ""
+        selected: isCurrent
+        accessibleName: model.ssid + " Wi-Fi network"
+        accessibleDescription: isCurrent ? "Connected, signal " + model.signal + " percent" : "Signal " + model.signal + " percent"
+        onClicked: root.selectedIndex = (root.selectedIndex === index) ? -1 : index
 
         Text {
           text: model.signal + "%"
@@ -431,16 +363,6 @@ PopupBase {
           font.family: Config.iconFont
           font.pixelSize: 16
           Layout.alignment: Qt.AlignVCenter
-        }
-      }
-
-      MouseArea {
-        id: delegateMouse
-        anchors.fill: collapsedRow
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: {
-          root.selectedIndex = (root.selectedIndex === index) ? -1 : index
         }
       }
 
@@ -461,44 +383,33 @@ PopupBase {
           Layout.fillWidth: true
           visible: model.secured
           placeholder: "Password"
+          accessibleName: "Wi-Fi password"
           echoMode: TextInput.Password
         }
 
-        Rectangle {
-          Layout.preferredWidth: model.secured ? 80 : parent.width
+        ActionButton {
+          Layout.fillWidth: !model.secured
+          Layout.preferredWidth: model.secured ? 88 : 0
           Layout.preferredHeight: 36
           radius: 18
-          color: Colors.primary
-          opacity: root.connecting ? 0.6 : 1.0
-
-          Text {
-            anchors.centerIn: parent
-            text: isCurrent ? "Disconnect" : "Connect"
-            color: Colors.fgPrimary
-            font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
-            font.weight: Font.Bold
-          }
-
-          MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            enabled: !root.connecting
-            onClicked: {
-              if (isCurrent) {
-                root.connecting = true
-                root.statusMessage = "Disconnecting..."
-                if (root.wifiDevice) {
-                  disconnectProcess.command = ["nmcli", "device", "disconnect", root.wifiDevice]
-                  disconnectProcess.running = true
-                } else {
-                  root.connecting = false
-                  root.statusMessage = "Could not determine the Wi-Fi device."
-                  deviceQuery.running = true
-                }
+          variant: "filled"
+          labelText: isCurrent ? "Disconnect" : "Connect"
+          enabled: !root.connecting
+          accessibleName: labelText + " to " + model.ssid
+          onActivated: {
+            if (isCurrent) {
+              root.connecting = true
+              root.statusMessage = "Disconnecting..."
+              if (root.wifiDevice) {
+                disconnectProcess.command = ["nmcli", "device", "disconnect", root.wifiDevice]
+                disconnectProcess.running = true
               } else {
-                root.connectToNetwork(model.ssid, passField.text, model.secured)
+                root.connecting = false
+                root.statusMessage = "Could not determine the Wi-Fi device."
+                deviceQuery.running = true
               }
+            } else {
+              root.connectToNetwork(model.ssid, passField.text, model.secured)
             }
           }
         }

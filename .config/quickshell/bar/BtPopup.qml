@@ -178,21 +178,14 @@ PanelWindow {
             font.weight: Font.Bold
           }
 
-          Text {
-            text: "refresh"
-            color: Colors.primary
-            font.family: Config.iconFont
-            font.pixelSize: 20
-            opacity: listQuery.running ? 0.5 : 1.0
-            
-            MouseArea {
-              anchors.fill: parent
-              cursorShape: Qt.PointingHandCursor
-              enabled: !listQuery.running
-              onClicked: {
-                listQuery.running = true
-              }
-            }
+          IconButton {
+            iconLabel: "refresh"
+            size: 28
+            iconSize: 20
+            enabled: !listQuery.running
+            accessibleName: "Refresh Bluetooth devices"
+            tooltipText: "Refresh Bluetooth devices"
+            onClicked: listQuery.running = true
           }
 
           SwitchControl {
@@ -298,6 +291,7 @@ PanelWindow {
       leadingIconColor: Colors.primary
       title: model.name
       subtitle: model.mac
+      accessibleName: model.name + " Bluetooth device"
 
       Row {
         spacing: 4
@@ -332,21 +326,17 @@ PanelWindow {
         }
       }
 
-      Text {
-        text: "link_off"
-        color: Colors.error
-        font.family: Config.iconFont
-        font.pixelSize: 20
+      IconButton {
+        size: 28
+        iconSize: 20
+        iconLabel: "link_off"
         visible: itemRow.hovered
-        anchors.verticalCenter: parent.verticalCenter
-
-        MouseArea {
-          anchors.fill: parent
-          cursorShape: Qt.PointingHandCursor
-          onClicked: {
-            Quickshell.execDetached(["bluetoothctl", "disconnect", model.mac])
-            refreshTimer.start()
-          }
+        iconColor: Colors.error
+        accessibleName: "Disconnect " + model.name
+        tooltipText: accessibleName
+        onClicked: {
+          Quickshell.execDetached(["bluetoothctl", "disconnect", model.mac])
+          refreshTimer.start()
         }
       }
     }
