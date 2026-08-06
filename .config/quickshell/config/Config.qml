@@ -10,6 +10,8 @@ QtObject {
   // Compact X390 geometry and shared spacing used by active surfaces.
   readonly property int barWidth: 36
   readonly property int widgetSize: 36
+  readonly property int spacingCompact: 4
+  readonly property int spacingSmall: 8
   readonly property int spacingMedium: 12
   readonly property int spacingLarge: 16
   readonly property int spacingExtraLarge: 24
@@ -21,6 +23,10 @@ QtObject {
   readonly property string iconFont: "Material Symbols Outlined"
   readonly property int iconSize: 16
   readonly property int fontPixelSize: 9
+  readonly property int clockPrimarySize: 15
+  readonly property int clockSecondarySize: 10
+  readonly property int clockLineSpacing: spacingCompact
+  readonly property int clockVerticalHeight: 42
 
   // Small shape scale for compact controls and expressive containers.
   readonly property int shapeMedium: 12
