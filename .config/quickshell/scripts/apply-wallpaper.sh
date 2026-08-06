@@ -57,3 +57,11 @@ fi
 if [[ "$matugen_updated" == true && -x "$theme_sync" ]]; then
   "$theme_sync" auto || printf 'Theme mode synchronization failed.\n' >&2
 fi
+
+# Colors.qml's FileView watchChanges does not reliably live-reload
+# ~/.cache/matugen/current_palette.json, so restart Quickshell to pick up
+# the fresh palette. ponytail: full QML reload, not just a data refresh —
+# revisit if Quickshell adds a real IPC reload/hot-reread for FileView data.
+if [[ "$matugen_updated" == true ]]; then
+  systemctl --user restart quickshell.service 2>/dev/null || true
+fi

@@ -62,9 +62,11 @@ ColumnLayout {
       if (currentWallpaper && wallpapersList.length > 0) {
         var idx = wallpapersList.indexOf(currentWallpaper);
         if (idx >= 0) {
+          wallpaperGrid.currentIndex = idx;
           wallpaperGrid.positionViewAtIndex(idx, GridView.Center);
         }
       }
+      wallpaperGrid.forceActiveFocus();
     }
   }
 
@@ -111,41 +113,29 @@ ColumnLayout {
       model: wallpapersList
       clip: true
       boundsBehavior: Flickable.StopAtBounds
+      activeFocusOnTab: true
+
+      Keys.onPressed: function(event) {
+        if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+          if (currentItem) currentItem.applyWallpaper()
+          event.accepted = true
+        }
+      }
 
       delegate: Rectangle {
         id: wallDelegate
         width: 160
         height: 104
         radius: Config.shapeMedium
-        activeFocusOnTab: true
-        color: {
-          var overlay = wallDelegateMouse.pressed ? Colors.pressOverlay
-            : (wallDelegateMouse.containsMouse ? Colors.hoverOverlay
-              : (wallDelegate.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
-          return Qt.tint(Colors.surfaceContainerHigh, overlay)
-        }
+        readonly property bool isKeyboardSelected: GridView.isCurrentItem && wallpaperGrid.activeFocus
+        color: Colors.surfaceContainerHigh
         clip: true
 
-        Behavior on color {
-          ColorAnimation { duration: Config.animationDuration }
-        }
-
         readonly property bool isCurrent: modelData === currentWallpaper
-
-        border.width: isCurrent ? 3 : (wallDelegate.activeFocus || wallDelegateMouse.containsMouse ? 2 : 1)
-        border.color: isCurrent || wallDelegate.activeFocus || wallDelegateMouse.containsMouse
-          ? (Colors.primary) : (Colors.outlineVariant)
 
         Accessible.role: Accessible.Button
         Accessible.name: modelData
         Accessible.description: isCurrent ? "Current wallpaper" : "Apply wallpaper"
-
-        Keys.onPressed: function(event) {
-          if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-            applyWallpaper()
-            event.accepted = true
-          }
-        }
 
         function applyWallpaper() {
           Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/quickshell/scripts/apply-wallpaper.sh", modelData])
@@ -164,6 +154,30 @@ ColumnLayout {
             if (status === Image.Error && source !== "file://" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData) {
               source = "file://" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData;
             }
+          }
+        }
+
+        // State ring/tint drawn above the thumbnail image, since the image
+        // fills the full delegate bounds and would otherwise occlude a
+        // border or fill painted on wallDelegate itself.
+        Rectangle {
+          anchors.fill: parent
+          radius: parent.radius
+          color: {
+            if (wallDelegateMouse.pressed) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.22)
+            if (wallDelegate.isKeyboardSelected) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.20)
+            if (wallDelegateMouse.containsMouse) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.12)
+            return "transparent"
+          }
+          border.width: wallDelegate.isCurrent ? 3 : (wallDelegate.isKeyboardSelected || wallDelegateMouse.containsMouse ? 2 : 1)
+          border.color: wallDelegate.isCurrent || wallDelegate.isKeyboardSelected || wallDelegateMouse.containsMouse
+            ? Colors.primary : Colors.outlineVariant
+
+          Behavior on color {
+            ColorAnimation { duration: Config.animationDuration }
+          }
+          Behavior on border.width {
+            NumberAnimation { duration: Config.animationDuration }
           }
         }
 
@@ -194,7 +208,8 @@ ColumnLayout {
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
           onClicked: {
-            wallDelegate.forceActiveFocus()
+            wallpaperGrid.currentIndex = index
+            wallpaperGrid.forceActiveFocus()
             wallDelegate.applyWallpaper()
           }
         }

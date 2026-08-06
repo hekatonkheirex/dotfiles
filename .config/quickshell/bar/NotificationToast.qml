@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import Quickshell
+import Quickshell.Services.Notifications
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import "../config"
@@ -12,9 +13,8 @@ PanelWindow {
 
   property QtObject notificationServer: null
   property var notif: null
+  property var heldNotif: null
   property int displayMs: Settings.notificationToastDurationMs
-  property bool horizontal: true
-  property int anchorY: Screen.desktopAvailableHeight / 2
 
   implicitWidth: 280
   implicitHeight: cardLayout.implicitHeight + 24
@@ -22,39 +22,64 @@ PanelWindow {
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-toast"
   WlrLayershell.layer: WlrLayer.Top
-  anchors.left: !root.horizontal
-  anchors.right: root.horizontal
+  anchors.right: true
   anchors.top: true
-  margins.left: root.horizontal ? 0 : Config.barWidth + 4
-  margins.right: root.horizontal ? 16 : 0
-  margins.top: root.horizontal
-    ? Config.barWidth + 4
-    : Math.max(0, Math.min(root.anchorY - implicitHeight / 2, Screen.desktopAvailableHeight - implicitHeight))
+  margins.right: 16
+  margins.top: Config.barWidth + 4
   visible: notif !== null
 
+  function isPersistent(n) {
+    return n && (n.urgency === NotificationUrgency.Critical || n.expireTimeout === 0)
+  }
+
   function show(n) {
-    if (notif !== null) {
-      dismissTimer.stop()
-      notif = null
-    }
+    if (notif !== null && notif !== n && isPersistent(notif))
+      heldNotif = notif
+    if (heldNotif === n)
+      heldNotif = null
+    dismissTimer.stop()
+    notif = null
     notif = n
-    dismissTimer.restart()
+    if (!isPersistent(n))
+      dismissTimer.restart()
     entryAnimation.start()
+  }
+
+  function clearCurrent() {
+    dismissTimer.stop()
+    if (!notif) return
+    notif = null
+    if (heldNotif) {
+      var held = heldNotif
+      heldNotif = null
+      show(held)
+    }
   }
 
   function dismiss() {
     if (!notif) return
-    notif.dismiss()
-    notif = null
+    var current = notif
+    clearCurrent()
+    current.dismiss()
   }
 
   Timer {
     id: dismissTimer
     interval: root.displayMs
+    running: root.notif !== null && !root.isPersistent(root.notif)
     onTriggered: {
-      if (!root.notif) return
-      root.notif = null
+      root.clearCurrent()
     }
+  }
+
+  Connections {
+    target: root.notif
+    function onClosed() { root.clearCurrent() }
+  }
+
+  Connections {
+    target: root.heldNotif
+    function onClosed() { root.heldNotif = null }
   }
 
   MouseArea {
