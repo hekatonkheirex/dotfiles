@@ -206,7 +206,6 @@ ShellRoot {
   NotificationToast {
     id: notificationToast
     notificationServer: notifServer
-    horizontal: bar.horizontal
   }
 
   PopupShield {

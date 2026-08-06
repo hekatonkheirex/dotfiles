@@ -31,8 +31,7 @@ gestures {
     max-speed 1500
   }
   hot-corners {
-    off
-    // top-left
+    bottom-right
   }
 }
 

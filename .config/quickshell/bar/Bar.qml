@@ -198,8 +198,8 @@ PanelWindow {
           topMargin: root.horizontal ? 0 : 6
           bottomMargin: root.horizontal ? 0 : 6
         }
-        columnSpacing: 6 * root.expandProgress
-        rowSpacing: 6 * root.expandProgress
+        columnSpacing: Config.spacingSmall * root.expandProgress
+        rowSpacing: Config.spacingSmall * root.expandProgress
 
         Item {
           id: launcherWrapper
@@ -231,20 +231,38 @@ PanelWindow {
           id: focusedWindowWrapper
           property string programText: wsIndicator.focusedWindowProgram
           property string detailText: wsIndicator.focusedWindowInfo
-          Layout.preferredWidth: root.horizontal && (programText !== "" || detailText !== "")
-            ? Math.min(320, Math.max(140, Math.max(focusedWindowProgramText.implicitWidth, focusedWindowDetailText.implicitWidth) + 16)) * root.expandProgress
-            : 0
-          Layout.preferredHeight: root.horizontal ? parent.height : 0
+          readonly property bool hasWindowInfo: programText !== "" || detailText !== ""
+          readonly property real windowInfoTextWidth: Math.max(
+            focusedWindowProgramText.implicitWidth,
+            focusedWindowDetailText.implicitWidth
+          )
+          readonly property real verticalInfoHeight: Math.min(
+            320,
+            Math.max(root.wSize, windowInfoTextWidth + 8)
+          )
+          Layout.preferredWidth: root.horizontal
+            ? (hasWindowInfo
+              ? Math.min(320, Math.max(140, windowInfoTextWidth + 16)) * root.expandProgress
+              : 0)
+            : (hasWindowInfo ? parent.width : 0)
+          Layout.preferredHeight: root.horizontal
+            ? parent.height
+            : (hasWindowInfo ? verticalInfoHeight * root.expandProgress : 0)
+          Layout.fillHeight: !root.horizontal && root.expanded && hasWindowInfo
           opacity: root.expandProgress
-          visible: root.horizontal && root.expandProgress > 0 && (programText !== "" || detailText !== "")
+          visible: root.expandProgress > 0 && hasWindowInfo
           clip: true
 
           ColumnLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 8
-            anchors.rightMargin: 8
-            anchors.topMargin: 4
-            anchors.bottomMargin: 4
+            id: focusedWindowContent
+            anchors.centerIn: parent
+            width: root.horizontal
+              ? Math.max(0, parent.width - 16)
+              : Math.max(0, parent.height - 8)
+            height: root.horizontal
+              ? Math.max(0, parent.height - 8)
+              : Config.labelSmallSize * 2
+            rotation: root.horizontal ? 0 : 90
             spacing: 0
 
             Text {
@@ -256,6 +274,7 @@ PanelWindow {
               font.weight: Font.Bold
               elide: Text.ElideRight
               maximumLineCount: 1
+              horizontalAlignment: Text.AlignLeft
               Layout.fillWidth: true
             }
 
@@ -267,6 +286,7 @@ PanelWindow {
               font.pixelSize: Config.labelSmallSize
               elide: Text.ElideRight
               maximumLineCount: 1
+              horizontalAlignment: Text.AlignLeft
               Layout.fillWidth: true
             }
           }
@@ -274,7 +294,7 @@ PanelWindow {
 
         Item {
           Layout.fillWidth: root.horizontal && root.expanded
-          Layout.fillHeight: !root.horizontal && root.expanded
+          Layout.fillHeight: !root.horizontal && root.expanded && !focusedWindowWrapper.hasWindowInfo
           Layout.preferredWidth: 0
           Layout.preferredHeight: 0
           visible: root.expandProgress > 0
@@ -392,6 +412,78 @@ PanelWindow {
         }
 
         Item {
+          id: clockWrapper
+          Layout.preferredWidth: root.horizontal ? root.wSize * 1.75 * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : Config.clockVerticalHeight * root.expandProgress
+          opacity: root.expandProgress
+          visible: root.expandProgress > 0
+          clip: true
+
+          Item {
+            id: clockWidget
+            anchors.fill: parent
+
+            Column {
+              anchors.centerIn: parent
+              spacing: Config.clockLineSpacing
+
+              Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: root.horizontal
+                  ? root.now.toLocaleString(Qt.locale(), "HH:mm")
+                  : root.now.toLocaleString(Qt.locale(), "HH")
+                color: Colors.primary
+                font.family: Config.fontFamily
+                font.pixelSize: Config.clockPrimarySize
+                font.weight: Font.Bold
+              }
+
+              Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: root.horizontal
+                  ? root.now.toLocaleDateString(Qt.locale(), "MMM dd")
+                  : root.now.toLocaleString(Qt.locale(), "mm")
+                color: Colors.fgSurfaceVariant
+                font.family: Config.fontFamily
+                font.pixelSize: root.horizontal
+                  ? Config.clockSecondarySize
+                  : Config.clockPrimarySize
+                font.weight: root.horizontal ? Font.Medium : Font.Bold
+              }
+            }
+
+            MouseArea {
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: {
+                root.togglePopup("calendar", clockWidget)
+              }
+            }
+          }
+        }
+
+        Item {
+          id: notifWrapper
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
+          opacity: root.expandProgress
+          visible: root.expandProgress > 0
+          clip: true
+
+          NotificationIndicator {
+            id: notifIndicator
+            anchors.fill: parent
+            notificationCount: root.notificationCount
+            active: root.openPopup === "notification"
+            horizontal: root.horizontal
+            onClicked: function(mouse) {
+              root.togglePopup("notification", notifIndicator)
+            }
+          }
+        }
+
+        Item {
           id: commandCenterWrapper
           Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
           Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
@@ -427,71 +519,6 @@ PanelWindow {
             horizontal: root.horizontal
             onClicked: function(mouse) {
               root.togglePopup("quickmenu", menuIndicator)
-            }
-          }
-        }
-
-        Item {
-          id: clockWrapper
-          Layout.preferredWidth: root.horizontal ? root.wSize * 1.5 * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0
-          clip: true
-
-          Item {
-            id: clockWidget
-            anchors.fill: parent
-
-            Column {
-              anchors.centerIn: parent
-              spacing: 0
-
-              Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: root.now.toLocaleString(Qt.locale(), "HH:mm")
-                color: Colors.primary
-                font.family: Config.fontFamily
-                font.pixelSize: (Config.fontPixelSize + 2)
-                font.weight: Font.Bold
-              }
-
-              Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: root.now.toLocaleDateString(Qt.locale(), "MMM dd")
-                color: Colors.fgSurfaceVariant
-                font.family: Config.fontFamily
-                font.pixelSize: Config.labelSmallSize
-              }
-            }
-
-            MouseArea {
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: {
-                root.togglePopup("calendar", clockWidget)
-              }
-            }
-          }
-        }
-
-        Item {
-          id: notifWrapper
-          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0
-          clip: true
-
-          NotificationIndicator {
-            id: notifIndicator
-            anchors.fill: parent
-            notificationCount: root.notificationCount
-            active: root.openPopup === "notification"
-            horizontal: root.horizontal
-            onClicked: function(mouse) {
-              root.togglePopup("notification", notifIndicator)
             }
           }
         }

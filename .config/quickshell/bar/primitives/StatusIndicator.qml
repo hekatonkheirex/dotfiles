@@ -17,12 +17,12 @@ Item {
   property string labelText: ""
   property real labelOpacity: 1.0
   property color accentColor: Colors.primary
-  property color iconColor: root.active ? Colors.fgPrimary : root.accentColor
-  property color labelColor: root.active ? Colors.fgPrimary : root.accentColor
+  property color iconColor: root.accentColor
+  property color labelColor: root.accentColor
   property color inactiveBg: Colors.surfaceContainerHigh
-  // Menu/notification/launcher indicators sit on a transparent bg and only
-  // reveal their outline on hover; other indicators show it whenever inactive.
-  property bool borderOnHoverOnly: false
+  // Indicators stay quiet at rest and reveal their outline on hover/focus;
+  // active state is conveyed by the content color and owning popup surface.
+  property bool borderOnHoverOnly: true
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""
@@ -71,12 +71,12 @@ Item {
       var overlay = mouseArea.pressed ? Colors.pressOverlay
         : (mouseArea.containsMouse ? Colors.hoverOverlay
           : (root.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
-      var base = root.active ? root.accentColor : (root.borderOnHoverOnly ? "transparent" : root.inactiveBg)
+      var base = root.borderOnHoverOnly ? "transparent" : root.inactiveBg
       return Qt.tint(base, overlay)
     }
     border.color: {
-      if (root.active) return "transparent"
-      if (root.borderOnHoverOnly && !mouseArea.containsMouse) return "transparent"
+      if (root.active) return root.activeFocus ? Colors.focusOverlay : "transparent"
+      if (root.borderOnHoverOnly && !mouseArea.containsMouse && !root.activeFocus) return "transparent"
       return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
     }
     border.width: 1
@@ -86,31 +86,38 @@ Item {
     }
   }
 
-  Text {
-    id: iconText
+  Column {
+    id: contentColumn
     anchors.centerIn: parent
-    text: root.iconLabel
-    opacity: root.iconOpacity
-    color: root.iconColor
-    font.family: Config.iconFont
-    font.pixelSize: Config.iconSize
-    horizontalAlignment: Text.AlignHCenter
-    verticalAlignment: Text.AlignVCenter
-  }
+    width: parent.width
+    spacing: root.labelText !== "" ? Config.spacingCompact : 0
 
-  Text {
-    id: labelTextItem
-    visible: root.labelText !== ""
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.bottom: parent.bottom
-    anchors.bottomMargin: 4
-    text: root.labelText
-    opacity: root.labelOpacity
-    color: root.labelColor
-    font.family: Config.fontFamily
-    font.pixelSize: (Config.fontPixelSize - 2)
-    font.weight: Font.Medium
-    horizontalAlignment: Text.AlignHCenter
+    Text {
+      id: iconText
+      width: parent.width
+      height: Config.iconSize
+      text: root.iconLabel
+      opacity: root.iconOpacity
+      color: root.iconColor
+      font.family: Config.iconFont
+      font.pixelSize: Config.iconSize
+      horizontalAlignment: Text.AlignHCenter
+      verticalAlignment: Text.AlignVCenter
+    }
+
+    Text {
+      id: labelTextItem
+      visible: root.labelText !== ""
+      width: parent.width
+      text: root.labelText
+      opacity: root.labelOpacity
+      color: root.labelColor
+      font.family: Config.fontFamily
+      font.pixelSize: Config.labelSmallSize
+      font.weight: Font.Medium
+      horizontalAlignment: Text.AlignHCenter
+      elide: Text.ElideRight
+    }
   }
 
   Item {
