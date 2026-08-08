@@ -2,14 +2,15 @@
 Description=Quickshell Desktop Panel
 PartOf=graphical-session.target
 After=graphical-session.target
-
-[Service]
-ExecStart=/usr/bin/quickshell -vv
-Restart=on-failure
-RestartSec=2s
 # If it crashes more than 5 times in 10 seconds, stop restarting.
+# (StartLimit* only takes effect under [Unit], not [Service].)
 StartLimitIntervalSec=10s
 StartLimitBurst=5
+
+[Service]
+ExecStart=/usr/bin/quickshell
+Restart=on-failure
+RestartSec=2s
 Environment=QT_QPA_PLATFORMTHEME=qt6ct QT_QPA_PLATFORM=wayland XDG_CURRENT_DESKTOP=Niri
 
 [Install]

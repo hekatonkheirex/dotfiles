@@ -23,10 +23,13 @@ Item {
   }
   readonly property color accentColor: Colors.primary
   // Lock screen sits on a fixed dark photo scrim independent of the desktop's
-  // light/dark mode, so text stays fixed white for legibility rather than
-  // following Colors.fgSurface (which would go near-black in light mode).
-  readonly property color textColor: "#FFFFFF"
-  readonly property color mutedText: Qt.rgba(1, 1, 1, 0.7)
+  // light/dark mode, so text stays fixed light for legibility rather than
+  // following Colors.fgSurface (which flips with darkMode and would go
+  // near-black in light mode). Read the dark-scheme on_surface role directly
+  // from the live Matugen palette (falling back to the authored constant),
+  // so the fixed-light text still tracks the current wallpaper.
+  readonly property color textColor: Colors.paletteRole("dark", "on_surface", Colors.d_onSurface)
+  readonly property color mutedText: Qt.rgba(textColor.r, textColor.g, textColor.b, 0.7)
   readonly property color errorColor: Colors.destructive
 
   readonly property string home: Quickshell.env("HOME")
@@ -34,7 +37,7 @@ Item {
 
   Timer {
     interval: 1000
-    running: true
+    running: root.locked
     repeat: true
     onTriggered: root.now = new Date()
   }
@@ -43,6 +46,8 @@ Item {
   property string lockInputText: ""
   property string lockError: ""
   property bool authenticated: false
+  property string pendingPowerLabel: ""
+  property var pendingPowerCommand: []
 
   function username() {
     return Quickshell.env("USER") || "user"
@@ -58,6 +63,7 @@ Item {
     clearPassword()
     lockError = ""
     authenticated = false
+    cancelPowerAction()
     root.locked = true
     sessionLock.locked = true
   }
@@ -76,6 +82,23 @@ Item {
     lockPam.pendingPassword = lockPassword
     lockError = ""
     lockPam.start()
+  }
+
+  function requestPowerAction(label, command) {
+    if (!root.locked) return
+    root.pendingPowerLabel = label
+    root.pendingPowerCommand = command
+  }
+
+  function cancelPowerAction() {
+    root.pendingPowerLabel = ""
+    root.pendingPowerCommand = []
+  }
+
+  function confirmPowerAction() {
+    var command = root.pendingPowerCommand
+    root.cancelPowerAction()
+    if (command && command.length > 0) Quickshell.execDetached(command)
   }
 
   PamContext {
@@ -154,6 +177,8 @@ Item {
         root.lockInputText = ""
         root.lockError = ""
         root.authenticated = false
+      } else {
+        root.cancelPowerAction()
       }
       root.locked = locked
     }
@@ -199,7 +224,7 @@ Item {
               anchors.horizontalCenter: parent.horizontalCenter
               width: 96
               height: 96
-              radius: 48
+              radius: width / 2
               clip: true
               border.width: 3
               border.color: accentColor
@@ -217,7 +242,7 @@ Item {
               Rectangle {
                 id: profileMask
                 anchors.fill: parent
-                radius: 48
+                radius: parent.width / 2
                 color: "black"
                 visible: false
                 layer.enabled: true
@@ -276,7 +301,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             width: 280
             height: 48
-            radius: 12
+            radius: Config.shapeMedium
             color: Qt.rgba(1, 1, 1, 0.12)
             border.width: 1
             border.color: Qt.rgba(1, 1, 1, 0.2)
@@ -347,7 +372,7 @@ Item {
               borderColor: Qt.rgba(1, 1, 1, 0.3)
               accessibleName: "Suspend computer"
               tooltipText: "Suspend computer"
-              onClicked: Quickshell.execDetached(["systemctl", "suspend"])
+              onClicked: root.requestPowerAction("Suspend", ["systemctl", "suspend"])
             }
 
             IconButton {
@@ -359,7 +384,7 @@ Item {
               borderColor: Qt.rgba(1, 1, 1, 0.3)
               accessibleName: "Restart computer"
               tooltipText: "Restart computer"
-              onClicked: Quickshell.execDetached(["systemctl", "reboot"])
+              onClicked: root.requestPowerAction("Restart", ["systemctl", "reboot"])
             }
 
             IconButton {
@@ -371,9 +396,30 @@ Item {
               borderColor: Qt.rgba(1, 1, 1, 0.3)
               accessibleName: "Power off computer"
               tooltipText: "Power off computer"
-              onClicked: Quickshell.execDetached(["systemctl", "poweroff"])
+              onClicked: root.requestPowerAction("Power off", ["systemctl", "poweroff"])
             }
           }
+        }
+
+        PowerConfirmation {
+          id: lockPowerConfirmation
+          anchors.fill: parent
+          opened: root.pendingPowerLabel !== ""
+          actionLabel: root.pendingPowerLabel
+          actionDescription: root.pendingPowerLabel !== ""
+            ? "This will " + root.pendingPowerLabel.toLowerCase() + " the computer."
+            : ""
+          scrimColor: Qt.rgba(0, 0, 0, 0.58)
+          dialogColor: Qt.rgba(0, 0, 0, 0.88)
+          dialogTextColor: root.textColor
+          dialogSecondaryTextColor: root.mutedText
+          dialogBorderColor: Qt.rgba(1, 1, 1, 0.3)
+          cancelColor: Qt.rgba(1, 1, 1, 0.12)
+          cancelTextColor: root.textColor
+          confirmColor: root.accentColor
+          confirmTextColor: Colors.fgPrimary
+          onConfirmed: root.confirmPowerAction()
+          onCancelled: root.cancelPowerAction()
         }
       }
     }
@@ -448,7 +494,7 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           width: 280
           height: 48
-          radius: 12
+          radius: Config.shapeMedium
           color: Qt.rgba(1, 1, 1, 0.12)
           border.width: 1
           border.color: Qt.rgba(1, 1, 1, 0.2)

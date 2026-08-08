@@ -18,15 +18,11 @@ PopupBase {
 
   Process {
     id: getProc
-    command: ["brightnessctl", "-m"]
+    command: ["sh", "-c", "brightnessctl -m | cut -d, -f4 | tr -d %"]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
-        // format: device,class,current_raw,percentage%,max_raw
-        var parts = text.trim().split(",")
-        if (parts.length < 5) return
-        var pctStr = parts[3].replace("%", "")
-        var val = parseFloat(pctStr)
+        var val = parseFloat(text.trim())
         if (!isNaN(val)) root.pct = val
       }
     }
@@ -34,11 +30,24 @@ PopupBase {
 
   function pollBrightness() { getProc.running = true }
 
-  Timer {
-    interval: 300
+  Process {
+    id: brightnessWatcher
+    command: ["sh", "-c", "inotifywait -m -e modify /sys/class/backlight/*/brightness"]
     running: root.visible
-    repeat: true
-    onTriggered: root.pollBrightness()
+    stdout: SplitParser {
+      onRead: function(data) { root.pollBrightness() }
+    }
+    onRunningChanged: {
+      if (!running && root.visible) brightnessWatcherRetry.start()
+    }
+  }
+
+  Timer {
+    id: brightnessWatcherRetry
+    interval: 1000
+    onTriggered: {
+      if (root.visible) brightnessWatcher.running = true
+    }
   }
 
   onShown: root.pollBrightness()

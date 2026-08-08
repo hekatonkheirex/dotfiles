@@ -6,6 +6,7 @@ import Quickshell.Io
 import "../../config"
 
 ColumnLayout {
+  id: wallpapersTab
   anchors.fill: parent
   spacing: 8
   visible: root.currentTab === 2
@@ -14,11 +15,20 @@ ColumnLayout {
 
   property var wallpapersList: []
   property string currentWallpaper: ""
+  property bool discoveryStarted: false
+
+  onVisibleChanged: {
+    if (visible && !discoveryStarted) {
+      discoveryStarted = true
+      listWallpapersProc.running = true
+      genWallpapersThumbsProc.running = true
+    }
+  }
 
   Process {
     id: listWallpapersProc
     command: ["sh", "-c", "find " + Quickshell.env("HOME") + "/Pictures/Walls -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.png' -o -iname '*.jpeg' -o -iname '*.webp' \\) -printf '%f\\n' | sort"]
-    running: true
+    running: false
     stdout: StdioCollector {
       onStreamFinished: {
         var list = text.trim().split("\n");
@@ -32,11 +42,14 @@ ColumnLayout {
     }
   }
 
-  // Pre-generate wallpaper thumbnails on start
+  // Pre-generate wallpaper thumbnails the first time this tab is opened,
+  // rather than unconditionally at shell startup (CommandCenter and all its
+  // tabs are instantiated eagerly, not lazily, so this ran even if the
+  // Wallpapers tab was never viewed).
   Process {
     id: genWallpapersThumbsProc
     command: [Quickshell.env("HOME") + "/.config/quickshell/scripts/generate-thumbnails.sh"]
-    running: true
+    running: false
   }
 
   Process {
@@ -98,7 +111,7 @@ ColumnLayout {
   Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight: true
-    radius: 16
+    radius: Config.shapeLarge
     color: Colors.surfaceContainer
     border.color: Colors.outlineVariant
     border.width: 1

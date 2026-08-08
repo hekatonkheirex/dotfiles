@@ -2,6 +2,8 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
+import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Services.Notifications
 import Quickshell.Services.UPower
 import Quickshell.Io
@@ -321,6 +323,37 @@ ShellRoot {
     margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 
+  PanelWindow {
+    id: powerConfirmationWindow
+    visible: quickMenu.pendingPowerIndex >= 0 && !lockScreen.locked
+    color: "transparent"
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.namespace: "quickshell-confirmation"
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.focusable: powerConfirmationWindow.visible
+
+    anchors.left: true
+    anchors.right: true
+    anchors.top: true
+    anchors.bottom: true
+
+    PowerConfirmation {
+      anchors.fill: parent
+      opened: powerConfirmationWindow.visible
+      actionLabel: quickMenu.pendingPowerIndex >= 0
+        ? quickMenu.powerOptions[quickMenu.pendingPowerIndex].label
+        : ""
+      actionDescription: quickMenu.pendingPowerIndex >= 0
+        ? quickMenu.powerDescription(quickMenu.powerOptions[quickMenu.pendingPowerIndex].label)
+        : ""
+      actionIcon: quickMenu.pendingPowerIndex >= 0
+        ? quickMenu.powerIcon(quickMenu.powerOptions[quickMenu.pendingPowerIndex].label)
+        : ""
+      onConfirmed: quickMenu.confirmPower()
+      onCancelled: quickMenu.cancelPower()
+    }
+  }
+
   CommandCenter {
     id: commandCenter
     visible: bar.openPopup === "commandcenter" && !lockScreen.locked
@@ -342,8 +375,12 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    margins.left: launcherPopup.wallpaperMode
+      ? Math.max(0, (Screen.desktopAvailableWidth - launcherPopup.implicitWidth) / 2)
+      : shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
     anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+    margins.top: launcherPopup.wallpaperMode
+      ? Math.max(0, (Screen.desktopAvailableHeight - launcherPopup.implicitHeight) / 2)
+      : shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 }

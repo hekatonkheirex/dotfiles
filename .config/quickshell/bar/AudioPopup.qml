@@ -64,11 +64,26 @@ PopupBase {
 
   function pollAudio() { audioQuery.running = true; micQuery.running = true }
 
-  Timer {
-    interval: 600
+  Process {
+    id: audioWatcher
+    command: ["pactl", "subscribe"]
     running: root.visible
-    repeat: true
-    onTriggered: root.pollAudio()
+    stdout: SplitParser {
+      onRead: function(data) {
+        if (data.indexOf("sink") >= 0 || data.indexOf("source") >= 0) root.pollAudio()
+      }
+    }
+    onRunningChanged: {
+      if (!running && root.visible) audioWatcherRetry.start()
+    }
+  }
+
+  Timer {
+    id: audioWatcherRetry
+    interval: 1000
+    onTriggered: {
+      if (root.visible) audioWatcher.running = true
+    }
   }
 
   onShown: root.pollAudio()
