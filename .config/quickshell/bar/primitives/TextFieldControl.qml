@@ -15,6 +15,7 @@ Rectangle {
   property string accessibleName: ""
   property string accessibleDescription: ""
   property bool showPlaceholderOnFocus: false
+  property bool captureHorizontalArrows: false
   property string leadingIcon: ""
   property color leadingIconColor: Colors.fgSurfaceVariant
   property real leadingIconSize: 22
@@ -25,6 +26,8 @@ Rectangle {
   signal escapePressed()
   signal upPressed()
   signal downPressed()
+  signal leftPressed()
+  signal rightPressed()
 
   height: 36
   radius: 8
@@ -73,6 +76,12 @@ Rectangle {
           event.accepted = true
         } else if (event.key === Qt.Key_Down) {
           root.downPressed()
+          event.accepted = true
+        } else if (event.key === Qt.Key_Left && root.captureHorizontalArrows) {
+          root.leftPressed()
+          event.accepted = true
+        } else if (event.key === Qt.Key_Right && root.captureHorizontalArrows) {
+          root.rightPressed()
           event.accepted = true
         }
       }

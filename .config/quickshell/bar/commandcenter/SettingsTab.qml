@@ -30,7 +30,7 @@ import "../../config"
                 Layout.fillWidth: true
                 Layout.preferredWidth: 0
                 Layout.preferredHeight: 104
-                radius: 16
+                radius: Config.shapeLarge
                 color: Colors.surfaceContainer
                 border.color: Colors.outlineVariant
                 border.width: 1
@@ -92,7 +92,7 @@ import "../../config"
                 Layout.fillWidth: true
                 Layout.preferredWidth: 0
                 Layout.preferredHeight: 104
-                radius: 16
+                radius: Config.shapeLarge
                 color: Colors.surfaceContainer
                 border.color: Colors.outlineVariant
                 border.width: 1
@@ -160,7 +160,7 @@ import "../../config"
                 Layout.fillWidth: true
                 Layout.preferredWidth: 0
                 Layout.preferredHeight: 113
-                radius: 16
+                radius: Config.shapeLarge
                 color: Colors.surfaceContainer
                 border.color: Colors.outlineVariant
                 border.width: 1
@@ -316,7 +316,7 @@ import "../../config"
             Rectangle {
               Layout.fillWidth: true
               Layout.preferredHeight: 120
-                radius: 16
+                radius: Config.shapeLarge
                 color: Colors.surfaceContainer
                 border.color: Colors.outlineVariant
                 border.width: 1

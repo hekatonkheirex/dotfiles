@@ -11,7 +11,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Lock screen** with PAM + fingerprint authentication.
 - **Notification handling** with history and toasts, styled in Material 3 Expressive.
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
-- **App launcher** with fuzzy search and local offline **voice search**.
+- **App launcher** with fuzzy app search, local offline **voice search**, allowlisted shell actions via `>`, and wallpaper search via `@`.
 - **On-Screen Display (OSD)** overlay for volume, brightness, mic mute, airplane mode, bluetooth, and keyboard backlight (polled from sysfs since the EC never emits a key event for it).
 - **Tabbed Command Center / Control Panel**: A multi-functional panel launched via `XF86Tools` featuring:
   - **Overview tab**: System greeting, profile avatar, active session info, uptime, clock, date, sliders, and a mini media player with a real-time circular waveform visualizer around the album art
@@ -209,7 +209,7 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 
 | Popup | Trigger | Content |
 |---|---|---|
-| Launcher | `Launcher` button / `Mod+D` | App search bar (I-beam text pointer + offline voice search) + `.desktop` list |
+| Launcher | `Launcher` button / `Mod+D` | App search bar (offline voice search, `>` actions, `@` wallpapers) + `.desktop` list |
 | Audio | `AudioIndicator` click | Volume + mic sliders (M3 switches; active check = sound enabled, unchecked = muted) |
 | Brightness | `BrightnessIndicator` click | Brightness slider (M3 bordered) |
 | Battery | `BatteryIndicator` click | Percentage, energy capacity, status, rate, cycles, model (M3 bordered) |

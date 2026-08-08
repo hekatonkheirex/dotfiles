@@ -138,7 +138,7 @@ import "../../config"
                       id: profilePicContainer
                       width: 72
                       height: 72
-                      radius: 36
+                      radius: width / 2
                       color: Colors.surfaceContainerHighest
                       anchors.verticalCenter: parent.verticalCenter
 
@@ -153,7 +153,7 @@ import "../../config"
                       Rectangle {
                         id: profileMaskCC
                         anchors.fill: parent
-                        radius: 36
+                        radius: parent.width / 2
                         color: "black"
                         visible: false
                         layer.enabled: true
@@ -429,7 +429,7 @@ import "../../config"
                   Rectangle {
                     width: 86
                     height: 86
-                    radius: 43
+                    radius: width / 2
                     clip: true
                     anchors.centerIn: parent
                     color: Colors.surfaceContainerHighest

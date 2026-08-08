@@ -19,7 +19,7 @@ import "../../config"
               Rectangle {
                 Layout.preferredWidth: 260
                 Layout.fillHeight: true
-                radius: 16
+                radius: Config.shapeLarge
                 color: Colors.surfaceContainer
                 border.color: Colors.outlineVariant
                 border.width: 1
@@ -72,7 +72,7 @@ import "../../config"
               Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                radius: 16
+                radius: Config.shapeLarge
                 color: Colors.surfaceContainer
                 border.color: Colors.outlineVariant
                 border.width: 1
@@ -182,7 +182,7 @@ import "../../config"
                     required property var modelData
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60
-                    radius: 12
+                    radius: Config.shapeMedium
                     color: Colors.surfaceContainer
                     border.color: Colors.outlineVariant
                     border.width: 1
@@ -251,7 +251,7 @@ import "../../config"
                     required property int index
                     Layout.fillWidth: true
                     Layout.preferredHeight: 115
-                    radius: 12
+                    radius: Config.shapeMedium
                     color: Colors.surfaceContainer
                     border.color: Colors.outlineVariant
                     border.width: 1

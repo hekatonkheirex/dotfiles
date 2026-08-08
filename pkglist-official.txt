@@ -34,6 +34,7 @@ fwupd
 fzf
 gammastep
 git
+github-cli
 gnome-epub-thumbnailer
 gnome-keyring
 grim
@@ -55,6 +56,7 @@ intel-gpu-tools
 intel-media-driver
 intel-ucode
 inter-font
+jdk17-openjdk
 jq
 kitty
 kvantum
@@ -83,9 +85,7 @@ ntfsprogs
 nwg-look
 obs-studio
 obs-studio-plugin-browser
-obsidian
 openai-codex
-opencode
 pacman-contrib
 pacutils
 papers
@@ -96,6 +96,7 @@ pipewire-pulse
 plymouth
 polkit-gnome
 powertop
+python-pillow
 python-pipx
 python-uv
 python-vosk
@@ -154,6 +155,7 @@ xdg-desktop-portal-gtk
 xdg-desktop-portal-wlr
 xdg-user-dirs
 xdg-utils
+xorg-xcursorgen
 xorg-xwayland
 xwayland-satellite
 yad
