@@ -1,13 +1,16 @@
-antigravity-cli
+android-sdk-cmdline-tools-latest
 brave-origin-bin
 claude-code
 google-chrome
+herdr-bin
 libgnome-keyring
 localsend-bin
 onlyoffice-bin
 paru
 raw-thumbnailer
 sunshine-bin
+t3code-bin
 timeshift-autosnap
 ttfautohint
+unimatrix-git
 xnviewmp

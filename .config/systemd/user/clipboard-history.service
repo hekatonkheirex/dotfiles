@@ -1,0 +1,20 @@
+[Unit]
+Description=Persistent text clipboard history
+PartOf=graphical-session.target
+After=graphical-session.target
+StartLimitIntervalSec=10s
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/home/mura/.config/niri/services/clipboard-history/capture
+Restart=on-failure
+RestartSec=2s
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/mura/.cache/cliphist
+
+[Install]
+WantedBy=graphical-session.target

@@ -98,7 +98,7 @@ import "../../config"
                 Rectangle {
                   width: 136
                   height: 136
-                  radius: 68
+                  radius: width / 2
                   clip: true
                   anchors.centerIn: parent
                   color: Colors.surfaceContainerHighest

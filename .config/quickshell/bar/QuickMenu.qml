@@ -19,12 +19,16 @@ PanelWindow {
   signal toggleHorizontal()
 
   property int activePowerIndex: -1
+  property int pendingPowerIndex: -1
   property var powerOptions: [
     { label: "Log Out", cmd: ["sh", Quickshell.env("HOME") + "/.config/quickshell/scripts/safe-logout.sh"] },
     { label: "Shut Down", cmd: ["systemctl", "poweroff"] },
     { label: "Restart", cmd: ["systemctl", "reboot"] },
     { label: "Sleep", cmd: ["systemctl", "suspend"] }
   ]
+  property string focusWindowId: ""
+  property bool focusWindowBaselineReady: false
+  property bool focusDismissArmed: false
   property double openTime: 0
 
   function changeWallpaper() {
@@ -38,6 +42,49 @@ PanelWindow {
     root.activePowerIndex = index
     var item = powerRepeater.itemAt(index)
     if (item) item.forceActiveFocus()
+  }
+
+  function powerIcon(label) {
+    var icons = { "Sleep": "bedtime", "Restart": "restart_alt", "Shut Down": "power_settings_new", "Log Out": "logout" }
+    return icons[label] || "power_settings_new"
+  }
+
+  function powerDescription(label) {
+    var descriptions = {
+      "Sleep": "The computer will enter suspend mode.",
+      "Restart": "The computer will restart.",
+      "Shut Down": "The computer will power off.",
+      "Log Out": "Your current session will end."
+    }
+    return descriptions[label] || "This action will take effect immediately."
+  }
+
+  function requestPower(index) {
+    if (index < 0 || index >= root.powerOptions.length) return
+    // ponytail: close Quick Settings immediately instead of keeping it open
+    // behind the confirmation dialog. Two layer-shell surfaces fighting over
+    // OnDemand keyboard focus (confirmation steals it, then niri won't hand
+    // it back to Quick Settings on cancel) made "click/Escape to dismiss"
+    // unreliable. One popup on screen at a time sidesteps that entirely.
+    root.activePowerIndex = index
+    root.pendingPowerIndex = index
+    root.dismissed()
+  }
+
+  function cancelPower() {
+    root.pendingPowerIndex = -1
+  }
+
+  function confirmPower() {
+    var index = root.pendingPowerIndex
+    if (index < 0 || index >= root.powerOptions.length) {
+      root.cancelPower()
+      return
+    }
+
+    var option = root.powerOptions[index]
+    root.pendingPowerIndex = -1
+    Quickshell.execDetached(option.cmd)
   }
 
   implicitWidth: Config.popupWidth
@@ -68,13 +115,110 @@ PanelWindow {
     }
   }
 
+  Process {
+    id: focusedWindowQuery
+    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j focused-window"]
+    running: false
+
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var raw = text.trim()
+        var currentId = ""
+
+        if (raw && raw !== "null") {
+          try {
+            var data = JSON.parse(raw)
+            if (data && data.id !== undefined && data.id !== null) currentId = String(data.id)
+          } catch (e) {
+            currentId = ""
+          }
+        }
+
+        if (!root.focusWindowBaselineReady || !root.focusDismissArmed) {
+          root.focusWindowId = currentId
+          root.focusWindowBaselineReady = true
+          if (!root.focusDismissArmed) focusQueryDebounce.restart()
+        } else if (root.visible && currentId !== root.focusWindowId) {
+          root.dismissed()
+        }
+      }
+    }
+  }
+
+  Timer {
+    id: focusQueryDebounce
+    interval: 80
+    repeat: false
+    onTriggered: {
+      if (root.visible && Config.isNiri && !focusedWindowQuery.running) {
+        focusedWindowQuery.running = true
+      }
+    }
+  }
+
+  Timer {
+    id: focusDismissArmTimer
+    interval: 300
+    repeat: false
+    onTriggered: {
+      if (!root.visible || !Config.isNiri) return
+      root.focusDismissArmed = true
+      root.focusWindowBaselineReady = false
+      if (!focusedWindowQuery.running) focusedWindowQuery.running = true
+    }
+  }
+
+  Process {
+    id: focusEventWatcher
+    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg event-stream"]
+    running: root.visible && Config.isNiri
+
+    stdout: SplitParser {
+      onRead: function(data) {
+        if (root.visible && root.focusWindowBaselineReady) focusQueryDebounce.restart()
+      }
+    }
+
+    onRunningChanged: {
+      if (!running && root.visible && Config.isNiri) focusEventWatcherRetry.start()
+    }
+  }
+
+  Timer {
+    id: focusEventWatcherRetry
+    interval: 1000
+    repeat: false
+    onTriggered: {
+      if (root.visible && Config.isNiri) focusEventWatcher.running = true
+    }
+  }
+
   onVisibleChanged: {
+    focusQueryDebounce.stop()
+    focusEventWatcherRetry.stop()
+    focusDismissArmTimer.stop()
     if (visible) {
       idleCheck.running = true
       entryAnimation.start()
       root.activePowerIndex = -1
+      root.pendingPowerIndex = -1
+      root.focusWindowId = ""
+      root.focusWindowBaselineReady = false
+      root.focusDismissArmed = false
       mainItem.forceActiveFocus()
       root.openTime = Date.now()
+      if (Config.isNiri) {
+        focusedWindowQuery.running = true
+        focusDismissArmTimer.restart()
+      }
+    } else {
+      // pendingPowerIndex is intentionally left as-is here: requestPower()
+      // closes this popup while the confirmation dialog takes over, and it
+      // owns clearing pendingPowerIndex itself (via cancelPower/confirmPower).
+      root.focusWindowId = ""
+      root.focusWindowBaselineReady = false
+      root.focusDismissArmed = false
+      if (focusedWindowQuery.running) focusedWindowQuery.running = false
     }
   }
 
@@ -82,7 +226,7 @@ PanelWindow {
 
   Component.onCompleted: {
     Qt.application.activeChanged.connect(function() {
-      if (!Qt.application.active && root.visible) root.dismissed()
+      if (!Config.isNiri && !Qt.application.active && root.visible) root.dismissed()
     })
   }
 
@@ -109,9 +253,7 @@ PanelWindow {
         event.accepted = true
       } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
         if (root.activePowerIndex >= 0 && root.activePowerIndex < root.powerOptions.length) {
-          var opt = root.powerOptions[root.activePowerIndex];
-          Quickshell.execDetached(opt.cmd);
-          if (opt.label !== "Sleep") root.dismissed();
+          root.requestPower(root.activePowerIndex)
           event.accepted = true
         }
       }
@@ -263,10 +405,7 @@ PanelWindow {
 
             width: (parent.width - 3 * 8) / 4
             height: width
-            iconLabel: {
-              var icons = { "Sleep": "bedtime", "Restart": "restart_alt", "Shut Down": "power_settings_new", "Log Out": "logout" }
-              return icons[modelData.label] || "power_settings_new"
-            }
+            iconLabel: root.powerIcon(modelData.label)
             labelText: modelData.label
             selected: index === root.activePowerIndex
             accessibleName: modelData.label
@@ -278,14 +417,13 @@ PanelWindow {
               if (hovered) root.activePowerIndex = index
             }
             onActivated: {
-              Quickshell.execDetached(modelData.cmd)
-              if (modelData.label !== "Sleep") root.dismissed()
+              root.requestPower(index)
             }
           }
         }
       }
-
-      }
     }
+  }
+
   }
 }

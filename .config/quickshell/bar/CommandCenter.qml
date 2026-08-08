@@ -493,7 +493,10 @@ PanelWindow {
       weatherProc.running = false
       weatherProc.running = true
       mprisProcess.running = false
-      mprisProcess.running = true
+      // Force-restart for an immediate refresh, then restore the declarative
+      // binding (a bare imperative assignment would permanently override it,
+      // leaving mprisProcess running after Command Center closes).
+      mprisProcess.running = Qt.binding(function() { return root.visible })
       root.ccPollAudio()
       root.ccFetchBrightness()
     }

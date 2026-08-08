@@ -51,7 +51,7 @@ PanelWindow {
   // we poll it ourselves inside one persistent process instead.
   Process {
     id: kbdlightWatcher
-    command: ["sh", "-c", "prev=$(cat /sys/class/leds/tpacpi::kbd_backlight/brightness); while true; do sleep 0.2; cur=$(cat /sys/class/leds/tpacpi::kbd_backlight/brightness); if [ $cur != $prev ]; then echo $cur; prev=$cur; fi; done"]
+    command: ["sh", "-c", "f=/sys/class/leds/tpacpi::kbd_backlight/brightness; read -r prev < \"$f\"; while true; do sleep 0.2; read -r cur < \"$f\"; if [ \"$cur\" != \"$prev\" ]; then echo \"$cur\"; prev=$cur; fi; done"]
     running: true
     stdout: SplitParser {
       onRead: function(data) {
