@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Stand up a working Ukishima-style morphing pill shell for Niri — one pill per monitor that expands in place and hosts a real surface (the audio mixer) grown inside it — as a self-contained `pill/` config launched via `qs -c pill`, fully independent of the existing `bar/`/`config/` shell.
+**Goal:** Stand up a working Ukishima-style morphing pill shell for Niri — one pill per monitor that expands in place and hosts a real surface (the audio mixer) grown inside it — as a self-contained `pill/` config launched via `qs -p ~/.config/quickshell/pill`, fully independent of the existing `bar/`/`config/` shell.
 
 **Architecture:** Two `PanelWindow`s per monitor (`reserve` claims the exclusive zone, `overlay` hosts the single `Pill` item). `Pill.qml` is one `Item` whose size is state-driven (`rest` / `hover` / `surface open`) with a ported Ukishima morph easing curve. Workspace/fullscreen state comes from a new `Niri` singleton that owns the `niri msg event-stream` process (replacing the copy embedded in `bar/WorkspaceIndicator.qml` for this config). The mixer surface is ported from `bar/AudioPopup.qml`'s content, proving the "surface grows inside the pill, cross-fades in, Escape/click-outside dismisses" pattern end to end.
 
@@ -16,7 +16,7 @@
 - Reuse existing primitives via relative import (`../../bar/SliderControl.qml` etc.) rather than forking copies into `pill/components/` — `SliderControl`, `SwitchControl`, `PopupDivider` are unmodified and already correct.
 - Reuse `config/Colors.qml` and `config/Settings.qml` via relative import (`../config/Colors.qml`) for the Matugen/M3 palette and `reduceMotion` — do not build a parallel palette or settings system.
 - No animation/easing constants are invented. The morph duration and cubic-bezier curve are ported verbatim from Ukishima's `Singletons/Motion.qml` (`morph: 420`, `easeMorph: Easing.BezierSpline`, `morphCurve: [0.16, 1, 0.3, 1, 1, 1]`), scaled by `Settings.reduceMotion` the same way `Config.qml` already scales its own motion constants.
-- No automated QML test framework exists in this repo (confirmed during spec work). Verification is manual/soak: launch `qs -c pill`, inspect stderr for QML errors, exercise the behavior, matching how the rest of this shell is validated (see `bar/WorkspaceIndicator.qml`'s own niri-event-stream pattern, which has no test suite either).
+- No automated QML test framework exists in this repo (confirmed during spec work). Verification is manual/soak: launch `qs -p ~/.config/quickshell/pill`, inspect stderr for QML errors, exercise the behavior, matching how the rest of this shell is validated (see `bar/WorkspaceIndicator.qml`'s own niri-event-stream pattern, which has no test suite either).
 - Every `Process` that shells to `niri msg` must use the same socket-discovery one-liner already proven in `bar/WorkspaceIndicator.qml`: `NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg ...` — do not assume `$NIRI_SOCKET` is already exported.
 
 ---
@@ -70,7 +70,7 @@ singleton Motion 1.0 Motion.qml
 
 Run:
 ```bash
-qs -c pill 2>&1 | head -20
+qs -p ~/.config/quickshell/pill 2>&1 | head -20
 ```
 Expected: an error that `shell.qml` doesn't exist yet in `pill/` (there is no shell entry point until Task 5) — NOT a syntax error inside `Motion.qml` or `qmldir`. If the error mentions `Motion.qml` or `qmldir` syntax, fix before continuing. Then stop the process (`Ctrl-C` / it will have already exited).
 
@@ -768,7 +768,7 @@ yadm commit -m "Add Pill.qml: morphing body hosting workspace dots and the mixer
 
 **Interfaces:**
 - Consumes: `Pill.qml` (Task 5), `Niri.focusedOutput`/`Niri.fullscreenByOutput` (Task 2).
-- Produces: the `qs -c pill` entry point. `IpcHandler { target: "pill" }` with `mixer(mon)` and `hide()` handlers — consumed by Task 7's `niri.kdl` keybinds.
+- Produces: the `qs -p ~/.config/quickshell/pill` entry point. `IpcHandler { target: "pill" }` with `mixer(mon)` and `hide()` handlers — consumed by Task 7's `niri.kdl` keybinds.
 
 - [ ] **Step 1: Write `shell.qml`**
 
@@ -911,17 +911,17 @@ ShellRoot {
 - [ ] **Step 2: Launch it and verify no QML errors**
 
 ```bash
-pkill -f "qs -c pill" 2>/dev/null
-qs -c pill > /tmp/claude-1000/-home-mura--config-quickshell/26cbbc8d-b6b7-41eb-a21f-736f579b2db2/scratchpad/pill.log 2>&1 &
+pkill -f "qs -p .*/pill" 2>/dev/null
+qs -p ~/.config/quickshell/pill > /tmp/claude-1000/-home-mura--config-quickshell/26cbbc8d-b6b7-41eb-a21f-736f579b2db2/scratchpad/pill.log 2>&1 &
 sleep 2
 grep -iE "error|fail|warning" /tmp/claude-1000/-home-mura--config-quickshell/26cbbc8d-b6b7-41eb-a21f-736f579b2db2/scratchpad/pill.log
-pgrep -f "qs -c pill"
+pgrep -f "qs -p .*/pill"
 ```
 Expected: no `error`/`fail` lines (warnings about missing icon font glyphs are acceptable if the Material Symbols font isn't in the sandbox, but not QML property/type errors), and `pgrep` prints a PID.
 
 - [ ] **Step 3: Manually verify the pill on screen**
 
-With `qs -c pill` still running: confirm a pill-shaped bar appears top-center, showing workspace dots and a volume icon; hovering/clicking the volume icon morphs it into the mixer surface with working sliders; clicking outside or pressing Escape closes it back to rest; run `niri msg action fullscreen-window` and confirm the pill retracts (opacity 0), then toggle fullscreen off again and confirm it returns.
+With `qs -p ~/.config/quickshell/pill` still running: confirm a pill-shaped bar appears top-center, showing workspace dots and a volume icon; hovering/clicking the volume icon morphs it into the mixer surface with working sliders; clicking outside or pressing Escape closes it back to rest; run `niri msg action fullscreen-window` and confirm the pill retracts (opacity 0), then toggle fullscreen off again and confirm it returns.
 
 ```bash
 niri msg action fullscreen-window
@@ -932,7 +932,7 @@ niri msg action fullscreen-window
 - [ ] **Step 4: Stop the test instance**
 
 ```bash
-pkill -f "qs -c pill"
+pkill -f "qs -p .*/pill"
 ```
 
 - [ ] **Step 5: Commit**
@@ -963,8 +963,8 @@ niri msg -j version >/dev/null 2>&1 && ls -la ~/.config/niri/config.kdl
 In the `binds { ... }` block of `~/.config/niri/config.kdl`, add (pick keys that don't already collide — check the file for existing `Mod+M`/`Mod+Escape` binds first):
 
 ```kdl
-Mod+M { spawn "qs" "-c" "pill" "ipc" "call" "pill" "mixer" ""; }
-Mod+Escape { spawn "qs" "-c" "pill" "ipc" "call" "pill" "hide"; }
+Mod+M { spawn "qs" "-p" "/home/mura/.config/quickshell/pill" "ipc" "call" "pill" "mixer" ""; }
+Mod+Escape { spawn "qs" "-p" "/home/mura/.config/quickshell/pill" "ipc" "call" "pill" "hide"; }
 ```
 
 - [ ] **Step 3: Reload niri config**
@@ -975,17 +975,17 @@ niri msg action load-config-file
 
 - [ ] **Step 4: Verify the keybind end to end**
 
-With `qs -c pill` running (restart it if it was stopped after Task 6):
+With `qs -p ~/.config/quickshell/pill` running (restart it if it was stopped after Task 6):
 ```bash
-qs -c pill > /tmp/claude-1000/-home-mura--config-quickshell/26cbbc8d-b6b7-41eb-a21f-736f579b2db2/scratchpad/pill.log 2>&1 &
+qs -p ~/.config/quickshell/pill > /tmp/claude-1000/-home-mura--config-quickshell/26cbbc8d-b6b7-41eb-a21f-736f579b2db2/scratchpad/pill.log 2>&1 &
 sleep 2
-qs -c pill ipc call pill mixer ""
+qs -p ~/.config/quickshell/pill ipc call pill mixer ""
 sleep 1
 ```
 Expected: the mixer surface opens (same visual result as clicking the volume icon). Then:
 ```bash
-qs -c pill ipc call pill hide
-pkill -f "qs -c pill"
+qs -p ~/.config/quickshell/pill ipc call pill hide
+pkill -f "qs -p .*/pill"
 ```
 
 - [ ] **Step 5: Commit**
