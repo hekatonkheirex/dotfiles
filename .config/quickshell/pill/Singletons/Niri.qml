@@ -21,6 +21,7 @@ QtObject {
 
     property var workspaces: []
     property string focusedOutput: ""
+    onFocusedOutputChanged: root.recomputeFullscreen()
     property var fullscreenByOutput: ({})
 
     function focusWorkspace(idx) {
