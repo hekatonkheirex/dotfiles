@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../../bar"
+import "../components"
 import "../../config"
 
 Item {
