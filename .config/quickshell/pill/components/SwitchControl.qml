@@ -1,6 +1,9 @@
 import QtQuick
 import "../config"
 
+// Forked from bar/SwitchControl.qml (identical apart from import paths). Cross-root
+// import is impossible under `qs -p`; see docs/superpowers/plans/2026-08-09-pill-shell-foundation.md.
+// Keep in sync until bar/ is retired.
 Item {
   id: root
 
