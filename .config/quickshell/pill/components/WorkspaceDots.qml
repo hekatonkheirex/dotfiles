@@ -1,6 +1,6 @@
 import QtQuick
 import "../Singletons"
-import "../../config"
+import "../config"
 
 Row {
     id: root

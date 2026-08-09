@@ -2,7 +2,7 @@ import QtQuick
 import "Singletons"
 import "components"
 import "surfaces"
-import "../config"
+import "config"
 
 Item {
     id: pill
