@@ -29,6 +29,10 @@ ShellRoot {
     IpcHandler {
         target: "pill"
         function mixer(mon: string): void { root.toggleSurface(mon, "mixer") }
+        function battery(mon: string): void { root.toggleSurface(mon, "battery") }
+        function brightness(mon: string): void { root.toggleSurface(mon, "brightness") }
+        function wifi(mon: string): void { root.toggleSurface(mon, "wifi") }
+        function bluetooth(mon: string): void { root.toggleSurface(mon, "bluetooth") }
         function hide(): void { root.close() }
     }
 

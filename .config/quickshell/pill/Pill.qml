@@ -15,6 +15,10 @@ Item {
     readonly property bool held: pinned
     readonly property bool expanded: hovered || held || surface.length > 0
     readonly property bool mixerOpen: surface === "mixer"
+    readonly property bool batteryOpen: surface === "battery"
+    readonly property bool brightnessOpen: surface === "brightness"
+    readonly property bool wifiOpen: surface === "wifi"
+    readonly property bool bluetoothOpen: surface === "bluetooth"
 
     readonly property real restWidth: (restRow.implicitWidth + 28) * s
     readonly property real restHeight: 38 * s
@@ -23,8 +27,19 @@ Item {
     signal requestSurface(string name)
     signal requestClose()
 
-    width: mixerOpen ? mixerWidth : restWidth
-    height: mixerOpen ? (audioSurface.implicitHeight + 16) * s : restHeight
+    readonly property bool anySurfaceOpen: surface.length > 0
+    readonly property real openWidth: (wifiOpen || bluetoothOpen) ? (Config.popupWidth * s) : mixerWidth
+    readonly property real openContentHeight: {
+        if (mixerOpen) return audioSurface.implicitHeight
+        if (batteryOpen) return batterySurface.implicitHeight
+        if (brightnessOpen) return brightnessSurface.implicitHeight
+        if (wifiOpen) return wifiSurface.implicitHeight
+        if (bluetoothOpen) return btSurface.implicitHeight
+        return 0
+    }
+
+    width: anySurfaceOpen ? openWidth : restWidth
+    height: anySurfaceOpen ? (openContentHeight + 16) * s : restHeight
 
     Behavior on width {
         NumberAnimation {
@@ -62,7 +77,7 @@ Item {
             id: restRow
             anchors.centerIn: parent
             spacing: 10 * pill.s
-            opacity: pill.mixerOpen ? 0 : 1
+            opacity: pill.anySurfaceOpen ? 0 : 1
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Motion.fast } }
 
@@ -91,6 +106,42 @@ Item {
                     onClicked: pill.requestSurface(pill.mixerOpen ? "" : "mixer")
                 }
             }
+
+            BatteryIndicator {
+                width: 20 * pill.s
+                height: 20 * pill.s
+                anchors.verticalCenter: parent.verticalCenter
+                horizontal: true
+                active: pill.batteryOpen
+                onClicked: pill.requestSurface(pill.batteryOpen ? "" : "battery")
+            }
+
+            BrightnessIndicator {
+                width: 20 * pill.s
+                height: 20 * pill.s
+                anchors.verticalCenter: parent.verticalCenter
+                horizontal: true
+                active: pill.brightnessOpen
+                onClicked: pill.requestSurface(pill.brightnessOpen ? "" : "brightness")
+            }
+
+            WifiIndicator {
+                width: 20 * pill.s
+                height: 20 * pill.s
+                anchors.verticalCenter: parent.verticalCenter
+                horizontal: true
+                active: pill.wifiOpen
+                onClicked: pill.requestSurface(pill.wifiOpen ? "" : "wifi")
+            }
+
+            BtIndicator {
+                width: 20 * pill.s
+                height: 20 * pill.s
+                anchors.verticalCenter: parent.verticalCenter
+                horizontal: true
+                active: pill.bluetoothOpen
+                onClicked: pill.requestSurface(pill.bluetoothOpen ? "" : "bluetooth")
+            }
         }
 
         AudioSurface {
@@ -98,6 +149,38 @@ Item {
             anchors.fill: parent
             anchors.margins: 0
             opacity: pill.mixerOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Motion.fast } }
+        }
+
+        BatterySurface {
+            id: batterySurface
+            anchors.fill: parent
+            opacity: pill.batteryOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Motion.fast } }
+        }
+
+        BrightnessSurface {
+            id: brightnessSurface
+            anchors.fill: parent
+            opacity: pill.brightnessOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Motion.fast } }
+        }
+
+        WifiSurface {
+            id: wifiSurface
+            anchors.fill: parent
+            opacity: pill.wifiOpen ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: Motion.fast } }
+        }
+
+        BtSurface {
+            id: btSurface
+            anchors.fill: parent
+            opacity: pill.bluetoothOpen ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Motion.fast } }
         }
