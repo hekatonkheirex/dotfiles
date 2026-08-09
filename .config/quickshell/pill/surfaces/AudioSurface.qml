@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../components"
-import "../../config"
+import "../config"
 
 Item {
     id: root

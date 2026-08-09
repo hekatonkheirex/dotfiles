@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
-import "../../config"
+import "../config"
 
 QtObject {
     readonly property real mult: Settings.reduceMotion ? 0.4 : 1
