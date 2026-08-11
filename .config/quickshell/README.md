@@ -86,15 +86,12 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── SliderControl.qml       # Reusable M3 slider (volume/brightness/etc.)
 │   ├── SwitchControl.qml       # Reusable M3 switch/toggle
 │   ├── WaveProgressBar.qml     # Reusable wavy progress bar canvas (progress, lineWidth, dotRadius, trackLineWidth)
-│   └── primitives/             # Shared buttons, list items, tabs, and text fields
+│   └── primitives/             # Shared buttons, list items, and text fields
 │       ├── ActionButton.qml
 │       ├── IconButton.qml
 │       ├── ListItem.qml
 │       ├── StatusIndicator.qml
-│       ├── TabItem.qml
 │       └── TextFieldControl.qml
-├── resources/
-│   └── lock_bg.png             # Lock screen background wallpaper
 ├── scripts/
 │   ├── launcher                # Launcher trigger (touches /tmp/qslauncher-trigger)
 │   ├── quickmenu                # Quick menu trigger (touches /tmp/qsquickmenu-trigger)
@@ -213,8 +210,8 @@ Callable externally via `quickshell ipc call shell launcher` (and similarly for 
 
 - **PAM password auth** via `Quickshell.Services.Pam`
 - **Fingerprint reader** via `fprintd-verify` (auto-retries on failure), started/stopped imperatively in `onLockedChanged` to avoid QML declarative binding breaks
-- Profile image, live clock, suspend/reboot/poweroff buttons
-- Background image from `resources/lock_bg.png`, with text colors fixed to white regardless of the desktop's light/dark mode
+- Profile image (`~/Pictures/profile.jpg`), live clock, suspend/reboot/poweroff buttons
+- Animated background (`AnimatedBackground.qml`), with text colors fixed to white regardless of the desktop's light/dark mode
 - Controlled via `IpcHandler.lock()`, `scripts/lock`, or directly via `touch /tmp/qslock-trigger`
 
 ## Popup System

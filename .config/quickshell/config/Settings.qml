@@ -40,7 +40,6 @@ FileView {
   property alias spacingScale: adapter.spacingScale
   property alias systemShowUptime: adapter.systemShowUptime
   property alias timezone: adapter.timezone
-  property alias weatherCity: adapter.weatherCity
   property alias weatherUnits: adapter.weatherUnits
 
   function save() {
@@ -72,7 +71,6 @@ FileView {
     property real spacingScale: 1.0
     property bool systemShowUptime: true
     property string timezone: ""
-    property string weatherCity: ""
     property string weatherUnits: "metric"
   }
 }
