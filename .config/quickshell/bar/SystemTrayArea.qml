@@ -57,6 +57,20 @@ Item {
         Layout.alignment: systemTrayAreaRoot.horizontal ? Qt.AlignVCenter : Qt.AlignHCenter
         width: visible ? (Config.widgetSize) : 0
         height: visible ? (Config.widgetSize) : 0
+        activeFocusOnTab: isIconVisible
+
+        Accessible.role: Accessible.Button
+        Accessible.name: modelData.title || modelData.id || "System tray item"
+        Accessible.description: modelData.hasMenu ? "Open system tray menu" : "Activate system tray item"
+        Accessible.focusable: isIconVisible
+        Accessible.focused: activeFocus
+
+        Keys.onPressed: function(event) {
+          if (isIconVisible && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
+            modelData.activate()
+            event.accepted = true
+          }
+        }
 
         property bool counted: false
 
@@ -98,6 +112,14 @@ Item {
           height: width
           fillMode: Image.PreserveAspectFit
           visible: isPixmapIcon
+        }
+
+        Rectangle {
+          anchors.fill: parent
+          radius: Config.shapeMedium
+          color: "transparent"
+          border.width: trayIconDelegate.activeFocus ? 2 : 0
+          border.color: Colors.primary
         }
 
         QsMenuAnchor {

@@ -1,5 +1,5 @@
 // Wi-Fi content for the Settings Network tab. Lifted out of the old
-// standalone WifiPopup.
+// standalone Wi-Fi popup.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -17,12 +17,35 @@ Item {
   property int selectedIndex: -1
   property string statusMessage: ""
   property bool connecting: false
+  property bool statusKnown: false
+  property bool unavailable: false
+  property string pendingDeleteConnection: ""
+
+  ListModel {
+    id: savedListModel
+  }
 
   function refresh() {
     statusQuery.running = true
     deviceQuery.running = true
-    root.statusMessage = ""
+    root.statusKnown = false
+    root.unavailable = false
+    root.statusMessage = "Checking Wi-Fi..."
     root.selectedIndex = -1
+    savedQuery.running = true
+  }
+
+  function setUnavailable(message) {
+    root.statusKnown = true
+    root.unavailable = true
+    root.wifiOn = false
+    root.wifiDevice = ""
+    root.selectedIndex = -1
+    root.connecting = false
+    root.pendingDeleteConnection = ""
+    root.statusMessage = message
+    wifiListModel.clear()
+    savedListModel.clear()
   }
 
   function parseWifiList(output) {
@@ -101,13 +124,37 @@ Item {
     connectProcess.running = true
   }
 
+  function setAutoconnect(name, enabled) {
+    savedModifyProcess.command = ["nmcli", "connection", "modify", name, "connection.autoconnect", enabled ? "yes" : "no"]
+    savedModifyProcess.running = true
+  }
+
+  function requestForget(name) {
+    if (name) root.pendingDeleteConnection = name
+  }
+
+  function forgetConnection() {
+    if (!root.pendingDeleteConnection) return
+    savedDeleteProcess.command = ["nmcli", "connection", "delete", root.pendingDeleteConnection]
+    savedDeleteProcess.running = true
+  }
+
   Process {
     id: statusQuery
     command: ["nmcli", "radio", "wifi"]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
-        root.wifiOn = text.trim() === "enabled"
+        var out = text.trim()
+        if (out !== "enabled" && out !== "disabled") {
+          root.setUnavailable("Wi-Fi controls unavailable. NetworkManager did not return a status.")
+          return
+        }
+
+        root.statusKnown = true
+        root.unavailable = false
+        root.statusMessage = ""
+        root.wifiOn = out === "enabled"
         if (root.wifiOn) {
           deviceQuery.running = true
           listQuery.running = true
@@ -115,6 +162,9 @@ Item {
           root.wifiDevice = ""
         }
       }
+    }
+    onExited: (exitCode) => {
+      if (exitCode !== 0) root.setUnavailable("Wi-Fi controls unavailable. NetworkManager is not responding.")
     }
   }
 
@@ -135,6 +185,11 @@ Item {
         }
       }
     }
+    onExited: (exitCode) => {
+      if (exitCode !== 0 && root.statusKnown && !root.unavailable) {
+        root.statusMessage = "Could not determine the active Wi-Fi device."
+      }
+    }
   }
 
   Process {
@@ -151,6 +206,55 @@ Item {
         }
       }
     }
+    onExited: (exitCode) => {
+      if (exitCode !== 0 && root.statusKnown && !root.unavailable) {
+        wifiListModel.clear()
+        root.statusMessage = "Could not scan for Wi-Fi networks."
+      }
+    }
+  }
+
+  Process {
+    id: savedQuery
+    command: ["nmcli", "-t", "-e", "no", "-f", "NAME,TYPE,AUTOCONNECT,DEVICE", "connection", "show"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        savedListModel.clear()
+        var lines = text.trim().split("\n")
+        for (var i = 0; i < lines.length; i++) {
+          var parts = lines[i].split(":")
+          if (parts.length < 4 || parts[1] !== "802-11-wireless") continue
+          savedListModel.append({
+            name: parts[0],
+            autoconnect: parts[2] === "yes",
+            active: parts[3] !== "--"
+          })
+        }
+      }
+    }
+    onExited: (exitCode) => {
+      if (exitCode !== 0 && root.statusKnown && !root.unavailable) savedListModel.clear()
+    }
+  }
+
+  Process {
+    id: savedModifyProcess
+    running: false
+    onExited: (exitCode) => {
+      root.statusMessage = exitCode === 0 ? "Saved network updated." : "Could not update saved network."
+      savedQuery.running = true
+    }
+  }
+
+  Process {
+    id: savedDeleteProcess
+    running: false
+    onExited: (exitCode) => {
+      root.statusMessage = exitCode === 0 ? "Saved network forgotten." : "Could not forget saved network."
+      root.pendingDeleteConnection = ""
+      savedQuery.running = true
+    }
   }
 
   Process {
@@ -165,7 +269,7 @@ Item {
           root.selectedIndex = -1
           listQuery.running = true
         } else {
-          root.statusMessage = "Connection failed: " + out
+          root.statusMessage = out.length > 0 ? "Connection failed: " + out : "Connection failed."
         }
       }
     }
@@ -196,7 +300,7 @@ Item {
         enabled: !listQuery.running
         accessibleName: "Refresh Wi-Fi networks"
         tooltipText: "Refresh Wi-Fi networks"
-        onClicked: listQuery.running = true
+        onClicked: root.refresh()
       }
 
       SwitchControl {
@@ -208,6 +312,7 @@ Item {
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Wi-Fi enabled"
+        enabled: root.statusKnown && !root.unavailable
 
         onToggled: {
           var newState = !root.wifiOn
@@ -218,11 +323,74 @@ Item {
       }
     }
 
+    ColumnLayout {
+      width: parent.width
+      spacing: 8
+      visible: !root.statusKnown
+
+      Item { Layout.preferredHeight: 12 }
+
+      Text {
+        Layout.alignment: Qt.AlignHCenter
+        text: "sync"
+        color: Colors.fgSurfaceVariant
+        font.family: Config.iconFont
+        font.pixelSize: 48
+        opacity: 0.25
+      }
+
+      Text {
+        Layout.alignment: Qt.AlignHCenter
+        text: "Checking Wi-Fi status"
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: Config.fontPixelSize + 4
+        font.weight: Font.Bold
+      }
+    }
+
+    ColumnLayout {
+      width: parent.width
+      spacing: 8
+      visible: root.unavailable
+
+      Item { Layout.preferredHeight: 12 }
+
+      Text {
+        Layout.alignment: Qt.AlignHCenter
+        text: "wifi_off"
+        color: Colors.error
+        font.family: Config.iconFont
+        font.pixelSize: 48
+        opacity: 0.75
+      }
+
+      Text {
+        Layout.fillWidth: true
+        text: "Wi-Fi unavailable"
+        horizontalAlignment: Text.AlignHCenter
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: Config.fontPixelSize + 4
+        font.weight: Font.Bold
+      }
+
+      Text {
+        Layout.fillWidth: true
+        text: "NetworkManager is unavailable or returned an error."
+        horizontalAlignment: Text.AlignHCenter
+        wrapMode: Text.WordWrap
+        color: Colors.fgSurfaceVariant
+        font.family: Config.fontFamily
+        font.pixelSize: Config.fontPixelSize + 1
+      }
+    }
+
     // Wi-Fi is Off
     ColumnLayout {
       width: parent.width
       spacing: 8
-      visible: !root.wifiOn
+      visible: root.statusKnown && !root.unavailable && !root.wifiOn
 
       Item {
         Layout.preferredHeight: 12
@@ -259,7 +427,7 @@ Item {
     ColumnLayout {
       width: parent.width
       spacing: 8
-      visible: root.wifiOn
+      visible: root.statusKnown && !root.unavailable && root.wifiOn
 
       ListModel {
         id: wifiListModel
@@ -284,6 +452,93 @@ Item {
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
         font.pixelSize: Config.fontPixelSize + 2
+      }
+    }
+
+    ColumnLayout {
+      width: parent.width
+      spacing: Config.spacingSmall
+      visible: root.statusKnown && !root.unavailable && savedListModel.count > 0
+
+      Text {
+        text: "Saved Networks"
+        color: Colors.fgSurfaceVariant
+        font.family: Config.fontFamily
+        font.pixelSize: Config.textCaptionSize
+        font.weight: Font.Medium
+      }
+
+      ListView {
+        Layout.fillWidth: true
+        Layout.preferredHeight: Math.min(240, contentHeight)
+        model: savedListModel
+        clip: true
+        spacing: Config.spacingCompact
+        boundsBehavior: Flickable.StopAtBounds
+
+        delegate: ListItem {
+          width: ListView.view.width
+          leadingIcon: model.active ? "wifi" : "wifi_find"
+          leadingIconColor: model.active ? Colors.primary : Colors.fgSurface
+          title: model.name
+          subtitle: model.active ? "Connected" : "Saved network"
+          accessibleName: model.name + " saved Wi-Fi network"
+
+          SwitchControl {
+            checked: model.autoconnect
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Autoconnect to " + model.name
+            onToggled: root.setAutoconnect(model.name, !model.autoconnect)
+          }
+
+          IconButton {
+            size: 28
+            iconSize: 18
+            iconLabel: "delete"
+            iconColor: Colors.error
+            accessibleName: "Forget " + model.name
+            tooltipText: "Forget saved network"
+            onClicked: root.requestForget(model.name)
+          }
+        }
+      }
+    }
+
+    RowLayout {
+      Layout.fillWidth: true
+      visible: root.pendingDeleteConnection !== ""
+      spacing: Config.spacingSmall
+
+      Text {
+        Layout.fillWidth: true
+        text: "Forget “" + root.pendingDeleteConnection + "”?"
+        color: Colors.error
+        font.family: Config.fontFamily
+        font.pixelSize: Config.textBodySize
+        elide: Text.ElideRight
+      }
+
+      ActionButton {
+        Layout.preferredWidth: 72
+        Layout.preferredHeight: 36
+        labelText: "Forget"
+        variant: "filled"
+        accessibleName: "Confirm forget saved network"
+        onActivated: root.forgetConnection()
+      }
+
+      ActionButton {
+        Layout.preferredWidth: 72
+        Layout.preferredHeight: 36
+        labelText: "Cancel"
+        variant: "quiet"
+        accessibleName: "Cancel forget saved network"
+        onActivated: root.pendingDeleteConnection = ""
       }
     }
 

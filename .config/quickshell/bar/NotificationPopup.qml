@@ -11,12 +11,25 @@ PopupBase {
 
   property var notifications: []
   property int count: 0
+  readonly property int historyLimit: Math.max(1, Settings.notificationHistoryLimit)
+
+  function trimHistory() {
+    var copy = notifications.slice()
+    var removed = []
+    while (copy.length > root.historyLimit) removed.push(copy.shift())
+    notifications = copy
+    count = notifications.length
+    for (var i = 0; i < removed.length; i++) {
+      if (removed[i] && removed[i].dismiss) removed[i].dismiss()
+    }
+  }
 
   function addNotification(n) {
     var copy = notifications.slice()
     copy.push(n)
     notifications = copy
     count = notifications.length
+    root.trimHistory()
   }
 
   function removeNotification(n) {
@@ -45,6 +58,11 @@ PopupBase {
     notif.closed.connect(function() {
       root.removeNotification(notif)
     })
+  }
+
+  Connections {
+    target: Settings
+    function onNotificationHistoryLimitChanged() { root.trimHistory() }
   }
 
 

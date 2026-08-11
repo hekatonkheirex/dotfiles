@@ -76,6 +76,53 @@ ShellRoot {
   property bool isHorizontal: true
   property bool fullBar: Settings.fullBar
 
+  function themeModeName(preference) {
+    var modes = ["auto", "light", "dark"]
+    return modes[preference] || "auto"
+  }
+
+  function syncThemeMode() {
+    Quickshell.execDetached([
+      Quickshell.env("HOME") + "/.local/bin/sync-theme-mode.sh",
+      shell.themeModeName(Settings.themePreference)
+    ])
+  }
+
+  function quietHoursActive() {
+    if (!Settings.notificationQuietHoursEnabled) return false
+
+    var now = new Date()
+    var minutes = now.getHours() * 60 + now.getMinutes()
+    var start = Math.max(0, Math.min(1439, Settings.notificationQuietHoursStart))
+    var end = Math.max(0, Math.min(1439, Settings.notificationQuietHoursEnd))
+    if (start === end) return true
+    return start > end
+      ? minutes >= start || minutes < end
+      : minutes >= start && minutes < end
+  }
+
+  function notificationSuppressed(notif) {
+    var critical = notif && notif.urgency === NotificationUrgency.Critical
+    if (critical && Settings.notificationCriticalBypass) return false
+    return Settings.doNotDisturb || shell.quietHoursActive()
+  }
+
+  // Re-apply the persisted mode whenever the shell starts. This keeps the
+  // GTK, Qt, terminal, and Niri outputs aligned with Settings after restart.
+  Process {
+    id: syncThemeOnStartup
+    command: [
+      Quickshell.env("HOME") + "/.local/bin/sync-theme-mode.sh",
+      shell.themeModeName(Settings.themePreference)
+    ]
+    running: true
+  }
+
+  Connections {
+    target: Settings
+    function onThemePreferenceChanged() { shell.syncThemeMode() }
+  }
+
   Process {
     id: readLayoutPref
     command: ["sh", "-c", "cat " + Quickshell.env("HOME") + "/.config/quickshell/layout 2>/dev/null || echo horizontal"]
@@ -200,7 +247,7 @@ ShellRoot {
           if (batteryAlert.alertNotif === notif) batteryAlert.alertNotif = null
         })
       }
-      if (!Settings.doNotDisturb) notificationToast.show(notif)
+      if (!shell.notificationSuppressed(notif)) notificationToast.show(notif)
       notificationPopup.onNotificationReceived(notif)
     }
   }
@@ -214,7 +261,19 @@ ShellRoot {
     target: Settings
 
     function onDoNotDisturbChanged() {
-      if (Settings.doNotDisturb) notificationToast.suppress()
+      if (Settings.doNotDisturb || shell.quietHoursActive()) notificationToast.suppress()
+    }
+
+    function onNotificationQuietHoursEnabledChanged() {
+      if (Settings.notificationQuietHoursEnabled && shell.quietHoursActive()) notificationToast.suppress()
+    }
+
+    function onNotificationQuietHoursStartChanged() {
+      if (shell.quietHoursActive()) notificationToast.suppress()
+    }
+
+    function onNotificationQuietHoursEndChanged() {
+      if (shell.quietHoursActive()) notificationToast.suppress()
     }
   }
 
@@ -368,6 +427,7 @@ ShellRoot {
     isHorizontal: shell.isHorizontal
     onToggleHorizontal: shell.toggleLayout()
     fullBar: shell.fullBar
+    notificationPopup: notificationPopup
     onToggleFullBar: shell.toggleFullBar()
   }
 

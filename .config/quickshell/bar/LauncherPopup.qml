@@ -247,13 +247,26 @@ PanelWindow {
     dismissed()
   }
 
+  function toggleVoiceSearch() {
+    if (!root.voiceRecording && !root.voiceTranscribing) {
+      root.voiceRecording = true
+      Quickshell.execDetached(["rm", "-f", "/tmp/qs-voice.wav"])
+      recorderProc.running = true
+    } else if (root.voiceRecording) {
+      root.voiceRecording = false
+      root.voiceTranscribing = true
+      recorderProc.running = false
+      transcriberProc.running = true
+    }
+  }
+
   function runLauncherScript(name) {
     Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/quickshell/scripts/" + name])
   }
 
-  function setThemeMode(mode, preference) {
-    Colors.themePreference = preference
-    Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.local/bin/sync-theme-mode.sh", mode])
+  function setThemeMode(preference) {
+    Settings.themePreference = preference
+    Settings.save()
   }
 
   function appendFilteredResult(item, fallbackKind) {
@@ -284,13 +297,13 @@ PanelWindow {
         runLauncherScript("lock")
         break
       case "theme-auto":
-        setThemeMode("auto", 0)
+        setThemeMode(0)
         break
       case "theme-light":
-        setThemeMode("light", 1)
+        setThemeMode(1)
         break
       case "theme-dark":
-        setThemeMode("dark", 2)
+        setThemeMode(2)
         break
       default:
         return
@@ -600,13 +613,20 @@ PanelWindow {
         onLeftPressed: root.moveWallpaperSelection(Qt.Key_Left)
         onRightPressed: root.moveWallpaperSelection(Qt.Key_Right)
 
-        Text {
+        IconButton {
           id: micIcon
-          text: root.voiceRecording ? "stop" : (root.voiceTranscribing ? "sync" : "mic")
-          color: root.voiceRecording ? Colors.destructive : (root.voiceTranscribing ? Colors.info : Colors.fgSurfaceVariant)
-          font.family: Config.iconFont
-          font.pixelSize: 22
-
+          size: 32
+          iconSize: 22
+          iconLabel: root.voiceRecording ? "stop" : (root.voiceTranscribing ? "sync" : "mic")
+          iconColor: root.voiceRecording ? Colors.destructive : (root.voiceTranscribing ? Colors.info : Colors.fgSurfaceVariant)
+          accessibleName: root.voiceRecording
+            ? "Stop voice search"
+            : (root.voiceTranscribing ? "Transcribing voice search" : "Start voice search")
+          accessibleDescription: root.voiceTranscribing
+            ? "Voice search is being transcribed"
+            : "Record a voice query for the launcher"
+          tooltipText: accessibleName
+          onClicked: root.toggleVoiceSearch()
           onRotationChanged: {
             if (!root.voiceTranscribing && rotation !== 0) rotation = 0
           }
@@ -620,23 +640,6 @@ PanelWindow {
             duration: 1200
           }
 
-          MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-              if (!root.voiceRecording && !root.voiceTranscribing) {
-                root.voiceRecording = true
-                Quickshell.execDetached(["rm", "-f", "/tmp/qs-voice.wav"])
-                recorderProc.running = true
-              } else if (root.voiceRecording) {
-                root.voiceRecording = false
-                root.voiceTranscribing = true
-                recorderProc.running = false
-                transcriberProc.running = true
-              }
-            }
-          }
         }
       }
 

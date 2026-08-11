@@ -22,7 +22,7 @@ Rectangle {
 
   signal activated()
 
-  radius: 20
+  radius: Config.shapeLarge
   activeFocusOnTab: true
   opacity: root.enabled ? 1.0 : 0.38
 
@@ -66,7 +66,7 @@ Rectangle {
 
   Column {
     anchors.centerIn: parent
-    spacing: root.labelText !== "" ? 2 : 0
+    spacing: root.labelText !== "" ? Config.spacingCompact : 0
 
     Text {
       anchors.horizontalCenter: parent.horizontalCenter
