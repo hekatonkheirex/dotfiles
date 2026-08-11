@@ -10,6 +10,7 @@ import "../../config"
 Flickable {
   id: accountTab
   property QtObject root: null
+  readonly property bool compactLayout: root ? root.compactLayout : false
   anchors.fill: parent
   visible: root.currentTab === 0
   clip: true
@@ -34,17 +35,17 @@ Flickable {
   Process {
     id: machineInfoProc
     command: ["sh", "-c",
-      "getent passwd \"$USER\" | cut -d: -f5 | cut -d, -f1; " +
-      "uname -n; " +
-      ". /etc/os-release; echo \"$PRETTY_NAME\"; " +
-      "uname -r; " +
-      "lscpu | grep 'Model name' | sed 's/Model name:[[:space:]]*//'; " +
-      "lspci | grep -i vga | sed 's/^[0-9a-f:.]* VGA compatible controller: //'; " +
-      "basename \"$SHELL\"; " +
-      "niri --version; " +
-      "quickshell --version; " +
-      "ip -o -4 addr show scope global 2>/dev/null | head -1 | awk '{print $2\" \"$4}'"]
-    running: true
+      "getent passwd \"$USER\" 2>/dev/null | cut -d: -f5 | cut -d, -f1 || echo Unavailable; " +
+      "uname -n 2>/dev/null || echo Unavailable; " +
+      "if [ -r /etc/os-release ]; then . /etc/os-release; printf '%s\\n' \"${PRETTY_NAME:-Unavailable}\"; else echo Unavailable; fi; " +
+      "uname -r 2>/dev/null || echo Unavailable; " +
+      "(lscpu 2>/dev/null | grep 'Model name' | sed 's/Model name:[[:space:]]*//' | head -1) || echo Unavailable; " +
+      "if command -v lspci >/dev/null 2>&1; then (lspci | grep -i vga | sed 's/^[0-9a-f:.]* VGA compatible controller: //' | head -1) || echo Unavailable; else echo Unavailable; fi; " +
+      "basename \"${SHELL:-}\" 2>/dev/null || echo Unavailable; " +
+      "niri --version 2>/dev/null || echo Unavailable; " +
+      "quickshell --version 2>/dev/null || echo Unavailable; " +
+      "(ip -o -4 addr show scope global 2>/dev/null | head -1 | awk '{print $2\" \"$4}') || echo Unavailable"]
+    running: false
     stdout: StdioCollector {
       onStreamFinished: {
         var lines = text.trim().split("\n");
@@ -65,6 +66,18 @@ Flickable {
     }
   }
 
+  onVisibleChanged: {
+    if (visible && !accountTab.machineInfoLoaded && !machineInfoProc.running) {
+      machineInfoProc.running = true
+    } else if (!visible && machineInfoProc.running) {
+      machineInfoProc.running = false
+    }
+  }
+
+  Component.onCompleted: {
+    if (accountTab.visible && !accountTab.machineInfoLoaded) machineInfoProc.running = true
+  }
+
   component InfoRow: RowLayout {
     id: infoRow
     property string icon: ""
@@ -72,7 +85,7 @@ Flickable {
     property string value: ""
     Layout.fillWidth: true
     Layout.preferredHeight: 32
-    spacing: 10
+    spacing: Config.spacingSmall
 
     Text {
       text: infoRow.icon
@@ -106,108 +119,127 @@ Flickable {
   ColumnLayout {
     id: mainColumn
     width: accountTab.width
-    spacing: 16
+    spacing: Config.spacingLarge
 
   Rectangle {
     id: profileCard
     Layout.fillWidth: true
-    Layout.preferredHeight: 152
+    Layout.preferredHeight: accountTab.compactLayout ? 196 : 152
     radius: Config.shapeLarge
     color: Colors.surfaceContainer
     border.color: Colors.outlineVariant
     border.width: 1
 
-    Row {
+    Flow {
+      id: profileFlow
+      width: accountTab.compactLayout ? parent.width - 16 : 360
+      height: accountTab.compactLayout ? 180 : 96
       anchors.centerIn: parent
-      spacing: 20
+      spacing: accountTab.compactLayout ? 8 : 20
+      flow: Flow.LeftToRight
 
-      Rectangle {
-        id: profilePicContainer
-        width: 96
+      Item {
+        width: accountTab.compactLayout ? profileFlow.width : 96
         height: 96
-        radius: width / 2
-        color: Colors.surfaceContainerHighest
-        anchors.verticalCenter: parent.verticalCenter
-
-        Image {
-          id: profilePic
-          source: "file://" + Quickshell.env("HOME") + "/.face.icon"
-          anchors.fill: parent
-          fillMode: Image.PreserveAspectCrop
-          visible: false
-        }
 
         Rectangle {
-          id: profileMask
-          anchors.fill: parent
-          radius: parent.width / 2
-          color: "black"
-          visible: false
-          layer.enabled: true
-        }
-
-        MultiEffect {
-          anchors.fill: parent
-          source: profilePic
-          visible: profilePic.status === Image.Ready
-          maskEnabled: true
-          maskSource: profileMask
-        }
-
-        Text {
+          id: profilePicContainer
+          width: 96
+          height: 96
           anchors.centerIn: parent
-          text: "person"
-          font.family: Config.iconFont
-          font.pixelSize: 48
-          color: Colors.fgSurfaceVariant
-          visible: profilePic.status !== Image.Ready
+          radius: width / 2
+          color: Colors.surfaceContainerHighest
+
+          Image {
+            id: profilePic
+            source: "file://" + Quickshell.env("HOME") + "/.face.icon"
+            anchors.fill: parent
+            fillMode: Image.PreserveAspectCrop
+            visible: false
+          }
+
+          Rectangle {
+            id: profileMask
+            anchors.fill: parent
+            radius: parent.width / 2
+            color: "black"
+            visible: false
+            layer.enabled: true
+          }
+
+          MultiEffect {
+            anchors.fill: parent
+            source: profilePic
+            visible: profilePic.status === Image.Ready
+            maskEnabled: true
+            maskSource: profileMask
+          }
+
+          Text {
+            anchors.centerIn: parent
+            text: "person"
+            font.family: Config.iconFont
+            font.pixelSize: 48
+            color: Colors.fgSurfaceVariant
+            visible: profilePic.status !== Image.Ready
+          }
         }
       }
 
-      Column {
-        anchors.verticalCenter: parent.verticalCenter
-        spacing: 8
+      Item {
+        id: profileDetailsContainer
+        width: accountTab.compactLayout ? profileFlow.width : 220
+        height: accountTab.compactLayout ? 68 : 96
 
-        Text {
-          text: accountTab.fullName || Quickshell.env("USER") || "User"
-          color: Colors.fgSurface
-          font.family: Config.fontFamily
-          font.pixelSize: 22
-          font.weight: Font.Bold
-        }
+        Column {
+          id: profileDetails
+          width: parent.width
+          anchors.verticalCenter: parent.verticalCenter
+          spacing: accountTab.compactLayout ? 4 : 8
 
-        Row {
-          spacing: 6
           Text {
-            text: "navigation"
-            font.family: Config.iconFont
-            font.pixelSize: 15
-            color: Colors.primary
-          }
-          Text {
-            text: "on niri"
-            color: Colors.fgSurfaceVariant
+            text: accountTab.fullName || Quickshell.env("USER") || "User"
+            color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: 14
-          }
-        }
-
-        Row {
-          visible: Settings.systemShowUptime
-          spacing: 6
-          Text {
-            text: "schedule"
-            font.family: Config.iconFont
-            font.pixelSize: 15
-            color: Colors.fgSurfaceVariant
-          }
-          Text {
-            text: root.uptimeText.replace("up ", "")
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: 14
+            font.pixelSize: accountTab.compactLayout ? 16 : 22
+            font.weight: Font.Bold
+            width: profileDetails.width
             elide: Text.ElideRight
-            width: 200
+          }
+
+          Row {
+            spacing: 6
+            Text {
+              text: "navigation"
+              font.family: Config.iconFont
+              font.pixelSize: accountTab.compactLayout ? 13 : 15
+              color: Colors.primary
+            }
+            Text {
+              text: "on niri"
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: accountTab.compactLayout ? 12 : 14
+            }
+          }
+
+          Row {
+            visible: Settings.systemShowUptime
+            spacing: 6
+            Text {
+              text: "schedule"
+              font.family: Config.iconFont
+              font.pixelSize: accountTab.compactLayout ? 13 : 15
+              color: Colors.fgSurfaceVariant
+            }
+            Text {
+              text: root.uptimeText.replace("up ", "")
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: accountTab.compactLayout ? 12 : 14
+              elide: Text.ElideRight
+              width: Math.max(0, profileDetails.width - 21)
+            }
           }
         }
       }
@@ -257,9 +289,11 @@ Flickable {
   }
 
   // Quick actions
-  RowLayout {
+  GridLayout {
     Layout.fillWidth: true
-    spacing: 12
+    columns: accountTab.compactLayout ? 1 : 2
+    columnSpacing: 12
+    rowSpacing: 12
 
     ActionButton {
       Layout.fillWidth: true

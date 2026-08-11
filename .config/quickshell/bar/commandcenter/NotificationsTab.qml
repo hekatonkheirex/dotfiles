@@ -9,13 +9,21 @@ import "../../config"
 Flickable {
   id: notificationsTab
   property QtObject root: null
+  property QtObject notificationPopup: null
+  readonly property bool compactLayout: root ? root.compactLayout : false
   anchors.fill: parent
-  visible: root.currentTab === 6
+  visible: root.currentTab === 8
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
+
+  function formatMinutes(value) {
+    var minutes = Math.max(0, Math.min(1439, Math.round(value)))
+    return String(Math.floor(minutes / 60)).padStart(2, "0") + ":"
+      + String(minutes % 60).padStart(2, "0")
+  }
 
   Process {
     id: testNotifyProc
@@ -26,7 +34,7 @@ Flickable {
   ColumnLayout {
     id: mainColumn
     width: notificationsTab.width
-    spacing: 16
+    spacing: Config.spacingLarge
 
     // Behavior card
     Rectangle {
@@ -40,8 +48,8 @@ Flickable {
       ColumnLayout {
         id: behaviorCol
         anchors.fill: parent
-        anchors.margins: 8
-        spacing: 8
+        anchors.margins: Config.spacingSmall
+        spacing: Config.spacingSmall
 
           ListItem {
             Layout.fillWidth: true
@@ -72,15 +80,18 @@ Flickable {
             text: "Toast Duration"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
-            font.pixelSize: 12
-            Layout.preferredWidth: 110
-            Layout.leftMargin: 8
+          font.pixelSize: Config.textBodySize
+            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : 110
+            Layout.leftMargin: Config.spacingSmall
           }
 
           SliderControl {
             Layout.fillWidth: true
             value: (Settings.notificationToastDurationMs - 2000) / 8000
             stepSize: 500 / 8000
+            accessibleMinimumValue: 2
+            accessibleMaximumValue: 10
+            accessibleUnit: "seconds"
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
@@ -92,18 +103,228 @@ Flickable {
             accessibleDescription: "Adjust how long toast notifications stay on screen"
             onChanged: function(val) {
               Settings.notificationToastDurationMs = Math.round(2000 + val * 8000)
-              Settings.save()
             }
+            onInteractionFinished: Settings.save()
           }
 
           Text {
             text: (Settings.notificationToastDurationMs / 1000).toFixed(1) + "s"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: 12
+            font.pixelSize: Config.textBodySize
             font.weight: Font.Medium
             Layout.preferredWidth: 36
-            Layout.rightMargin: 8
+            Layout.rightMargin: Config.spacingSmall
+          }
+        }
+
+        RowLayout {
+          Layout.fillWidth: true
+          spacing: Config.spacingSmall
+
+          Text {
+            text: "Toast position"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.textBodySize
+            Layout.preferredWidth: notificationsTab.compactLayout ? 82 : 110
+            Layout.leftMargin: Config.spacingSmall
+          }
+
+          ActionButton {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 36
+            labelText: "Top right"
+            selected: Settings.notificationToastPosition === "top-right"
+            accessibleName: "Top right notification toasts"
+            onActivated: { Settings.notificationToastPosition = "top-right"; Settings.save() }
+          }
+
+          ActionButton {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 36
+            labelText: "Bottom right"
+            selected: Settings.notificationToastPosition === "bottom-right"
+            accessibleName: "Bottom right notification toasts"
+            onActivated: { Settings.notificationToastPosition = "bottom-right"; Settings.save() }
+          }
+        }
+
+        ListItem {
+          Layout.fillWidth: true
+          leadingIcon: "bedtime"
+          title: "Quiet hours"
+          subtitle: Settings.notificationQuietHoursEnabled
+            ? formatMinutes(Settings.notificationQuietHoursStart) + " – " + formatMinutes(Settings.notificationQuietHoursEnd)
+            : "Off"
+          SwitchControl {
+            checked: Settings.notificationQuietHoursEnabled
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Quiet hours"
+            onToggled: {
+              Settings.notificationQuietHoursEnabled = !Settings.notificationQuietHoursEnabled
+              Settings.save()
+            }
+          }
+        }
+
+        RowLayout {
+          visible: Settings.notificationQuietHoursEnabled
+          Layout.fillWidth: true
+          spacing: Config.spacingSmall
+
+          Text {
+            text: "Starts"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 1
+            Layout.preferredWidth: notificationsTab.compactLayout ? 48 : 64
+            Layout.leftMargin: Config.spacingCompact
+          }
+
+          SliderControl {
+            Layout.fillWidth: true
+            value: Settings.notificationQuietHoursStart / 1439
+            stepSize: 1 / 1439
+            accessibleMinimumValue: 0
+            accessibleMaximumValue: 1439
+            accessibleUnit: "minutes after midnight"
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            focusColor: Colors.primary
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Quiet hours start"
+            onChanged: function(val) { Settings.notificationQuietHoursStart = Math.round(val * 1439) }
+            onInteractionFinished: Settings.save()
+          }
+
+          Text {
+            text: formatMinutes(Settings.notificationQuietHoursStart)
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 1
+            font.weight: Font.Medium
+            Layout.preferredWidth: 42
+            Layout.rightMargin: Config.spacingCompact
+          }
+        }
+
+        RowLayout {
+          visible: Settings.notificationQuietHoursEnabled
+          Layout.fillWidth: true
+          spacing: Config.spacingSmall
+
+          Text {
+            text: "Ends"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 1
+            Layout.preferredWidth: notificationsTab.compactLayout ? 48 : 64
+            Layout.leftMargin: Config.spacingCompact
+          }
+
+          SliderControl {
+            Layout.fillWidth: true
+            value: Settings.notificationQuietHoursEnd / 1439
+            stepSize: 1 / 1439
+            accessibleMinimumValue: 0
+            accessibleMaximumValue: 1439
+            accessibleUnit: "minutes after midnight"
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            focusColor: Colors.primary
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Quiet hours end"
+            onChanged: function(val) { Settings.notificationQuietHoursEnd = Math.round(val * 1439) }
+            onInteractionFinished: Settings.save()
+          }
+
+          Text {
+            text: formatMinutes(Settings.notificationQuietHoursEnd)
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 1
+            font.weight: Font.Medium
+            Layout.preferredWidth: 42
+            Layout.rightMargin: Config.spacingCompact
+          }
+        }
+
+        ListItem {
+          Layout.fillWidth: true
+          leadingIcon: "priority_high"
+          title: "Critical notifications bypass quiet hours"
+          subtitle: Settings.notificationCriticalBypass ? "Critical alerts remain visible" : "All notifications are suppressed"
+          SwitchControl {
+            checked: Settings.notificationCriticalBypass
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Critical notification bypass"
+            onToggled: {
+              Settings.notificationCriticalBypass = !Settings.notificationCriticalBypass
+              Settings.save()
+            }
+          }
+        }
+
+        RowLayout {
+          Layout.fillWidth: true
+          spacing: Config.spacingSmall
+
+          Text {
+            text: "History limit"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 1
+            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : 110
+            Layout.leftMargin: Config.spacingCompact
+          }
+
+          SliderControl {
+            Layout.fillWidth: true
+            value: (Settings.notificationHistoryLimit - 10) / 90
+            stepSize: 5 / 90
+            accessibleMinimumValue: 10
+            accessibleMaximumValue: 100
+            accessibleUnit: "notifications"
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            focusColor: Colors.primary
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Notification history limit"
+            accessibleDescription: "Maximum number of notifications retained in the bell history"
+            onChanged: function(val) {
+              Settings.notificationHistoryLimit = Math.max(10, Math.min(100, Math.round((10 + val * 90) / 5) * 5))
+            }
+            onInteractionFinished: Settings.save()
+          }
+
+          Text {
+            text: Settings.notificationHistoryLimit
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 1
+            font.weight: Font.Medium
+            Layout.preferredWidth: 30
+            Layout.rightMargin: Config.spacingCompact
           }
         }
       }
@@ -122,13 +343,25 @@ Flickable {
       }
     }
 
+    ActionButton {
+      Layout.fillWidth: true
+      Layout.preferredHeight: 48
+      iconLabel: "delete_sweep"
+      labelText: "Clear Notification History"
+      variant: "outlined"
+      enabled: notificationPopup !== null && notificationPopup.count > 0
+      accessibleName: "Clear notification history"
+      accessibleDescription: "Dismiss all notifications retained by the bell history"
+      onActivated: if (notificationPopup) notificationPopup.clearAll()
+    }
+
     Text {
       Layout.fillWidth: true
       Layout.leftMargin: 4
-      text: "Notification history and per-app clearing live in the bell icon's popup on the bar."
+      text: "Quiet hours retain history. Critical alerts can bypass suppression. The bell popup also supports per-notification dismissal."
       color: Colors.fgSurfaceVariant
       font.family: Config.fontFamily
-      font.pixelSize: 11
+      font.pixelSize: Config.textCaptionSize
       wrapMode: Text.WordWrap
     }
   }

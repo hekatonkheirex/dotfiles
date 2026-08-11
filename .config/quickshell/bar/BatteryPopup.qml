@@ -61,7 +61,7 @@ PopupBase {
 
   Process {
     id: cycleQuery
-    command: ["cat", "/sys/class/power_supply/BAT0/cycle_count"]
+    command: ["sh", "-c", "battery=$(find /sys/class/power_supply -maxdepth 1 -type l -name 'BAT*' -print -quit 2>/dev/null); if [ -n \"$battery\" ] && [ -r \"$battery/cycle_count\" ]; then cat \"$battery/cycle_count\"; fi"]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {

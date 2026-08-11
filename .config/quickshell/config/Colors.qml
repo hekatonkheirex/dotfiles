@@ -87,9 +87,9 @@ QtObject {
     onFileChanged: colors.loadMatugenPalette()
   }
 
-  // 0 = system, 1 = light, 2 = dark. This compatibility contract is used by
-  // QuickMenu and Settings panel settings.
-  property int themePreference: 0
+  // 0 = auto, 1 = light, 2 = dark. Settings is the persisted owner; this
+  // compatibility property keeps existing color bindings stable.
+  property int themePreference: Settings.themePreference
   property bool systemDark: false
   property bool darkMode: themePreference === 1 ? false : (themePreference === 2 ? true : systemDark)
 

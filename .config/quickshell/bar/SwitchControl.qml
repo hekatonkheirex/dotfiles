@@ -27,6 +27,10 @@ Item {
   Accessible.role: Accessible.CheckBox
   Accessible.name: root.accessibleName
   Accessible.description: root.accessibleDescription + (root.checked ? " On" : " Off")
+  Accessible.checkable: true
+  Accessible.checked: root.checked
+  Accessible.focusable: true
+  Accessible.focused: root.activeFocus
 
   signal toggled()
 
