@@ -29,7 +29,7 @@ Relevant files: `bar/commandcenter/GeneralTab.qml`, `bar/commandcenter/AccountTa
 
 ### Weather correctness and privacy
 
-- [ ] Use `Settings.weatherCity` when a manual location is configured.
+- [ ] Add a manual-location setting and use it instead of IP geolocation when configured (no persisted field exists yet — add one only alongside the UI that sets it).
 - [ ] Add a clear privacy option to disable IP-based geolocation.
 - [ ] Replace the HTTP IP geolocation endpoint with HTTPS, or avoid IP geolocation when no location is configured.
 - [ ] Make the offline fallback date dynamic instead of hardcoding a past date.
@@ -101,9 +101,9 @@ New files to verify include:
 - [ ] Verify that Font Size, Icon Size, Spacing, and Bar Size controls affect all relevant Settings content consistently.
 - [ ] Debounce settings writes or save on slider release instead of calling `Settings.save()` on every slider movement.
 - [ ] Check that sliders expose an accurate value and range to assistive technology.
-- [ ] Use the existing `TabItem` primitive for the sidebar, or give the current sidebar delegates proper page-tab semantics and selected-state announcements.
+- [ ] Give the current sidebar delegates (`ListItem`) proper page-tab semantics and selected-state announcements. (The unused `TabItem` primitive that used to be suggested here was removed — it was never wired to anything.)
 
-Relevant files: `bar/CommandCenter.qml`, `bar/primitives/TabItem.qml`, `bar/primitives/ListItem.qml`, `bar/primitives/SliderControl.qml`, `bar/commandcenter/AppearanceTab.qml`.
+Relevant files: `bar/CommandCenter.qml`, `bar/primitives/ListItem.qml`, `bar/primitives/SliderControl.qml`, `bar/commandcenter/AppearanceTab.qml`.
 
 ### Usability polish
 
