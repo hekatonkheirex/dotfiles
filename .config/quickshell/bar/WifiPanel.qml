@@ -1,3 +1,5 @@
+// Wi-Fi content for the Settings Network tab. Lifted out of the old
+// standalone WifiPopup.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -5,16 +7,23 @@ import Quickshell.Io
 import "primitives"
 import "../config"
 
-PopupBase {
+Item {
   id: root
 
-  implicitHeight: Math.min(contentColumn.implicitHeight + 24, 450)
+  implicitHeight: contentColumn.implicitHeight
 
   property bool wifiOn: false
   property string wifiDevice: ""
   property int selectedIndex: -1
   property string statusMessage: ""
   property bool connecting: false
+
+  function refresh() {
+    statusQuery.running = true
+    deviceQuery.running = true
+    root.statusMessage = ""
+    root.selectedIndex = -1
+  }
 
   function parseWifiList(output) {
     var lines = output.trim().split("\n");
@@ -80,14 +89,14 @@ PopupBase {
   function connectToNetwork(ssid, password, secured) {
     root.connecting = true
     root.statusMessage = "Connecting to " + ssid + "..."
-    
+
     var cmd = ""
     if (secured && password.length > 0) {
       cmd = "nmcli dev wifi connect '" + ssid.replace(/'/g, "'\\''") + "' password '" + password.replace(/'/g, "'\\''") + "' 2>&1"
     } else {
       cmd = "nmcli dev wifi connect '" + ssid.replace(/'/g, "'\\''") + "' 2>&1"
     }
-    
+
     connectProcess.command = ["sh", "-c", cmd]
     connectProcess.running = true
   }
@@ -169,144 +178,125 @@ PopupBase {
     onTriggered: statusQuery.running = true
   }
 
-  onShown: {
-    statusQuery.running = true
-    deviceQuery.running = true
-    root.statusMessage = ""
-    root.selectedIndex = -1
-  }
-
   Column {
     id: contentColumn
-    anchors {
-      fill: parent
-      margins: 12
-    }
+    width: parent.width
     spacing: 12
 
-        RowLayout {
-          width: parent.width
-          spacing: 12
+    RowLayout {
+      width: parent.width
+      spacing: 12
 
-          Text {
-            Layout.fillWidth: true
-            text: "Wi-Fi Networks"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: (Config.fontPixelSize + 8)
-            font.weight: Font.Bold
-          }
+      Item { Layout.fillWidth: true }
 
-          IconButton {
-            iconLabel: "refresh"
-            size: 28
-            iconSize: 20
-            enabled: !listQuery.running
-            accessibleName: "Refresh Wi-Fi networks"
-            tooltipText: "Refresh Wi-Fi networks"
-            onClicked: listQuery.running = true
-          }
+      IconButton {
+        iconLabel: "refresh"
+        size: 28
+        iconSize: 20
+        enabled: !listQuery.running
+        accessibleName: "Refresh Wi-Fi networks"
+        tooltipText: "Refresh Wi-Fi networks"
+        onClicked: listQuery.running = true
+      }
 
-          SwitchControl {
-            id: wifiSwitch
-            checked: root.wifiOn
-            activeColor: Colors.primary
-            surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
-            motionDuration: Config.motionMedium
-            reducedMotion: Config.reducedMotion
-            accessibleName: "Wi-Fi enabled"
-            
-            onToggled: {
-              var newState = !root.wifiOn
-              Quickshell.execDetached(["nmcli", "radio", "wifi", newState ? "on" : "off"])
-              root.wifiOn = newState
-              refreshTimer.start()
-            }
-          }
-        }
+      SwitchControl {
+        id: wifiSwitch
+        checked: root.wifiOn
+        activeColor: Colors.primary
+        surfaceContainerHighest: Colors.surfaceContainerHighest
+        outline: Colors.outline
+        motionDuration: Config.motionMedium
+        reducedMotion: Config.reducedMotion
+        accessibleName: "Wi-Fi enabled"
 
-        PopupDivider {}
-
-        // Wi-Fi is Off Screen
-        ColumnLayout {
-          width: parent.width
-          spacing: 8
-          visible: !root.wifiOn
-
-          Item {
-            Layout.preferredHeight: 12
-          }
-
-          Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: "wifi"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.iconFont
-            font.pixelSize: 48
-            opacity: 0.25
-          }
-
-          Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: "Wi-Fi is turned off"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: (Config.fontPixelSize + 4)
-            font.weight: Font.Bold
-          }
-
-          Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: "Enable Wi-Fi to scan and connect."
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: (Config.fontPixelSize + 1)
-          }
-        }
-
-        // Wi-Fi is On: list networks
-        ColumnLayout {
-          width: parent.width
-          spacing: 8
-          visible: root.wifiOn
-
-          ListModel {
-            id: wifiListModel
-          }
-
-          ListView {
-            id: listView
-            Layout.fillWidth: true
-            Layout.preferredHeight: Math.min(300, contentHeight)
-            model: wifiListModel
-            clip: true
-            spacing: 4
-            delegate: wifiItemDelegate
-            boundsBehavior: Flickable.StopAtBounds
-          }
-
-          Text {
-            Layout.fillWidth: true
-            text: "No networks found"
-            visible: wifiListModel.count === 0 && !listQuery.running
-            horizontalAlignment: Text.AlignHCenter
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 2
-          }
-        }
-
-        Text {
-          text: root.statusMessage
-          color: Colors.primary
-          font.family: Config.fontFamily
-          font.pixelSize: Config.fontPixelSize + 1
-          wrapMode: Text.Wrap
-          width: parent.width
-          visible: root.statusMessage !== ""
+        onToggled: {
+          var newState = !root.wifiOn
+          Quickshell.execDetached(["nmcli", "radio", "wifi", newState ? "on" : "off"])
+          root.wifiOn = newState
+          refreshTimer.start()
         }
       }
+    }
+
+    // Wi-Fi is Off
+    ColumnLayout {
+      width: parent.width
+      spacing: 8
+      visible: !root.wifiOn
+
+      Item {
+        Layout.preferredHeight: 12
+      }
+
+      Text {
+        Layout.alignment: Qt.AlignHCenter
+        text: "wifi"
+        color: Colors.fgSurfaceVariant
+        font.family: Config.iconFont
+        font.pixelSize: 48
+        opacity: 0.25
+      }
+
+      Text {
+        Layout.alignment: Qt.AlignHCenter
+        text: "Wi-Fi is turned off"
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: (Config.fontPixelSize + 4)
+        font.weight: Font.Bold
+      }
+
+      Text {
+        Layout.alignment: Qt.AlignHCenter
+        text: "Enable Wi-Fi to scan and connect."
+        color: Colors.fgSurfaceVariant
+        font.family: Config.fontFamily
+        font.pixelSize: (Config.fontPixelSize + 1)
+      }
+    }
+
+    // Wi-Fi is On: list networks
+    ColumnLayout {
+      width: parent.width
+      spacing: 8
+      visible: root.wifiOn
+
+      ListModel {
+        id: wifiListModel
+      }
+
+      ListView {
+        id: listView
+        Layout.fillWidth: true
+        Layout.preferredHeight: Math.min(300, contentHeight)
+        model: wifiListModel
+        clip: true
+        spacing: 4
+        delegate: wifiItemDelegate
+        boundsBehavior: Flickable.StopAtBounds
+      }
+
+      Text {
+        Layout.fillWidth: true
+        text: "No networks found"
+        visible: wifiListModel.count === 0 && !listQuery.running
+        horizontalAlignment: Text.AlignHCenter
+        color: Colors.fgSurfaceVariant
+        font.family: Config.fontFamily
+        font.pixelSize: Config.fontPixelSize + 2
+      }
+    }
+
+    Text {
+      text: root.statusMessage
+      color: Colors.primary
+      font.family: Config.fontFamily
+      font.pixelSize: Config.fontPixelSize + 1
+      wrapMode: Text.Wrap
+      width: parent.width
+      visible: root.statusMessage !== ""
+    }
+  }
 
   Component {
     id: wifiItemDelegate

@@ -8,23 +8,28 @@ QtObject {
   readonly property bool isNiri: wmType === "niri"
 
   // Compact X390 geometry and shared spacing used by active surfaces.
-  readonly property int barWidth: 36
-  readonly property int widgetSize: 36
-  readonly property int spacingCompact: 4
-  readonly property int spacingSmall: 8
-  readonly property int spacingMedium: 12
-  readonly property int spacingLarge: 16
-  readonly property int spacingExtraLarge: 24
-
-  // M3 type role currently consumed by the focused-window metadata.
-  readonly property int labelSmallSize: 9
+  // Live-adjustable via the Appearance settings tab's Bar Size slider.
+  readonly property int barWidth: Settings.barSize
+  readonly property int widgetSize: Settings.barSize
+  // Live-adjustable via the Appearance settings tab (single density scale);
+  // mirrors Settings the same way reducedMotion below does, so every binding
+  // that reads these updates immediately without touching the consuming file.
+  property real spacingScale: Settings.spacingScale
+  property int spacingCompact: Math.round(4 * spacingScale)
+  property int spacingSmall: Math.round(8 * spacingScale)
+  property int spacingMedium: Math.round(12 * spacingScale)
+  property int spacingLarge: Math.round(16 * spacingScale)
+  property int spacingExtraLarge: Math.round(24 * spacingScale)
 
   readonly property string fontFamily: "Roboto Flex"
   readonly property string iconFont: "Material Symbols Outlined"
-  readonly property int iconSize: 16
-  readonly property int fontPixelSize: 9
-  readonly property int clockPrimarySize: 15
-  readonly property int clockSecondarySize: 10
+  property int iconSize: Settings.iconSize
+  property int fontPixelSize: Settings.fontPixelSize
+
+  // M3 type role currently consumed by the focused-window metadata.
+  readonly property int labelSmallSize: fontPixelSize
+  readonly property int clockPrimarySize: fontPixelSize + 6
+  readonly property int clockSecondarySize: fontPixelSize + 1
   readonly property int clockLineSpacing: spacingCompact
   readonly property int clockVerticalHeight: 42
 

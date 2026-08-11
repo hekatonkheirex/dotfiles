@@ -42,6 +42,37 @@ Item {
     onTriggered: root.now = new Date()
   }
 
+  property string lockMprisStatus: "NoPlayer"
+  property string lockMprisTitle: ""
+  property string lockMprisArtist: ""
+
+  Process {
+    id: lockMprisProcess
+    command: ["python3", "-u", root.home + "/.config/quickshell/scripts/mpris_monitor.py"]
+    running: root.locked && Settings.lockShowMedia
+    stdout: SplitParser {
+      onRead: function(data) {
+        try {
+          var info = JSON.parse(data.trim());
+          root.lockMprisStatus = info.status;
+          root.lockMprisTitle = info.title;
+          root.lockMprisArtist = info.artist;
+        } catch (e) {}
+      }
+    }
+    onRunningChanged: {
+      if (!running && root.locked && Settings.lockShowMedia) lockMprisRetry.start()
+    }
+  }
+
+  Timer {
+    id: lockMprisRetry
+    interval: 3000
+    onTriggered: {
+      if (root.locked && Settings.lockShowMedia) lockMprisProcess.running = true
+    }
+  }
+
   property string lockPassword: ""
   property string lockInputText: ""
   property string lockError: ""
@@ -276,7 +307,7 @@ Item {
             }
             color: textColor
             font.family: Config.fontFamily
-            font.pixelSize: 72
+            font.pixelSize: Settings.lockClockSize
             font.weight: Font.Bold
             style: Text.Sunken
             styleColor: Qt.rgba(0, 0, 0, 0.3)
@@ -293,6 +324,30 @@ Item {
             color: mutedText
             font.family: Config.fontFamily
             font.pixelSize: 20
+          }
+
+          Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 8
+            visible: Settings.lockShowMedia && root.lockMprisTitle !== ""
+
+            Text {
+              text: root.lockMprisStatus === "Playing" ? "pause" : "play_arrow"
+              font.family: Config.iconFont
+              font.pixelSize: 16
+              color: mutedText
+              anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Text {
+              text: root.lockMprisTitle + (root.lockMprisArtist ? " - " + root.lockMprisArtist : "")
+              color: mutedText
+              font.family: Config.fontFamily
+              font.pixelSize: 14
+              elide: Text.ElideRight
+              width: Math.min(implicitWidth, 320)
+              anchors.verticalCenter: parent.verticalCenter
+            }
           }
 
           Item { height: 8 }
@@ -469,7 +524,7 @@ Item {
           }
           color: root.textColor
           font.family: Config.fontFamily
-          font.pixelSize: 72
+          font.pixelSize: Settings.lockClockSize
           font.weight: Font.Bold
           style: Text.Sunken
           styleColor: Qt.rgba(0, 0, 0, 0.3)
@@ -486,6 +541,30 @@ Item {
           color: root.mutedText
           font.family: Config.fontFamily
           font.pixelSize: 20
+        }
+
+        Row {
+          anchors.horizontalCenter: parent.horizontalCenter
+          spacing: 8
+          visible: Settings.lockShowMedia && root.lockMprisTitle !== ""
+
+          Text {
+            text: root.lockMprisStatus === "Playing" ? "pause" : "play_arrow"
+            font.family: Config.iconFont
+            font.pixelSize: 16
+            color: root.mutedText
+            anchors.verticalCenter: parent.verticalCenter
+          }
+
+          Text {
+            text: root.lockMprisTitle + (root.lockMprisArtist ? " - " + root.lockMprisArtist : "")
+            color: root.mutedText
+            font.family: Config.fontFamily
+            font.pixelSize: 14
+            elide: Text.ElideRight
+            width: Math.min(implicitWidth, 320)
+            anchors.verticalCenter: parent.verticalCenter
+          }
         }
 
         Item { height: 8 }

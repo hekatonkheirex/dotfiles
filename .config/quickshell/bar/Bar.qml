@@ -39,6 +39,30 @@ PanelWindow {
     onTriggered: now = new Date()
   }
 
+  // Reinterprets root.now in Settings.timezone (an IANA name) when set,
+  // falling back to system-local time if the name is invalid or the JS
+  // engine lacks Intl support.
+  function displayNow() {
+    if (!Settings.timezone) return root.now
+    try {
+      var parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: Settings.timezone, hour12: false,
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", second: "2-digit"
+      }).formatToParts(root.now)
+      var m = {}
+      parts.forEach(function(p) { m[p.type] = p.value })
+      return new Date(m.year, m.month - 1, m.day, m.hour, m.minute, m.second)
+    } catch (e) {
+      return root.now
+    }
+  }
+
+  function clockFormat() {
+    if (Settings.clock24h) return Settings.clockShowSeconds ? "HH:mm:ss" : "HH:mm"
+    return Settings.clockShowSeconds ? "h:mm:ss AP" : "h:mm AP"
+  }
+
   property string openPopup: ""
   property int popupAnchorX: 0
   property int popupAnchorY: 0
@@ -204,7 +228,7 @@ PanelWindow {
         Item {
           id: launcherWrapper
           Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
+          Layout.preferredHeight: root.horizontal ? parent.height : launcherWidget.verticalLayoutHeight * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -301,49 +325,11 @@ PanelWindow {
         }
 
         Item {
-          id: wifiWrapper
-          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0
-          clip: true
-
-          WifiIndicator {
-            id: wifiIndicator
-            anchors.fill: parent
-            active: root.openPopup === "wifi"
-            horizontal: root.horizontal
-            onClicked: function(mouse) {
-              root.togglePopup("wifi", wifiIndicator)
-            }
-          }
-        }
-
-        Item {
-          id: btWrapper
-          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0
-          clip: true
-
-          BtIndicator {
-            id: btIndicator
-            anchors.fill: parent
-            active: root.openPopup === "bluetooth"
-            horizontal: root.horizontal
-            onClicked: function(mouse) {
-              root.togglePopup("bluetooth", btIndicator)
-            }
-          }
-        }
-
-        Item {
           id: audioWrapper
           Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
+          Layout.preferredHeight: root.horizontal ? parent.height : audioIndicator.verticalLayoutHeight * root.expandProgress
           opacity: root.expandProgress
-          visible: root.expandProgress > 0
+          visible: root.expandProgress > 0 && Settings.ccShowAudio
           clip: true
 
           AudioIndicator {
@@ -360,9 +346,9 @@ PanelWindow {
         Item {
           id: brightnessWrapper
           Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
+          Layout.preferredHeight: root.horizontal ? parent.height : brightnessIndicator.verticalLayoutHeight * root.expandProgress
           opacity: root.expandProgress
-          visible: root.expandProgress > 0
+          visible: root.expandProgress > 0 && Settings.ccShowDisplay
           clip: true
 
           BrightnessIndicator {
@@ -377,9 +363,51 @@ PanelWindow {
         }
 
         Item {
+          id: mediaWrapper
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : mediaIndicator.verticalLayoutHeight * root.expandProgress
+          opacity: root.expandProgress
+          visible: root.expandProgress > 0 && Settings.ccShowMedia
+          clip: true
+
+          MediaIndicator {
+            id: mediaIndicator
+            anchors.fill: parent
+            active: root.openPopup === "media"
+            horizontal: root.horizontal
+            onClicked: function(mouse) {
+              if (Settings.mediaControlsAlwaysVisible) {
+                Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
+              } else {
+                root.togglePopup("media", mediaIndicator)
+              }
+            }
+          }
+        }
+
+        Item {
+          id: weatherWrapper
+          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : weatherIndicator.verticalLayoutHeight * root.expandProgress
+          opacity: root.expandProgress
+          visible: root.expandProgress > 0 && Settings.ccShowWeather
+          clip: true
+
+          WeatherIndicator {
+            id: weatherIndicator
+            anchors.fill: parent
+            active: root.openPopup === "weather"
+            horizontal: root.horizontal
+            onClicked: function(mouse) {
+              root.togglePopup("weather", weatherIndicator)
+            }
+          }
+        }
+
+        Item {
           id: batteryWrapper
           Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
+          Layout.preferredHeight: root.horizontal ? parent.height : batteryIndicator.verticalLayoutHeight * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -430,8 +458,8 @@ PanelWindow {
               Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: root.horizontal
-                  ? root.now.toLocaleString(Qt.locale(), "HH:mm")
-                  : root.now.toLocaleString(Qt.locale(), "HH")
+                  ? root.displayNow().toLocaleString(Qt.locale(), root.clockFormat())
+                  : root.displayNow().toLocaleString(Qt.locale(), Settings.clock24h ? "HH" : "h")
                 color: Colors.primary
                 font.family: Config.fontFamily
                 font.pixelSize: Config.clockPrimarySize
@@ -441,8 +469,8 @@ PanelWindow {
               Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: root.horizontal
-                  ? root.now.toLocaleDateString(Qt.locale(), "MMM dd")
-                  : root.now.toLocaleString(Qt.locale(), "mm")
+                  ? root.displayNow().toLocaleDateString(Qt.locale(), "MMM dd")
+                  : root.displayNow().toLocaleString(Qt.locale(), "mm")
                 color: Colors.fgSurfaceVariant
                 font.family: Config.fontFamily
                 font.pixelSize: root.horizontal
@@ -466,7 +494,7 @@ PanelWindow {
         Item {
           id: notifWrapper
           Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
+          Layout.preferredHeight: root.horizontal ? parent.height : notifIndicator.verticalLayoutHeight * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -486,7 +514,7 @@ PanelWindow {
         Item {
           id: commandCenterWrapper
           Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
+          Layout.preferredHeight: root.horizontal ? parent.height : commandCenterIndicator.verticalLayoutHeight * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -494,8 +522,8 @@ PanelWindow {
           MenuIndicator {
             id: commandCenterIndicator
             anchors.fill: parent
-            iconLabel: "space_dashboard"
-            accessibleName: "Command Center"
+            iconLabel: "settings"
+            accessibleName: "Settings"
             active: root.openPopup === "commandcenter"
             horizontal: root.horizontal
             onClicked: function(mouse) {
@@ -507,7 +535,7 @@ PanelWindow {
         Item {
           id: menuWrapper
           Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : root.wSize * root.expandProgress
+          Layout.preferredHeight: root.horizontal ? parent.height : menuIndicator.verticalLayoutHeight * root.expandProgress
           opacity: root.expandProgress
           visible: root.expandProgress > 0
           clip: true
@@ -515,6 +543,7 @@ PanelWindow {
           MenuIndicator {
             id: menuIndicator
             anchors.fill: parent
+            iconLabel: "power_settings_new"
             active: root.openPopup === "quickmenu"
             horizontal: root.horizontal
             onClicked: function(mouse) {

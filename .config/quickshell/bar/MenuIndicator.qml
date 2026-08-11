@@ -7,6 +7,6 @@ StatusIndicator {
 
   iconLabel: "settings"
   accentColor: Colors.primary
-  accessibleName: "Quick menu"
-  tooltipText: "Quick menu"
+  accessibleName: "Power Options"
+  tooltipText: "Power Options"
 }

@@ -183,7 +183,7 @@ Item {
       leftMargin: root.horizontal ? 6 : 0
       topMargin: root.horizontal ? 0 : 6
     }
-    spacing: 6
+    spacing: 2
 
     Repeater {
       model: root.workspaces
@@ -194,8 +194,8 @@ Item {
 
         readonly property bool active: modelData.isFocused || wsMouse.containsMouse
 
-        width: root.horizontal ? (active ? 40 : 20) : grid.width
-        height: root.horizontal ? grid.height : (active ? 40 : 20)
+        width: root.horizontal ? (active ? 40 : 12) : grid.width
+        height: root.horizontal ? grid.height : (active ? 40 : 12)
         Behavior on width {
           NumberAnimation {
             duration: Config.animationDuration
@@ -212,9 +212,9 @@ Item {
         Rectangle {
           id: pillRect
           anchors.centerIn: parent
-          width: delegateItem.active ? (root.horizontal ? 40 : Math.min(32, delegateItem.width - 4)) : (modelData.isOccupied ? 12 : 6)
-          height: delegateItem.active ? (root.horizontal ? Math.min(32, delegateItem.height - 4) : 40) : (modelData.isOccupied ? 12 : 6)
-          radius: height / 2
+          width: delegateItem.active ? (root.horizontal ? Math.min(32, delegateItem.width - 4) : 10) : (root.horizontal ? (modelData.isOccupied ? 10 : 6) : 4)
+          height: delegateItem.active ? (root.horizontal ? 10 : Math.min(32, delegateItem.height - 4)) : (root.horizontal ? 4 : (modelData.isOccupied ? 10 : 6))
+          radius: delegateItem.active ? Math.min(width, height) / 2 : 2
 
           color: {
             if (modelData.isFocused) return Colors.primary
@@ -235,24 +235,6 @@ Item {
           }
           Behavior on color {
             ColorAnimation { duration: Config.animationDuration}
-          }
-
-          Text {
-            anchors.centerIn: parent
-            text: modelData.idx.toString()
-            opacity: delegateItem.active ? 1.0 : 0.0
-            visible: opacity > 0
-            color: {
-              if (modelData.isFocused) return Colors.fgPrimary
-              return Colors.fgSurface
-            }
-            font.family: Config.fontFamily
-            font.pixelSize: (Config.fontPixelSize + 4)
-            font.weight: modelData.isFocused ? Font.Bold : Font.Normal
-
-            Behavior on opacity {
-              NumberAnimation { duration: Config.motionShort}
-            }
           }
         }
 

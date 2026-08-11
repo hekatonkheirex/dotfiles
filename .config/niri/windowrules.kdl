@@ -82,32 +82,9 @@ layer-rule {
 }
 
 layer-rule {
-  match namespace="^waybar$"
-  background-effect {
-    blur false
-  }
-}
-
-layer-rule {
-  match namespace="^wlogout$"
-  opacity 0.95
-}
-
-layer-rule {
   match namespace="^notifications$"
   background-effect {
     blur false
-  }
-}
-
-layer-rule {
-  match namespace="^rofi$"
-  geometry-corner-radius 16
-  shadow {
-    on
-    softness 40
-    spread 5
-    color "#30303066"
   }
 }
 

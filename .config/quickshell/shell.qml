@@ -200,7 +200,7 @@ ShellRoot {
           if (batteryAlert.alertNotif === notif) batteryAlert.alertNotif = null
         })
       }
-      notificationToast.show(notif)
+      if (!Settings.doNotDisturb) notificationToast.show(notif)
       notificationPopup.onNotificationReceived(notif)
     }
   }
@@ -208,6 +208,14 @@ ShellRoot {
   NotificationToast {
     id: notificationToast
     notificationServer: notifServer
+  }
+
+  Connections {
+    target: Settings
+
+    function onDoNotDisturbChanged() {
+      if (Settings.doNotDisturb) notificationToast.suppress()
+    }
   }
 
   PopupShield {
@@ -236,34 +244,33 @@ ShellRoot {
     margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
   }
 
-  WifiPopup {
-    id: wifiPopup
-    visible: bar.openPopup === "wifi" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
-    onDismissed: bar.openPopup = ""
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
-  }
-
-  BtPopup {
-    id: btPopup
-    visible: bar.openPopup === "bluetooth" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
-    horizontal: bar.horizontal
-    onDismissed: bar.openPopup = ""
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
-  }
-
   BrightnessPopup {
     id: brightnessPopup
     visible: bar.openPopup === "brightness" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
+
+  MediaPopup {
+    id: mediaPopup
+    visible: bar.openPopup === "media" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
+
+  WeatherPopup {
+    id: weatherPopup
+    visible: bar.openPopup === "weather" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
 
@@ -314,8 +321,7 @@ ShellRoot {
     visible: bar.openPopup === "quickmenu" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
-    isHorizontal: shell.isHorizontal
-    onToggleHorizontal: shell.toggleLayout()
+    onLockRequested: lockScreen.lockScreen()
 
     anchors.left: true
     margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
@@ -358,6 +364,7 @@ ShellRoot {
     id: commandCenter
     visible: bar.openPopup === "commandcenter" && !lockScreen.locked
     onDismissed: bar.openPopup = ""
+    onLockRequested: lockScreen.lockScreen()
     isHorizontal: shell.isHorizontal
     onToggleHorizontal: shell.toggleLayout()
     fullBar: shell.fullBar
