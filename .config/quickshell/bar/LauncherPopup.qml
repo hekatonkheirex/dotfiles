@@ -76,18 +76,18 @@ PanelWindow {
     ListElement {
       kind: "action"
       actionId: "quickmenu"
-      name: "Quick settings"
-      comment: "Open layout, theme, idle, and power controls"
-      keywords: "quick menu settings controls"
-      icon: "tune"
+      name: "Power Options"
+      comment: "Log out, restart, sleep, or shut down"
+      keywords: "quick menu power options logout restart sleep shutdown"
+      icon: "power_settings_new"
     }
     ListElement {
       kind: "action"
       actionId: "commandcenter"
-      name: "Command Center"
-      comment: "Open the dashboard and system controls"
-      keywords: "dashboard control center media weather"
-      icon: "dashboard"
+      name: "Settings"
+      comment: "Appearance, account, and general preferences"
+      keywords: "settings preferences appearance account general dashboard"
+      icon: "settings"
     }
     ListElement {
       kind: "action"

@@ -15,7 +15,8 @@ PopupBase {
   property date displayMonth: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
   readonly property real cellWidth: ((Config.popupWidth) - (Config.popupPadding) * 2 - 6 * 4) / 7
-  readonly property var weekDays: CalendarLogic.weekDays
+  readonly property bool weekStartsMonday: Settings.calendarWeekStartsMonday
+  readonly property var weekDays: CalendarLogic.weekDays(root.weekStartsMonday)
   readonly property var monthNames: CalendarLogic.monthNames
 
   function daysInMonth(d) { return CalendarLogic.daysInMonth(d) }
@@ -23,9 +24,9 @@ PopupBase {
   function isToday(dayNum) {
     return CalendarLogic.isToday(dayNum, root.displayMonth, root.currentDate)
   }
-  function buildDayModel(date) { return CalendarLogic.buildDayModel(date) }
+  function buildDayModel(date) { return CalendarLogic.buildDayModel(date, root.weekStartsMonday) }
 
-  property var dayModel: root.buildDayModel(root.displayMonth)
+  property var dayModel: CalendarLogic.buildDayModel(root.displayMonth, root.weekStartsMonday)
 
   Column {
     id: contentBody

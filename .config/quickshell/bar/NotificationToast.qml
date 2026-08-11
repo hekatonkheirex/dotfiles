@@ -33,6 +33,7 @@ PanelWindow {
   }
 
   function show(n) {
+    if (Settings.doNotDisturb) return
     if (notif !== null && notif !== n && isPersistent(notif))
       heldNotif = notif
     if (heldNotif === n)
@@ -43,6 +44,14 @@ PanelWindow {
     if (!isPersistent(n))
       dismissTimer.restart()
     entryAnimation.start()
+  }
+
+  // DND hides the toast surface without dismissing the notification itself;
+  // the notification remains available in the history popup.
+  function suppress() {
+    dismissTimer.stop()
+    notif = null
+    heldNotif = null
   }
 
   function clearCurrent() {

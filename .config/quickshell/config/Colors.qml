@@ -88,7 +88,7 @@ QtObject {
   }
 
   // 0 = system, 1 = light, 2 = dark. This compatibility contract is used by
-  // QuickMenu and Command Center settings.
+  // QuickMenu and Settings panel settings.
   property int themePreference: 0
   property bool systemDark: false
   property bool darkMode: themePreference === 1 ? false : (themePreference === 2 ? true : systemDark)
@@ -254,6 +254,32 @@ QtObject {
   property color weatherPressure:          tertiary
   property color weatherUv:               warning
   property color weatherPrecipitation:     info
+
+  function weatherIcon(desc) {
+    var d = (desc || "").toLowerCase();
+    if (d.indexOf("clear") !== -1) return "sunny";
+    if (d.indexOf("partly") !== -1 || d.indexOf("mainly") !== -1) return "partly_cloudy_day";
+    if (d.indexOf("cloudy") !== -1 || d.indexOf("overcast") !== -1) return "cloud";
+    if (d.indexOf("fog") !== -1) return "foggy";
+    if (d.indexOf("drizzle") !== -1 || d.indexOf("shower") !== -1) return "rainy";
+    if (d.indexOf("rain") !== -1) return "rainy";
+    if (d.indexOf("snow") !== -1) return "snowing";
+    if (d.indexOf("thunder") !== -1) return "thunderstorm";
+    return "sunny";
+  }
+
+  function weatherColor(desc) {
+    var d = (desc || "").toLowerCase();
+    if (d.indexOf("clear") !== -1) return weatherClear;
+    if (d.indexOf("partly") !== -1 || d.indexOf("mainly") !== -1) return weatherPartlyCloudy;
+    if (d.indexOf("cloudy") !== -1 || d.indexOf("overcast") !== -1) return weatherCloud;
+    if (d.indexOf("fog") !== -1) return weatherFog;
+    if (d.indexOf("drizzle") !== -1 || d.indexOf("shower") !== -1) return weatherRain;
+    if (d.indexOf("rain") !== -1) return weatherRain;
+    if (d.indexOf("snow") !== -1) return weatherSnow;
+    if (d.indexOf("thunder") !== -1) return weatherThunder;
+    return weatherClear;
+  }
 
   // M3 state layers. These are intentionally expressed from the active
   // semantic colors so light/dark behavior stays coherent.
