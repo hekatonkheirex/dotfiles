@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import "../"
+import "../primitives"
 import "../../config"
 
 // Curated subset of ~/.config/niri/keybinds.kdl: the shell-integration and
@@ -10,18 +12,30 @@ Flickable {
   id: shortcutsTab
   property QtObject root: null
   anchors.fill: parent
-  visible: root.currentTab === 7
+  visible: root.currentTab === 10
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
+  property string actionStatus: ""
+
+  function openKeybinds() {
+    Quickshell.execDetached(["xdg-open", Quickshell.env("HOME") + "/.config/niri/keybinds.kdl"])
+    shortcutsTab.actionStatus = "Opened the full Niri keybind configuration"
+  }
+
+  function copyKeybinds() {
+    Quickshell.execDetached(["sh", "-c",
+      "if command -v wl-copy >/dev/null 2>&1 && [ -r \"$HOME/.config/niri/keybinds.kdl\" ]; then cat \"$HOME/.config/niri/keybinds.kdl\" | wl-copy; fi"])
+    shortcutsTab.actionStatus = "Copied the full Niri keybind configuration"
+  }
 
   component KeyChip: Rectangle {
     property string keys: ""
     implicitWidth: keyText.implicitWidth + 16
     implicitHeight: 22
-    radius: 8
+    radius: Config.shapeMedium
     color: Colors.surfaceContainerHighest
     border.color: Colors.outlineVariant
     border.width: 1
@@ -32,7 +46,7 @@ Flickable {
       text: parent.keys
       color: Colors.fgSurface
       font.family: Config.fontFamily
-      font.pixelSize: 11
+      font.pixelSize: Config.textCaptionSize
       font.weight: Font.Medium
     }
   }
@@ -43,13 +57,13 @@ Flickable {
     property string keys: ""
     Layout.fillWidth: true
     Layout.preferredHeight: 30
-    spacing: 8
+    spacing: Config.spacingSmall
 
     Text {
       text: shortcutRow.action
       color: Colors.fgSurface
       font.family: Config.fontFamily
-      font.pixelSize: 13
+      font.pixelSize: Config.textBodyLargeSize
       Layout.fillWidth: true
       Layout.leftMargin: 8
     }
@@ -71,14 +85,14 @@ Flickable {
     ColumnLayout {
       id: rowsCol
       anchors.fill: parent
-      anchors.margins: 8
+      anchors.margins: Config.spacingSmall
       spacing: 0
 
       Text {
         text: groupCard.title
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: 11
+        font.pixelSize: Config.textCaptionSize
         font.weight: Font.Medium
         Layout.leftMargin: 8
         Layout.topMargin: 4
@@ -90,7 +104,49 @@ Flickable {
   ColumnLayout {
     id: mainColumn
     width: shortcutsTab.width
-    spacing: 16
+    spacing: Config.spacingLarge
+
+    Text {
+      Layout.fillWidth: true
+      text: "Curated common bindings. The source of truth is ~/.config/niri/keybinds.kdl."
+      color: Colors.fgSurfaceVariant
+      font.family: Config.fontFamily
+      font.pixelSize: Config.fontPixelSize
+      wrapMode: Text.WordWrap
+    }
+
+    RowLayout {
+      Layout.fillWidth: true
+      spacing: Config.spacingSmall
+
+      ActionButton {
+        Layout.fillWidth: true
+        Layout.preferredHeight: 44
+        iconLabel: "open_in_new"
+        labelText: "Open Full Config"
+        accessibleName: "Open full keybind configuration"
+        onActivated: shortcutsTab.openKeybinds()
+      }
+
+      ActionButton {
+        Layout.fillWidth: true
+        Layout.preferredHeight: 44
+        iconLabel: "content_copy"
+        labelText: "Copy Keybinds"
+        variant: "outlined"
+        accessibleName: "Copy full keybind configuration"
+        onActivated: shortcutsTab.copyKeybinds()
+      }
+    }
+
+    Text {
+      Layout.fillWidth: true
+      text: shortcutsTab.actionStatus
+      color: Colors.fgSurfaceVariant
+      font.family: Config.fontFamily
+      font.pixelSize: Math.max(8, Config.fontPixelSize - 1)
+      visible: shortcutsTab.actionStatus !== ""
+    }
 
     GroupCard {
       title: "Apps"

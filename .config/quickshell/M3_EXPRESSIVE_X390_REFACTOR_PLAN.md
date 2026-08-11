@@ -1,6 +1,6 @@
 # Material 3 Expressive Refactor Plan for the ThinkPad X390
 
-Status: implementation complete in worktree — Phases 0-3.5 applied; focused Phase 4/5 checks passed; full light/dark and vertical-mode manual matrix remains to be exercised. Phase commits were intentionally not created per AGENTS.md.
+Status: Phases 0-3.5 applied in the worktree; focused QML, script, JSON, Niri, yadm-diff, and current service checks pass. The Settings feature pass is also applied: bar-content visibility, theme reload/source, dedicated Wallpaper and Media tabs, weather refresh/status, notification quiet hours and retention, saved-network controls, Bluetooth actions, lock/power controls, system actions, shortcuts export, and persisted last-tab selection. The normal, minimum-size, vertical, light/dark, eleven-tab, optional-backend failure, reduced-motion live-reload, and keyboard-contract checks are complete; a physical keyboard-only pass and fresh-restore check remain open. Phase commits were intentionally not created per AGENTS.md.
 
 ## Goal
 
@@ -30,13 +30,13 @@ A full pre-Phase-2 audit of `bar/*.qml` and `bar/commandcenter/*.qml` found no `
 
 Expressiveness should come from clear state changes, restrained shape transitions, semantic color, and purposeful motion. It should not come from taller bars, oversized headers, or decorative cards that consume workspace.
 
-## Phase 0: safety net — DONE (commit 790feec9)
+## Phase 0: safety net — DONE
 
-Before any edit, commit a clean baseline (`yadm status --short` must be empty or the pre-existing state noted) and record the current `qmllint` output for every file this plan touches as the pass/fail baseline. Create one commit per phase below, not one commit for the whole refactor. If a phase's manual/automated checks (Phase 5) fail after it lands, the fix is `yadm` revert of that phase's commit, not a forward patch bolted onto the next phase. Do not start Phase 2 until Phase 1's commit is in and green; do not start Phase 3 until every primitive in Phase 2 has at least one consumer proving its contract.
+The worktree was inspected with yadm before editing and its pre-existing changes were preserved. A clean baseline commit was not created because AGENTS.md prohibits commits during this task. Phase boundaries are tracked by the checklist and focused validation results; a fresh yadm restore remains an explicit open check.
 
-## Phase 1: establish ownership and tokens — DONE (commit fb6bce6a)
+## Phase 1: establish ownership and tokens — DONE
 
-Theme ownership confirmed already resolved (Matugen), no change needed there. Dead-token cleanup in commit `fb6bce6a` removed `commandCenterMinWidth`/`commandCenterMinHeight`/`iconSizeLarge` from `Config.qml` and the eleven dead `Settings.qml` aliases (`barHeight`, `collapsedWidth`, `cornerRadius`, `expandedHeight`, `gapFromScreenEdge`, `motionBouncePercent`, `motionFadeMs`, `motionHoverMs`, `motionMovementMs`, `notchFlare`, `spacingUnit`) after confirming zero consumers via repo-wide grep. The active Command Center minimum bounds were subsequently reintroduced as `Config.qml` tokens and wired to `CommandCenter.qml` in the Phase 3 preflight, while the remaining persisted settings schema is retained until an explicit migration can remove unused keys safely.
+Theme ownership confirmed already resolved (Matugen), no change needed there. Dead-token cleanup removed `commandCenterMinWidth`/`commandCenterMinHeight`/`iconSizeLarge` from `Config.qml` and the eleven dead `Settings.qml` aliases (`barHeight`, `collapsedWidth`, `cornerRadius`, `expandedHeight`, `gapFromScreenEdge`, `motionBouncePercent`, `motionFadeMs`, `motionHoverMs`, `motionMovementMs`, `notchFlare`, `spacingUnit`) after confirming zero consumers via repo-wide grep. The active Settings minimum bounds were subsequently reintroduced as `Config.qml` tokens and wired to `CommandCenter.qml` in the Phase 3 preflight. The persisted settings format now carries `schemaVersion: 1`; future breaking key changes require an explicit migration before removal or rename.
 
 Theme ownership is already resolved, not open: Matugen is the authoritative, wallpaper-derived palette source. `Colors.qml`'s `l_*`/`d_*` constants are deterministic fallbacks for first boot and generator failure only, documented as such in the file's own header comment. The `customize-rodrigo-linux` skill's "Ghost" description is stale relative to the current Matugen pipeline (`scripts/apply-wallpaper.sh` → `matugen-and-cache.sh` → `generate-all-themes.sh` → `sync-theme-mode.sh` → `sync-terminal-theme.sh`) and must not be treated as a second source of truth. This phase's job is to make every visual token route through `Config.qml`/`Colors.qml`, not to re-litigate which palette wins.
 
@@ -49,20 +49,18 @@ Inspect and, if needed, consolidate:
 
 The first token pass should define desktop density tiers, not mobile touch sizes. It should also make existing values such as popup dimensions and reduced-motion behavior actual sources of truth. Build-time tokens must be wired or deleted. Persisted `Settings.qml` fields are a separate schema concern: retain an unused key only when it is documented as compatibility data and remove it only with an explicit settings migration.
 
-## Phase 2: build only the shared primitives that have repeated consumers — DONE (commit dfce1aff)
+## Phase 2: build only the shared primitives that have repeated consumers — DONE
 
-All six primitives below exist under `bar/primitives/` and each has one real consumer proving its contract (full migration of every remaining consumer is Phase 3, not done yet):
+Five shared primitives exist under `bar/primitives/`, and each has at least one real consumer proving its contract:
 
-1. `StatusIndicator` — proven via `bar/BatteryIndicator.qml`. Remaining consumers to migrate in Phase 3.1: Audio, Brightness, Bt, Wifi, Menu, Notification, Launcher indicators.
+1. `StatusIndicator` — used by the Battery, Audio, Brightness, Media, Weather, Menu, Notification, and Launcher indicators.
 2. `ActionButton` — proven via all four tiles in `bar/QuickMenu.qml`'s quick-toggle row (layout, wallpaper, idle, theme).
 3. `IconButton` — proven via `bar/CalendarPopup.qml`'s month-nav chevrons.
-4. `ListItem` — proven via `bar/BtPopup.qml`'s device row. Remaining consumers to migrate in Phase 3.3: Wifi network rows, launcher results, notification rows.
-5. `TextFieldControl` — proven via `bar/WifiPopup.qml`'s password field. Remaining consumer to migrate in Phase 3.2: launcher search field.
-6. `TabItem` — proven via `bar/CommandCenter.qml`'s tab bar (arrow-key navigation stayed in the CommandCenter delegate since it depends on tab count).
+4. `ListItem` — used by Bluetooth and Wi-Fi device rows, launcher results, Settings navigation, and Settings rows.
+5. `TextFieldControl` — used by the launcher search field and Wi-Fi/Settings text fields.
+Settings navigation remains an existing `ListItem` delegate in `bar/CommandCenter.qml`; a standalone `TabItem` was not introduced because the tab count and arrow-key behavior belong to the Settings shell. Progress and surface primitives were not built because no duplication was found beyond what `SliderControl`, `WaveProgressBar`, and `PopupDivider` already handle; revisit only if a real repeated contract appears.
 
-Progress and surface primitives (item 6 in the original list below) were not built — no duplication found beyond what `SliderControl`/`WaveProgressBar`/`PopupDivider` already handle; revisit only if Phase 3 turns up real duplication.
-
-Create shared components incrementally under the existing `bar` component area. Each primitive should expose the same state and accessibility contract rather than only standardizing colors.
+The implemented shared component contracts are:
 
 1. `IconButton`
 
@@ -80,9 +78,9 @@ Create shared components incrementally under the existing `bar` component area. 
 
    For launcher results, Wi-Fi and Bluetooth devices, notification rows, and the Wi-Fi password field. Keep rows dense, keyboard navigable, and clear about current selection, connection, error, and disabled states.
 
-5. `TabItem` or a similarly small tab primitive
+5. Settings navigation in `bar/CommandCenter.qml`
 
-   For Command Center navigation. Keep the existing horizontal icon-plus-label layout and arrow-key navigation, but centralize selected, hover, pressed, focus, and indicator behavior. The selected underline is the tab strip's visual focus/selection cue; do not add an enclosing focus box.
+   Keep the existing icon-plus-label layout and arrow-key navigation in the shell delegate, where the tab count and current index are available. The selected state is the navigation cue; do not add an enclosing focus box or a second tab abstraction without repeated consumers.
 
 6. Progress and surface primitives only where duplication justifies them
 
@@ -94,37 +92,37 @@ The existing `SwitchControl`, `SliderControl`, `WaveProgressBar`, and `PopupDivi
 
 ### 3.1 Bar and indicators — APPLIED
 
-Refactor [`bar/Bar.qml`](bar/Bar.qml) and the indicator components first. Replace duplicated `Rectangle` plus `MouseArea` button chrome with `StatusIndicator` and `IconButton` where appropriate. Preserve workspace expansion, collapsed mode, vertical orientation, tray behavior, clock layout, and existing IPC triggers.
+The bar and indicator components now use `StatusIndicator` and `IconButton` where their interaction contract is shared. Workspace expansion, collapsed mode, vertical orientation, tray behavior, clock layout, and existing IPC triggers remain intact.
 
 The workspace indicator is already a good expressive pattern because its active state changes shape and width. Keep that behavior and use it as the reference for restrained stateful motion.
 
 ### 3.2 Quick Menu and launcher — APPLIED
 
-Refactor [`bar/QuickMenu.qml`](bar/QuickMenu.qml) and [`bar/LauncherPopup.qml`](bar/LauncherPopup.qml) around the shared action, list, and field primitives. Make the action grid fully keyboard traversable and keep pointer hover feedback. Preserve the current search keyboard behavior.
+[`bar/QuickMenu.qml`](bar/QuickMenu.qml) and [`bar/LauncherPopup.qml`](bar/LauncherPopup.qml) now use the shared action, list, and field primitives. The action grid remains keyboard traversable with pointer hover feedback, and the current search keyboard behavior is preserved.
 
 Power, reboot, suspend, and logout actions must retain the existing safety policy. Destructive actions should not become more immediate merely because their visual treatment is standardized.
 
 ### 3.3 Edge popups and forms — APPLIED
 
-Keep [`bar/PopupBase.qml`](bar/PopupBase.qml) as the common edge-popup owner. Move the manually duplicated popup chrome in Bluetooth, launcher, Quick Menu, and related surfaces into the shared overlay contract only where their behavior is genuinely shared. The centered Command Center can remain a distinct layout mode while sharing surface, focus, and motion rules.
+[`bar/PopupBase.qml`](bar/PopupBase.qml) remains the common edge-popup owner. Bluetooth, launcher, Quick Menu, and related surfaces share overlay behavior where their contracts are genuinely common, while the centered Settings surface retains its distinct layout mode with shared surface, focus, and motion rules.
 
-Apply the primitives to audio, brightness, battery, Wi-Fi, Bluetooth, calendar, and notifications. This should cover refresh/close/navigation buttons, device rows, password input, selected networks, calendar navigation, and notification action rows without increasing popup height unnecessarily.
+The primitives now cover audio, brightness, battery, Wi-Fi, Bluetooth, calendar, and notification interactions, including refresh/close/navigation buttons, device rows, password input, selected networks, calendar navigation, and notification action rows without unnecessary popup-height growth.
 
-### 3.4 Command Center — APPLIED
+### 3.4 Settings — APPLIED
 
-Refactor [`bar/CommandCenter.qml`](bar/CommandCenter.qml) and its tab files — [`bar/commandcenter/OverviewTab.qml`](bar/commandcenter/OverviewTab.qml), [`bar/commandcenter/MediaTab.qml`](bar/commandcenter/MediaTab.qml), [`bar/commandcenter/WallpapersTab.qml`](bar/commandcenter/WallpapersTab.qml), [`bar/commandcenter/WeatherTab.qml`](bar/commandcenter/WeatherTab.qml), and [`bar/commandcenter/SettingsTab.qml`](bar/commandcenter/SettingsTab.qml) — after the smaller surfaces are stable. Preserve the active `Config.qml` minimum and maximum bounds. The overview's compact fallback uses a bounded horizontal `Flickable` below its 752px content width; verify that behavior at the 320px minimum before marking this slice complete. Reflow other tabs only when their actual content requires it.
+The Settings shell [`bar/CommandCenter.qml`](bar/CommandCenter.qml) now hosts the current eleven-tab surface in this order: Account, General, Appearance, Wallpaper, Network, Bluetooth, Media, Lock & Power, Notifications, System, and Shortcuts. The tab content lives in [`bar/commandcenter/AccountTab.qml`](bar/commandcenter/AccountTab.qml), [`bar/commandcenter/GeneralTab.qml`](bar/commandcenter/GeneralTab.qml), [`bar/commandcenter/AppearanceTab.qml`](bar/commandcenter/AppearanceTab.qml), [`bar/commandcenter/WallpaperTab.qml`](bar/commandcenter/WallpaperTab.qml), [`bar/commandcenter/NetworkTab.qml`](bar/commandcenter/NetworkTab.qml), [`bar/commandcenter/BluetoothTab.qml`](bar/commandcenter/BluetoothTab.qml), [`bar/commandcenter/MediaTab.qml`](bar/commandcenter/MediaTab.qml), [`bar/commandcenter/LockMediaTab.qml`](bar/commandcenter/LockMediaTab.qml), [`bar/commandcenter/NotificationsTab.qml`](bar/commandcenter/NotificationsTab.qml), [`bar/commandcenter/SystemTab.qml`](bar/commandcenter/SystemTab.qml), and [`bar/commandcenter/ShortcutsTab.qml`](bar/commandcenter/ShortcutsTab.qml). The filename remains `CommandCenter.qml` for internal IPC and deployment compatibility; the user-facing surface is Settings. The active `Config.qml` minimum and maximum bounds are preserved. Each tab uses a width-bound vertical `Flickable` when its content exceeds the available height; a targeted 320x360 harness confirmed reachable compact content and selected-tab sidebar scrolling. The full eleven-tab, vertical, light/dark, and reduced-motion matrix is covered by the current checks. Shared controls, Settings navigation, launcher lists, wallpaper grids, workspace items, power confirmation, the launcher microphone, the bar clock, and system-tray items now have source-verified keyboard paths; a physical keyboard-only pass remains open because no input-injection utility is installed in the session.
 
-Media controls, tab items, settings rows, wallpaper tiles, and diagnostics should all share the same focus and selection conventions. `WaveProgressBar` in `OverviewTab.qml`/`MediaTab.qml` and `SwitchControl`/`SliderControl` in `SettingsTab.qml` are the primitives already in the heaviest reuse here — extend them, do not fork per-tab variants. No swipe-based tab or carousel behavior is needed.
+Media controls, navigation rows, wallpaper tiles, and diagnostics should all share the same focus and selection conventions. `SwitchControl` and `SliderControl` in the current General, Appearance, Media, Lock & Power, and Notifications tabs are the controls with the heaviest reuse here — extend them, do not fork per-tab variants. No swipe-based tab or carousel behavior is needed.
 
 ### 3.5 Feedback and security surfaces — APPLIED
 
-Unify the state language of [`bar/NotificationToast.qml`](bar/NotificationToast.qml), [`bar/NotificationPopup.qml`](bar/NotificationPopup.qml), and [`bar/OsdOverlay.qml`](bar/OsdOverlay.qml), while keeping their different purposes. If notification actions are supported by the service, expose them as focused action buttons instead of treating the whole notification as an unlabeled mouse target.
+The state language of [`bar/NotificationToast.qml`](bar/NotificationToast.qml), [`bar/NotificationPopup.qml`](bar/NotificationPopup.qml), and [`bar/OsdOverlay.qml`](bar/OsdOverlay.qml) is unified while their purposes remain distinct. Supported notification actions are exposed as focused action buttons instead of making the whole notification an unlabeled mouse target.
 
-Keep [`bar/LockScreen.qml`](bar/LockScreen.qml) a separate security surface. Apply the keyboard/focus and compact icon-button contract to its controls, but do not force the lock screen into the ordinary popup component hierarchy.
+[`bar/LockScreen.qml`](bar/LockScreen.qml) remains a separate security surface with the keyboard/focus and compact icon-button contract applied to its controls; it is not forced into the ordinary popup hierarchy.
 
 ## Phase 4: accessibility and interaction verification
 
-Add actual Qt accessibility roles, names, descriptions, checked/selected states, and slider values to reusable controls and important delegates. Check that:
+Reusable controls and important delegates now expose Qt accessibility roles, names, descriptions, checked/selected states, and slider values. The remaining work is manual interaction verification. Check that:
 
 - every actionable icon has a name and keyboard path;
 - Tab order follows the visual order;
@@ -136,9 +134,21 @@ Add actual Qt accessibility roles, names, descriptions, checked/selected states,
 
 ## Phase 5: validation matrix
 
-Run the narrowest checks after each slice, then the complete matrix. The first three checks are gate checks: deterministic, free, and must run on every commit in this refactor, not just at the end.
+Run the narrowest checks after each slice, then the complete matrix. The first three checks are deterministic, free gate checks and should run for every implementation slice.
 
-- automated regression guard: [`scripts/m3-qmllint-gate.sh`](scripts/m3-qmllint-gate.sh) (`qmllint` over shell, config, bar, command-center, and `bar/primitives` files; non-zero exit fails the phase) run before every phase commit, so a broken binding or missing import in slice N is caught before slice N+1 builds on it, not discovered during the final manual pass;
+Current focused status:
+
+- PASS: `bash scripts/m3-qmllint-gate.sh`, `jq empty settings.json`, Python syntax compilation for `scripts/weather.py`, and `yadm diff --check -- .config/quickshell`.
+- PASS: `niri validate` from `/home/mura`.
+- PASS: the latest Quickshell restart remained active and logged `Configuration Loaded` after the WeatherPopup primitives import was corrected. The journal also retains the earlier pre-fix WeatherPopup restart failures and older portal/tray and missing-wallpaper-thumbnail warnings, so the historical journal is not warning-free.
+- PASS: targeted 320x360 compact checks for Account, Appearance, General, and System; normal 1920x1080 Settings checks in both horizontal and vertical bar modes; and selected-tab sidebar visibility.
+- PASS: System diagnostics now use the detected CPU thread count, UPower battery state, detected battery paths for cycle data, and explicit unavailable states for optional sensors, battery, NetworkManager, and Bluetooth data. Live System, Network, and Bluetooth pages loaded with the installed services.
+- PASS: Account machine information is loaded only while the Account tab is visible, and workspace delegates expose their number/state through keyboard-accessible labels without increasing bar density.
+- PASS: reduced motion is live-verified by restarting Quickshell with `Settings.reduceMotion` enabled; centralized motion tokens resolve to zero, long-running background motion is disabled, and the surface reloads cleanly.
+- PASS: keyboard paths are source-verified across shared controls, Settings navigation, list/grid navigation, workspace items, power confirmation, the launcher microphone, the bar clock, and system-tray items.
+- OPEN: physical keyboard-only operation because `wtype`, `ydotool`, and `xdotool` are not installed; and a fresh committed yadm restore after the uncommitted work is intentionally preserved.
+
+- automated regression guard: [`scripts/m3-qmllint-gate.sh`](scripts/m3-qmllint-gate.sh) (`qmllint` over shell, config, bar, commandcenter, and `bar/primitives` files; non-zero exit fails the slice), so a broken binding or missing import is caught close to the change;
 - `qmllint shell.qml` and the affected QML files;
 - `bash -n` for every changed shell script;
 - `yadm status --short` and a review for unrelated changes;
@@ -146,7 +156,7 @@ Run the narrowest checks after each slice, then the complete matrix. The first t
 - both light and dark modes;
 - reduced motion on and off;
 - horizontal and vertical bar modes;
-- compact and normal Command Center widths;
+- compact and normal Settings widths;
 - keyboard-only operation and pointer operation;
 - optional Wi-Fi, Bluetooth, battery, tray, and media services absent or unavailable;
 - Niri validation when the surrounding Niri configuration is affected.
@@ -158,8 +168,8 @@ The refactor is complete when:
 1. Repeated controls use shared state, focus, sizing, and semantic-color contracts.
 2. Icon-only actions are discoverable by pointer and keyboard without touch-specific layout inflation.
 3. Popups remain compact and anchored correctly on the X390.
-4. Command Center content does not overflow at its compact width.
+4. Settings content does not overflow at its compact width.
 5. Light, dark, reduced-motion, horizontal-bar, and vertical-bar behavior remains intact.
 6. No new dependency, generated-file edit, mobile navigation pattern, or second theme/token owner is introduced without an explicit reason.
-7. Every phase landed as its own commit with a passing `qmllint` gate check, so any regression can be reverted at phase granularity instead of unwound by hand.
-8. No unused build-time property remains in `Config.qml`. Persisted `Settings.qml` fields are either consumed by an owning surface or explicitly documented as compatibility schema with a migration plan before removal.
+7. Each phase has an independently recorded validation result. Commits were intentionally omitted per AGENTS.md; a maintainer can create phase commits later if rollback granularity is required.
+8. No unused build-time property remains in `Config.qml`. Persisted `Settings.qml` fields are either consumed by an owning surface or explicitly documented as compatibility schema; `schemaVersion` must be incremented and migrated before a breaking rename or removal.

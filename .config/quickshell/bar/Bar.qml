@@ -227,10 +227,14 @@ PanelWindow {
 
         Item {
           id: launcherWrapper
-          Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : launcherWidget.verticalLayoutHeight * root.expandProgress
+          Layout.preferredWidth: root.horizontal
+            ? root.wSize * root.expandProgress * (Settings.ccShowLauncher ? 1 : 0)
+            : parent.width * (Settings.ccShowLauncher ? 1 : 0)
+          Layout.preferredHeight: root.horizontal
+            ? parent.height * (Settings.ccShowLauncher ? 1 : 0)
+            : launcherWidget.verticalLayoutHeight * root.expandProgress * (Settings.ccShowLauncher ? 1 : 0)
           opacity: root.expandProgress
-          visible: root.expandProgress > 0
+          visible: root.expandProgress > 0 && Settings.ccShowLauncher
           clip: true
 
           Launcher {
@@ -247,8 +251,13 @@ PanelWindow {
         WorkspaceIndicator {
           id: wsIndicator
           horizontal: root.horizontal
-          Layout.preferredWidth: root.horizontal ? implicitWidth : parent.width
-          Layout.preferredHeight: root.horizontal ? parent.height : implicitHeight
+          Layout.preferredWidth: Settings.ccShowWorkspaces
+            ? (root.horizontal ? implicitWidth : parent.width)
+            : 0
+          Layout.preferredHeight: Settings.ccShowWorkspaces
+            ? (root.horizontal ? parent.height : implicitHeight)
+            : 0
+          visible: Settings.ccShowWorkspaces
         }
 
         Item {
@@ -267,14 +276,15 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal
             ? (hasWindowInfo
               ? Math.min(320, Math.max(140, windowInfoTextWidth + 16)) * root.expandProgress
-              : 0)
-            : (hasWindowInfo ? parent.width : 0)
-          Layout.preferredHeight: root.horizontal
+              : 0) * (Settings.ccShowFocusedWindow ? 1 : 0)
+            : (hasWindowInfo ? parent.width : 0) * (Settings.ccShowFocusedWindow ? 1 : 0)
+          Layout.preferredHeight: (root.horizontal
             ? parent.height
-            : (hasWindowInfo ? verticalInfoHeight * root.expandProgress : 0)
-          Layout.fillHeight: !root.horizontal && root.expanded && hasWindowInfo
+            : (hasWindowInfo ? verticalInfoHeight * root.expandProgress : 0))
+            * (Settings.ccShowFocusedWindow ? 1 : 0)
+          Layout.fillHeight: !root.horizontal && root.expanded && hasWindowInfo && Settings.ccShowFocusedWindow
           opacity: root.expandProgress
-          visible: root.expandProgress > 0 && hasWindowInfo
+          visible: root.expandProgress > 0 && hasWindowInfo && Settings.ccShowFocusedWindow
           clip: true
 
           ColumnLayout {
@@ -409,7 +419,7 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
           Layout.preferredHeight: root.horizontal ? parent.height : batteryIndicator.verticalLayoutHeight * root.expandProgress
           opacity: root.expandProgress
-          visible: root.expandProgress > 0
+          visible: root.expandProgress > 0 && Settings.ccShowBattery
           clip: true
 
           BatteryIndicator {
@@ -428,7 +438,7 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal ? systemTray.preferredLength * root.expandProgress : parent.width
           Layout.preferredHeight: root.horizontal ? parent.height : systemTray.preferredLength * root.expandProgress
           opacity: root.expandProgress
-          visible: systemTray.visibleCount > 0 && (root.expandProgress > 0)
+          visible: Settings.ccShowTray && systemTray.visibleCount > 0 && (root.expandProgress > 0)
           clip: true
 
           SystemTrayArea {
@@ -444,19 +454,33 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal ? root.wSize * 1.75 * root.expandProgress : parent.width
           Layout.preferredHeight: root.horizontal ? parent.height : Config.clockVerticalHeight * root.expandProgress
           opacity: root.expandProgress
-          visible: root.expandProgress > 0
+          visible: root.expandProgress > 0 && Settings.ccShowClock
           clip: true
 
           Item {
             id: clockWidget
             anchors.fill: parent
+            activeFocusOnTab: true
+
+            Accessible.role: Accessible.Button
+            Accessible.name: "Calendar"
+            Accessible.description: "Open calendar"
+            Accessible.focusable: true
+            Accessible.focused: activeFocus
+
+            Keys.onPressed: function(event) {
+              if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                root.togglePopup("calendar", clockWidget)
+                event.accepted = true
+              }
+            }
 
             Column {
               anchors.centerIn: parent
               spacing: Config.clockLineSpacing
 
-              Text {
-                anchors.horizontalCenter: parent.horizontalCenter
+            Text {
+              anchors.horizontalCenter: parent.horizontalCenter
                 text: root.horizontal
                   ? root.displayNow().toLocaleString(Qt.locale(), root.clockFormat())
                   : root.displayNow().toLocaleString(Qt.locale(), Settings.clock24h ? "HH" : "h")
@@ -480,6 +504,14 @@ PanelWindow {
               }
             }
 
+            Rectangle {
+              anchors.fill: parent
+              radius: Config.shapeMedium
+              color: "transparent"
+              border.width: clockWidget.activeFocus ? 2 : 0
+              border.color: Colors.primary
+            }
+
             MouseArea {
               anchors.fill: parent
               hoverEnabled: true
@@ -496,7 +528,7 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal ? root.wSize * root.expandProgress : parent.width
           Layout.preferredHeight: root.horizontal ? parent.height : notifIndicator.verticalLayoutHeight * root.expandProgress
           opacity: root.expandProgress
-          visible: root.expandProgress > 0
+          visible: root.expandProgress > 0 && Settings.ccShowNotifications
           clip: true
 
           NotificationIndicator {

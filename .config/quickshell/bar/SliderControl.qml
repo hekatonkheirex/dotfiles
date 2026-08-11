@@ -21,12 +21,23 @@ Item {
   property real stepSize: 0.05
   property string accessibleName: "Slider"
   property string accessibleDescription: "Adjust value"
+  property real accessibleMinimumValue: 0
+  property real accessibleMaximumValue: 100
+  property string accessibleUnit: "%"
 
   Accessible.role: Accessible.Slider
   Accessible.name: root.accessibleName
-  Accessible.description: root.accessibleDescription + " Current value " + Math.round(root.value * 100) + " percent"
+  Accessible.description: root.accessibleDescription
+    + " Current value " + Math.round(root.accessibleMinimumValue
+      + root.value * (root.accessibleMaximumValue - root.accessibleMinimumValue))
+    + (root.accessibleUnit !== "" ? " " + root.accessibleUnit : "")
+    + ". Range " + root.accessibleMinimumValue + " to " + root.accessibleMaximumValue
+    + (root.accessibleUnit !== "" ? " " + root.accessibleUnit : "")
+  Accessible.focusable: true
+  Accessible.focused: root.activeFocus
 
   signal changed(real value)
+  signal interactionFinished()
 
   width: parent ? parent.width : 240
   height: 40
@@ -87,6 +98,15 @@ Item {
     } else if (event.key === Qt.Key_End) {
       root.setValue(1)
       event.accepted = true
+    }
+  }
+
+  Keys.onReleased: function(event) {
+    if (event.key === Qt.Key_PageUp || event.key === Qt.Key_PageDown
+        || event.key === Qt.Key_Left || event.key === Qt.Key_Right
+        || event.key === Qt.Key_Up || event.key === Qt.Key_Down
+        || event.key === Qt.Key_Home || event.key === Qt.Key_End) {
+      root.interactionFinished()
     }
   }
 
@@ -175,5 +195,6 @@ Item {
     function handleMouse(mx) {
       root.setValue(mx / parent.width)
     }
+    onReleased: root.interactionFinished()
   }
 }

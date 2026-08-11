@@ -16,9 +16,11 @@ Item {
   onLockedChanged: {
     if (locked) {
       fprintdProcess.running = true
+      currentWallpaperProc.running = Settings.lockUseWallpaper
     } else {
       fprintdProcess.running = false
       fprintdRetry.stop()
+      currentWallpaperProc.running = false
     }
   }
   readonly property color accentColor: Colors.primary
@@ -34,6 +36,43 @@ Item {
 
   readonly property string home: Quickshell.env("HOME")
   property date now: new Date()
+  property string wallpaperSource: ""
+  property bool wallpaperReady: false
+
+  Process {
+    id: currentWallpaperProc
+    command: ["sh", "-c", "awww query 2>/dev/null | sed -n 's/.*image: //p' | head -1"]
+    running: root.locked && Settings.lockUseWallpaper
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var value = text.trim()
+        root.wallpaperReady = false
+        if (value.indexOf("file://") === 0) root.wallpaperSource = value
+        else if (value.indexOf("/") === 0) root.wallpaperSource = "file://" + value
+        else if (value !== "") root.wallpaperSource = "file://" + root.home + "/Pictures/Walls/" + value
+        else root.wallpaperSource = ""
+      }
+    }
+  }
+
+  Image {
+    id: wallpaperProbe
+    source: root.wallpaperSource
+    asynchronous: true
+    visible: false
+    onStatusChanged: {
+      if (status === Image.Ready) root.wallpaperReady = true
+      else if (status === Image.Error) root.wallpaperReady = false
+    }
+  }
+
+  Connections {
+    target: Settings
+    function onLockUseWallpaperChanged() {
+      root.wallpaperReady = false
+      currentWallpaperProc.running = Settings.lockUseWallpaper && root.locked
+    }
+  }
 
   Timer {
     interval: 1000
@@ -227,9 +266,18 @@ Item {
           onWheel: (wheel) => { wheel.accepted = true }
         }
 
+        Image {
+          anchors.fill: parent
+          source: root.wallpaperSource
+          fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          visible: Settings.lockUseWallpaper && root.wallpaperReady
+        }
+
         AnimatedBackground {
           anchors.fill: parent
           running: root.locked
+          visible: !Settings.lockUseWallpaper || !root.wallpaperReady
         }
 
         Rectangle {
@@ -492,9 +540,18 @@ Item {
       anchors.top: true
       anchors.bottom: true
 
+      Image {
+        anchors.fill: parent
+        source: root.wallpaperSource
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        visible: Settings.lockUseWallpaper && root.wallpaperReady
+      }
+
       AnimatedBackground {
         anchors.fill: parent
         running: root.locked
+        visible: !Settings.lockUseWallpaper || !root.wallpaperReady
       }
 
       Rectangle {

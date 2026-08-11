@@ -8,22 +8,33 @@ import "../../config"
 Flickable {
   id: generalTab
   property QtObject root: null
+  readonly property bool compactLayout: root ? root.compactLayout : false
   anchors.fill: parent
-  visible: root.currentTab === 2
+  visible: root.currentTab === 1
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
 
+  function saveWeatherLocation() {
+    var value = weatherLocationField.input.text.trim()
+    if (Settings.weatherLocation !== value) {
+      Settings.weatherLocation = value
+      Settings.save()
+    }
+  }
+
   ColumnLayout {
     id: mainColumn
     width: generalTab.width
-    spacing: 16
+    spacing: Config.spacingLarge
 
-    RowLayout {
+    GridLayout {
       Layout.fillWidth: true
-      spacing: 16
+      columns: 1
+      columnSpacing: Config.spacingLarge
+      rowSpacing: Config.spacingLarge
 
       // Behavior toggle group
       Rectangle {
@@ -37,7 +48,7 @@ Flickable {
         ColumnLayout {
           id: behaviorCol
           anchors.fill: parent
-          anchors.margins: 8
+          anchors.margins: Config.spacingSmall
           spacing: 0
 
           ListItem {
@@ -78,30 +89,13 @@ Flickable {
         }
       }
 
-      ActionButton {
-        Layout.preferredWidth: 80
-        Layout.preferredHeight: behaviorCol.implicitHeight + 16
-        iconLabel: "coffee"
-        iconSize: 32
-        labelText: "Caffeine"
-        selected: root.caffeineOn
-        accessibleName: "Caffeine mode"
-        accessibleDescription: root.caffeineOn ? "Enabled" : "Disabled"
-        onActivated: {
-          if (root.caffeineOn) {
-            Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
-            root.caffeineOn = false
-          } else {
-            Quickshell.execDetached(["killall", "swayidle"])
-            root.caffeineOn = true
-          }
-        }
-      }
     }
 
-    RowLayout {
+    GridLayout {
       Layout.fillWidth: true
-      spacing: 16
+      columns: 1
+      columnSpacing: Config.spacingLarge
+      rowSpacing: Config.spacingLarge
 
       // Clock & Calendar toggle group
       Rectangle {
@@ -115,7 +109,7 @@ Flickable {
         ColumnLayout {
           id: clockCol
           anchors.fill: parent
-          anchors.margins: 8
+          anchors.margins: Config.spacingSmall
           spacing: 0
 
           ListItem {
@@ -172,10 +166,12 @@ Flickable {
             }
           }
 
-          RowLayout {
+          GridLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 44
-            spacing: 8
+            Layout.preferredHeight: generalTab.compactLayout ? 64 : 44
+            columns: generalTab.compactLayout ? 1 : 2
+            columnSpacing: 8
+            rowSpacing: 4
 
             Text {
               text: "Timezone"
@@ -183,14 +179,22 @@ Flickable {
               font.family: Config.fontFamily
               font.pixelSize: Config.fontPixelSize + 3
               font.weight: Font.Medium
+              Layout.fillWidth: generalTab.compactLayout
+              Layout.preferredWidth: generalTab.compactLayout ? 0 : 80
+              Layout.minimumWidth: generalTab.compactLayout ? 0 : 80
+              Layout.preferredHeight: generalTab.compactLayout ? 20 : 44
+              verticalAlignment: Text.AlignVCenter
+              elide: Text.ElideRight
               Layout.leftMargin: 8
             }
 
             TextFieldControl {
               id: timezoneField
               Layout.fillWidth: true
+              Layout.minimumWidth: generalTab.compactLayout ? 0 : 160
+              Layout.preferredWidth: generalTab.compactLayout ? 0 : 160
               Layout.preferredHeight: 32
-              placeholder: "System default (e.g. America/Asuncion)"
+              placeholder: generalTab.compactLayout ? "e.g. Asuncion" : "System default (e.g. America/Asuncion)"
               accessibleName: "Timezone"
               accessibleDescription: "IANA timezone name, blank uses system time"
               Component.onCompleted: input.text = Settings.timezone
@@ -210,166 +214,275 @@ Flickable {
         }
       }
 
-      // Bar indicators toggle group
-      Rectangle {
-        Layout.fillWidth: true
-        Layout.preferredHeight: indicatorsCol.implicitHeight + 16
-        radius: Config.shapeLarge
-        color: Colors.surfaceContainer
-        border.color: Colors.outlineVariant
-        border.width: 1
+    }
 
-        ColumnLayout {
-          id: indicatorsCol
-          anchors.fill: parent
-          anchors.margins: 8
-          spacing: 0
+    // Compact bar contents. Settings and the power menu intentionally stay
+    // outside this list so there is always a way back into the shell.
+    Rectangle {
+      Layout.fillWidth: true
+      Layout.preferredHeight: barContentsCol.implicitHeight + 24
+      radius: Config.shapeLarge
+      color: Colors.surfaceContainer
+      border.color: Colors.outlineVariant
+      border.width: 1
 
-          Text {
-            text: "Bar Indicators"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: 11
-            font.weight: Font.Medium
-            Layout.leftMargin: 8
-            Layout.topMargin: 4
-            Layout.bottomMargin: 4
-          }
+      ColumnLayout {
+        id: barContentsCol
+        anchors.fill: parent
+        anchors.margins: Config.spacingSmall
+        spacing: Config.spacingCompact
 
-          ListItem {
-            Layout.fillWidth: true
-            leadingIcon: "play_circle"
-            title: "Media"
-            SwitchControl {
-              checked: Settings.ccShowMedia
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Show media indicator"
-              onToggled: { Settings.ccShowMedia = !Settings.ccShowMedia; Settings.save() }
-            }
-          }
+        Text {
+          text: "Bar Contents"
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.fontPixelSize + 2
+          font.weight: Font.Medium
+          Layout.leftMargin: Config.spacingCompact
+        }
 
-          ListItem {
-            Layout.fillWidth: true
-            leadingIcon: "cloud"
-            title: "Weather"
-            SwitchControl {
-              checked: Settings.ccShowWeather
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Show weather indicator"
-              onToggled: { Settings.ccShowWeather = !Settings.ccShowWeather; Settings.save() }
-            }
-          }
+        Text {
+          text: "Settings and the power menu always remain available. Wi-Fi and Bluetooth stay Settings-only."
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.fontPixelSize
+          wrapMode: Text.WordWrap
+          Layout.fillWidth: true
+          Layout.leftMargin: Config.spacingCompact
+          Layout.rightMargin: Config.spacingCompact
+        }
 
-          ListItem {
-            Layout.fillWidth: true
-            leadingIcon: "volume_up"
-            title: "Audio"
-            SwitchControl {
-              checked: Settings.ccShowAudio
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Show audio indicator"
-              onToggled: { Settings.ccShowAudio = !Settings.ccShowAudio; Settings.save() }
-            }
-          }
+        GridLayout {
+          Layout.fillWidth: true
+          columns: generalTab.compactLayout ? 1 : 2
+          columnSpacing: Config.spacingSmall
+          rowSpacing: Config.spacingCompact
 
-          ListItem {
-            Layout.fillWidth: true
-            leadingIcon: "brightness_medium"
-            title: "Display"
-            SwitchControl {
-              checked: Settings.ccShowDisplay
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Show display brightness indicator"
-              onToggled: { Settings.ccShowDisplay = !Settings.ccShowDisplay; Settings.save() }
+          Repeater {
+            model: [
+              { key: "ccShowLauncher", icon: "apps", title: "Launcher" },
+              { key: "ccShowWorkspaces", icon: "workspaces", title: "Workspaces" },
+              { key: "ccShowFocusedWindow", icon: "select_window", title: "Focused window" },
+              { key: "ccShowClock", icon: "schedule", title: "Clock" },
+              { key: "ccShowNotifications", icon: "notifications", title: "Notifications" },
+              { key: "ccShowBattery", icon: "battery_full", title: "Battery" },
+              { key: "ccShowTray", icon: "extension", title: "System tray" },
+              { key: "ccShowAudio", icon: "volume_up", title: "Audio" },
+              { key: "ccShowDisplay", icon: "brightness_medium", title: "Display brightness" },
+              { key: "ccShowMedia", icon: "play_circle", title: "Media" },
+              { key: "ccShowWeather", icon: "cloud", title: "Weather" }
+            ]
+
+            delegate: ListItem {
+              required property var modelData
+              Layout.fillWidth: true
+              leadingIcon: modelData.icon
+              title: modelData.title
+              subtitle: Settings[modelData.key] ? "Shown in the bar" : "Hidden from the bar"
+              accessibleName: "Show " + modelData.title
+              SwitchControl {
+                checked: Settings[modelData.key]
+                activeColor: Colors.primary
+                surfaceContainerHigh: Colors.surfaceContainerHigh
+                surfaceContainerHighest: Colors.surfaceContainerHighest
+                outline: Colors.outline
+                motionDuration: Config.motionMedium
+                reducedMotion: Config.reducedMotion
+                accessibleName: "Show " + modelData.title
+                onToggled: {
+                  Settings[modelData.key] = !Settings[modelData.key]
+                  Settings.save()
+                }
+              }
             }
           }
         }
       }
     }
 
-    // Weather units
+    // Weather location, privacy, and units
     Rectangle {
       Layout.fillWidth: true
-      Layout.preferredHeight: 84
+      Layout.preferredHeight: weatherCol.implicitHeight + 24
       radius: Config.shapeLarge
       color: Colors.surfaceContainer
       border.color: Colors.outlineVariant
       border.width: 1
 
-      RowLayout {
+      ColumnLayout {
+        id: weatherCol
         anchors.fill: parent
-        anchors.margins: 12
-        spacing: 12
+      anchors.margins: Config.spacingMedium
+      spacing: Config.spacingSmall
 
-        Rectangle {
-          width: 24
-          height: 24
-          radius: 6
-          color: Colors.primary
-          Layout.alignment: Qt.AlignVCenter
+        RowLayout {
+          Layout.fillWidth: true
+          spacing: Config.spacingMedium
+
+          Rectangle {
+            width: 24
+            height: 24
+            radius: Config.shapeCompact
+            color: Colors.primary
+            Layout.alignment: Qt.AlignVCenter
+            Text {
+              anchors.centerIn: parent
+              text: "device_thermostat"
+              color: Colors.fgPrimary
+              font.family: Config.iconFont
+              font.pixelSize: Config.iconSize
+            }
+          }
+
           Text {
-            anchors.centerIn: parent
-            text: "device_thermostat"
-            color: Colors.fgPrimary
-            font.family: Config.iconFont
-            font.pixelSize: 16
+            text: "Weather"
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.textBodyLargeSize
+            font.weight: Font.Bold
+            Layout.fillWidth: true
+            elide: Text.ElideRight
+          }
+
+          Item {
+            width: Math.min(160, Math.max(96, generalTab.width - 56))
+            height: 36
+
+            Row {
+              anchors.fill: parent
+              spacing: 0
+
+              ActionButton {
+                width: parent.width / 2
+                height: parent.height
+                labelText: "°C"
+                selected: Settings.weatherUnits === "metric"
+                accessibleName: "Metric units"
+                onActivated: { Settings.weatherUnits = "metric"; Settings.save() }
+              }
+
+              ActionButton {
+                width: parent.width / 2
+                height: parent.height
+                labelText: "°F"
+                selected: Settings.weatherUnits === "imperial"
+                accessibleName: "Imperial units"
+                onActivated: { Settings.weatherUnits = "imperial"; Settings.save() }
+              }
+            }
+          }
+        }
+
+        RowLayout {
+          Layout.fillWidth: true
+          spacing: Config.spacingSmall
+
+          TextFieldControl {
+            id: weatherLocationField
+            Layout.fillWidth: true
+            Layout.preferredHeight: 36
+            placeholder: "City or town (e.g. Asunción)"
+            accessibleName: "Manual weather location"
+            accessibleDescription: "City or town used for the weather lookup. Leave blank to use IP geolocation only when enabled."
+            Component.onCompleted: input.text = Settings.weatherLocation
+            onAccepted: generalTab.saveWeatherLocation()
+
+            Connections {
+              target: weatherLocationField.input
+              function onActiveFocusChanged() {
+                if (!weatherLocationField.input.activeFocus) generalTab.saveWeatherLocation()
+              }
+            }
+          }
+
+          ActionButton {
+            Layout.preferredWidth: 76
+            Layout.preferredHeight: 36
+            labelText: "Apply"
+            variant: "filled"
+            accessibleName: "Apply weather location"
+            onActivated: generalTab.saveWeatherLocation()
           }
         }
 
         Text {
-          text: "Weather Units"
-          color: Colors.fgSurface
-          font.family: Config.fontFamily
-          font.pixelSize: 13
-          font.weight: Font.Bold
           Layout.fillWidth: true
+          text: Settings.weatherLocation !== ""
+            ? "Using manual location: " + Settings.weatherLocation
+            : "No manual location configured"
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.fontPixelSize
+          elide: Text.ElideRight
         }
 
-        Item {
-          width: 160
-          height: 36
-
-          Row {
-            anchors.fill: parent
-            spacing: 0
-
-            ActionButton {
-              width: parent.width / 2
-              height: parent.height
-              labelText: "°C"
-              selected: Settings.weatherUnits === "metric"
-              accessibleName: "Metric units"
-              onActivated: { Settings.weatherUnits = "metric"; Settings.save() }
+        ListItem {
+          Layout.fillWidth: true
+          leadingIcon: "my_location"
+          title: "Use IP geolocation"
+          subtitle: Settings.weatherAllowIpGeolocation
+            ? "Approximate location used when manual location is blank"
+            : "Off; set a manual location for weather"
+          SwitchControl {
+            checked: Settings.weatherAllowIpGeolocation
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Use IP geolocation"
+            accessibleDescription: "Allow the weather service to estimate location from your IP address when no manual location is set"
+            onToggled: {
+              Settings.weatherAllowIpGeolocation = !Settings.weatherAllowIpGeolocation
+              Settings.save()
             }
+          }
+        }
 
-            ActionButton {
-              width: parent.width / 2
-              height: parent.height
-              labelText: "°F"
-              selected: Settings.weatherUnits === "imperial"
-              accessibleName: "Imperial units"
-              onActivated: { Settings.weatherUnits = "imperial"; Settings.save() }
+        RowLayout {
+          Layout.fillWidth: true
+          spacing: Config.spacingSmall
+
+          Text {
+            text: "Refresh interval"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 1
+            Layout.preferredWidth: generalTab.compactLayout ? 88 : 112
+            Layout.leftMargin: Config.spacingCompact
+          }
+
+          SliderControl {
+            Layout.fillWidth: true
+            value: (Settings.weatherRefreshIntervalMinutes - 5) / 55
+            stepSize: 5 / 55
+            accessibleMinimumValue: 5
+            accessibleMaximumValue: 60
+            accessibleUnit: "minutes"
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            focusColor: Colors.primary
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Weather refresh interval"
+            accessibleDescription: "Choose how often weather data is refreshed"
+            onChanged: function(val) {
+              Settings.weatherRefreshIntervalMinutes = Math.max(5, Math.min(60, Math.round((5 + val * 55) / 5) * 5))
             }
+            onInteractionFinished: Settings.save()
+          }
+
+          Text {
+            text: Settings.weatherRefreshIntervalMinutes + "m"
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.fontPixelSize + 1
+            font.weight: Font.Medium
+            Layout.preferredWidth: 30
+            Layout.rightMargin: Config.spacingCompact
           }
         }
       }

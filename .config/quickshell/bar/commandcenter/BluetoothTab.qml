@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import "../"
+import "../../config"
 
 Flickable {
   id: bluetoothTab
@@ -19,7 +20,7 @@ Flickable {
   ColumnLayout {
     id: mainColumn
     width: bluetoothTab.width
-    spacing: 16
+    spacing: Config.spacingLarge
 
     BtPanel {
       id: btPanel

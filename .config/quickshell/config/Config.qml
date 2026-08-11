@@ -25,6 +25,12 @@ QtObject {
   readonly property string iconFont: "Material Symbols Outlined"
   property int iconSize: Settings.iconSize
   property int fontPixelSize: Settings.fontPixelSize
+  readonly property int textCaptionSize: Math.max(8, fontPixelSize - 1)
+  readonly property int textBodySize: fontPixelSize + 1
+  readonly property int textBodyLargeSize: fontPixelSize + 3
+  readonly property int textTitleSize: fontPixelSize + 5
+  readonly property int textHeadlineSize: fontPixelSize + 8
+  readonly property int iconSizeSmall: Math.max(12, iconSize - 2)
 
   // M3 type role currently consumed by the focused-window metadata.
   readonly property int labelSmallSize: fontPixelSize
@@ -34,6 +40,7 @@ QtObject {
   readonly property int clockVerticalHeight: 42
 
   // Small shape scale for compact controls and expressive containers.
+  readonly property int shapeCompact: 8
   readonly property int shapeMedium: 12
   readonly property int shapeLarge: 16
   readonly property int borderRadius: shapeLarge

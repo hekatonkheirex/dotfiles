@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -192,6 +193,13 @@ Item {
         id: delegateItem
         required property var modelData
 
+        activeFocusOnTab: true
+        Accessible.role: Accessible.Button
+        Accessible.name: "Workspace " + modelData.idx
+        Accessible.description: modelData.isFocused
+          ? "Focused workspace"
+          : (modelData.isOccupied ? "Occupied workspace" : "Empty workspace")
+
         readonly property bool active: modelData.isFocused || wsMouse.containsMouse
 
         width: root.horizontal ? (active ? 40 : 12) : grid.width
@@ -244,12 +252,21 @@ Item {
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
           onClicked: {
+            delegateItem.forceActiveFocus()
             root.clicked(null)
             root.focusWorkspace(modelData.idx)
           }
           onWheel: function(wheel) {
             wheel.accepted = true
             root.scrollWorkspace(wheel.angleDelta.y)
+          }
+        }
+
+        Keys.onPressed: function(event) {
+          if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            root.clicked(null)
+            root.focusWorkspace(modelData.idx)
+            event.accepted = true
           }
         }
       }

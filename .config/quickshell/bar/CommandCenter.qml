@@ -14,14 +14,19 @@ PanelWindow {
 
   signal dismissed()
   signal lockRequested()
+  property QtObject notificationPopup: null
 
   property bool isHorizontal: false
   signal toggleHorizontal()
   property bool fullBar: false
   signal toggleFullBar()
 
-  property int currentTab: 0 // Default to Account tab
+  property int currentTab: Math.max(0, Math.min(10, Settings.lastSettingsTab))
   property double openTime: 0
+  readonly property bool compactLayout: root.implicitWidth <= 480
+  readonly property int sidebarWidth: root.implicitWidth <= 480 ? 96 : 132
+  readonly property int sidebarRowHeight: 44
+  readonly property int sidebarRowSpacing: 2
 
   // Account tab: session info
   property string uptimeText: "up ..."
@@ -29,45 +34,76 @@ PanelWindow {
   property bool caffeineOn: false
 
   // System Diagnostics Stats (System tab)
-  property real statsCpu: 0
-  property string statsRamStr: "0.0 / 0.0 GB"
-  property real statsRamPct: 0.0
-  property string statsDiskStr: "0.0 / 0.0 GB"
-  property real statsDiskPct: 0.0
+  property real statsCpu: -1
+  property string statsRamStr: "Unavailable"
+  property real statsRamPct: -1
+  property string statsDiskStr: "Unavailable"
+  property real statsDiskPct: -1
+  property int statsCpuCount: -1
+
+  function resetStats() {
+    root.statsCpu = -1
+    root.statsRamStr = "Unavailable"
+    root.statsRamPct = -1
+    root.statsDiskStr = "Unavailable"
+    root.statsDiskPct = -1
+    root.statsCpuCount = -1
+  }
+
+  function parseStatNumber(value) {
+    var raw = value === undefined || value === null ? "" : String(value).trim()
+    if (raw === "") return -1
+    var parsed = parseFloat(raw)
+    return isFinite(parsed) ? parsed : -1
+  }
 
   Process {
     id: statsProc
-    command: ["sh", "-c", "cpu=$(top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\\([0-9.]*\\)%* id.*/\\1/' | awk '{print 100 - $1}'); mem=$(free -m | awk '/Mem:/ { printf \"%d,%d,%d\", $3, $2, $3*100/$2 }'); disk=$(df -h / | awk '/\\// {printf \"%s,%s,%s\", $3, $2, $5}' | head -n 1); echo \"$cpu|$mem|$disk\""]
+    command: ["sh", "-c",
+      "cpu=$(top -bn1 2>/dev/null | grep 'Cpu(s)' | sed 's/.*, *\\([0-9.]*\\)%* id.*/\\1/' | awk '{print 100 - $1}'); " +
+      "cpu_count=$(getconf _NPROCESSORS_ONLN 2>/dev/null || nproc 2>/dev/null || true); " +
+      "mem=$(free -m 2>/dev/null | awk '/^Mem:/ { printf \"%d,%d,%.2f\", $3, $2, ($2 > 0 ? $3*100/$2 : -1); found=1 } END { if (!found) print \"-1,-1,-1\" }'); " +
+      "disk=$(df -hP / 2>/dev/null | awk 'NR == 2 { print $3 \",\" $2 \",\" $5; found=1 } END { if (!found) print \"Unavailable,Unavailable,-1\" }'); " +
+      "printf '%s|%s|%s|%s\\n' \"$cpu\" \"$cpu_count\" \"$mem\" \"$disk\""]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
-        try {
-          var parts = text.trim().split("|");
-          if (parts.length >= 3) {
-            root.statsCpu = parseFloat(parts[0]);
+        root.resetStats()
 
-            var memParts = parts[1].split(",");
-            var memUsedGb = (parseFloat(memParts[0]) / 1024.0).toFixed(1);
-            var memTotalGb = (parseFloat(memParts[1]) / 1024.0).toFixed(1);
-            root.statsRamStr = memUsedGb + " / " + memTotalGb + " GB";
-            root.statsRamPct = parseFloat(memParts[2]) / 100.0;
+        var parts = text.trim().split("|")
+        if (parts.length < 4) return
 
-            var diskParts = parts[2].split(",");
-            var diskUsed = diskParts[0];
-            var diskTotal = diskParts[1];
-            var diskPctVal = parseFloat(diskParts[2].replace("%", ""));
-            root.statsDiskStr = diskUsed + " / " + diskTotal;
-            root.statsDiskPct = diskPctVal / 100.0;
-          }
-        } catch(e) {}
+        var cpu = root.parseStatNumber(parts[0])
+        var cpuCount = parseInt(parts[1])
+        root.statsCpu = cpu >= 0 ? Math.max(0, Math.min(100, cpu)) : -1
+        root.statsCpuCount = isFinite(cpuCount) && cpuCount > 0 ? cpuCount : -1
+
+        var memParts = parts[2].split(",")
+        var memUsedMb = root.parseStatNumber(memParts[0])
+        var memTotalMb = root.parseStatNumber(memParts[1])
+        var memPct = root.parseStatNumber(memParts[2])
+        if (memUsedMb >= 0 && memTotalMb > 0 && memPct >= 0) {
+          root.statsRamStr = (memUsedMb / 1024.0).toFixed(1) + " / " + (memTotalMb / 1024.0).toFixed(1) + " GB"
+          root.statsRamPct = Math.max(0, Math.min(1, memPct / 100.0))
+        }
+
+        var diskParts = parts[3].split(",")
+        var diskPct = root.parseStatNumber(String(diskParts[2] || "").replace("%", ""))
+        if (diskParts.length >= 3 && diskParts[0] !== "Unavailable" && diskParts[1] !== "Unavailable" && diskPct >= 0) {
+          root.statsDiskStr = diskParts[0] + " / " + diskParts[1]
+          root.statsDiskPct = Math.max(0, Math.min(1, diskPct / 100.0))
+        }
       }
+    }
+    onExited: (exitCode) => {
+      if (exitCode !== 0) root.resetStats()
     }
   }
 
   Timer {
     id: statsTimer
     interval: 3000
-    running: root.visible && root.currentTab === 8
+    running: root.visible && root.currentTab === 9
     repeat: true
     triggeredOnStart: true
     onTriggered: {
@@ -141,6 +177,49 @@ PanelWindow {
     }
   }
 
+  function ensureCurrentTabVisible() {
+    if (!sidebarScroll.interactive || tabRepeater.count === 0) return
+
+    var rowTop = root.currentTab * (root.sidebarRowHeight + root.sidebarRowSpacing)
+    var rowBottom = rowTop + root.sidebarRowHeight
+    var nextContentY = sidebarScroll.contentY
+
+    if (rowTop < sidebarScroll.contentY) {
+      nextContentY = rowTop
+    } else if (rowBottom > sidebarScroll.contentY + sidebarScroll.height) {
+      nextContentY = rowBottom - sidebarScroll.height
+    }
+
+    sidebarScroll.contentY = Math.max(0, Math.min(
+      nextContentY,
+      Math.max(0, sidebarScroll.contentHeight - sidebarScroll.height)))
+  }
+
+  function selectTab(index) {
+    root.currentTab = Math.max(0, Math.min(tabRepeater.count - 1, index))
+    var delegate = tabRepeater.itemAt(root.currentTab)
+    if (delegate) delegate.forceActiveFocus()
+    root.ensureCurrentTabVisible()
+  }
+
+  onCurrentTabChanged: {
+    root.ensureCurrentTabVisible()
+    if (Settings.lastSettingsTab !== root.currentTab) {
+      Settings.lastSettingsTab = root.currentTab
+      Settings.save()
+    }
+  }
+
+  Timer {
+    id: ensureTabVisibilityTimer
+    interval: 1
+    repeat: false
+    onTriggered: root.ensureCurrentTabVisible()
+  }
+
+  onHeightChanged: ensureTabVisibilityTimer.start()
+  onWidthChanged: ensureTabVisibilityTimer.start()
+
   onVisibleChanged: {
     if (visible) {
       idleCheck.running = true
@@ -154,6 +233,7 @@ PanelWindow {
       } else {
         mainItem.forceActiveFocus()
       }
+      root.ensureCurrentTabVisible()
       root.openTime = Date.now()
 
       // Refresh dynamic content
@@ -239,65 +319,87 @@ PanelWindow {
         // Sidebar navigation
         ColumnLayout {
           id: sidebar
-          Layout.preferredWidth: 132
-          Layout.maximumWidth: 132
+          Layout.preferredWidth: root.sidebarWidth
+          Layout.maximumWidth: root.sidebarWidth
           Layout.fillWidth: false
           Layout.fillHeight: true
-          spacing: 2
+          spacing: 0
 
-          Repeater {
-            id: tabRepeater
-            model: [
-              { icon: "person", label: "Account" },
-              { icon: "palette", label: "Appearance" },
-              { icon: "tune", label: "General" },
-              { icon: "lock", label: "Lock & Media" },
-              { icon: "wifi", label: "Network" },
-              { icon: "bluetooth", label: "Bluetooth" },
-              { icon: "notifications", label: "Notifications" },
-              { icon: "keyboard", label: "Shortcuts" },
-              { icon: "monitor_heart", label: "System" }
-            ]
+          Flickable {
+            id: sidebarScroll
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            contentWidth: width
+            contentHeight: sidebarColumn.implicitHeight
+            interactive: contentHeight > height
+            boundsBehavior: Flickable.StopAtBounds
+            flickableDirection: Flickable.VerticalFlick
+            clip: true
 
-            delegate: ListItem {
-              required property var modelData
-              required property int index
+            ColumnLayout {
+              id: sidebarColumn
+              width: sidebarScroll.width
+              spacing: root.sidebarRowSpacing
 
-              Layout.fillWidth: true
-              activeFocusOnTab: true
-              focus: root.currentTab === index
-              leadingIcon: modelData.icon
-              title: modelData.label
-              selected: root.currentTab === index
-              accessibleName: modelData.label + " tab"
+              Repeater {
+                id: tabRepeater
+                model: [
+                  { icon: "person", label: "Account" },
+                  { icon: "tune", label: "General" },
+                  { icon: "palette", label: "Appearance" },
+                  { icon: "wallpaper", label: "Wallpaper" },
+                  { icon: "wifi", label: "Network" },
+                  { icon: "bluetooth", label: "Bluetooth" },
+                  { icon: "play_circle", label: "Media" },
+                  { icon: "lock", label: "Lock & Power" },
+                  { icon: "notifications", label: "Notifications" },
+                  { icon: "monitor_heart", label: "System" },
+                  { icon: "keyboard", label: "Shortcuts" }
+                ]
 
-              Keys.onPressed: function(event) {
-                if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                  root.currentTab = index
-                  event.accepted = true
-                } else if (event.key === Qt.Key_Up) {
-                  root.currentTab = (index + tabRepeater.count - 1) % tabRepeater.count
-                  event.accepted = true
-                } else if (event.key === Qt.Key_Down) {
-                  root.currentTab = (index + 1) % tabRepeater.count
-                  event.accepted = true
-                } else if (event.key === Qt.Key_Home) {
-                  root.currentTab = 0
-                  event.accepted = true
-                } else if (event.key === Qt.Key_End) {
-                  root.currentTab = tabRepeater.count - 1
-                  event.accepted = true
+                delegate: ListItem {
+                  required property var modelData
+                  required property int index
+
+                  Layout.fillWidth: true
+                  activeFocusOnTab: true
+                  focus: root.currentTab === index
+                  leadingIcon: modelData.icon
+                  title: modelData.label
+                  selected: root.currentTab === index
+                  accessibleName: modelData.label
+                  accessibleDescription: root.currentTab === index
+                    ? "Selected Settings page"
+                    : "Open Settings page"
+                  Accessible.role: Accessible.PageTab
+                  Accessible.selected: root.currentTab === index
+                  Accessible.selectable: true
+                  Accessible.focusable: true
+
+                  Keys.onPressed: function(event) {
+                    if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                      root.selectTab(index)
+                      event.accepted = true
+                    } else if (event.key === Qt.Key_Up) {
+                      root.selectTab((index + tabRepeater.count - 1) % tabRepeater.count)
+                      event.accepted = true
+                    } else if (event.key === Qt.Key_Down) {
+                      root.selectTab((index + 1) % tabRepeater.count)
+                      event.accepted = true
+                    } else if (event.key === Qt.Key_Home) {
+                      root.selectTab(0)
+                      event.accepted = true
+                    } else if (event.key === Qt.Key_End) {
+                      root.selectTab(tabRepeater.count - 1)
+                      event.accepted = true
+                    }
+                  }
+
+                  onClicked: root.selectTab(index)
                 }
-              }
-
-              onClicked: {
-                forceActiveFocus()
-                root.currentTab = index
               }
             }
           }
-
-          Item { Layout.fillHeight: true }
         }
 
         Rectangle {
@@ -322,11 +424,19 @@ PanelWindow {
             root: root
           }
 
+          WallpaperTab {
+            root: root
+          }
+
           GeneralTab {
             root: root
           }
 
           LockMediaTab {
+            root: root
+          }
+
+          MediaTab {
             root: root
           }
 
@@ -340,6 +450,7 @@ PanelWindow {
 
           NotificationsTab {
             root: root
+            notificationPopup: root.notificationPopup
           }
 
           ShortcutsTab {

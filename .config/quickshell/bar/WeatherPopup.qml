@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import "primitives"
 import "../config"
 
 PopupBase {
@@ -13,6 +14,9 @@ PopupBase {
   property string city: ""
   property string temp: "--°"
   property string desc: ""
+  property string status: "loading"
+  property string statusMessage: "Loading weather..."
+  property string updatedAt: ""
   property var forecast: []
   property var hourly: []
   property string humidity: "--%"
@@ -24,12 +28,22 @@ PopupBase {
 
   Process {
     id: weatherProc
-    command: ["python3", "-u", Quickshell.env("HOME") + "/.config/quickshell/scripts/weather.py", Settings.weatherUnits]
+    command: [
+      "python3",
+      "-u",
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/weather.py",
+      Settings.weatherUnits,
+      Settings.weatherLocation,
+      Settings.weatherAllowIpGeolocation ? "1" : "0"
+    ]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
         try {
           var info = JSON.parse(text.trim());
+          root.status = info.status || "ok";
+          root.statusMessage = info.message || "";
+          root.updatedAt = info.updated_at || "";
           root.city = info.city;
           root.temp = info.current_temp;
           root.desc = info.current_desc;
@@ -46,9 +60,21 @@ PopupBase {
     }
   }
 
-  onShown: {
+  function refresh() {
     weatherProc.running = false
     weatherProc.running = true
+  }
+
+  Connections {
+    target: Settings
+    function onWeatherUnitsChanged() { if (root.visible) root.refresh() }
+    function onWeatherLocationChanged() { if (root.visible) root.refresh() }
+    function onWeatherAllowIpGeolocationChanged() { if (root.visible) root.refresh() }
+    function onWeatherRefreshIntervalMinutesChanged() { if (root.visible) root.refresh() }
+  }
+
+  onShown: {
+    root.refresh()
   }
 
   ColumnLayout {
@@ -59,12 +85,70 @@ PopupBase {
     }
     spacing: 12
 
-    Text {
-      text: "Weather"
-      color: Colors.fgSurface
-      font.family: Config.fontFamily
-      font.pixelSize: (Config.fontPixelSize + 8)
-      font.weight: Font.Bold
+    RowLayout {
+      Layout.fillWidth: true
+
+      Text {
+        text: "Weather"
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: (Config.fontPixelSize + 8)
+        font.weight: Font.Bold
+      }
+
+      Item { Layout.fillWidth: true }
+
+      Text {
+        text: root.updatedAt !== "" ? "Updated " + root.updatedAt.replace("T", " ") : ""
+        color: Colors.fgSurfaceVariant
+        font.family: Config.fontFamily
+        font.pixelSize: Math.max(8, Config.fontPixelSize - 1)
+        elide: Text.ElideLeft
+      }
+
+      IconButton {
+        size: 28
+        iconSize: 18
+        iconLabel: "refresh"
+        accessibleName: "Refresh weather"
+        tooltipText: "Refresh weather"
+        onClicked: root.refresh()
+      }
+    }
+
+    Rectangle {
+      visible: root.status !== "ok"
+      Layout.fillWidth: true
+      Layout.preferredHeight: 48
+      radius: Config.shapeMedium
+      color: root.status === "offline" ? Colors.errorContainer : Colors.surfaceContainer
+      border.color: root.status === "offline" ? Colors.error : Colors.outlineVariant
+      border.width: 1
+
+      RowLayout {
+        anchors.fill: parent
+        anchors.leftMargin: 12
+        anchors.rightMargin: 12
+        spacing: 8
+
+        Text {
+          text: root.status === "loading" ? "progress_activity" : "cloud_off"
+          color: root.status === "offline" ? Colors.fgErrorContainer : Colors.fgSurfaceVariant
+          font.family: Config.iconFont
+          font.pixelSize: 22
+          Layout.alignment: Qt.AlignVCenter
+        }
+
+        Text {
+          Layout.fillWidth: true
+          text: root.statusMessage
+          color: root.status === "offline" ? Colors.fgErrorContainer : Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.fontPixelSize + 1
+          wrapMode: Text.WordWrap
+          verticalAlignment: Text.AlignVCenter
+        }
+      }
     }
 
     // Top Row: Current Weather & Hourly Forecast
@@ -116,7 +200,7 @@ PopupBase {
             }
 
             Text {
-              text: root.city || "Location Auto"
+              text: root.city || (root.status === "unavailable" ? "Location not configured" : "Location unavailable")
               color: Qt.rgba(Colors.fgSurfaceVariant.r, Colors.fgSurfaceVariant.g, Colors.fgSurfaceVariant.b, 0.5)
               font.family: Config.fontFamily
               font.pixelSize: 10
@@ -135,7 +219,7 @@ PopupBase {
 
         Text {
           anchors.centerIn: parent
-          text: "Loading hourly forecast..."
+          text: root.status === "loading" ? "Loading hourly forecast..." : "Forecast unavailable"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
           font.pixelSize: 11

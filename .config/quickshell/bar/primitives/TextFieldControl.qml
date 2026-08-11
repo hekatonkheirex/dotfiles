@@ -1,5 +1,5 @@
 // Bordered text input: focus-tinted outline, placeholder text, optional
-// password masking. Lifted out of WifiPopup's inline password field so the
+// password masking. Lifted out of the legacy Wi-Fi popup's inline password field so the
 // launcher search box and any future form field can share it.
 import QtQuick
 import QtQuick.Layouts
@@ -30,7 +30,7 @@ Rectangle {
   signal rightPressed()
 
   height: 36
-  radius: 8
+  radius: Config.shapeMedium
   color: Colors.surface
   border.color: input.activeFocus ? Colors.primary : Colors.outline
   border.width: input.activeFocus ? 2 : 1
@@ -41,7 +41,7 @@ Rectangle {
       leftMargin: 10
       rightMargin: 10
     }
-    spacing: 8
+    spacing: Config.spacingSmall
 
     Text {
       visible: root.leadingIcon !== ""
@@ -92,13 +92,19 @@ Rectangle {
         color: Colors.fgSurfaceVariant
         visible: !parent.text && (!parent.activeFocus || root.showPlaceholderOnFocus)
         font: parent.font
-        anchors.verticalCenter: parent.verticalCenter
+        anchors {
+          left: parent.left
+          right: parent.right
+          verticalCenter: parent.verticalCenter
+        }
+        elide: Text.ElideRight
+        maximumLineCount: 1
       }
     }
 
     Row {
       id: trailingRow
-      spacing: 4
+      spacing: Config.spacingCompact
       Layout.alignment: Qt.AlignVCenter
     }
   }

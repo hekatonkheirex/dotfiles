@@ -1,6 +1,6 @@
 // Dense list row: leading icon, title/subtitle stack, optional selected
 // accent, hover/focus state layers, and a trailing slot for status text or actions.
-// Lifted out of BtPopup's device-row delegate; Wi-Fi/launcher rows share the
+// Lifted out of the legacy Bluetooth popup's device-row delegate; Wi-Fi/launcher rows share the
 // same shape.
 import QtQuick
 import QtQuick.Layouts
@@ -36,6 +36,10 @@ Rectangle {
   Accessible.description: root.accessibleDescription !== ""
     ? root.accessibleDescription
     : (root.selected ? root.subtitle + " Selected" : root.subtitle)
+  Accessible.selected: root.selected
+  Accessible.selectable: true
+  Accessible.focusable: root.activeFocusOnTab
+  Accessible.focused: root.activeFocus
 
   Keys.onPressed: function(event) {
     if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
@@ -73,7 +77,7 @@ Rectangle {
     anchors.fill: parent
     anchors.leftMargin: 8
     anchors.rightMargin: 8
-    spacing: 10
+    spacing: Config.spacingSmall
 
     Text {
       visible: root.leadingIcon !== "" && root.leadingImageSource === ""
@@ -81,7 +85,7 @@ Rectangle {
       color: root.leadingIconColor
       opacity: root.leadingIconOpacity
       font.family: Config.iconFont
-      font.pixelSize: 22
+      font.pixelSize: Config.iconSize + 6
     }
 
     Rectangle {
@@ -108,7 +112,7 @@ Rectangle {
         text: root.leadingFallbackText
         color: Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: 14
+        font.pixelSize: Config.iconSize
         font.weight: Font.Medium
         visible: root.leadingImageSource === "" && root.leadingFallbackText !== ""
       }
@@ -141,7 +145,7 @@ Rectangle {
 
     Row {
       id: trailingRow
-      spacing: 4
+      spacing: Config.spacingCompact
       Layout.alignment: Qt.AlignVCenter
     }
   }

@@ -23,9 +23,11 @@ PanelWindow {
   WlrLayershell.namespace: "quickshell-toast"
   WlrLayershell.layer: WlrLayer.Top
   anchors.right: true
-  anchors.top: true
+  anchors.top: Settings.notificationToastPosition !== "bottom-right"
+  anchors.bottom: Settings.notificationToastPosition === "bottom-right"
   margins.right: 16
-  margins.top: Config.barWidth + 4
+  margins.top: Settings.notificationToastPosition === "bottom-right" ? 0 : Config.barWidth + 4
+  margins.bottom: Settings.notificationToastPosition === "bottom-right" ? 16 : 0
   visible: notif !== null
 
   function isPersistent(n) {
@@ -33,7 +35,8 @@ PanelWindow {
   }
 
   function show(n) {
-    if (Settings.doNotDisturb) return
+    if (Settings.doNotDisturb
+        && !(Settings.notificationCriticalBypass && n && n.urgency === NotificationUrgency.Critical)) return
     if (notif !== null && notif !== n && isPersistent(notif))
       heldNotif = notif
     if (heldNotif === n)
