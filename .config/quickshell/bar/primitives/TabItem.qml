@@ -1,5 +1,5 @@
 // Icon + label tab with an underline indicator and hover/press overlay. Lifted
-// out of CommandCenter's tab-bar Repeater
+// out of the Settings panel's tab-bar Repeater
 // delegate so future tab strips (e.g. a settings sub-nav) don't reinvent it.
 import QtQuick
 import "../../config"

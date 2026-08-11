@@ -30,6 +30,13 @@ Item {
   property color badgeColor: Colors.error
   property color badgeTextColor: Colors.fgError
 
+  // Icon-only indicators do not need the full widget slot in the vertical
+  // bar. Keep their hit target tied to the icon size so they do not leave
+  // larger visual gaps than indicators that also show a value label.
+  readonly property int verticalLayoutHeight: root.labelText !== ""
+    ? Config.widgetSize
+    : Math.min(Config.widgetSize, Config.iconSize + Config.spacingSmall)
+
   signal clicked(var mouse)
   signal wheel(var wheel)
 

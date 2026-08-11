@@ -11,18 +11,6 @@ binds {
   Mod+Escape repeat=false hotkey-overlay-title="Open Quick Settings" { spawn "~/.config/quickshell/scripts/quickmenu"; }
   Mod+A hotkey-overlay-title="Open OpenCode" { spawn "kitty" "-e" "opencode"; }
 
-  // Pill shell (Quickshell -p pill): mixer surface toggle/hide.
-  // Mod+Escape is already bound above (Open Quick Settings), so hide uses Mod+Shift+Escape.
-  Mod+M hotkey-overlay-title="Open Pill Mixer" { spawn "qs" "-p" "/home/mura/.config/quickshell/pill" "ipc" "call" "pill" "mixer" ""; }
-  Mod+Shift+Escape repeat=false hotkey-overlay-title="Hide Pill Mixer" { spawn "qs" "-p" "/home/mura/.config/quickshell/pill" "ipc" "call" "pill" "hide"; }
-
-  // Pill shell (Quickshell -p pill): battery/brightness/wifi/bluetooth surfaces.
-  // Mod+Shift+U collides with move-workspace-down (below), so bluetooth uses Mod+Shift+T instead.
-  Mod+Shift+B hotkey-overlay-title="Open Pill Battery" { spawn "qs" "-p" "/home/mura/.config/quickshell/pill" "ipc" "call" "pill" "battery" ""; }
-  Mod+Shift+N hotkey-overlay-title="Open Pill Brightness" { spawn "qs" "-p" "/home/mura/.config/quickshell/pill" "ipc" "call" "pill" "brightness" ""; }
-  Mod+Shift+W hotkey-overlay-title="Open Pill Wifi" { spawn "qs" "-p" "/home/mura/.config/quickshell/pill" "ipc" "call" "pill" "wifi" ""; }
-  Mod+Shift+T hotkey-overlay-title="Open Pill Bluetooth" { spawn "qs" "-p" "/home/mura/.config/quickshell/pill" "ipc" "call" "pill" "bluetooth" ""; }
-
   // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
   // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
   // For example, this is a standard bind to toggle the screen reader (orca).
@@ -301,4 +289,3 @@ recent-windows {
         Alt+Shift+grave { previous-window filter="app-id"; }
     }
 }
-

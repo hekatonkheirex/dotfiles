@@ -15,8 +15,13 @@ def get_location():
         pass
     return None
 
-def get_weather(lat, lon, city, country_code):
-    use_fahrenheit = country_code in ["US", "LR", "MM"]
+def get_weather(lat, lon, city, country_code, units="auto"):
+    if units == "imperial":
+        use_fahrenheit = True
+    elif units == "metric":
+        use_fahrenheit = False
+    else:
+        use_fahrenheit = country_code in ["US", "LR", "MM"]
     temp_unit = "fahrenheit" if use_fahrenheit else "celsius"
     temp_suffix = "°F" if use_fahrenheit else "°C"
     wind_unit = "mph" if use_fahrenheit else "km/h"
@@ -115,13 +120,15 @@ def get_weather(lat, lon, city, country_code):
     return None
 
 def main():
+    units = sys.argv[1] if len(sys.argv) > 1 else "auto"
+
     loc = get_location()
     if not loc:
         # Fallback to Asunción if geo IP fails
         loc = (-25.2869, -57.6511, "Asunción", "PY")
-        
+
     lat, lon, city, country_code = loc
-    weather = get_weather(lat, lon, city, country_code)
+    weather = get_weather(lat, lon, city, country_code, units)
     if weather:
         print(json.dumps(weather))
     else:

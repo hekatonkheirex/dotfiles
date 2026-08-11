@@ -15,9 +15,6 @@ PanelWindow {
 
   signal dismissed()
 
-  property bool isHorizontal: false
-  signal toggleHorizontal()
-
   property int activePowerIndex: -1
   property int pendingPowerIndex: -1
   property var powerOptions: [
@@ -31,11 +28,50 @@ PanelWindow {
   property bool focusDismissArmed: false
   property double openTime: 0
 
-  function changeWallpaper() {
-    Quickshell.execDetached(["sh", "-c",
-      "wall_dir=\"$HOME/Pictures/Walls\"; " +
-      "selected=$(find \"$wall_dir\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) | shuf -n 1); " +
-      "[ -n \"$selected\" ] && exec bash \"$HOME/.config/quickshell/scripts/apply-wallpaper.sh\" \"${selected##*/}\""])
+  signal lockRequested()
+
+  property bool caffeineOn: false
+  property bool airplaneOn: false
+
+  Process {
+    id: idleCheck
+    command: ["sh", "-c", "pgrep -x swayidle >/dev/null 2>&1 && echo active || echo inactive"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.caffeineOn = text.trim() !== "active"
+      }
+    }
+  }
+
+  Process {
+    id: airplaneCheck
+    command: ["sh", "-c", "nmcli radio wifi | grep -q 'disabled' && echo on || echo off"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.airplaneOn = text.trim() === "on"
+      }
+    }
+  }
+
+  function toggleCaffeine() {
+    if (root.caffeineOn) {
+      Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
+      root.caffeineOn = false
+    } else {
+      Quickshell.execDetached(["killall", "swayidle"])
+      root.caffeineOn = true
+    }
+  }
+
+  function toggleAirplane() {
+    var newState = !root.airplaneOn
+    var cmd = newState
+      ? "nmcli radio wifi off; bluetoothctl power off"
+      : "nmcli radio wifi on; bluetoothctl power on"
+    Quickshell.execDetached(["sh", "-c", cmd])
+    root.airplaneOn = newState
   }
 
   function focusPower(index) {
@@ -101,19 +137,6 @@ PanelWindow {
 
   anchors.top: true
   margins.top: Math.max(0, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
-
-  property bool caffeineOn: false
-
-  Process {
-    id: idleCheck
-    command: ["sh", "-c", "pgrep -x swayidle >/dev/null 2>&1 && echo active || echo inactive"]
-    running: false
-    stdout: StdioCollector {
-      onStreamFinished: {
-        root.caffeineOn = text.trim() !== "active"
-      }
-    }
-  }
 
   Process {
     id: focusedWindowQuery
@@ -198,7 +221,6 @@ PanelWindow {
     focusEventWatcherRetry.stop()
     focusDismissArmTimer.stop()
     if (visible) {
-      idleCheck.running = true
       entryAnimation.start()
       root.activePowerIndex = -1
       root.pendingPowerIndex = -1
@@ -207,6 +229,8 @@ PanelWindow {
       root.focusDismissArmed = false
       mainItem.forceActiveFocus()
       root.openTime = Date.now()
+      idleCheck.running = true
+      airplaneCheck.running = true
       if (Config.isNiri) {
         focusedWindowQuery.running = true
         focusDismissArmTimer.restart()
@@ -310,7 +334,7 @@ PanelWindow {
         spacing: 14
 
         Text {
-          text: "Quick Settings"
+          text: "Power Options"
           color: Colors.fgSurface
           font.family: Config.fontFamily
           font.pixelSize: (Config.fontPixelSize + 8)
@@ -323,66 +347,59 @@ PanelWindow {
           color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
         }
 
-        Row {
-          spacing: 12
-          width: parent.width
+      Row {
+        spacing: 8
+        width: parent.width
+        layoutDirection: Qt.RightToLeft
 
-          ActionButton {
-            id: layoutBtn
-            width: (parent.width - 3 * 12) / 4
-            height: width
-            iconLabel: root.isHorizontal ? "horizontal_split" : "vertical_split"
-            selected: root.isHorizontal
-            accessibleName: "Toggle bar orientation"
-            tooltipText: root.isHorizontal ? "Use vertical bar" : "Use horizontal bar"
-            onActivated: root.toggleHorizontal()
-          }
+        ActionButton {
+          width: (parent.width - 3 * 8) / 4
+          height: width
+          iconLabel: "coffee"
+          labelText: "Caffeine"
+          selected: root.caffeineOn
+          accessibleName: "Caffeine mode"
+          accessibleDescription: root.caffeineOn ? "Enabled" : "Disabled"
+          onActivated: root.toggleCaffeine()
+        }
 
-          ActionButton {
-            id: wallBtn
-            width: (parent.width - 3 * 12) / 4
-            height: width
-            iconLabel: "wallpaper"
-            iconColor: Colors.primary
-            accessibleName: "Change wallpaper"
-            tooltipText: "Change wallpaper"
-            onActivated: root.changeWallpaper()
-          }
+        ActionButton {
+          width: (parent.width - 3 * 8) / 4
+          height: width
+          iconLabel: root.airplaneOn ? "airplanemode_active" : "airplanemode_inactive"
+          labelText: "Airplane"
+          selected: root.airplaneOn
+          accessibleName: "Airplane mode"
+          accessibleDescription: root.airplaneOn ? "Enabled" : "Disabled"
+          onActivated: root.toggleAirplane()
+        }
 
-          ActionButton {
-            id: idleBtn
-            width: (parent.width - 3 * 12) / 4
-            height: width
-            iconLabel: "coffee"
-            selected: root.caffeineOn
-            accessibleName: "Toggle caffeine mode"
-            tooltipText: root.caffeineOn ? "Disable caffeine mode" : "Enable caffeine mode"
-            onActivated: {
-              if (root.caffeineOn) {
-                Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
-                root.caffeineOn = false
-              } else {
-                Quickshell.execDetached(["killall", "swayidle"])
-                root.caffeineOn = true
-              }
-            }
-          }
+        ActionButton {
+          width: (parent.width - 3 * 8) / 4
+          height: width
+          iconLabel: "do_not_disturb_on"
+          labelText: "DND"
+          selected: Settings.doNotDisturb
+          accessibleName: "Do Not Disturb"
+          accessibleDescription: Settings.doNotDisturb
+            ? "Enabled; toast popups suppressed and history retained"
+            : "Disabled; toast popups enabled"
+          onActivated: { Settings.doNotDisturb = !Settings.doNotDisturb; Settings.save() }
+        }
 
-          ActionButton {
-            id: dmBtn
-            width: (parent.width - 3 * 12) / 4
-            height: width
-            iconLabel: ["brightness_auto", "light_mode", "dark_mode"][Colors.themePreference]
-            selected: Colors.darkMode || Colors.themePreference === 1
-            accessibleName: "Change color mode"
-            tooltipText: "Cycle color mode"
-            onActivated: {
-              Colors.themePreference = (Colors.themePreference + 1) % 3
-              var modes = ["auto", "light", "dark"]
-              Quickshell.execDetached(["/bin/sh", "-c", "$HOME/.local/bin/sync-theme-mode.sh " + modes[Colors.themePreference]])
-            }
+        ActionButton {
+          width: (parent.width - 3 * 8) / 4
+          height: width
+          iconLabel: "lock"
+          labelText: "Lock"
+          accessibleName: "Lock screen"
+          accessibleDescription: "Locks the session"
+          onActivated: {
+            root.lockRequested()
+            root.dismissed()
           }
         }
+      }
 
         Rectangle {
           width: parent.width
