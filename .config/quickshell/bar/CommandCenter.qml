@@ -22,6 +22,7 @@ PanelWindow {
   signal toggleFullBar()
 
   property int currentTab: Math.max(0, Math.min(10, Settings.lastSettingsTab))
+  property int focusedTab: currentTab
   property double openTime: 0
   readonly property bool compactLayout: root.implicitWidth <= 480
   readonly property int sidebarWidth: root.implicitWidth <= 480 ? 96 : 132
@@ -195,11 +196,42 @@ PanelWindow {
       Math.max(0, sidebarScroll.contentHeight - sidebarScroll.height)))
   }
 
+  function focusTab(index) {
+    var target = Math.max(0, Math.min(tabRepeater.count - 1, index))
+    root.focusedTab = target
+    root.ensureCurrentTabVisible()
+    if (mainItem) mainItem.forceActiveFocus()
+  }
+
   function selectTab(index) {
     root.currentTab = Math.max(0, Math.min(tabRepeater.count - 1, index))
-    var delegate = tabRepeater.itemAt(root.currentTab)
-    if (delegate) delegate.forceActiveFocus()
-    root.ensureCurrentTabVisible()
+    root.focusTab(root.currentTab)
+  }
+
+  function focusFirstFocusable(item) {
+    if (!item || !item.visible) return false
+
+    // Flickable content lives below contentItem rather than directly in the
+    // Flickable's visual children. Walk it first so Tab enters the active
+    // Settings page instead of stopping on the page shell.
+    if (item.contentItem && item.contentItem !== item
+        && root.focusFirstFocusable(item.contentItem)) return true
+
+    var children = item.children || []
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i]
+      if (!child || !child.visible) continue
+      if (child.activeFocusOnTab && child.enabled !== false) {
+        child.forceActiveFocus()
+        return true
+      }
+      if (root.focusFirstFocusable(child)) return true
+    }
+    return false
+  }
+
+  function focusCurrentTabContent() {
+    if (!root.focusFirstFocusable(tabContainer)) mainItem.forceActiveFocus()
   }
 
   onCurrentTabChanged: {
@@ -217,6 +249,15 @@ PanelWindow {
     onTriggered: root.ensureCurrentTabVisible()
   }
 
+  Timer {
+    id: focusRequestTimer
+    interval: 50
+    repeat: false
+    onTriggered: {
+      if (root.visible) mainItem.forceActiveFocus()
+    }
+  }
+
   onHeightChanged: ensureTabVisibilityTimer.start()
   onWidthChanged: ensureTabVisibilityTimer.start()
 
@@ -224,15 +265,9 @@ PanelWindow {
     if (visible) {
       idleCheck.running = true
       entryAnimation.start()
-      // Focus the current tab delegate (not mainItem) so arrow-key tab
-      // navigation works immediately on open, without requiring a mouse
-      // click first. mainItem isn't a FocusScope, so focus: true on the
-      // delegate alone never receives active focus otherwise.
-      if (tabRepeater.count > 0) {
-        tabRepeater.itemAt(root.currentTab).forceActiveFocus()
-      } else {
-        mainItem.forceActiveFocus()
-      }
+      focusRequestTimer.restart()
+      root.focusedTab = root.currentTab
+      mainItem.forceActiveFocus()
       root.ensureCurrentTabVisible()
       root.openTime = Date.now()
 
@@ -241,10 +276,13 @@ PanelWindow {
         uptimeProc.running = false
         uptimeProc.running = true
       }
+    } else {
+      focusRequestTimer.stop()
     }
   }
 
   WlrLayershell.focusable: true
+  WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
   Component.onCompleted: {
     Qt.application.activeChanged.connect(function() {
@@ -252,16 +290,39 @@ PanelWindow {
     })
   }
 
-  Item {
+  FocusScope {
     id: mainItem
     anchors.fill: parent
     focus: true
+    Keys.priority: Keys.BeforeItem
 
     Keys.onPressed: function(event) {
       if (event.key === Qt.Key_Escape) {
         if (Date.now() - root.openTime > 150) {
           root.dismissed()
         }
+        event.accepted = true
+      } else if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+        root.selectTab(root.focusedTab)
+        event.accepted = true
+      } else if (event.key === Qt.Key_Up) {
+        root.focusTab((root.focusedTab + tabRepeater.count - 1) % tabRepeater.count)
+        event.accepted = true
+      } else if (event.key === Qt.Key_Down) {
+        root.focusTab((root.focusedTab + 1) % tabRepeater.count)
+        event.accepted = true
+      } else if (event.key === Qt.Key_Home) {
+        root.focusTab(0)
+        event.accepted = true
+      } else if (event.key === Qt.Key_End) {
+        root.focusTab(tabRepeater.count - 1)
+        event.accepted = true
+      } else if (event.key === Qt.Key_Right
+                 || (event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier))) {
+        root.focusCurrentTabContent()
+        event.accepted = true
+      } else if (event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier)) {
+        root.focusTab(root.focusedTab)
         event.accepted = true
       }
     }
@@ -363,7 +424,8 @@ PanelWindow {
 
                   Layout.fillWidth: true
                   activeFocusOnTab: true
-                  focus: root.currentTab === index
+                  focus: false
+                  navigationFocused: root.focusedTab === index
                   leadingIcon: modelData.icon
                   title: modelData.label
                   selected: root.currentTab === index
@@ -376,21 +438,38 @@ PanelWindow {
                   Accessible.selectable: true
                   Accessible.focusable: true
 
+                  Keys.priority: Keys.BeforeItem
+
+                  Keys.onReturnPressed: function(event) {
+                    root.selectTab(index)
+                    event.accepted = true
+                  }
+
+                  Keys.onEnterPressed: function(event) {
+                    root.selectTab(index)
+                    event.accepted = true
+                  }
+
+                  Keys.onSpacePressed: function(event) {
+                    root.selectTab(index)
+                    event.accepted = true
+                  }
+
                   Keys.onPressed: function(event) {
-                    if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                      root.selectTab(index)
-                      event.accepted = true
-                    } else if (event.key === Qt.Key_Up) {
-                      root.selectTab((index + tabRepeater.count - 1) % tabRepeater.count)
+                    if (event.key === Qt.Key_Up) {
+                      root.focusTab((index + tabRepeater.count - 1) % tabRepeater.count)
                       event.accepted = true
                     } else if (event.key === Qt.Key_Down) {
-                      root.selectTab((index + 1) % tabRepeater.count)
+                      root.focusTab((index + 1) % tabRepeater.count)
                       event.accepted = true
                     } else if (event.key === Qt.Key_Home) {
-                      root.selectTab(0)
+                      root.focusTab(0)
                       event.accepted = true
                     } else if (event.key === Qt.Key_End) {
-                      root.selectTab(tabRepeater.count - 1)
+                      root.focusTab(tabRepeater.count - 1)
+                      event.accepted = true
+                    } else if (event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier)) {
+                      root.focusCurrentTabContent()
                       event.accepted = true
                     }
                   }

@@ -18,6 +18,7 @@ Rectangle {
   property string title: ""
   property string subtitle: ""
   property bool selected: false
+  property bool navigationFocused: false
   property color leadingIconColor: root.selected ? Colors.primary : Colors.fgSurface
   property string accessibleName: ""
   property string accessibleDescription: ""
@@ -39,7 +40,7 @@ Rectangle {
   Accessible.selected: root.selected
   Accessible.selectable: true
   Accessible.focusable: root.activeFocusOnTab
-  Accessible.focused: root.activeFocus
+  Accessible.focused: root.activeFocus || root.navigationFocused
 
   Keys.onPressed: function(event) {
     if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
@@ -49,6 +50,7 @@ Rectangle {
   }
   color: {
     if (root.selected) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
+    if (root.navigationFocused) return Qt.tint("transparent", Colors.focusOverlay)
     if (itemMouse.containsMouse) return Qt.tint("transparent", Colors.hoverOverlay)
     return root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
   }
