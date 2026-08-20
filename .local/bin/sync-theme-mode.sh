@@ -1,10 +1,13 @@
 #!/bin/bash
 MODE="$1"
+NOTIFY_MODE="$2"
 
 {
   echo "=== $(date) START MODE=$MODE ==="
   
-  notify-send -a "Theme Sync" "Setting mode: $MODE"
+  if [[ "$NOTIFY_MODE" != "--quiet" ]]; then
+    notify-send -a "Theme Sync" "Setting mode: $MODE"
+  fi
 
   apply_theme() {
     local theme="$1"
