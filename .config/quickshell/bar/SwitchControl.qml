@@ -1,36 +1,28 @@
+// Theme facade. The concrete Material 3 and Neo Brutalism switches live in
+// separate folders while this interface remains stable for existing callers.
+import QtQml
 import QtQuick
 import "../config"
+import "themes/material3" as Material3
+import "themes/neo_brutalism" as NeoBrutalism
 
 Item {
   id: root
 
   property bool checked: false
   property color activeColor: Colors.primary
-  property color activeContentColor: Colors.fgPrimary
-  // Compatibility name retained for existing callers. Contrasts against the
-  // knob (which is filled with activeContentColor when checked), not against it.
+  property color activeContentColor: Colors.styleAccentText
   property color checkmarkColor: activeColor
   property color surfaceContainerHigh: Colors.surfaceContainerHigh
   property color surfaceContainerHighest: Colors.surfaceContainerHighest
-  property color outline: Colors.outline
+  property color outline: Colors.styleOutlineStrong
   property color focusColor: activeColor
   property color hoverOverlay: Colors.hoverOverlay
   property color pressOverlay: Colors.pressOverlay
-  readonly property color stateOverlay: root.pressed
-    ? root.pressOverlay
-    : (root.hovered || root.activeFocus ? root.hoverOverlay : Qt.rgba(0, 0, 0, 0))
   property int motionDuration: 150
   property bool reducedMotion: false
   property string accessibleName: "Switch"
   property string accessibleDescription: "Toggle setting"
-
-  Accessible.role: Accessible.CheckBox
-  Accessible.name: root.accessibleName
-  Accessible.description: root.accessibleDescription + (root.checked ? " On" : " Off")
-  Accessible.checkable: true
-  Accessible.checked: root.checked
-  Accessible.focusable: true
-  Accessible.focused: root.activeFocus
 
   signal toggled()
 
@@ -38,102 +30,45 @@ Item {
   height: 32
   activeFocusOnTab: true
 
-  readonly property bool hovered: switchMouse.containsMouse
-  readonly property bool pressed: switchMouse.pressed
-  readonly property bool active: hovered || pressed || activeFocus
-  readonly property real targetThumbSize: pressed ? 28 : (checked ? 24 : 16)
-  readonly property real targetX: checked
-    ? (pressed ? width - 28 - 2 : width - 24 - 4)
-    : (pressed ? 2 : 8)
+  readonly property bool hovered: implementation.item ? implementation.item.hovered : false
+  readonly property bool pressed: implementation.item ? implementation.item.pressed : false
+  readonly property bool active: implementation.item ? implementation.item.active : false
 
-  property real thumbSize: 16
-  property real thumbX: 8
-
-  function animateDuration(base) {
-    return root.reducedMotion ? 0 : Math.max(0, root.motionDuration || base)
-  }
-
-  function activate() {
-    if (root.enabled) root.toggled()
-  }
-
-  Behavior on thumbSize {
-    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
-  }
-  Behavior on thumbX {
-    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
-  }
-
-  Component.onCompleted: {
-    thumbSize = targetThumbSize
-    thumbX = targetX
-  }
-
-  onTargetThumbSizeChanged: thumbSize = targetThumbSize
-  onTargetXChanged: thumbX = targetX
-
-  Keys.onPressed: function(event) {
-    if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-      activate()
-      event.accepted = true
-    }
-  }
-
-  Rectangle {
+  Loader {
+    id: implementation
     anchors.fill: parent
-    anchors.margins: -4
-    radius: height / 2 + 4
-    color: root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
-    border.width: root.activeFocus ? 2 : 0
-    border.color: root.focusColor
-    visible: root.activeFocus
+    sourceComponent: Config.neoBrutalism ? neoImplementation : materialImplementation
   }
 
-  Rectangle {
-    id: track
-    anchors.fill: parent
-    radius: height / 2
-    color: root.enabled
-      ? Qt.tint(root.checked ? root.activeColor : root.surfaceContainerHighest, root.stateOverlay)
-      : root.surfaceContainerHighest
-    border.width: root.checked || !root.enabled ? 0 : 2
-    border.color: root.outline
-    opacity: root.enabled ? 1 : 0.55
-
-    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
+  Component {
+    id: materialImplementation
+    Material3.SwitchControl {}
   }
 
-  Rectangle {
-    id: knob
-    x: root.thumbX
-    y: parent.height / 2 - height / 2
-    width: root.thumbSize
-    height: root.thumbSize
-    radius: width / 2
-    color: root.enabled
-      ? Qt.tint(root.checked ? root.activeContentColor : root.outline, root.stateOverlay)
-      : root.outline
-
-    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
-
-    Text {
-      anchors.centerIn: parent
-      text: "check"
-      font.family: "Material Symbols Outlined"
-      font.pixelSize: 16
-      color: root.checked ? root.checkmarkColor : "transparent"
-      visible: root.checked
-      opacity: root.checked ? 1 : 0
-      Behavior on opacity { NumberAnimation { duration: root.animateDuration(150) } }
-    }
+  Component {
+    id: neoImplementation
+    NeoBrutalism.SwitchControl {}
   }
 
-  MouseArea {
-    id: switchMouse
-    anchors.fill: parent
-    hoverEnabled: true
-    enabled: root.enabled
-    cursorShape: Qt.PointingHandCursor
-    onClicked: root.activate()
+  Binding { target: implementation.item; property: "checked"; value: root.checked }
+  Binding { target: implementation.item; property: "activeColor"; value: root.activeColor }
+  Binding { target: implementation.item; property: "activeContentColor"; value: root.activeContentColor }
+  Binding { target: implementation.item; property: "checkmarkColor"; value: root.checkmarkColor }
+  Binding { target: implementation.item; property: "surfaceContainerHigh"; value: root.surfaceContainerHigh }
+  Binding { target: implementation.item; property: "surfaceContainerHighest"; value: root.surfaceContainerHighest }
+  Binding { target: implementation.item; property: "outline"; value: root.outline }
+  Binding { target: implementation.item; property: "focusColor"; value: root.focusColor }
+  Binding { target: implementation.item; property: "hoverOverlay"; value: root.hoverOverlay }
+  Binding { target: implementation.item; property: "pressOverlay"; value: root.pressOverlay }
+  Binding { target: implementation.item; property: "motionDuration"; value: root.motionDuration }
+  Binding { target: implementation.item; property: "reducedMotion"; value: root.reducedMotion }
+  Binding { target: implementation.item; property: "accessibleName"; value: root.accessibleName }
+  Binding { target: implementation.item; property: "accessibleDescription"; value: root.accessibleDescription }
+  Binding { target: implementation.item; property: "enabled"; value: root.enabled }
+  Binding { target: implementation.item; property: "activeFocusOnTab"; value: root.activeFocusOnTab }
+
+  Connections {
+    target: implementation.item
+    function onToggled() { root.toggled() }
   }
 }

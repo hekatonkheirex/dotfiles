@@ -8,8 +8,8 @@ import "../config"
 PopupBase {
   id: root
 
-  implicitWidth: 360
-  implicitHeight: Math.min(contentColumn.implicitHeight + 32, 480)
+  surfaceWidth: 360
+  surfaceHeight: Math.min(contentColumn.implicitHeight + 32, 480)
 
   property string mprisStatus: "NoPlayer"
   property string mprisTitle: ""

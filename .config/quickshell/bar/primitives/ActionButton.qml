@@ -1,12 +1,14 @@
-// Square toggle-style action tile: filled when selected, tonal container
-// otherwise, with hover/press/focus state layers and keyboard activation
-// (Space/Enter). Lifted out of QuickMenu's four near-identical layout/wallpaper/
-// idle/theme toggle tiles.
+// Theme facade. The concrete Material 3 and Neo Brutalism implementations
+// live in separate folders; existing bar call sites keep this stable type.
+import QtQml
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import "../../config"
+import "../themes/material3" as Material3
+import "../themes/neo_brutalism" as NeoBrutalism
 
-Rectangle {
+Item {
   id: root
 
   property string iconLabel: ""
@@ -18,85 +20,73 @@ Rectangle {
   property string tooltipText: ""
   readonly property bool filled: root.selected || root.variant === "filled"
   property real iconSize: Config.iconSize + 4
-  property color iconColor: root.filled ? Colors.fgPrimary : Colors.fgSurfaceVariant
+  property color iconColor: root.filled ? Colors.styleAccentText : Colors.fgSurfaceVariant
+  property real radius: Config.neoBrutalism ? 4 : Config.shapeMedium
+  property color color: {
+    var overlay = root.pressed ? Colors.pressOverlay
+      : (root.hovered ? Colors.hoverOverlay
+        : (root.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
+    var base = root.filled
+      ? Colors.styleAccent
+      : (root.variant === "quiet"
+        ? (Config.neoBrutalism ? Colors.styleSurface : "transparent")
+        : (Config.neoBrutalism ? Colors.styleSurfaceRaised : Colors.surfaceContainer))
+    return Qt.tint(base, overlay)
+  }
+  property color borderColor: Config.neoBrutalism
+    ? Colors.styleOutlineStrong
+    : (root.filled || root.variant === "quiet"
+      ? "transparent"
+      : (root.variant === "outlined" ? Colors.styleOutlineStrong
+        : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)))
+  property real borderWidth: Config.neoBrutalism ? Config.themeBorderWidth : 1
 
   signal activated()
 
-  radius: Config.shapeLarge
   activeFocusOnTab: true
-  opacity: root.enabled ? 1.0 : 0.38
+  Layout.minimumHeight: Config.themeActionButtonMinHeight > 0
+    && root.iconLabel !== ""
+    && root.labelText !== ""
+    ? Config.themeActionButtonMinHeight
+    : 0
 
-  readonly property bool hovered: mouseArea.containsMouse
-  readonly property bool pressed: mouseArea.pressed
+  readonly property bool hovered: implementation.item ? implementation.item.hovered : false
+  readonly property bool pressed: implementation.item ? implementation.item.pressed : false
 
-  Accessible.role: Accessible.Button
-  Accessible.name: root.accessibleName !== ""
-    ? root.accessibleName
-    : (root.labelText !== "" ? root.labelText : (root.tooltipText !== "" ? root.tooltipText : root.iconLabel))
-  Accessible.description: root.accessibleDescription !== ""
-    ? root.accessibleDescription
-    : (root.selected ? "Selected" : "")
-
-  color: {
-    var overlay = mouseArea.pressed ? Colors.pressOverlay
-      : (mouseArea.containsMouse ? Colors.hoverOverlay
-        : (root.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
-    var base = root.filled
-      ? Colors.primary
-      : (root.variant === "quiet" ? "transparent" : Colors.surfaceContainer)
-    return Qt.tint(base, overlay)
-  }
-  border.color: root.filled || root.variant === "quiet"
-    ? "transparent"
-    : (root.variant === "outlined"
-      ? Colors.outline
-      : Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15))
-  border.width: 1
-
-  Behavior on color {
-    ColorAnimation { duration: Config.animationDuration }
-  }
-
-  Keys.onPressed: function(event) {
-    if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
-      root.activated()
-      event.accepted = true
-    }
-  }
-
-  Column {
-    anchors.centerIn: parent
-    spacing: root.labelText !== "" ? Config.spacingCompact : 0
-
-    Text {
-      anchors.horizontalCenter: parent.horizontalCenter
-      text: root.iconLabel
-      color: root.iconColor
-      font.family: Config.iconFont
-      font.pixelSize: root.iconSize
-    }
-
-    Text {
-      visible: root.labelText !== ""
-      anchors.horizontalCenter: parent.horizontalCenter
-      text: root.labelText
-      color: root.iconColor
-      font.family: Config.fontFamily
-      font.pixelSize: Config.fontPixelSize
-      font.weight: Font.Medium
-    }
-  }
-
-  MouseArea {
-    id: mouseArea
+  Loader {
+    id: implementation
     anchors.fill: parent
-    hoverEnabled: true
-    enabled: root.enabled
-    cursorShape: Qt.PointingHandCursor
-    onClicked: {
-      root.forceActiveFocus()
-      root.activated()
-    }
+    sourceComponent: Config.neoBrutalism ? neoImplementation : materialImplementation
   }
 
+  Component {
+    id: materialImplementation
+    Material3.ActionButton {}
+  }
+
+  Component {
+    id: neoImplementation
+    NeoBrutalism.ActionButton {}
+  }
+
+  Binding { target: implementation.item; property: "iconLabel"; value: root.iconLabel }
+  Binding { target: implementation.item; property: "selected"; value: root.selected }
+  Binding { target: implementation.item; property: "labelText"; value: root.labelText }
+  Binding { target: implementation.item; property: "variant"; value: root.variant }
+  Binding { target: implementation.item; property: "accessibleName"; value: root.accessibleName }
+  Binding { target: implementation.item; property: "accessibleDescription"; value: root.accessibleDescription }
+  Binding { target: implementation.item; property: "tooltipText"; value: root.tooltipText }
+  Binding { target: implementation.item; property: "iconSize"; value: root.iconSize }
+  Binding { target: implementation.item; property: "iconColor"; value: root.iconColor }
+  Binding { target: implementation.item; property: "radius"; value: root.radius }
+  Binding { target: implementation.item; property: "color"; value: root.color }
+  Binding { target: implementation.item; property: "borderColor"; value: root.borderColor }
+  Binding { target: implementation.item; property: "borderWidth"; value: root.borderWidth }
+  Binding { target: implementation.item; property: "enabled"; value: root.enabled }
+  Binding { target: implementation.item; property: "activeFocusOnTab"; value: root.activeFocusOnTab }
+
+  Connections {
+    target: implementation.item
+    function onActivated() { root.activated() }
+  }
 }

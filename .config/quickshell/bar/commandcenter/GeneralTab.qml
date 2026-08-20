@@ -9,11 +9,17 @@ Flickable {
   id: generalTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
+  readonly property int neoShadowAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset
+    : 0
+  readonly property int neoControlAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset * 2
+    : 0
   anchors.fill: parent
   visible: root.currentTab === 1
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight
+  contentHeight: mainColumn.implicitHeight + generalTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
 
@@ -27,8 +33,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: generalTab.width
-    spacing: Config.spacingLarge
+    width: Math.max(0, generalTab.width - generalTab.neoShadowAllowance)
+    spacing: Config.spacingLarge + generalTab.neoShadowAllowance
 
     GridLayout {
       Layout.fillWidth: true
@@ -37,13 +43,13 @@ Flickable {
       rowSpacing: Config.spacingLarge
 
       // Behavior toggle group
-      Rectangle {
+      StyledSurface {
         Layout.fillWidth: true
         Layout.preferredHeight: behaviorCol.implicitHeight + 16
         radius: Config.shapeLarge
-        color: Colors.surfaceContainer
-        border.color: Colors.outlineVariant
-        border.width: 1
+        surfaceColor: Colors.surfaceContainer
+        outlineColor: Colors.styleOutline
+        outlineWidth: Config.themeBorderWidth
 
         ColumnLayout {
           id: behaviorCol
@@ -61,7 +67,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
+              outline: Colors.styleOutlineStrong
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "Reduced motion"
@@ -79,7 +85,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
+              outline: Colors.styleOutlineStrong
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "Show uptime"
@@ -98,13 +104,13 @@ Flickable {
       rowSpacing: Config.spacingLarge
 
       // Clock & Calendar toggle group
-      Rectangle {
+      StyledSurface {
         Layout.fillWidth: true
         Layout.preferredHeight: clockCol.implicitHeight + 16
         radius: Config.shapeLarge
-        color: Colors.surfaceContainer
-        border.color: Colors.outlineVariant
-        border.width: 1
+        surfaceColor: Colors.surfaceContainer
+        outlineColor: Colors.styleOutline
+        outlineWidth: Config.themeBorderWidth
 
         ColumnLayout {
           id: clockCol
@@ -122,7 +128,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
+              outline: Colors.styleOutlineStrong
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "24-hour clock"
@@ -140,7 +146,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
+              outline: Colors.styleOutlineStrong
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "Show seconds"
@@ -158,7 +164,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
+              outline: Colors.styleOutlineStrong
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "Week starts Monday"
@@ -218,13 +224,13 @@ Flickable {
 
     // Compact bar contents. Settings and the power menu intentionally stay
     // outside this list so there is always a way back into the shell.
-    Rectangle {
+    StyledSurface {
       Layout.fillWidth: true
       Layout.preferredHeight: barContentsCol.implicitHeight + 24
       radius: Config.shapeLarge
-      color: Colors.surfaceContainer
-      border.color: Colors.outlineVariant
-      border.width: 1
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
         id: barContentsCol
@@ -285,7 +291,7 @@ Flickable {
                 activeColor: Colors.primary
                 surfaceContainerHigh: Colors.surfaceContainerHigh
                 surfaceContainerHighest: Colors.surfaceContainerHighest
-                outline: Colors.outline
+                outline: Colors.styleOutlineStrong
                 motionDuration: Config.motionMedium
                 reducedMotion: Config.reducedMotion
                 accessibleName: "Show " + modelData.title
@@ -301,13 +307,13 @@ Flickable {
     }
 
     // Weather location, privacy, and units
-    Rectangle {
+    StyledSurface {
       Layout.fillWidth: true
       Layout.preferredHeight: weatherCol.implicitHeight + 24
       radius: Config.shapeLarge
-      color: Colors.surfaceContainer
-      border.color: Colors.outlineVariant
-      border.width: 1
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
         id: weatherCol
@@ -345,7 +351,8 @@ Flickable {
           }
 
           Item {
-            width: Math.min(160, Math.max(96, generalTab.width - 56))
+            width: Math.min(160, Math.max(96,
+              generalTab.width - 56 - generalTab.neoControlAllowance))
             height: 36
 
             Row {
@@ -428,7 +435,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Use IP geolocation"
@@ -463,7 +470,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion

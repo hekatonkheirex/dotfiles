@@ -1,16 +1,22 @@
 #!/bin/bash
 # Syncs kitty, starship, fzf and niri borders to the current light/dark mode +
-# colorscheme (matugen | claude). Called from sync-theme-mode.sh (mode
-# changes) and from CommandCenter.qml (colorscheme toggle). Safe to call with
-# no args: re-reads current state and re-applies.
+# colorscheme (matugen | claude) and Quickshell UI style. Called from
+# sync-theme-mode.sh (mode changes) and Quickshell style/color changes. Safe to
+# call with no args: re-reads current state and re-applies.
 set -u
 
 MODE="${1:-}"
 SCHEME="${2:-}"
+UI_STYLE="${3:-}"
 
 QS_SCHEME_FILE="$HOME/.config/quickshell/colorscheme"
 [ -z "$SCHEME" ] && SCHEME=$(cat "$QS_SCHEME_FILE" 2>/dev/null || echo matugen)
 [ "$SCHEME" != "claude" ] && [ "$SCHEME" != "matugen" ] && SCHEME=matugen
+
+if [ -z "$UI_STYLE" ]; then
+  UI_STYLE=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || echo material3)
+fi
+[ "$UI_STYLE" != "neo-brutalism" ] && UI_STYLE=material3
 
 if [ -z "$MODE" ] || [ "$MODE" = "auto" ]; then
   MODE=$("$HOME/.local/bin/auto-detect-theme.sh" 2>/dev/null)
@@ -84,29 +90,87 @@ fi
   if [ "$SCHEME" = "claude" ]; then
     # Claude palette (matches config/Colors.qml cl_l_/cl_d_ primary + outline)
     if [ "$MODE" = "light" ]; then
-      primary="#D97757"; outline="#898781"
+      primary="#D97757"; outline="#898781"; on_surface="${FG:-#24191b}"; shadow="#000000"
     else
-      primary="#DF8D72"; outline="#8F8A8A"
+      primary="#DF8D72"; outline="#8F8A8A"; on_surface="${FG:-#f3dde0}"; shadow="${FG:-#000000}"
     fi
   else
     cache_file="$HOME/.cache/matugen/current_palette.json"
     if [ -f "$cache_file" ] && command -v jq &>/dev/null; then
       primary=$(jq -r ".\"scheme-expressive\".$MODE.primary" "$cache_file")
       outline=$(jq -r ".\"scheme-expressive\".$MODE.outline" "$cache_file")
+      on_surface=$(jq -r ".\"scheme-expressive\".$MODE.on_surface" "$cache_file")
+      shadow=$(jq -r ".\"scheme-expressive\".$MODE.shadow" "$cache_file")
     fi
   fi
 
   if [ -n "${primary:-}" ] && [ "$primary" != "null" ]; then
+    if [ -z "${on_surface:-}" ] || [ "$on_surface" = "null" ]; then
+      on_surface="${FG:-$outline}"
+    fi
+    if [ -z "${shadow:-}" ] || [ "$shadow" = "null" ]; then
+      shadow="#000000"
+    fi
+
+    if [ "$UI_STYLE" = "neo-brutalism" ]; then
+      focus_width=4
+      focus_active="$on_surface"
+      focus_inactive="$outline"
+      niri_corner_radius=8
+      neo_gap=18
+      neo_shadow_offset=10
+      layout_gaps="gaps $neo_gap"
+      if [ "$MODE" = "dark" ]; then
+        shadow_color="$on_surface"
+      else
+        shadow_color="$shadow"
+      fi
+    else
+      focus_width=2
+      focus_active="$primary"
+      focus_inactive="$outline"
+      niri_corner_radius=16
+      layout_gaps=""
+    fi
+
     mkdir -p "$HOME/.config/niri"
-    cat <<EOF > "$HOME/.config/niri/colors.kdl"
+    colors_file="$HOME/.config/niri/colors.kdl"
+    colors_tmp="$colors_file.tmp.$$"
+    cat <<EOF > "$colors_tmp"
 // Generated dynamically by sync-terminal-theme.sh
 layout {
+    $layout_gaps
     focus-ring {
-        active-color "$primary"
-        inactive-color "$outline"
+        width $focus_width
+        active-color "$focus_active"
+        inactive-color "$focus_inactive"
     }
+EOF
+    if [ "$UI_STYLE" = "neo-brutalism" ]; then
+      cat <<EOF >> "$colors_tmp"
+    shadow {
+        softness 0
+        spread 0
+        offset x=$neo_shadow_offset y=$neo_shadow_offset
+        draw-behind-window true
+        color "$shadow_color"
+    }
+EOF
+    fi
+cat <<EOF >> "$colors_tmp"
+}
+window-rule {
+    geometry-corner-radius $niri_corner_radius
+    clip-to-geometry true
 }
 EOF
-    echo "niri colors.kdl -> active=$primary inactive=$outline"
+    mv -f "$colors_tmp" "$colors_file"
+    echo "niri colors.kdl -> style=$UI_STYLE gaps=${neo_gap:-default} width=$focus_width radius=$niri_corner_radius active=$focus_active inactive=$focus_inactive shadow=${shadow_color:-default} offset=${neo_shadow_offset:-default}"
+
+    # Niri does not need a session restart for included config changes. Reload
+    # the live config so changing the UI style updates the focused ring now.
+    if command -v niri &>/dev/null; then
+      niri msg action load-config-file >/dev/null 2>&1 || true
+    fi
   fi
 } >> /tmp/sync-terminal-theme.log 2>&1

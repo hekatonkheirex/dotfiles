@@ -8,7 +8,7 @@ import "../config"
 PopupBase {
   id: root
 
-  implicitHeight: Math.min(contentColumn.implicitHeight + 24, 450)
+  surfaceHeight: Math.min(contentColumn.implicitHeight + 24, 450)
 
   property var batteryDevice: null
   property real pct: -1

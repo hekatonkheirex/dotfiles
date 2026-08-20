@@ -225,7 +225,7 @@ Item {
         checked: root.btOn
         activeColor: Colors.primary
         surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.outline
+        outline: Colors.styleOutlineStrong
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Bluetooth enabled"
@@ -251,7 +251,7 @@ Item {
         activeColor: Colors.primary
         surfaceContainerHigh: Colors.surfaceContainerHigh
         surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.outline
+        outline: Colors.styleOutlineStrong
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Bluetooth discoverable"

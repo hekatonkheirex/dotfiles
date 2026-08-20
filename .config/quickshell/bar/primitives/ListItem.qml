@@ -19,7 +19,9 @@ Rectangle {
   property string subtitle: ""
   property bool selected: false
   property bool navigationFocused: false
-  property color leadingIconColor: root.selected ? Colors.primary : Colors.fgSurface
+  property color leadingIconColor: root.selected
+    ? (Config.neoBrutalism ? Colors.styleAccentText : Colors.primary)
+    : Colors.fgSurface
   property string accessibleName: ""
   property string accessibleDescription: ""
   readonly property bool hovered: itemMouse.containsMouse
@@ -49,13 +51,19 @@ Rectangle {
     }
   }
   color: {
-    if (root.selected) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
+    if (root.selected) {
+      return Config.neoBrutalism
+        ? Colors.styleAccent
+        : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
+    }
     if (root.navigationFocused) return Qt.tint("transparent", Colors.focusOverlay)
     if (itemMouse.containsMouse) return Qt.tint("transparent", Colors.hoverOverlay)
     return root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
   }
-  border.color: root.selected ? Colors.primary : "transparent"
-  border.width: 1
+  border.color: Config.neoBrutalism
+    ? Colors.styleOutlineStrong
+    : (root.selected ? Colors.primary : "transparent")
+  border.width: Config.themeBorderWidth
 
   Behavior on color {
     ColorAnimation { duration: Config.animationDuration }
@@ -127,7 +135,9 @@ Rectangle {
       Text {
         Layout.fillWidth: true
         text: root.title
-        color: root.selected ? Colors.primary : Colors.fgSurface
+        color: root.selected
+          ? (Config.neoBrutalism ? Colors.styleAccentText : Colors.primary)
+          : Colors.fgSurface
         font.family: Config.fontFamily
         font.pixelSize: (Config.fontPixelSize + 3)
         font.weight: Font.Medium

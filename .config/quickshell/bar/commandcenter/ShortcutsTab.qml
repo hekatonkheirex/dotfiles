@@ -11,11 +11,14 @@ import "../../config"
 Flickable {
   id: shortcutsTab
   property QtObject root: null
+  readonly property int neoShadowAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset
+    : 0
   anchors.fill: parent
   visible: root.currentTab === 10
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight
+  contentHeight: mainColumn.implicitHeight + shortcutsTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   property string actionStatus: ""
@@ -36,9 +39,9 @@ Flickable {
     implicitWidth: keyText.implicitWidth + 16
     implicitHeight: 22
     radius: Config.shapeMedium
-    color: Colors.surfaceContainerHighest
-    border.color: Colors.outlineVariant
-    border.width: 1
+    color: Config.neoBrutalism ? Colors.styleControl : Colors.surfaceContainerHighest
+    border.color: Colors.styleOutline
+    border.width: Config.themeBorderWidth
 
     Text {
       id: keyText
@@ -47,7 +50,7 @@ Flickable {
       color: Colors.fgSurface
       font.family: Config.fontFamily
       font.pixelSize: Config.textCaptionSize
-      font.weight: Font.Medium
+      font.weight: Config.neoBrutalism ? Config.themeFontWeight : Font.Medium
     }
   }
 
@@ -71,16 +74,16 @@ Flickable {
     KeyChip { keys: shortcutRow.keys; Layout.rightMargin: 8 }
   }
 
-  component GroupCard: Rectangle {
+  component GroupCard: StyledSurface {
     id: groupCard
     default property alias rows: rowsCol.data
     property string title: ""
     Layout.fillWidth: true
     Layout.preferredHeight: rowsCol.implicitHeight + 16
     radius: Config.shapeLarge
-    color: Colors.surfaceContainer
-    border.color: Colors.outlineVariant
-    border.width: 1
+    surfaceColor: Colors.surfaceContainer
+    outlineColor: Colors.styleOutline
+    outlineWidth: Config.themeBorderWidth
 
     ColumnLayout {
       id: rowsCol
@@ -103,8 +106,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: shortcutsTab.width
-    spacing: Config.spacingLarge
+    width: Math.max(0, shortcutsTab.width - shortcutsTab.neoShadowAllowance)
+    spacing: Config.spacingLarge + shortcutsTab.neoShadowAllowance
 
     Text {
       Layout.fillWidth: true
@@ -117,7 +120,7 @@ Flickable {
 
     RowLayout {
       Layout.fillWidth: true
-      spacing: Config.spacingSmall
+      spacing: Config.spacingSmall + shortcutsTab.neoShadowAllowance
 
       ActionButton {
         Layout.fillWidth: true

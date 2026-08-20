@@ -12,6 +12,7 @@ Item {
 
   property bool horizontal: false
   property bool inlineContent: false
+  property bool integrated: false
   property bool active: false
   property string iconLabel: ""
   property real iconOpacity: 1.0
@@ -37,7 +38,11 @@ Item {
   readonly property int verticalLayoutHeight: root.labelText !== ""
     ? Config.widgetSize
     : Math.min(Config.widgetSize, Config.iconSize + Config.spacingSmall)
+  // Inline pills need breathing room around the icon/label pair. The
+  // wrapper uses this value for its width, so the text does not end up under
+  // the pill border when a value such as "100%" is displayed.
   readonly property real horizontalContentWidth: contentLayout.implicitWidth
+    + (root.inlineContent ? Config.spacingSmall * 2 : 0)
 
   signal clicked(var mouse)
   signal wheel(var wheel)
@@ -58,6 +63,18 @@ Item {
     ? root.accessibleDescription
     : (root.active ? "Active" : "")
 
+  Rectangle {
+    id: shadow
+    x: bgOverlay.x + Config.themeShadowOffset
+    y: bgOverlay.y + Config.themeShadowOffset
+    width: bgOverlay.width
+    height: bgOverlay.height
+    radius: bgOverlay.radius
+    color: Colors.styleShadow
+    visible: Config.neoBrutalism && root.enabled && !root.integrated
+    z: -1
+  }
+
   Keys.onPressed: function(event) {
     if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
       root.clicked(null)
@@ -74,21 +91,28 @@ Item {
       topMargin: root.horizontal ? 6 : 0
       bottomMargin: root.horizontal ? 6 : 0
     }
-    radius: root.horizontal ? height / 2 : width / 2
+    radius: Config.neoBrutalism
+      ? Config.shapeMedium
+      : (root.horizontal ? height / 2 : width / 2)
     clip: true
     color: {
       var overlay = mouseArea.pressed ? Colors.pressOverlay
         : (mouseArea.containsMouse ? Colors.hoverOverlay
           : (root.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
-      var base = root.borderOnHoverOnly ? "transparent" : root.inactiveBg
+      var base = root.integrated
+        ? "transparent"
+        : (root.borderOnHoverOnly
+          ? (Config.neoBrutalism ? Colors.styleSurface : "transparent")
+          : root.inactiveBg)
       return Qt.tint(base, overlay)
     }
     border.color: {
+      if (Config.neoBrutalism) return Colors.styleOutline
       if (root.active) return root.activeFocus ? Colors.focusOverlay : "transparent"
       if (root.borderOnHoverOnly && !mouseArea.containsMouse && !root.activeFocus) return "transparent"
-      return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
+      return Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
     }
-    border.width: 1
+    border.width: root.integrated ? 0 : Config.themeBorderWidth
 
     Behavior on color {
       ColorAnimation { duration: Config.animationDuration }
@@ -130,10 +154,13 @@ Item {
       color: root.labelColor
       font.family: Config.fontFamily
       font.pixelSize: Config.labelSmallSize
-      font.weight: Font.Medium
+      font.weight: Config.neoBrutalism ? Config.themeFontWeight : Font.Medium
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
       Layout.preferredWidth: implicitWidth
+      Layout.maximumWidth: root.inlineContent
+        ? implicitWidth
+        : Math.max(0, root.width - Config.spacingSmall)
       Layout.preferredHeight: implicitHeight
       Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
     }

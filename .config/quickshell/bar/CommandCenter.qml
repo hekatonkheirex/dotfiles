@@ -119,9 +119,11 @@ PanelWindow {
 
   implicitWidth: Math.min(Config.commandCenterMaxWidth,
                           Math.max(Config.commandCenterMinWidth, desktopW - 32))
+                 + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
   visible: false
   implicitHeight: Math.min(Config.commandCenterMaxHeight,
                            Math.max(Config.commandCenterMinHeight, desktopH - 32))
+                  + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-popup"
@@ -332,13 +334,32 @@ PanelWindow {
     }
 
     Rectangle {
+      id: styleShadow
+      x: Config.themeShadowOffset
+      y: Config.themeShadowOffset
+      width: bg.width
+      height: bg.height
+      radius: bg.radius
+      color: Colors.styleShadow
+      visible: Config.neoBrutalism
+      z: -1
+    }
+
+    Rectangle {
       id: bg
-      anchors.fill: parent
+      anchors {
+        left: parent.left
+        top: parent.top
+        right: parent.right
+        bottom: parent.bottom
+        rightMargin: Config.neoBrutalism ? Config.themeShadowOffset : 0
+        bottomMargin: Config.neoBrutalism ? Config.themeShadowOffset : 0
+      }
       radius: Config.borderRadius
-      color: Colors.surfaceContainerHigh
+      color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
       clip: true
-      border.width: 1
-      border.color: Colors.outlineVariant
+      border.width: Config.neoBrutalism ? Config.themeBorderWidth : 0
+      border.color: Colors.styleOutline
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -489,7 +510,7 @@ PanelWindow {
           id: sidebarDivider
           Layout.preferredWidth: 1
           Layout.fillHeight: true
-          color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.12)
+          color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.12)
         }
 
         // Tab Content Area Container

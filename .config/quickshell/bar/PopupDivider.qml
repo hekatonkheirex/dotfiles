@@ -9,6 +9,6 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
+    color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
   }
 }

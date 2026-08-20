@@ -308,7 +308,7 @@ Item {
         checked: root.wifiOn
         activeColor: Colors.primary
         surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.outline
+        outline: Colors.styleOutlineStrong
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Wi-Fi enabled"
@@ -489,7 +489,7 @@ Item {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+        outline: Colors.styleOutlineStrong
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Autoconnect to " + model.name

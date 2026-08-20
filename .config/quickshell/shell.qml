@@ -110,6 +110,18 @@ ShellRoot {
     ])
   }
 
+  // Niri's focused-window ring follows the independent Quickshell UI style.
+  // Pass the current value explicitly so a style change is synchronized even
+  // before Settings.save() has finished writing settings.json.
+  function syncNiriUiStyle() {
+    Quickshell.execDetached([
+      Quickshell.env("HOME") + "/.local/bin/sync-terminal-theme.sh",
+      shell.themeModeName(Settings.themePreference),
+      "",
+      Settings.themeStyle
+    ])
+  }
+
   function quietHoursActive() {
     if (!Settings.notificationQuietHoursEnabled) return false
 
@@ -144,6 +156,7 @@ ShellRoot {
   Connections {
     target: Settings
     function onThemePreferenceChanged() { shell.syncThemeMode() }
+    function onThemeStyleChanged() { shell.syncNiriUiStyle() }
   }
 
   Process {
@@ -161,20 +174,27 @@ ShellRoot {
   // Shared popup anchoring: centered along the bar, then offset past the
   // selected edge. Callers pass their own implicit size and Screen bound so
   // bindings stay reactive.
+  function popupBarInset() {
+    return Config.barWidth + 4
+      + (bar.fullBar && Config.neoBrutalism
+        ? Config.themeShadowOffset + 2
+        : 0)
+  }
+
   function popupMarginLeft(w, screenW) {
     if (bar.horizontal) {
       return Math.max(0, Math.min(bar.popupAnchorX - w / 2, screenW - w))
     }
     return bar.dockedRight
-      ? Math.max(0, screenW - w - Config.barWidth - 4)
-      : Config.barWidth + 4
+      ? Math.max(0, screenW - w - popupBarInset())
+      : popupBarInset()
   }
 
   function popupMarginTop(h, screenH) {
     if (bar.horizontal) {
       return bar.dockedBottom
-        ? Math.max(0, screenH - h - Config.barWidth - 4)
-        : Config.barWidth + 4
+        ? Math.max(0, screenH - h - popupBarInset())
+        : popupBarInset()
     }
     return Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h))
   }

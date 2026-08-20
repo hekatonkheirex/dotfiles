@@ -6,11 +6,14 @@ import "../../config"
 Flickable {
   id: bluetoothTab
   property QtObject root: null
+  readonly property int neoShadowAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset
+    : 0
   anchors.fill: parent
   visible: root.currentTab === 5
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight
+  contentHeight: mainColumn.implicitHeight + bluetoothTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
 
@@ -19,8 +22,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: bluetoothTab.width
-    spacing: Config.spacingLarge
+    width: Math.max(0, bluetoothTab.width - bluetoothTab.neoShadowAllowance)
+    spacing: Config.spacingLarge + bluetoothTab.neoShadowAllowance
 
     BtPanel {
       id: btPanel
