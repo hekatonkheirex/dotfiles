@@ -73,8 +73,30 @@ ShellRoot {
     Component.onCompleted: checkLevel()
   }
 
-  property bool isHorizontal: true
+  property string barPosition: "top"
+  readonly property bool isHorizontal: shell.barPosition === "top" || shell.barPosition === "bottom"
   property bool fullBar: Settings.fullBar
+
+  function normalizeBarPosition(value) {
+    var pref = String(value || "").trim()
+    if (pref === "top" || pref === "horizontal") return "top"
+    if (pref === "bottom" || pref === "left" || pref === "right") return pref
+    if (pref === "vertical") return "left"
+    return "top"
+  }
+
+  function setBarPosition(value) {
+    var next = shell.normalizeBarPosition(value)
+    if (shell.barPosition === next) return
+
+    shell.barPosition = next
+    Quickshell.execDetached([
+      "sh", "-c",
+      "printf '%s\\n' \"$1\" > \"$2\"",
+      "sh", next,
+      Quickshell.env("HOME") + "/.config/quickshell/layout"
+    ])
+  }
 
   function themeModeName(preference) {
     var modes = ["auto", "light", "dark"]
@@ -113,7 +135,8 @@ ShellRoot {
     id: syncThemeOnStartup
     command: [
       Quickshell.env("HOME") + "/.local/bin/sync-theme-mode.sh",
-      shell.themeModeName(Settings.themePreference)
+      shell.themeModeName(Settings.themePreference),
+      "--quiet"
     ]
     running: true
   }
@@ -130,35 +153,52 @@ ShellRoot {
     stdout: StdioCollector {
       onStreamFinished: {
         var pref = text.trim()
-        shell.isHorizontal = (pref !== "vertical")
+        shell.barPosition = shell.normalizeBarPosition(pref)
       }
     }
   }
 
-  // Shared popup anchoring: centered on the widget along the bar in horizontal
-  // mode, offset past the bar edge in vertical mode. Callers pass their own
-  // implicit size and Screen bound so bindings stay reactive.
+  // Shared popup anchoring: centered along the bar, then offset past the
+  // selected edge. Callers pass their own implicit size and Screen bound so
+  // bindings stay reactive.
   function popupMarginLeft(w, screenW) {
-    return bar.horizontal
-      ? Math.max(0, Math.min(bar.popupAnchorX - w / 2, screenW - w))
+    if (bar.horizontal) {
+      return Math.max(0, Math.min(bar.popupAnchorX - w / 2, screenW - w))
+    }
+    return bar.dockedRight
+      ? Math.max(0, screenW - w - Config.barWidth - 4)
       : Config.barWidth + 4
   }
 
   function popupMarginTop(h, screenH) {
-    return bar.horizontal
-      ? Config.barWidth + 4
-      : Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h))
+    if (bar.horizontal) {
+      return bar.dockedBottom
+        ? Math.max(0, screenH - h - Config.barWidth - 4)
+        : Config.barWidth + 4
+    }
+    return Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h))
   }
 
   function toggleLayout() {
-    shell.isHorizontal = !shell.isHorizontal;
-    var pref = shell.isHorizontal ? "horizontal" : "vertical";
-    Quickshell.execDetached(["sh", "-c", "echo " + pref + " > " + Quickshell.env("HOME") + "/.config/quickshell/layout"]);
+    var next = shell.isHorizontal
+      ? (shell.barPosition === "bottom" ? "right" : "left")
+      : (shell.barPosition === "right" ? "bottom" : "top")
+    shell.setBarPosition(next)
   }
 
   function toggleFullBar() {
     Settings.fullBar = !Settings.fullBar
     Settings.save()
+  }
+
+  function resetAppearanceToDefaults() {
+    Settings.resetAppearanceToDefaults()
+    shell.setBarPosition("top")
+  }
+
+  function resetAllSettingsToDefaults() {
+    Settings.resetToDefaults()
+    shell.setBarPosition("top")
   }
 
   LockScreen {
@@ -255,6 +295,7 @@ ShellRoot {
   NotificationToast {
     id: notificationToast
     notificationServer: notifServer
+    barPosition: shell.barPosition
   }
 
   Connections {
@@ -285,7 +326,7 @@ ShellRoot {
 
   Bar {
     id: bar
-    horizontal: shell.isHorizontal
+    barPosition: shell.barPosition
     notificationServer: notifServer
     fullBar: shell.fullBar
     visible: !lockScreen.locked
@@ -425,7 +466,11 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
     onLockRequested: lockScreen.lockScreen()
     isHorizontal: shell.isHorizontal
+    barPosition: shell.barPosition
     onToggleHorizontal: shell.toggleLayout()
+    onSetBarPosition: function(position) { shell.setBarPosition(position) }
+    onResetAppearance: shell.resetAppearanceToDefaults()
+    onResetAllSettings: shell.resetAllSettingsToDefaults()
     fullBar: shell.fullBar
     notificationPopup: notificationPopup
     onToggleFullBar: shell.toggleFullBar()

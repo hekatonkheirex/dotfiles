@@ -20,6 +20,7 @@ Flickable {
   boundsBehavior: Flickable.StopAtBounds
 
   property string themeStatus: ""
+  property bool resetConfirm: false
 
   onVisibleChanged: {
   }
@@ -163,7 +164,7 @@ Flickable {
         Layout.preferredWidth: 0
         spacing: Config.spacingLarge
 
-        // Bar Alignment card
+        // Bar Placement card
         Rectangle {
           Layout.fillWidth: true
           Layout.preferredWidth: 0
@@ -181,7 +182,7 @@ Flickable {
             Layout.alignment: Qt.AlignHCenter
 
             Text {
-              text: "Bar Alignment"
+              text: "Bar Placement"
               color: Colors.fgSurface
               font.family: Config.fontFamily
               font.pixelSize: Config.textTitleSize
@@ -190,35 +191,33 @@ Flickable {
             }
 
             Item {
-              width: appearanceTab.compactLayout ? 160 : 180
+              width: appearanceTab.compactLayout ? 240 : 280
               height: 40
 
               Row {
                 anchors.fill: parent
                 spacing: 0
 
-                ActionButton {
-                  width: parent.width / 2
-                  height: parent.height
-                  iconLabel: "horizontal_split"
-                  iconSize: 15
-                  labelText: "Horiz"
-                  selected: root.isHorizontal
-                  accessibleName: "Horizontal bar"
-                  accessibleDescription: root.isHorizontal ? "Selected" : "Switch bar to horizontal"
-                  onActivated: { if (!root.isHorizontal) root.toggleHorizontal() }
-                }
+                Repeater {
+                  model: [
+                    { value: "top", icon: "vertical_align_top", label: "Top" },
+                    { value: "bottom", icon: "vertical_align_bottom", label: "Bottom" },
+                    { value: "left", icon: "dock_to_left", label: "Left" },
+                    { value: "right", icon: "dock_to_right", label: "Right" }
+                  ]
 
-                ActionButton {
-                  width: parent.width / 2
-                  height: parent.height
-                  iconLabel: "vertical_split"
-                  iconSize: 15
-                  labelText: "Vert"
-                  selected: !root.isHorizontal
-                  accessibleName: "Vertical bar"
-                  accessibleDescription: !root.isHorizontal ? "Selected" : "Switch bar to vertical"
-                  onActivated: { if (root.isHorizontal) root.toggleHorizontal() }
+                  delegate: ActionButton {
+                    required property var modelData
+                    width: parent.width / 4
+                    height: parent.height
+                    iconLabel: modelData.icon
+                    iconSize: 15
+                    labelText: modelData.label
+                    selected: root.barPosition === modelData.value
+                    accessibleName: modelData.label + " bar"
+                    accessibleDescription: selected ? "Selected" : "Switch bar to " + modelData.label.toLowerCase()
+                    onActivated: root.setBarPosition(modelData.value)
+                  }
                 }
               }
             }
@@ -273,7 +272,7 @@ Flickable {
 
                 Text {
                   Layout.fillWidth: true
-                  text: root.fullBar ? "Full bar" : "Auto-collapse"
+                  text: root.fullBar ? "Full bar" : "Pills bar"
                   color: Colors.fgSurface
                   font.family: Config.fontFamily
                   font.pixelSize: Config.textBodyLargeSize
@@ -283,7 +282,7 @@ Flickable {
 
                 Text {
                   Layout.fillWidth: true
-                  text: root.fullBar ? "Always visible" : "Expand on hover"
+                  text: root.fullBar ? "One continuous surface" : "Floating pill per widget"
                   color: Colors.fgSurfaceVariant
                   font.family: Config.fontFamily
                   font.pixelSize: Config.fontPixelSize
@@ -305,7 +304,10 @@ Flickable {
                 outline: Colors.outline
                 motionDuration: Config.motionMedium
                 reducedMotion: Config.reducedMotion
-                accessibleName: "Full bar mode"
+                accessibleName: "Bar display style"
+                accessibleDescription: root.fullBar
+                  ? "All widgets share one continuous bar"
+                  : "Each widget is shown as a separate floating pill"
                 onToggled: root.toggleFullBar()
               }
             }
@@ -337,13 +339,13 @@ Flickable {
           font.weight: Font.Bold
         }
 
-        // Font size
+        // UI font size
         RowLayout {
           Layout.fillWidth: true
           spacing: Config.spacingMedium
 
           Text {
-            text: "Font Size"
+            text: "UI Font Size"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
             font.pixelSize: Config.textBodySize
@@ -364,8 +366,8 @@ Flickable {
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
-            accessibleName: "Font size"
-            accessibleDescription: "Adjust global font size"
+            accessibleName: "UI font size"
+            accessibleDescription: "Adjust global UI font size"
             onChanged: function(val) {
               Settings.fontPixelSize = Math.round(7 + val * 9)
             }
@@ -374,6 +376,50 @@ Flickable {
 
           Text {
             text: Settings.fontPixelSize + "px"
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: 11
+            Layout.preferredWidth: 34
+          }
+        }
+
+        // Clock font size
+        RowLayout {
+          Layout.fillWidth: true
+          spacing: Config.spacingMedium
+
+          Text {
+            text: "Clock Size"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.textBodySize
+            Layout.preferredWidth: appearanceTab.compactLayout ? 64 : 90
+          }
+
+          SliderControl {
+            Layout.fillWidth: true
+            value: (Settings.clockFontSize - 12) / 12
+            stepSize: 1 / 12
+            accessibleMinimumValue: 12
+            accessibleMaximumValue: 24
+            accessibleUnit: "px"
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            focusColor: Colors.primary
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Clock font size"
+            accessibleDescription: "Adjust the bar clock font size"
+            onChanged: function(val) {
+              Settings.clockFontSize = Math.round(12 + val * 12)
+            }
+            onInteractionFinished: Settings.save()
+          }
+
+          Text {
+            text: Settings.clockFontSize + "px"
             color: Colors.fgSurface
             font.family: Config.fontFamily
             font.pixelSize: 11
@@ -511,6 +557,45 @@ Flickable {
             font.pixelSize: 11
             Layout.preferredWidth: 34
           }
+        }
+
+        ActionButton {
+          Layout.fillWidth: true
+          Layout.preferredHeight: 48
+          iconLabel: "settings_backup_restore"
+          labelText: "Reset Appearance"
+          variant: "outlined"
+          visible: !appearanceTab.resetConfirm
+          accessibleName: "Reset appearance"
+          accessibleDescription: "Show confirmation before restoring default appearance settings"
+          onActivated: appearanceTab.resetConfirm = true
+        }
+
+        ActionButton {
+          Layout.fillWidth: true
+          Layout.preferredHeight: 48
+          iconLabel: "warning"
+          labelText: "Confirm Reset"
+          variant: "filled"
+          visible: appearanceTab.resetConfirm
+          accessibleName: "Confirm appearance reset"
+          accessibleDescription: "Restore default appearance settings"
+          onActivated: {
+            if (appearanceTab.root) appearanceTab.root.resetAppearance()
+            appearanceTab.resetConfirm = false
+          }
+        }
+
+        ActionButton {
+          Layout.fillWidth: true
+          Layout.preferredHeight: 48
+          iconLabel: "close"
+          labelText: "Cancel Reset"
+          variant: "quiet"
+          visible: appearanceTab.resetConfirm
+          accessibleName: "Cancel appearance reset"
+          accessibleDescription: "Keep the current appearance settings"
+          onActivated: appearanceTab.resetConfirm = false
         }
       }
     }
