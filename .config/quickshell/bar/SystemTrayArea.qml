@@ -54,7 +54,7 @@ Item {
 
         Layout.preferredWidth: visible ? (Config.widgetSize) : 0
         Layout.preferredHeight: visible ? (Config.widgetSize) : 0
-        Layout.alignment: systemTrayAreaRoot.horizontal ? Qt.AlignVCenter : Qt.AlignHCenter
+        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
         width: visible ? (Config.widgetSize) : 0
         height: visible ? (Config.widgetSize) : 0
         activeFocusOnTab: isIconVisible

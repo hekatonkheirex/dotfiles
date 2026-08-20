@@ -11,6 +11,7 @@ Item {
   id: root
 
   property bool horizontal: false
+  property bool inlineContent: false
   property bool active: false
   property string iconLabel: ""
   property real iconOpacity: 1.0
@@ -36,6 +37,7 @@ Item {
   readonly property int verticalLayoutHeight: root.labelText !== ""
     ? Config.widgetSize
     : Math.min(Config.widgetSize, Config.iconSize + Config.spacingSmall)
+  readonly property real horizontalContentWidth: contentLayout.implicitWidth
 
   signal clicked(var mouse)
   signal wheel(var wheel)
@@ -93,16 +95,21 @@ Item {
     }
   }
 
-  Column {
-    id: contentColumn
+  GridLayout {
+    id: contentLayout
     anchors.centerIn: parent
-    width: parent.width
-    spacing: root.labelText !== "" ? Config.spacingCompact : 0
+    columns: root.inlineContent ? (root.labelText !== "" ? 2 : 1) : 1
+    rows: root.inlineContent ? 1 : (root.labelText !== "" ? 2 : 1)
+    flow: root.inlineContent ? GridLayout.LeftToRight : GridLayout.TopToBottom
+    columnSpacing: root.inlineContent && root.labelText !== ""
+      ? Config.spacingCompact
+      : 0
+    rowSpacing: !root.inlineContent && root.labelText !== ""
+      ? Config.spacingCompact
+      : 0
 
     Text {
       id: iconText
-      width: parent.width
-      height: Config.iconSize
       text: root.iconLabel
       opacity: root.iconOpacity
       color: root.iconColor
@@ -110,12 +117,14 @@ Item {
       font.pixelSize: Config.iconSize
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
+      Layout.preferredWidth: Config.iconSize
+      Layout.preferredHeight: Config.iconSize
+      Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
     }
 
     Text {
       id: labelTextItem
       visible: root.labelText !== ""
-      width: parent.width
       text: root.labelText
       opacity: root.labelOpacity
       color: root.labelColor
@@ -124,6 +133,9 @@ Item {
       font.weight: Font.Medium
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
+      Layout.preferredWidth: implicitWidth
+      Layout.preferredHeight: implicitHeight
+      Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
     }
   }
 

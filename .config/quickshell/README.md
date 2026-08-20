@@ -6,8 +6,8 @@ A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/)
 
 This replaces a traditional status bar (waybar) and panel infrastructure with a unified QML-based shell. It provides:
 
-- **A single collapsible bar** (`bar/Bar.qml`) that toggles between vertical and horizontal orientation, and between a collapsed pill and an expanded strip. The collapsed state shows only the workspace indicator; hovering (or opening a popup) expands the rest of the widgets in with a spring animation. A "keep expanded" setting (`fullBar`) pins it open permanently.
-- **Layout Toggling**: Switch orientation via the Settings Appearance tab, persisted across reboots (saved to `~/.config/quickshell/layout`).
+- **A single bar** (`bar/Bar.qml`) that supports top, bottom, left, and right placement, with a choice between one continuous full bar and a pills bar where each widget floats in its own pill. The display-style setting (`fullBar`) is persisted with the other Appearance preferences.
+- **Bar Placement**: Choose top, bottom, left, or right in the Settings Appearance tab, persisted across reboots (saved to `~/.config/quickshell/layout`). Legacy `horizontal` and `vertical` values remain supported as top and left.
 - **Lock screen** with PAM + fingerprint authentication.
 - **Notification handling** with history and toasts, styled in Material 3 Expressive.
 - **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; the Quick Menu and Notifications tab share the persisted setting.
@@ -17,7 +17,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Settings panel**: A multi-functional panel launched via `XF86Tools` with eleven tabs:
   - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
   - **General**: Motion, uptime, clock, calendar week start, timezone, bar contents, and weather location/refresh/privacy/unit settings
-  - **Appearance**: Light/dark mode, bar alignment, sizing controls, palette source, and theme reload
+  - **Appearance**: Light/dark mode, bar placement, sizing controls, palette source, theme reload, and confirmed appearance reset
   - **Wallpaper**: Active-wallpaper tracking, cached thumbnails, keyboard navigation, random selection, and wallpaper switching
   - **Network**: Wi-Fi power, scan, connect, disconnect, saved-network, and autoconnect controls; Wi-Fi is Settings-only and has no compact bar indicator
   - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls; Bluetooth is Settings-only and has no compact bar indicator
@@ -34,14 +34,14 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 ~/.config/quickshell/
 ├── shell.qml                  # Entry point — ShellRoot, IpcHandler, popups, battery alert, file triggers
 ├── settings.json              # Persisted user settings (JsonAdapter-backed)
-├── layout                     # Persisted orientation preference ("horizontal" | "vertical")
+├── layout                     # Persisted bar placement ("top" | "bottom" | "left" | "right")
 ├── config/
 │   ├── Config.qml             # Build-time layout, typography, shape, and motion tokens
 │   ├── Settings.qml           # Persisted preferences singleton (FileView + JsonAdapter over settings.json)
 │   ├── Colors.qml             # Matugen-backed Material You roles with fallbacks + system dark-mode tracking
 │   └── cava.ini                # cava config for the real-time audio visualizer
 ├── bar/
-│   ├── Bar.qml                 # The panel itself — collapsible/expandable, orientation-aware active indicators
+│   ├── Bar.qml                 # The panel itself — full-bar/pills-bar styles, orientation-aware active indicators
 │   ├── CommandCenter.qml       # Settings panel shell (state, processes, tab bar) — content in commandcenter/
 │   ├── commandcenter/
 │   │   ├── AccountTab.qml
@@ -95,6 +95,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │       ├── ActionButton.qml
 │       ├── IconButton.qml
 │       ├── ListItem.qml
+│       ├── PillSurface.qml
 │       ├── StatusIndicator.qml
 │       └── TextFieldControl.qml
 ├── scripts/
@@ -224,9 +225,9 @@ Callable externally via `quickshell ipc call shell launcher` (and similarly for 
 
 Popup visibility is driven entirely by the bar's `openPopup` string property, held on `Bar.qml` and read by `shell.qml`. Each indicator widget signals a popup name, and the corresponding popup shows/hides accordingly.
 
-Popup positioning is dynamic depending on the active bar orientation (computed in `shell.qml`'s `popupMarginLeft`/`popupMarginTop`):
-- **Horizontal mode**: Anchored beneath the bar, horizontally centered on the clicked widget's X coordinate, clamped to fit the screen.
-- **Vertical mode**: Anchored past the bar's right edge, vertically aligned to the triggering widget's Y coordinate.
+Popup positioning follows the active bar placement (computed in `shell.qml`'s `popupMarginLeft`/`popupMarginTop`):
+- **Top/bottom**: Anchored past the bar edge and horizontally centered on the clicked widget's X coordinate, clamped to fit the screen.
+- **Left/right**: Anchored past the bar edge and vertically aligned to the triggering widget's Y coordinate.
 
 Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` handles dismissal on app focus loss with platform-specific gating for the `activeFocusChanged` check. `PopupBase.qml` supplies the shared M3 background/border/entry-animation chrome that most popups build on.
 
@@ -246,11 +247,11 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 
 ### `config/Config.qml`
 
-Build-time layout, typography, shape, and motion tokens: `barWidth`, `widgetSize`, M3 type sizes, spacing, shape scale, motion durations (`motionShort`/`Medium`/`Long`/`ExtraLong`, all zeroed when `reducedMotion` is on), `popupWidth`, Settings min/max dimensions, and step sizes for volume/brightness.
+Build-time layout, typography, shape, and motion tokens: `barWidth`, `widgetSize`, M3 type sizes, independent bar clock typography, spacing, shape scale, motion durations (`motionShort`/`Medium`/`Long`/`ExtraLong`, all zeroed when `reducedMotion` is on), `popupWidth`, Settings min/max dimensions, and step sizes for volume/brightness.
 
 ### `config/Settings.qml`
 
-Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs `fullBar` (keep bar expanded), motion and sizing, clock/calendar/timezone settings, last Settings tab, bar indicator visibility, theme preference, notification behavior, lock/power and media options, idle timeouts, and weather location/refresh/privacy/units. IP-based weather geolocation is a separate opt-in setting and is disabled by default. The persisted format is currently `schemaVersion: 1`; future breaking renames or removals must increment that marker and migrate the stored data before writing the new schema. Values round-trip live via `watchChanges: true`; call `Settings.save()` after mutating an alias to persist.
+Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs `fullBar` (continuous full bar versus floating pills), motion and sizing, independent bar clock font size, clock/calendar/timezone settings, last Settings tab, bar indicator visibility, theme preference, notification behavior, lock/power and media options, idle timeouts, and weather location/refresh/privacy/units. IP-based weather geolocation is a separate opt-in setting and is disabled by default. The persisted format is currently `schemaVersion: 1`; future breaking renames or removals must increment that marker and migrate the stored data before writing the new schema. Values round-trip live via `watchChanges: true`; call `Settings.save()` after mutating an alias to persist. The Appearance tab can restore appearance-owned defaults, while the confirmed System reset restores all settings and the default top bar placement.
 
 ### `config/Colors.qml`
 
@@ -272,8 +273,8 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 
 ## Widget Details
 
-- **Bar.qml**: Single component for both orientations and both bar states (collapsed pill / expanded strip), driven by `horizontal`, `expanded`/`expandProgress`, and `fullBar` properties. Hovering the bar (or opening a popup while hovering) expands it; a 5-second `collapseTimer` re-collapses it once the mouse leaves and no popup is open, unless `fullBar` is set. `mask: Region { item: barBg }` keeps the click/hover region matched to the visible pill/strip shape during the animation.
-- **WorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri (`niri msg event-stream`) using `SplitParser`. Runs only when visible. Anchored directly in the workspace zone so it stays stationary through the bar's expand/collapse transition in both orientations.
+- **Bar.qml**: Single component for all four placements and both display styles (continuous full bar / floating pills bar), driven by `barPosition`, `horizontal`, `pillsBar`, and `fullBar` properties. In pills mode, every visible widget receives its own floating M3 surface while the transparent panel still provides the input region for gaps and outside-click dismissal.
+- **WorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri (`niri msg event-stream`) using `SplitParser`. Runs only when visible. Anchored directly in the workspace zone so it stays stationary in both display styles and orientations.
 - **AudioIndicator / BrightnessIndicator / MediaIndicator / WeatherIndicator**: Event-driven watchers and polling loops are bound to their active/visible state, so they are suspended when their parent bar is hidden, saving CPU wakeups and RAM.
 - **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
 - **WifiPanel / BtPanel**: Network and Bluetooth controls live in Settings tabs, including saved Wi-Fi profiles, Bluetooth discovery/pairing, and connected-device actions. They are intentionally not rendered as compact bar indicators.
@@ -284,7 +285,7 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 - **Notifications**: Retains history while DND or quiet hours suppress toast delivery; critical-notification bypass, toast placement, retention, and clear-history actions are persisted.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a polling re-query runs in `shell.qml` after reloads.
 - **Theme ownership**: Matugen is the dynamic palette source. `scripts/apply-wallpaper.sh` applies the wallpaper via `awww`, refreshes the Matugen cache, regenerates the existing Material 3 desktop themes, and re-runs the light/dark synchronizer. `config/Colors.qml` consumes the cached semantic roles with authored fallbacks. `scripts/apply-accent-color.sh` is a compatibility stub — the palette is fully wallpaper-derived and not user-selectable at runtime.
-- **Appearance tab**: Owns theme mode, palette source/reload, bar alignment, full-bar mode, and global sizing controls.
+- **Appearance tab**: Owns theme mode, palette source/reload, bar placement, bar display style, UI sizing, independent bar-clock sizing controls, and the confirmed appearance-default reset.
 - **Wallpaper tab**: Lists images from `~/Pictures/Walls`; `scripts/generate-thumbnails.sh` produces and caches 200×130 center-cropped thumbnails under `~/.cache/quickshell/wallpaper-thumbs`, regenerating only when the source is newer than the cached thumbnail. The tab tracks the active wallpaper, supports keyboard selection, and exposes randomize/apply actions.
 - **Lock & Power tab**: Owns lock-screen options, idle lock/suspend timeouts, Caffeine, and TLP power-profile selection with automatic AC/battery restore.
 - **Media tab**: Owns media artwork, progress, and always-visible-control preferences for the media popup.

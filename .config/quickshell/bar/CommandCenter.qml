@@ -18,6 +18,10 @@ PanelWindow {
 
   property bool isHorizontal: false
   signal toggleHorizontal()
+  property string barPosition: "top"
+  signal setBarPosition(string position)
+  signal resetAppearance()
+  signal resetAllSettings()
   property bool fullBar: false
   signal toggleFullBar()
 

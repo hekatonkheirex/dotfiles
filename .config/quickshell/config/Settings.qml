@@ -33,6 +33,7 @@ FileView {
   property alias ccShowWorkspaces: adapter.ccShowWorkspaces
   property alias clock24h: adapter.clock24h
   property alias clockShowSeconds: adapter.clockShowSeconds
+  property alias clockFontSize: adapter.clockFontSize
   property alias doNotDisturb: adapter.doNotDisturb
   property alias fontPixelSize: adapter.fontPixelSize
   property alias fullBar: adapter.fullBar
@@ -67,8 +68,23 @@ FileView {
     root.writeAdapter()
   }
 
-  function resetToDefaults() {
+  function resetAppearanceDefaults() {
     barSize = 36
+    clockFontSize = 15
+    fontPixelSize = 9
+    fullBar = false
+    iconSize = 16
+    spacingScale = 1.0
+    themePreference = 0
+  }
+
+  function resetAppearanceToDefaults() {
+    resetAppearanceDefaults()
+    root.save()
+  }
+
+  function resetToDefaults() {
+    resetAppearanceDefaults()
     calendarWeekStartsMonday = false
     ccShowAudio = true
     ccShowBattery = true
@@ -84,9 +100,6 @@ FileView {
     clock24h = true
     clockShowSeconds = false
     doNotDisturb = false
-    fontPixelSize = 9
-    fullBar = false
-    iconSize = 16
     idleLockTimeoutSeconds = 300
     idleSuspendTimeoutSeconds = 900
     lastSettingsTab = 0
@@ -104,9 +117,7 @@ FileView {
     notificationToastPosition = "top-right"
     notificationToastDurationMs = 5000
     reduceMotion = false
-    spacingScale = 1.0
     systemShowUptime = true
-    themePreference = 0
     timezone = ""
     weatherAllowIpGeolocation = false
     weatherLocation = ""
@@ -136,6 +147,7 @@ FileView {
     property bool ccShowWorkspaces: true
     property bool clock24h: true
     property bool clockShowSeconds: false
+    property int clockFontSize: 15
     property bool doNotDisturb: false
     property int fontPixelSize: 9
     property bool fullBar: false

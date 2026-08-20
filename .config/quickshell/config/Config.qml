@@ -32,10 +32,10 @@ QtObject {
   readonly property int textHeadlineSize: fontPixelSize + 8
   readonly property int iconSizeSmall: Math.max(12, iconSize - 2)
 
-  // M3 type role currently consumed by the focused-window metadata.
+  // Bar clock typography is independently adjustable from global UI sizing.
   readonly property int labelSmallSize: fontPixelSize
-  readonly property int clockPrimarySize: fontPixelSize + 6
-  readonly property int clockSecondarySize: fontPixelSize + 1
+  readonly property int clockPrimarySize: Settings.clockFontSize
+  readonly property int clockSecondarySize: Math.max(8, Settings.clockFontSize - 5)
   readonly property int clockLineSpacing: spacingCompact
   readonly property int clockVerticalHeight: 42
 
