@@ -393,7 +393,8 @@ Flickable {
         visible: systemTab.resetConfirm
         accessibleName: "Confirm reset settings"
         onActivated: {
-          Settings.resetToDefaults()
+          if (systemTab.root) systemTab.root.resetAllSettings()
+          else Settings.resetToDefaults()
           if (systemTab.root) systemTab.root.currentTab = 0
           systemTab.resetConfirm = false
           systemTab.actionStatus = "Settings reset to defaults"

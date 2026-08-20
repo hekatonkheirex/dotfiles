@@ -15,6 +15,7 @@ PanelWindow {
   property var notif: null
   property var heldNotif: null
   property int displayMs: Settings.notificationToastDurationMs
+  property string barPosition: "top"
 
   implicitWidth: 280
   implicitHeight: cardLayout.implicitHeight + 24
@@ -25,9 +26,12 @@ PanelWindow {
   anchors.right: true
   anchors.top: Settings.notificationToastPosition !== "bottom-right"
   anchors.bottom: Settings.notificationToastPosition === "bottom-right"
-  margins.right: 16
-  margins.top: Settings.notificationToastPosition === "bottom-right" ? 0 : Config.barWidth + 4
-  margins.bottom: Settings.notificationToastPosition === "bottom-right" ? 16 : 0
+  margins.right: root.barPosition === "right" ? Config.barWidth + 4 : 16
+  margins.top: Settings.notificationToastPosition === "bottom-right" ? 0
+    : (root.barPosition === "top" ? Config.barWidth + 4 : 16)
+  margins.bottom: Settings.notificationToastPosition === "bottom-right"
+    ? (root.barPosition === "bottom" ? Config.barWidth + 4 : 16)
+    : 0
   visible: notif !== null
 
   function isPersistent(n) {
