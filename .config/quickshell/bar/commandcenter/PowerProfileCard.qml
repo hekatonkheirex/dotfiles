@@ -6,7 +6,7 @@ import Quickshell.Services.UPower
 import "../primitives"
 import "../../config"
 
-Rectangle {
+StyledSurface {
   id: card
 
   property bool compactLayout: false
@@ -25,9 +25,9 @@ Rectangle {
   Layout.fillWidth: true
   Layout.preferredHeight: powerProfileColumn.implicitHeight + Config.spacingMedium * 2
   radius: Config.shapeLarge
-  color: Colors.surfaceContainer
-  border.color: Colors.outlineVariant
-  border.width: 1
+  surfaceColor: Colors.surfaceContainer
+  outlineColor: Colors.styleOutline
+  outlineWidth: Config.themeBorderWidth
 
   function parsePowerProfile(value) {
     var output = value === undefined || value === null ? "" : String(value).trim().toLowerCase()
@@ -187,7 +187,9 @@ Rectangle {
       Layout.fillWidth: true
       columns: card.compactLayout ? 2 : 4
       columnSpacing: Config.spacingCompact
+        + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
       rowSpacing: Config.spacingCompact
+        + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
 
       ActionButton {
         Layout.fillWidth: true

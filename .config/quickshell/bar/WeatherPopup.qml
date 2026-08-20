@@ -8,8 +8,8 @@ import "../config"
 PopupBase {
   id: root
 
-  implicitWidth: 620
-  implicitHeight: Math.min(contentColumn.implicitHeight + 32, 520)
+  surfaceWidth: 620
+  surfaceHeight: Math.min(contentColumn.implicitHeight + 32, 520)
 
   property string city: ""
   property string temp: "--°"
@@ -122,8 +122,8 @@ PopupBase {
       Layout.preferredHeight: 48
       radius: Config.shapeMedium
       color: root.status === "offline" ? Colors.errorContainer : Colors.surfaceContainer
-      border.color: root.status === "offline" ? Colors.error : Colors.outlineVariant
-      border.width: 1
+      border.color: root.status === "offline" ? Colors.error : Colors.styleOutline
+      border.width: Config.themeBorderWidth
 
       RowLayout {
         anchors.fill: parent
@@ -162,8 +162,8 @@ PopupBase {
         Layout.fillHeight: true
         radius: Config.shapeLarge
         color: Colors.surfaceContainer
-        border.color: Colors.outlineVariant
-        border.width: 1
+        border.color: Colors.styleOutline
+        border.width: Config.themeBorderWidth
 
         RowLayout {
           anchors.centerIn: parent
@@ -214,8 +214,8 @@ PopupBase {
         Layout.fillHeight: true
         radius: Config.shapeLarge
         color: Colors.surfaceContainer
-        border.color: Colors.outlineVariant
-        border.width: 1
+        border.color: Colors.styleOutline
+        border.width: Config.themeBorderWidth
 
         Text {
           anchors.centerIn: parent
@@ -312,8 +312,8 @@ PopupBase {
           Layout.preferredHeight: 50
           radius: Config.shapeMedium
           color: Colors.surfaceContainer
-          border.color: Colors.outlineVariant
-          border.width: 1
+          border.color: Colors.styleOutline
+          border.width: Config.themeBorderWidth
 
           RowLayout {
             anchors.centerIn: parent
@@ -367,8 +367,8 @@ PopupBase {
           Layout.preferredHeight: 95
           radius: Config.shapeMedium
           color: Colors.surfaceContainer
-          border.color: Colors.outlineVariant
-          border.width: 1
+          border.color: Colors.styleOutline
+          border.width: Config.themeBorderWidth
 
           ColumnLayout {
             anchors.centerIn: parent

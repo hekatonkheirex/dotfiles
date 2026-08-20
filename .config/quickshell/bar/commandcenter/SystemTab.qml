@@ -11,11 +11,14 @@ Flickable {
   id: systemTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
+  readonly property int neoShadowAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset
+    : 0
   anchors.fill: parent
   visible: root.currentTab === 9
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight
+  contentHeight: mainColumn.implicitHeight + systemTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
 
@@ -238,16 +241,16 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: systemTab.width
-    spacing: Config.spacingLarge
+    width: Math.max(0, systemTab.width - systemTab.neoShadowAllowance)
+    spacing: Config.spacingLarge + systemTab.neoShadowAllowance
 
-    Rectangle {
+    StyledSurface {
       Layout.fillWidth: true
       Layout.preferredHeight: statsGrid.implicitHeight + 16
       radius: Config.shapeLarge
-      color: Colors.surfaceContainer
-      border.color: Colors.outlineVariant
-      border.width: 1
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
 
       GridLayout {
         id: statsGrid
@@ -348,8 +351,8 @@ Flickable {
     GridLayout {
       Layout.fillWidth: true
       columns: systemTab.compactLayout ? 1 : 2
-      columnSpacing: Config.spacingSmall
-      rowSpacing: Config.spacingSmall
+      columnSpacing: Config.spacingSmall + systemTab.neoShadowAllowance
+      rowSpacing: Config.spacingSmall + systemTab.neoShadowAllowance
 
       ActionButton {
         Layout.fillWidth: true

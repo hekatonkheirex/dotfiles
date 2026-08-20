@@ -7,26 +7,29 @@ import "../../config"
 Flickable {
   id: mediaTab
   property QtObject root: null
+  readonly property int neoShadowAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset
+    : 0
   anchors.fill: parent
   visible: root.currentTab === 6
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight
+  contentHeight: mainColumn.implicitHeight + mediaTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
 
   ColumnLayout {
     id: mainColumn
-    width: mediaTab.width
-    spacing: Config.spacingLarge
+    width: Math.max(0, mediaTab.width - mediaTab.neoShadowAllowance)
+    spacing: Config.spacingLarge + mediaTab.neoShadowAllowance
 
-    Rectangle {
+    StyledSurface {
       Layout.fillWidth: true
       Layout.preferredHeight: mediaCol.implicitHeight + 16
       radius: Config.shapeLarge
-      color: Colors.surfaceContainer
-      border.color: Colors.outlineVariant
-      border.width: 1
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
         id: mediaCol
@@ -54,7 +57,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Show album art"
@@ -72,7 +75,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Show progress bar"
@@ -90,7 +93,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Media controls always visible"

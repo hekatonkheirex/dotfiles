@@ -7,7 +7,7 @@ import "../config"
 PopupBase {
   id: root
 
-  implicitHeight: Math.min(contentColumn.implicitHeight + 32, 400)
+  surfaceHeight: Math.min(contentColumn.implicitHeight + 32, 400)
 
   property real pct: 0
 
@@ -82,7 +82,7 @@ PopupBase {
       activeColor: Colors.brightness
       surfaceContainerHigh: Colors.surfaceContainerHigh
       surfaceContainerHighest: Colors.surfaceContainerHighest
-      outline: Colors.outline
+      outline: Colors.styleOutlineStrong
       focusColor: Colors.brightness
       motionDuration: Config.motionMedium
       reducedMotion: Config.reducedMotion

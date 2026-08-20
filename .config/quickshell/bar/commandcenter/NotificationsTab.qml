@@ -11,11 +11,14 @@ Flickable {
   property QtObject root: null
   property QtObject notificationPopup: null
   readonly property bool compactLayout: root ? root.compactLayout : false
+  readonly property int neoShadowAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset
+    : 0
   anchors.fill: parent
   visible: root.currentTab === 8
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight
+  contentHeight: mainColumn.implicitHeight + notificationsTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
 
@@ -33,17 +36,17 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: notificationsTab.width
-    spacing: Config.spacingLarge
+    width: Math.max(0, notificationsTab.width - notificationsTab.neoShadowAllowance)
+    spacing: Config.spacingLarge + notificationsTab.neoShadowAllowance
 
     // Behavior card
-    Rectangle {
+    StyledSurface {
       Layout.fillWidth: true
       Layout.preferredHeight: behaviorCol.implicitHeight + 16
       radius: Config.shapeLarge
-      color: Colors.surfaceContainer
-      border.color: Colors.outlineVariant
-      border.width: 1
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
         id: behaviorCol
@@ -63,7 +66,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Do Not Disturb"
@@ -74,7 +77,7 @@ Flickable {
         RowLayout {
           Layout.fillWidth: true
           Layout.preferredHeight: 40
-          spacing: 8
+          spacing: 8 + notificationsTab.neoShadowAllowance
 
           Text {
             text: "Toast Duration"
@@ -95,7 +98,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -162,7 +165,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Quiet hours"
@@ -197,7 +200,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -241,7 +244,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -271,7 +274,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Critical notification bypass"
@@ -305,7 +308,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion

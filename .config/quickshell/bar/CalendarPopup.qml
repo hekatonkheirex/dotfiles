@@ -8,7 +8,7 @@ import "../config"
 PopupBase {
   id: root
 
-  implicitHeight: Math.min(contentBody.implicitHeight + 24, 450)
+  surfaceHeight: Math.min(contentBody.implicitHeight + 24, 450)
   bottomMarginPad: 5
 
   property date currentDate: new Date()

@@ -7,7 +7,7 @@ import "../config"
 PopupBase {
   id: root
 
-  implicitHeight: Math.min(contentColumn.implicitHeight + 32, 500)
+  surfaceHeight: Math.min(contentColumn.implicitHeight + 32, 500)
 
   property var notifications: []
   property int count: 0
@@ -132,8 +132,8 @@ PopupBase {
                 implicitHeight: cardLayout.implicitHeight + 24
                 radius: Config.shapeLarge
                 color: Qt.tint(Colors.surfaceContainer, notifMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
-                border.width: 1
-                border.color: Colors.outlineVariant
+                border.width: Config.themeBorderWidth
+                border.color: Colors.styleOutline
 
                 Behavior on color {
                   ColorAnimation { duration: Config.animationDuration}
@@ -208,7 +208,7 @@ PopupBase {
                   Rectangle {
                     Layout.fillWidth: true
                     height: 1
-                    color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.1)
+                    color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.1)
                   }
 
                   ColumnLayout {

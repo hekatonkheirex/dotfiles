@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import QtQuick.Effects
 import "../primitives"
 import "../../config"
 
@@ -10,11 +11,14 @@ Flickable {
 
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
+  readonly property int neoShadowAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset
+    : 0
   anchors.fill: parent
   visible: root.currentTab === 3
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.height
+  contentHeight: mainColumn.height + wallpaperTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
 
@@ -94,9 +98,9 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: wallpaperTab.width
+    width: Math.max(0, wallpaperTab.width - wallpaperTab.neoShadowAllowance)
     height: Math.max(wallpaperTab.height, implicitHeight)
-    spacing: Config.spacingLarge
+    spacing: Config.spacingLarge + wallpaperTab.neoShadowAllowance
 
     RowLayout {
       Layout.fillWidth: true
@@ -114,7 +118,7 @@ Flickable {
 
       ActionButton {
         Layout.preferredWidth: 80
-        Layout.preferredHeight: 40
+        Layout.preferredHeight: Config.neoBrutalism ? 52 : 40
         iconLabel: "shuffle"
         iconSize: Config.iconSizeSmall
         labelText: "Randomize"
@@ -124,18 +128,21 @@ Flickable {
       }
     }
 
-    Rectangle {
+    StyledSurface {
+      id: wallpaperSurface
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumHeight: 340
       Layout.preferredHeight: 340
+      // Keep the lower outline and Neo offset inside the clipped tab viewport.
+      Layout.bottomMargin: Config.spacingSmall + wallpaperTab.neoShadowAllowance
       radius: Config.shapeLarge
-      color: Colors.surfaceContainer
-      border.color: Colors.outlineVariant
-      border.width: 1
-      clip: true
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
+      clipContent: true
 
-      GridView {
+        GridView {
         id: wallpaperGrid
         anchors.fill: parent
         anchors.margins: 16
@@ -157,14 +164,12 @@ Flickable {
           }
         }
 
-        delegate: Rectangle {
+        delegate: Item {
           id: wallDelegate
-          width: wallpaperGrid.cellWidth - 8
-          height: wallpaperGrid.cellHeight - 8
-          radius: Config.shapeMedium
+          width: wallpaperGrid.cellWidth - 8 - wallpaperTab.neoShadowAllowance
+          height: wallpaperGrid.cellHeight - 8 - wallpaperTab.neoShadowAllowance
+          property real cornerRadius: Config.shapeMedium
           readonly property bool isKeyboardSelected: GridView.isCurrentItem && wallpaperGrid.activeFocus
-          color: Colors.surfaceContainerHigh
-          clip: true
 
           readonly property bool isCurrent: modelData === wallpaperTab.currentWallpaper
 
@@ -177,74 +182,108 @@ Flickable {
             wallpaperTab.currentWallpaper = modelData
           }
 
-          Image {
-            id: wallThumb
-            source: "file://" + Quickshell.env("HOME") + "/.cache/quickshell/wallpaper-thumbs/" + modelData
-            sourceSize.width: 200
-            sourceSize.height: 130
+          Rectangle {
+            id: wallSurface
             anchors.fill: parent
-            fillMode: Image.PreserveAspectCrop
+            radius: wallDelegate.cornerRadius
+            color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+            clip: true
 
-            onStatusChanged: {
-              if (status === Image.Error && source !== "file://" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData) {
-                source = "file://" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData
+            Image {
+              id: wallThumb
+              source: "file://" + Quickshell.env("HOME") + "/.cache/quickshell/wallpaper-thumbs/" + modelData
+              sourceSize.width: 200
+              sourceSize.height: 130
+              anchors.fill: parent
+              fillMode: Image.PreserveAspectCrop
+              visible: false
+
+              onStatusChanged: {
+                if (status === Image.Error && source !== "file://" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData) {
+                  source = "file://" + Quickshell.env("HOME") + "/Pictures/Walls/" + modelData
+                }
+              }
+            }
+
+            // Rectangle.clip only clips to the rectangular item bounds. Mask
+            // the image itself so every thumbnail follows the same corners as
+            // its frame, including bright pixels at the four corners.
+            Rectangle {
+              id: wallMask
+              anchors.fill: parent
+              radius: wallDelegate.cornerRadius
+              color: "black"
+              visible: false
+              layer.enabled: true
+            }
+
+            MultiEffect {
+              id: wallThumbEffect
+              anchors.fill: parent
+              source: wallThumb
+              maskEnabled: true
+              maskSource: wallMask
+            }
+
+            Rectangle {
+              anchors.fill: parent
+              radius: parent.radius
+              color: {
+                if (wallDelegateMouse.pressed) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.22)
+                if (wallDelegate.isKeyboardSelected) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.20)
+                if (wallDelegateMouse.containsMouse) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.12)
+                return "transparent"
+              }
+              border.width: wallDelegate.isCurrent
+                ? 3
+                : (wallDelegate.isKeyboardSelected || wallDelegateMouse.containsMouse
+                  ? Config.themeFocusBorderWidth
+                  : Config.themeBorderWidth)
+              border.color: wallDelegate.isCurrent || wallDelegate.isKeyboardSelected || wallDelegateMouse.containsMouse
+                ? Colors.primary : Colors.styleOutline
+
+              Behavior on color {
+                ColorAnimation { duration: Config.animationDuration }
+              }
+              Behavior on border.width {
+                NumberAnimation { duration: Config.animationDuration }
+              }
+            }
+
+            Rectangle {
+              width: 20
+              height: 20
+              radius: width / 2
+              color: Colors.primary
+              anchors.top: parent.top
+              anchors.right: parent.right
+              anchors.margins: 6
+              visible: wallDelegate.isCurrent
+
+              Text {
+                anchors.centerIn: parent
+                text: "check"
+                font.family: Config.iconFont
+                font.pixelSize: Config.iconSizeSmall
+                font.weight: Font.Bold
+                color: Colors.fgPrimary
+              }
+            }
+
+            MouseArea {
+              id: wallDelegateMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: {
+                wallpaperGrid.currentIndex = index
+                wallpaperGrid.forceActiveFocus()
+                wallDelegate.applyWallpaper()
               }
             }
           }
-
-          Rectangle {
-            anchors.fill: parent
-            radius: parent.radius
-            color: {
-              if (wallDelegateMouse.pressed) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.22)
-              if (wallDelegate.isKeyboardSelected) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.20)
-              if (wallDelegateMouse.containsMouse) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.12)
-              return "transparent"
-            }
-            border.width: wallDelegate.isCurrent ? 3 : (wallDelegate.isKeyboardSelected || wallDelegateMouse.containsMouse ? 2 : 1)
-            border.color: wallDelegate.isCurrent || wallDelegate.isKeyboardSelected || wallDelegateMouse.containsMouse
-              ? Colors.primary : Colors.outlineVariant
-
-            Behavior on color {
-              ColorAnimation { duration: Config.animationDuration }
-            }
-            Behavior on border.width {
-              NumberAnimation { duration: Config.animationDuration }
-            }
-          }
-
-          Rectangle {
-            width: 20
-            height: 20
-            radius: width / 2
-            color: Colors.primary
-            anchors.top: parent.top
-            anchors.right: parent.right
-            anchors.margins: 6
-            visible: wallDelegate.isCurrent
-
-            Text {
-              anchors.centerIn: parent
-              text: "check"
-              font.family: Config.iconFont
-              font.pixelSize: Config.iconSizeSmall
-              font.weight: Font.Bold
-              color: Colors.fgPrimary
-            }
-          }
-
-          MouseArea {
-            id: wallDelegateMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-              wallpaperGrid.currentIndex = index
-              wallpaperGrid.forceActiveFocus()
-              wallDelegate.applyWallpaper()
-            }
-          }
         }
+
       }
     }
   }

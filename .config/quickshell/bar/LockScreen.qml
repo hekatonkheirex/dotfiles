@@ -406,7 +406,7 @@ Item {
             height: 48
             radius: Config.shapeMedium
             color: Qt.rgba(1, 1, 1, 0.12)
-            border.width: 1
+            border.width: Config.themeBorderWidth
             border.color: Qt.rgba(1, 1, 1, 0.2)
 
             TextInput {
@@ -632,7 +632,7 @@ Item {
           height: 48
           radius: Config.shapeMedium
           color: Qt.rgba(1, 1, 1, 0.12)
-          border.width: 1
+          border.width: Config.themeBorderWidth
           border.color: Qt.rgba(1, 1, 1, 0.2)
 
           TextInput {

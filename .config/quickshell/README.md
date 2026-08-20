@@ -17,7 +17,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Settings panel**: A multi-functional panel launched via `XF86Tools` with eleven tabs:
   - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
   - **General**: Motion, uptime, clock, calendar week start, timezone, bar contents, and weather location/refresh/privacy/unit settings
-  - **Appearance**: Light/dark mode, bar placement, sizing controls, palette source, theme reload, and confirmed appearance reset
+  - **Appearance**: Color mode, independent UI style (Material 3 or Neo Brutalism), bar placement, sizing controls, palette source, color reload, and confirmed appearance reset
   - **Wallpaper**: Active-wallpaper tracking, cached thumbnails, keyboard navigation, random selection, and wallpaper switching
   - **Network**: Wi-Fi power, scan, connect, disconnect, saved-network, and autoconnect controls; Wi-Fi is Settings-only and has no compact bar indicator
   - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls; Bluetooth is Settings-only and has no compact bar indicator
@@ -88,16 +88,20 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── PowerConfirmation.qml   # Confirmation surface for destructive power actions
 │   ├── FocusDismiss.qml        # Popup dismissal on app focus loss
 │   ├── FileTrigger.qml         # Generic /tmp trigger-file watcher (single inotifywait for all triggers)
-│   ├── SliderControl.qml       # Reusable M3 slider (volume/brightness/etc.)
-│   ├── SwitchControl.qml       # Reusable M3 switch/toggle
+│   ├── SliderControl.qml       # Theme-selected slider facade (volume/brightness/etc.)
+│   ├── SwitchControl.qml       # Theme-selected switch/toggle facade
 │   ├── WaveProgressBar.qml     # Reusable wavy progress bar canvas (progress, lineWidth, dotRadius, trackLineWidth)
-│   └── primitives/             # Shared buttons, list items, and text fields
-│       ├── ActionButton.qml
-│       ├── IconButton.qml
-│       ├── ListItem.qml
-│       ├── PillSurface.qml
-│       ├── StatusIndicator.qml
-│       └── TextFieldControl.qml
+│   ├── primitives/             # Shared buttons, list items, and text fields
+│   │   ├── ActionButton.qml
+│   │   ├── IconButton.qml
+│   │   ├── ListItem.qml
+│   │   ├── PillSurface.qml
+│   │   ├── StatusIndicator.qml
+│   │   ├── StyledSurface.qml
+│   │   └── TextFieldControl.qml
+│   └── themes/                 # Separate UI-style implementations
+│       ├── material3/          # Material 3 controls and ThemeTokens.qml
+│       └── neo_brutalism/      # Neo Brutalism controls and ThemeTokens.qml
 ├── scripts/
 │   ├── launcher                # Launcher trigger (touches /tmp/qslauncher-trigger)
 │   ├── quickmenu                # Quick menu trigger (touches /tmp/qsquickmenu-trigger)
@@ -247,11 +251,11 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 
 ### `config/Config.qml`
 
-Build-time layout, typography, shape, and motion tokens: `barWidth`, `widgetSize`, M3 type sizes, independent bar clock typography, spacing, shape scale, motion durations (`motionShort`/`Medium`/`Long`/`ExtraLong`, all zeroed when `reducedMotion` is on), `popupWidth`, Settings min/max dimensions, and step sizes for volume/brightness.
+Build-time layout, typography, shape, and motion tokens: `barWidth`, `widgetSize`, type sizes, independent bar clock typography, spacing, style-dependent shape/border/shadow tokens, motion durations (`motionShort`/`Medium`/`Long`/`ExtraLong`, all zeroed when `reducedMotion` is on), `popupWidth`, Settings min/max dimensions, and step sizes for volume/brightness. `Settings.themeStyle` selects the component styling independently from the generated palette.
 
 ### `config/Settings.qml`
 
-Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs `fullBar` (continuous full bar versus floating pills), motion and sizing, independent bar clock font size, clock/calendar/timezone settings, last Settings tab, bar indicator visibility, theme preference, notification behavior, lock/power and media options, idle timeouts, and weather location/refresh/privacy/units. IP-based weather geolocation is a separate opt-in setting and is disabled by default. The persisted format is currently `schemaVersion: 1`; future breaking renames or removals must increment that marker and migrate the stored data before writing the new schema. Values round-trip live via `watchChanges: true`; call `Settings.save()` after mutating an alias to persist. The Appearance tab can restore appearance-owned defaults, while the confirmed System reset restores all settings and the default top bar placement.
+Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs `fullBar` (continuous full bar versus floating pills), motion and sizing, independent bar clock font size, clock/calendar/timezone settings, last Settings tab, bar indicator visibility, color theme preference, UI style (`material3` or `neo-brutalism`), notification behavior, lock/power and media options, idle timeouts, and weather location/refresh/privacy/units. IP-based weather geolocation is a separate opt-in setting and is disabled by default. The persisted format is currently `schemaVersion: 1`; future breaking renames or removals must increment that marker and migrate the stored data before writing the new schema. Values round-trip live via `watchChanges: true`; call `Settings.save()` after mutating an alias to persist. The Appearance tab can restore appearance-owned defaults, while the confirmed System reset restores all settings and the default top bar placement.
 
 ### `config/Colors.qml`
 
@@ -261,7 +265,9 @@ Format: `l_<token>` (light), `d_<token>` (dark), and flat resolved `<token>` pro
 
 System dark mode is read once and monitored through `gsettings` (owned by `Colors.qml` itself, since it's the single instance everyone reads from). Mode toggles in the launcher or Settings call the existing desktop mode synchronizer, while the shell selects the matching Matugen light/dark roles locally.
 
-`Settings.themePreference` is the persisted owner of the theme mode (`0` Auto, `1` Light, `2` Dark). `shell.qml` reapplies that preference through `sync-theme-mode.sh` at startup and whenever it changes, keeping GTK, Qt/Kvantum, Kitty, and Niri synchronized without editing generated Matugen files.
+`Settings.themePreference` is the persisted owner of the color mode (`0` Auto, `1` Light, `2` Dark). `Settings.themeStyle` is the separate UI component style selector (`material3` or `neo-brutalism`). `shell.qml` reapplies the color-mode preference through `sync-theme-mode.sh` at startup and whenever it changes, keeping GTK, Qt/Kvantum, Kitty, and Niri synchronized without editing generated Matugen files. UI-style changes also refresh Niri's generated decorations immediately: Material 3 keeps the 2px primary ring, 10px base gaps, and soft shadow, while Neo Brutalism uses 18px gaps, a 4px high-contrast ring based on the active `on_surface` role, and a hard 10px offset shadow using the matching semantic shadow color. The Neo full bar uses a 14px edge inset so its visible edge aligns with the focused Niri window, and reserves the full floating footprint through Quickshell's layer-shell `exclusiveZone`; Material 3 keeps the normal reservation. The UI style changes Quickshell component geometry and ink treatment; it does not replace Matugen's palette.
+
+Neo Brutalism uses JetBrains Mono, bold semantic ink outlines, pastel semantic fills, and hard offset shadows through shared surfaces and controls. Its dark mode is the negative treatment: dark surfaces use light semantic ink for the thick borders and hard offsets. Material 3 retains its Roboto Flex typography, tonal surfaces, and expressive shape/elevation treatment.
 
 ### `bar/PopupShield.qml`
 
@@ -273,7 +279,7 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 
 ## Widget Details
 
-- **Bar.qml**: Single component for all four placements and both display styles (continuous full bar / floating pills bar), driven by `barPosition`, `horizontal`, `pillsBar`, and `fullBar` properties. In pills mode, every visible widget receives its own floating M3 surface while the transparent panel still provides the input region for gaps and outside-click dismissal.
+- **Bar.qml**: Single component for all four placements and both display styles (continuous full bar / floating pills bar), driven by `barPosition`, `horizontal`, `pillsBar`, and `fullBar` properties. In pills mode, every visible widget receives its own floating surface while the transparent panel still provides the input region for gaps and outside-click dismissal. Surface geometry follows the selected UI style.
 - **WorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri (`niri msg event-stream`) using `SplitParser`. Runs only when visible. Anchored directly in the workspace zone so it stays stationary in both display styles and orientations.
 - **AudioIndicator / BrightnessIndicator / MediaIndicator / WeatherIndicator**: Event-driven watchers and polling loops are bound to their active/visible state, so they are suspended when their parent bar is hidden, saving CPU wakeups and RAM.
 - **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
@@ -284,8 +290,8 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 - **Weather**: Uses a configured manual location by default, optionally supports IP geolocation, refreshes on the persisted interval, reports the last update time, and shows an explicit unavailable/offline state when data cannot be fetched.
 - **Notifications**: Retains history while DND or quiet hours suppress toast delivery; critical-notification bypass, toast placement, retention, and clear-history actions are persisted.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a polling re-query runs in `shell.qml` after reloads.
-- **Theme ownership**: Matugen is the dynamic palette source. `scripts/apply-wallpaper.sh` applies the wallpaper via `awww`, refreshes the Matugen cache, regenerates the existing Material 3 desktop themes, and re-runs the light/dark synchronizer. `config/Colors.qml` consumes the cached semantic roles with authored fallbacks. `scripts/apply-accent-color.sh` is a compatibility stub — the palette is fully wallpaper-derived and not user-selectable at runtime.
-- **Appearance tab**: Owns theme mode, palette source/reload, bar placement, bar display style, UI sizing, independent bar-clock sizing controls, and the confirmed appearance-default reset.
+- **Theme ownership**: Matugen is the dynamic palette source. `scripts/apply-wallpaper.sh` applies the wallpaper via `awww`, refreshes the Matugen cache, regenerates the existing Material 3 desktop themes, and re-runs the light/dark synchronizer. `config/Colors.qml` consumes the cached semantic roles with authored fallbacks. `scripts/apply-accent-color.sh` is a compatibility stub — the palette is fully wallpaper-derived and not user-selectable at runtime. The Quickshell UI style is an independent `Settings.themeStyle` choice; `sync-terminal-theme.sh` translates it into the generated Niri focus-ring width/color, while Neo full-bar geometry owns its extra layer-shell reservation in `Bar.qml`.
+- **Appearance tab**: Owns color mode, UI style, palette source/reload, bar placement, bar display style, UI sizing, independent bar-clock sizing controls, and the confirmed appearance-default reset.
 - **Wallpaper tab**: Lists images from `~/Pictures/Walls`; `scripts/generate-thumbnails.sh` produces and caches 200×130 center-cropped thumbnails under `~/.cache/quickshell/wallpaper-thumbs`, regenerating only when the source is newer than the cached thumbnail. The tab tracks the active wallpaper, supports keyboard selection, and exposes randomize/apply actions.
 - **Lock & Power tab**: Owns lock-screen options, idle lock/suspend timeouts, Caffeine, and TLP power-profile selection with automatic AC/battery restore.
 - **Media tab**: Owns media artwork, progress, and always-visible-control preferences for the media popup.

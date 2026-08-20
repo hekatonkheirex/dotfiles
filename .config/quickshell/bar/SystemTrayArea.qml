@@ -10,6 +10,7 @@ Item {
 
   property var parentWindow: null
   property bool horizontal: false
+  property bool integrated: false
 
   property int visibleCount: 0
   readonly property real preferredLength: visibleCount * (Config.widgetSize)
@@ -17,6 +18,18 @@ Item {
   Layout.preferredWidth: horizontal ? preferredLength : (Config.widgetSize)
   Layout.preferredHeight: horizontal ? (Config.widgetSize) : preferredLength
   visible: visibleCount > 0
+
+  Rectangle {
+    id: shadow
+    x: (horizontal ? 0 : 6) + Config.themeShadowOffset
+    y: (horizontal ? 6 : 0) + Config.themeShadowOffset
+    width: horizontal ? systemTrayAreaRoot.width : Math.max(0, systemTrayAreaRoot.width - 12)
+    height: horizontal ? Math.max(0, systemTrayAreaRoot.height - 12) : systemTrayAreaRoot.height
+    radius: Config.borderRadius
+    color: Colors.styleShadow
+    visible: Config.neoBrutalism && systemTrayAreaRoot.visible && !systemTrayAreaRoot.integrated
+    z: -1
+  }
 
   Rectangle {
     anchors {
@@ -28,9 +41,13 @@ Item {
     }
     radius: Config.borderRadius
     clip: true
-    color: Colors.surfaceContainerHigh
-    border.color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
-    border.width: 1
+    color: systemTrayAreaRoot.integrated
+      ? "transparent"
+      : (Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh)
+    border.color: Config.neoBrutalism
+      ? Colors.styleOutline
+      : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
+    border.width: systemTrayAreaRoot.integrated ? 0 : Config.themeBorderWidth
   }
 
   GridLayout {
@@ -118,8 +135,8 @@ Item {
           anchors.fill: parent
           radius: Config.shapeMedium
           color: "transparent"
-          border.width: trayIconDelegate.activeFocus ? 2 : 0
-          border.color: Colors.primary
+          border.width: trayIconDelegate.activeFocus ? Config.themeFocusBorderWidth : 0
+          border.color: Config.neoBrutalism ? Colors.styleOutline : Colors.primary
         }
 
         QsMenuAnchor {
