@@ -11,11 +11,20 @@ Flickable {
   id: appearanceTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
+  readonly property int neoShadowAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset
+    : 0
+  readonly property int neoControlAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset * 2
+    : 0
+  readonly property int optionButtonGap: Config.themeOptionGap
+  readonly property int optionButtonHeight: Config.neoBrutalism ? 52 : 40
+  readonly property int optionCardHeight: Config.neoBrutalism ? 116 : 104
   anchors.fill: parent
   visible: root.currentTab === 2
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight
+  contentHeight: mainColumn.implicitHeight + appearanceTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
 
@@ -31,7 +40,7 @@ Flickable {
   }
 
   function reloadTheme() {
-    appearanceTab.themeStatus = "Reloading theme..."
+    appearanceTab.themeStatus = "Reloading colors..."
     reloadThemeProc.running = false
     reloadThemeProc.running = true
   }
@@ -45,16 +54,16 @@ Flickable {
     running: false
     onExited: (exitCode) => {
       appearanceTab.themeStatus = exitCode === 0
-        ? "Theme synchronized"
-        : "Theme synchronization failed"
+        ? "Colors synchronized"
+        : "Color synchronization failed"
     }
   }
 
 
   ColumnLayout {
     id: mainColumn
-    width: appearanceTab.width
-    spacing: Config.spacingLarge
+    width: Math.max(0, appearanceTab.width - appearanceTab.neoShadowAllowance)
+    spacing: Config.spacingLarge + appearanceTab.neoShadowAllowance
 
     GridLayout {
       Layout.fillWidth: true
@@ -62,20 +71,20 @@ Flickable {
       columnSpacing: Config.spacingLarge
       rowSpacing: Config.spacingLarge
 
-      // Theme card
-      Rectangle {
+      // UI Style card
+      StyledSurface {
         Layout.column: 0
         Layout.row: 0
         Layout.fillWidth: true
         Layout.preferredWidth: 0
-        Layout.preferredHeight: Math.max(184, themeColumn.implicitHeight + 24)
+        Layout.preferredHeight: Math.max(184, uiStyleColumn.implicitHeight + 24)
         radius: Config.shapeLarge
-        color: Colors.surfaceContainer
-        border.color: Colors.outlineVariant
-        border.width: 1
+        surfaceColor: Colors.surfaceContainer
+        outlineColor: Colors.styleOutline
+        outlineWidth: Config.themeBorderWidth
 
         ColumnLayout {
-          id: themeColumn
+          id: uiStyleColumn
           anchors.top: parent.top
           anchors.horizontalCenter: parent.horizontalCenter
           anchors.topMargin: 16
@@ -83,7 +92,7 @@ Flickable {
           Layout.alignment: Qt.AlignHCenter
 
           Text {
-            text: "Light/Dark Mode"
+            text: "UI Style"
             color: Colors.fgSurface
             font.family: Config.fontFamily
             font.pixelSize: Config.textTitleSize
@@ -91,13 +100,96 @@ Flickable {
             Layout.alignment: Qt.AlignHCenter
           }
 
-          Item {
-            width: appearanceTab.compactLayout ? 160 : 180
-            height: 40
+            Item {
+              width: (appearanceTab.compactLayout ? 200 : 220)
+                - appearanceTab.neoControlAllowance
+              Layout.alignment: Qt.AlignHCenter
+              Layout.preferredHeight: appearanceTab.optionButtonHeight
+              height: appearanceTab.optionButtonHeight
 
             Row {
               anchors.fill: parent
-              spacing: 0
+              spacing: appearanceTab.optionButtonGap
+
+              Repeater {
+                model: [
+                  { value: "material3", icon: "auto_awesome", label: "Material 3" },
+                  { value: "neo-brutalism", icon: "square", label: "Neo Brutalism" }
+                ]
+
+                delegate: ActionButton {
+                  required property var modelData
+                  width: (parent.width - appearanceTab.optionButtonGap) / 2
+                  height: parent.height
+                  iconLabel: modelData.icon
+                  iconSize: 15
+                  labelText: modelData.label
+                  selected: Settings.themeStyle === modelData.value
+                  accessibleName: modelData.label + " UI style"
+                  accessibleDescription: selected ? "Selected" : "Use the " + modelData.label + " UI style"
+                  onActivated: {
+                    Settings.themeStyle = modelData.value
+                    Settings.save()
+                  }
+                }
+              }
+            }
+          }
+
+          Text {
+            text: Settings.themeStyle === "neo-brutalism"
+              ? "Pastel fills, bold ink borders, and hard offset shadows"
+              : "Rounded surfaces, tonal elevation, and expressive motion"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Math.max(8, Config.fontPixelSize - 1)
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            Layout.maximumWidth: appearanceTab.compactLayout ? 220 : 260
+            Layout.alignment: Qt.AlignHCenter
+          }
+        }
+      }
+
+      // Color scheme card
+      StyledSurface {
+        Layout.column: appearanceTab.compactLayout ? 0 : 1
+        Layout.row: appearanceTab.compactLayout ? 1 : 0
+        Layout.fillWidth: true
+        Layout.preferredWidth: 0
+        Layout.preferredHeight: Math.max(184, colorSchemeColumn.implicitHeight + 24)
+        radius: Config.shapeLarge
+        surfaceColor: Colors.surfaceContainer
+        outlineColor: Colors.styleOutline
+        outlineWidth: Config.themeBorderWidth
+
+        ColumnLayout {
+          id: colorSchemeColumn
+          anchors.top: parent.top
+          anchors.horizontalCenter: parent.horizontalCenter
+          anchors.topMargin: 16
+          spacing: Config.spacingSmall
+          Layout.alignment: Qt.AlignHCenter
+
+          Text {
+            text: "Color Scheme"
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.textTitleSize
+            font.weight: Font.Bold
+            Layout.alignment: Qt.AlignHCenter
+          }
+
+            Item {
+              width: (appearanceTab.compactLayout ? 160 : 180)
+                - appearanceTab.neoControlAllowance
+              Layout.alignment: Qt.AlignHCenter
+              Layout.preferredHeight: appearanceTab.optionButtonHeight
+              height: appearanceTab.optionButtonHeight
+
+            Row {
+              anchors.fill: parent
+              spacing: appearanceTab.optionButtonGap
 
               Repeater {
                 model: [
@@ -108,13 +200,13 @@ Flickable {
 
                 delegate: ActionButton {
                   required property var modelData
-                  width: parent.width / 3
+                  width: (parent.width - appearanceTab.optionButtonGap * 2) / 3
                   height: parent.height
                   iconLabel: modelData.icon
                   iconSize: 15
                   labelText: modelData.label
                   selected: Settings.themePreference === modelData.value
-                  accessibleName: modelData.label + " theme"
+                  accessibleName: modelData.label + " color scheme"
                   onActivated: {
                     Settings.themePreference = modelData.value
                     Settings.save()
@@ -125,7 +217,7 @@ Flickable {
           }
 
           Text {
-            text: "Palette source: " + Colors.paletteSource
+            text: "Color palette: " + Colors.paletteSource
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
             font.pixelSize: Config.fontPixelSize
@@ -134,13 +226,15 @@ Flickable {
 
           ActionButton {
             Layout.preferredWidth: 90
-            Layout.preferredHeight: 40
+            Layout.preferredHeight: Config.neoBrutalism
+              ? appearanceTab.optionButtonHeight
+              : 40
             Layout.alignment: Qt.AlignHCenter
-            radius: height / 2
+            radius: Config.neoBrutalism ? Config.shapeCompact : height / 2
             iconLabel: "sync"
             iconSize: Config.iconSize - 2
-            labelText: "Reload theme"
-            accessibleName: "Reload theme"
+            labelText: "Reload colors"
+            accessibleName: "Reload colors"
             accessibleDescription: "Synchronize GTK, Qt, terminal, and Niri theme outputs"
             onActivated: appearanceTab.reloadTheme()
           }
@@ -156,23 +250,17 @@ Flickable {
         }
       }
 
-      ColumnLayout {
+      // Bar Placement card
+      StyledSurface {
         Layout.column: appearanceTab.compactLayout ? 0 : 1
-        Layout.row: appearanceTab.compactLayout ? 1 : 0
-        Layout.alignment: Qt.AlignTop
+        Layout.row: appearanceTab.compactLayout ? 2 : 1
         Layout.fillWidth: true
         Layout.preferredWidth: 0
-        spacing: Config.spacingLarge
-
-        // Bar Placement card
-        Rectangle {
-          Layout.fillWidth: true
-          Layout.preferredWidth: 0
-          Layout.preferredHeight: 104
-          radius: Config.shapeLarge
-          color: Colors.surfaceContainer
-          border.color: Colors.outlineVariant
-          border.width: 1
+        Layout.preferredHeight: appearanceTab.optionCardHeight
+        radius: Config.shapeLarge
+        surfaceColor: Colors.surfaceContainer
+        outlineColor: Colors.styleOutline
+        outlineWidth: Config.themeBorderWidth
 
           ColumnLayout {
             anchors.top: parent.top
@@ -191,12 +279,15 @@ Flickable {
             }
 
             Item {
-              width: appearanceTab.compactLayout ? 240 : 280
-              height: 40
+              width: (appearanceTab.compactLayout ? 240 : 280)
+                - appearanceTab.neoControlAllowance
+              Layout.alignment: Qt.AlignHCenter
+              Layout.preferredHeight: appearanceTab.optionButtonHeight
+              height: appearanceTab.optionButtonHeight
 
               Row {
                 anchors.fill: parent
-                spacing: 0
+                spacing: appearanceTab.optionButtonGap
 
                 Repeater {
                   model: [
@@ -208,7 +299,7 @@ Flickable {
 
                   delegate: ActionButton {
                     required property var modelData
-                    width: parent.width / 4
+                    width: (parent.width - appearanceTab.optionButtonGap * 3) / 4
                     height: parent.height
                     iconLabel: modelData.icon
                     iconSize: 15
@@ -222,17 +313,19 @@ Flickable {
               }
             }
           }
-        }
+      }
 
-        // Full bar toggle
-        Rectangle {
-          Layout.fillWidth: true
-          Layout.preferredWidth: 0
-          Layout.preferredHeight: 64
-          radius: Config.shapeLarge
-          color: Colors.surfaceContainer
-          border.color: Colors.outlineVariant
-          border.width: 1
+      // Full bar toggle
+      StyledSurface {
+        Layout.column: appearanceTab.compactLayout ? 0 : 0
+        Layout.row: appearanceTab.compactLayout ? 3 : 1
+        Layout.fillWidth: true
+        Layout.preferredWidth: 0
+        Layout.preferredHeight: appearanceTab.optionCardHeight
+        radius: Config.shapeLarge
+        surfaceColor: Colors.surfaceContainer
+        outlineColor: Colors.styleOutline
+        outlineWidth: Config.themeBorderWidth
 
           Row {
             anchors.fill: parent
@@ -248,12 +341,12 @@ Flickable {
                 width: 24
                 height: 24
                 radius: Config.shapeCompact
-                color: Colors.primary
+                color: Colors.styleAccent
 
                 Text {
                   anchors.centerIn: parent
                   text: "dock_to_bottom"
-                  color: Colors.fgPrimary
+                  color: Colors.styleAccentText
                   font.family: Config.iconFont
                   font.pixelSize: Config.iconSize
                 }
@@ -287,6 +380,9 @@ Flickable {
                   font.family: Config.fontFamily
                   font.pixelSize: Config.fontPixelSize
                   horizontalAlignment: Text.AlignHCenter
+                  wrapMode: Text.WordWrap
+                  maximumLineCount: 2
+                  elide: Text.ElideRight
                 }
               }
             }
@@ -301,7 +397,7 @@ Flickable {
                 activeColor: Colors.primary
                 surfaceContainerHigh: Colors.surfaceContainerHigh
                 surfaceContainerHighest: Colors.surfaceContainerHighest
-                outline: Colors.outline
+                outline: Colors.styleOutlineStrong
                 motionDuration: Config.motionMedium
                 reducedMotion: Config.reducedMotion
                 accessibleName: "Bar display style"
@@ -312,18 +408,17 @@ Flickable {
               }
             }
           }
-        }
       }
     }
 
     // Font / Icon / Spacing sliders
-    Rectangle {
+    StyledSurface {
       Layout.fillWidth: true
       Layout.preferredHeight: sizingColumn.implicitHeight + 24
       radius: Config.shapeLarge
-      color: Colors.surfaceContainer
-      border.color: Colors.outlineVariant
-      border.width: 1
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
         id: sizingColumn
@@ -362,7 +457,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -406,7 +501,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -450,7 +545,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -494,7 +589,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -538,7 +633,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion

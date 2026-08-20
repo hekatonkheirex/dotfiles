@@ -8,8 +8,8 @@ import "../config"
 // Shared chrome for bar-anchored popups: layer-shell window setup, edge
 // anchoring, escape/focus-loss dismissal, and the M3 entry transform/fade.
 // Each popup supplies its own content as children (forwarded into `bg`) and
-// still owns its own `implicitHeight` binding, since the padding and cap
-// vary per popup.
+// still owns its own `surfaceHeight` binding, since the padding and cap vary
+// per popup.
 PanelWindow {
   id: root
 
@@ -17,13 +17,19 @@ PanelWindow {
   property int topMarginFloor: 0
   property int bottomMarginPad: 0
   property bool dismissOnAppInactive: true
+  // Child popups provide the surface dimensions; Neo adds an outer inset so
+  // the hard offset remains inside the layer-shell window bounds.
+  property real surfaceWidth: Config.popupWidth
+  property real surfaceHeight: 0
+  readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
   readonly property alias bg: bg
   default property alias content: bg.data
 
   signal dismissed()
   signal shown()
 
-  implicitWidth: Config.popupWidth
+  implicitWidth: surfaceWidth + neoShadowPadding
+  implicitHeight: surfaceHeight + neoShadowPadding
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
@@ -63,13 +69,32 @@ PanelWindow {
     }
 
     Rectangle {
+      id: styleShadow
+      x: Config.themeShadowOffset
+      y: Config.themeShadowOffset
+      width: bg.width
+      height: bg.height
+      radius: bg.radius
+      color: Colors.styleShadow
+      visible: Config.neoBrutalism
+      z: -1
+    }
+
+    Rectangle {
       id: bg
-      anchors.fill: parent
+      anchors {
+        left: parent.left
+        top: parent.top
+        right: parent.right
+        bottom: parent.bottom
+        rightMargin: root.neoShadowPadding
+        bottomMargin: root.neoShadowPadding
+      }
       radius: Config.borderRadius
-      color: Colors.surfaceContainerHigh
+      color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
       clip: true
-      border.width: 1
-      border.color: Colors.outlineVariant
+      border.width: Config.themeBorderWidth
+      border.color: Colors.styleOutline
 
       transform: [
         Translate { id: transX; x: 0 },

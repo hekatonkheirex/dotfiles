@@ -11,10 +11,10 @@ FocusScope {
   property string actionIcon: ""
 
   property color scrimColor: Qt.rgba(0, 0, 0, 0.24)
-  property color dialogColor: Colors.surfaceContainerHigh
+  property color dialogColor: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
   property color dialogTextColor: Colors.fgSurface
   property color dialogSecondaryTextColor: Colors.fgSurfaceVariant
-  property color dialogBorderColor: Colors.outlineVariant
+  property color dialogBorderColor: Colors.styleOutline
   property color cancelColor: Colors.surfaceContainer
   property color cancelTextColor: Colors.fgSurface
   property color confirmColor: Colors.error
@@ -105,13 +105,25 @@ FocusScope {
   }
 
   Rectangle {
+    id: dialogShadow
+    x: dialog.x + Config.themeShadowOffset
+    y: dialog.y + Config.themeShadowOffset
+    width: dialog.width
+    height: dialog.height
+    radius: dialog.radius
+    color: Colors.styleShadow
+    visible: Config.neoBrutalism
+    z: -1
+  }
+
+  Rectangle {
     id: dialog
     anchors.centerIn: parent
     width: Math.min(300, Math.max(220, root.width - 32))
     height: dialogContent.implicitHeight + 32
     radius: Config.shapeLarge
     color: root.dialogColor
-    border.width: 1
+    border.width: Config.themeBorderWidth
     border.color: root.dialogBorderColor
 
     Column {
@@ -175,7 +187,7 @@ FocusScope {
                 : Qt.rgba(0, 0, 0, 0))
             return Qt.tint(root.cancelColor, overlay)
           }
-          border.width: root.focusedButton === 0 ? 2 : 1
+          border.width: root.focusedButton === 0 ? Config.themeFocusBorderWidth : Config.themeBorderWidth
           border.color: root.focusedButton === 0 ? Colors.tertiary : root.dialogBorderColor
 
           Accessible.role: Accessible.Button
@@ -222,7 +234,7 @@ FocusScope {
                 : Qt.rgba(0, 0, 0, 0))
             return Qt.tint(root.confirmColor, overlay)
           }
-          border.width: root.focusedButton === 1 ? 2 : 1
+          border.width: root.focusedButton === 1 ? Config.themeFocusBorderWidth : Config.themeBorderWidth
           border.color: root.focusedButton === 1 ? Colors.tertiary : root.confirmColor
 
           Accessible.role: Accessible.Button

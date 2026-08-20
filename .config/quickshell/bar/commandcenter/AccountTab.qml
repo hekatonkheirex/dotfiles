@@ -11,11 +11,14 @@ Flickable {
   id: accountTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
+  readonly property int neoShadowAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset
+    : 0
   anchors.fill: parent
   visible: root.currentTab === 0
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight
+  contentHeight: mainColumn.implicitHeight + accountTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
 
@@ -118,17 +121,17 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: accountTab.width
-    spacing: Config.spacingLarge
+    width: Math.max(0, accountTab.width - accountTab.neoShadowAllowance)
+    spacing: Config.spacingLarge + accountTab.neoShadowAllowance
 
-  Rectangle {
+  StyledSurface {
     id: profileCard
     Layout.fillWidth: true
     Layout.preferredHeight: accountTab.compactLayout ? 196 : 152
     radius: Config.shapeLarge
-    color: Colors.surfaceContainer
-    border.color: Colors.outlineVariant
-    border.width: 1
+    surfaceColor: Colors.surfaceContainer
+    outlineColor: Colors.styleOutlineStrong
+    outlineWidth: Config.themeBorderWidth
 
     Flow {
       id: profileFlow
@@ -198,13 +201,14 @@ Flickable {
           spacing: accountTab.compactLayout ? 4 : 8
 
           Text {
+            id: profileName
             text: accountTab.fullName || Quickshell.env("USER") || "User"
             color: Colors.fgSurface
             font.family: Config.fontFamily
             font.pixelSize: accountTab.compactLayout ? 16 : 22
             font.weight: Font.Bold
             width: profileDetails.width
-            elide: Text.ElideRight
+            wrapMode: Text.NoWrap
           }
 
           Row {
@@ -247,13 +251,13 @@ Flickable {
   }
 
   // Machine Info card
-  Rectangle {
+  StyledSurface {
     Layout.fillWidth: true
     Layout.preferredHeight: machineInfoCol.implicitHeight + 16
     radius: Config.shapeLarge
-    color: Colors.surfaceContainer
-    border.color: Colors.outlineVariant
-    border.width: 1
+    surfaceColor: Colors.surfaceContainer
+    outlineColor: Colors.styleOutlineStrong
+    outlineWidth: Config.themeBorderWidth
 
     ColumnLayout {
       id: machineInfoCol
@@ -292,8 +296,10 @@ Flickable {
   GridLayout {
     Layout.fillWidth: true
     columns: accountTab.compactLayout ? 1 : 2
-    columnSpacing: 12
-    rowSpacing: 12
+    // Neo controls carry a hard offset shadow; keep that footprint out of
+    // the inter-button gap so the two outlines remain visually separate.
+    columnSpacing: 12 + accountTab.neoShadowAllowance
+    rowSpacing: 12 + accountTab.neoShadowAllowance
 
     ActionButton {
       Layout.fillWidth: true

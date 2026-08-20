@@ -17,8 +17,10 @@ PanelWindow {
   property int displayMs: Settings.notificationToastDurationMs
   property string barPosition: "top"
 
-  implicitWidth: 280
-  implicitHeight: cardLayout.implicitHeight + 24
+  readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
+
+  implicitWidth: 280 + neoShadowPadding
+  implicitHeight: cardLayout.implicitHeight + 24 + neoShadowPadding
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-toast"
@@ -109,13 +111,32 @@ PanelWindow {
   }
 
   Rectangle {
+    id: styleShadow
+    x: Config.themeShadowOffset
+    y: Config.themeShadowOffset
+    width: bg.width
+    height: bg.height
+    radius: bg.radius
+    color: Colors.styleShadow
+    visible: Config.neoBrutalism
+    z: -1
+  }
+
+  Rectangle {
     id: bg
-    anchors.fill: parent
+    anchors {
+      left: parent.left
+      top: parent.top
+      right: parent.right
+      bottom: parent.bottom
+      rightMargin: root.neoShadowPadding
+      bottomMargin: root.neoShadowPadding
+    }
     radius: Config.borderRadius
     activeFocusOnTab: true
-    color: Colors.surfaceContainerHigh
-    border.width: 1
-    border.color: Colors.outlineVariant
+    color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+    border.width: Config.themeBorderWidth
+    border.color: Colors.styleOutline
 
     Accessible.role: Accessible.Button
     Accessible.name: notif ? ((notif.appName || "Notification") + ": " + (notif.summary || "Dismiss notification")) : "Notification"
@@ -214,7 +235,7 @@ PanelWindow {
       Rectangle {
         Layout.fillWidth: true
         height: 1
-        color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.1)
+        color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.1)
       }
 
       ColumnLayout {

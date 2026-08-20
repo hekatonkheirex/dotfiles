@@ -7,7 +7,7 @@ import "../config"
 PopupBase {
   id: root
 
-  implicitHeight: Math.min(contentColumn.implicitHeight + 32, 400)
+  surfaceHeight: Math.min(contentColumn.implicitHeight + 32, 400)
 
   property real volume: 0.5
   property bool muted: false
@@ -116,7 +116,7 @@ PopupBase {
         activeColor: Colors.primary
         surfaceContainerHigh: Colors.surfaceContainerHigh
         surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.outline
+        outline: Colors.styleOutlineStrong
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Volume enabled"
@@ -139,7 +139,7 @@ PopupBase {
       activeColor: Colors.primary
       surfaceContainerHigh: Colors.surfaceContainerHigh
       surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.outline
+        outline: Colors.styleOutlineStrong
         focusColor: Colors.primary
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
@@ -170,7 +170,7 @@ PopupBase {
         activeColor: Colors.primary
         surfaceContainerHigh: Colors.surfaceContainerHigh
         surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.outline
+        outline: Colors.styleOutlineStrong
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Microphone enabled"
@@ -191,7 +191,7 @@ PopupBase {
       activeColor: Colors.primary
       surfaceContainerHigh: Colors.surfaceContainerHigh
       surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.outline
+        outline: Colors.styleOutlineStrong
         focusColor: Colors.primary
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion

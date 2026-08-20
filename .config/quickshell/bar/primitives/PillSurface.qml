@@ -1,7 +1,7 @@
 import QtQuick
 import "../../config"
 
-Rectangle {
+Item {
   id: root
 
   property bool horizontal: true
@@ -22,9 +22,30 @@ Rectangle {
     ? Math.max(0, root.contentWidth - (root.horizontal ? 0 : 12))
     : implicitWidth
   height: root.fitContent ? Math.max(0, root.contentHeight) : implicitHeight
-  radius: root.horizontal ? height / 2 : width / 2
-  color: Colors.surfaceContainerHigh
-  border.color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.18)
-  border.width: 1
   z: -1
+
+  Rectangle {
+    id: shadow
+    x: Config.themeShadowOffset
+    y: Config.themeShadowOffset
+    width: surface.width
+    height: surface.height
+    radius: surface.radius
+    color: Colors.styleShadow
+    visible: Config.neoBrutalism
+    z: -1
+  }
+
+  Rectangle {
+    id: surface
+    anchors.fill: parent
+    radius: Config.neoBrutalism
+      ? Config.shapeMedium
+      : (root.horizontal ? height / 2 : width / 2)
+    color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+    border.color: Config.neoBrutalism
+      ? Colors.styleOutline
+      : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.18)
+    border.width: Config.themeBorderWidth
+  }
 }

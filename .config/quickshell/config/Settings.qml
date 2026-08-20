@@ -57,6 +57,7 @@ FileView {
   property alias reduceMotion: adapter.reduceMotion
   property alias spacingScale: adapter.spacingScale
   property alias systemShowUptime: adapter.systemShowUptime
+  property alias themeStyle: adapter.themeStyle
   property alias themePreference: adapter.themePreference
   property alias timezone: adapter.timezone
   property alias weatherAllowIpGeolocation: adapter.weatherAllowIpGeolocation
@@ -69,12 +70,13 @@ FileView {
   }
 
   function resetAppearanceDefaults() {
-    barSize = 36
+    barSize = 44
     clockFontSize = 15
     fontPixelSize = 9
     fullBar = false
     iconSize = 16
     spacingScale = 1.0
+    themeStyle = "material3"
     themePreference = 0
   }
 
@@ -132,7 +134,7 @@ FileView {
     // Persisted format marker. Increment before a breaking key rename/removal
     // and migrate the stored data before writing the new schema.
     property int schemaVersion: 1
-    property int barSize: 36
+    property int barSize: 44
     property bool calendarWeekStartsMonday: false
     property bool ccShowAudio: true
     property bool ccShowBattery: true
@@ -171,6 +173,8 @@ FileView {
     property bool reduceMotion: false
     property real spacingScale: 1.0
     property bool systemShowUptime: true
+    // UI style, independent from the wallpaper-derived Matugen palette.
+    property string themeStyle: "material3"
     // 0 = auto, 1 = light, 2 = dark.
     property int themePreference: 0
     property string timezone: ""

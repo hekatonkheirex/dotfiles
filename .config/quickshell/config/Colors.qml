@@ -208,6 +208,30 @@ QtObject {
   property color shadow:                  paletteRole(darkMode ? "dark" : "light", "shadow", darkMode ? d_shadow : l_shadow)
   property color scrim:                   paletteRole(darkMode ? "dark" : "light", "scrim", darkMode ? d_scrim : l_scrim)
 
+  // UI-style accents. These select how components use the active palette;
+  // they do not replace or regenerate Matugen's color roles.
+  readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
+  // Neo uses the palette's on-surface role as its high-contrast ink in both
+  // modes. That keeps light-mode bar outlines opaque and dark while the same
+  // role becomes the inverted light outline in dark mode.
+  readonly property color styleInk: neoBrutalism
+    ? fgSurface
+    : outline
+  readonly property color styleOutline: neoBrutalism ? styleInk : outlineVariant
+  readonly property color styleOutlineStrong: neoBrutalism ? styleInk : outline
+  readonly property color styleShadow: neoBrutalism
+    ? (darkMode ? fgSurface : shadow)
+    : "transparent"
+  readonly property color styleSurface: neoBrutalism ? surfaceContainerLow : surfaceContainerHigh
+  readonly property color styleSurfaceRaised: neoBrutalism ? surfaceContainer : surfaceContainerHigh
+  readonly property color styleControl: neoBrutalism ? surfaceContainerHighest : surfaceContainerHigh
+  readonly property color styleAccent: neoBrutalism
+    ? (darkMode ? primary : primaryContainer)
+    : primary
+  readonly property color styleAccentText: neoBrutalism
+    ? (darkMode ? fgPrimary : fgPrimaryContainer)
+    : fgPrimary
+
   // Semantic status roles. Components should use these aliases instead of
   // introducing local status colors.
   readonly property color l_success:                    "#356a2f"

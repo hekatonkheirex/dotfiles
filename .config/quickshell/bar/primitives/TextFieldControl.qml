@@ -31,9 +31,11 @@ Rectangle {
 
   height: 36
   radius: Config.shapeMedium
-  color: Colors.surface
-  border.color: input.activeFocus ? Colors.primary : Colors.outline
-  border.width: input.activeFocus ? 2 : 1
+  color: Config.neoBrutalism ? Colors.styleSurface : Colors.surface
+  border.color: input.activeFocus
+    ? (Config.neoBrutalism ? Colors.styleOutlineStrong : Colors.primary)
+    : Colors.styleOutlineStrong
+  border.width: input.activeFocus ? Config.themeFocusBorderWidth : Config.themeBorderWidth
 
   RowLayout {
     anchors {

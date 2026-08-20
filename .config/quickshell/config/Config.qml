@@ -21,7 +21,11 @@ QtObject {
   property int spacingLarge: Math.round(16 * spacingScale)
   property int spacingExtraLarge: Math.round(24 * spacingScale)
 
-  readonly property string fontFamily: "Roboto Flex"
+  // UI style is separate from Colors.qml's Matugen palette. Material 3 is the
+  // default; Neo Brutalism changes component geometry and ink treatment while
+  // continuing to consume the same generated semantic color roles.
+  readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
+  readonly property string fontFamily: neoBrutalism ? "JetBrains Mono" : "Roboto Flex"
   readonly property string iconFont: "Material Symbols Outlined"
   property int iconSize: Settings.iconSize
   property int fontPixelSize: Settings.fontPixelSize
@@ -39,11 +43,26 @@ QtObject {
   readonly property int clockLineSpacing: spacingCompact
   readonly property int clockVerticalHeight: 42
 
-  // Small shape scale for compact controls and expressive containers.
-  readonly property int shapeCompact: 8
-  readonly property int shapeMedium: 12
-  readonly property int shapeLarge: 16
+  // Neo Brutalism uses a compact three-step radius scale. The outer card,
+  // list rows, and controls must read as one system instead of mixing M3
+  // squircles with the Neo hard-edged controls.
+  readonly property int shapeCompact: neoBrutalism ? 4 : 8
+  readonly property int shapeMedium: neoBrutalism ? 6 : 12
+  readonly property int shapeLarge: neoBrutalism ? 10 : 16
   readonly property int borderRadius: shapeLarge
+  readonly property int themeBorderWidth: neoBrutalism ? 3 : 1
+  readonly property int themeFocusBorderWidth: neoBrutalism ? 4 : 2
+  readonly property int themeShadowOffset: neoBrutalism ? 6 : 0
+  // Keep the Neo full-bar edge aligned with Niri's focused-window edge:
+  // the 18px Niri gap minus its 4px focus ring.
+  readonly property int neoWindowGap: neoBrutalism ? 18 : 0
+  readonly property int neoFullBarInset: neoBrutalism
+    ? Math.max(0, neoWindowGap - themeFocusBorderWidth)
+    : 0
+  // Icon-plus-label Neo controls need room for the thick border and hard shadow.
+  readonly property int themeActionButtonMinHeight: neoBrutalism ? 56 : 0
+  readonly property int themeOptionGap: neoBrutalism ? themeShadowOffset : 0
+  readonly property int themeFontWeight: neoBrutalism ? Font.DemiBold : Font.Normal
 
   // Motion is centralized here. reducedMotion mirrors the persisted Settings
   // singleton directly; compatibility consumers continue using animationDuration.
@@ -58,8 +77,10 @@ QtObject {
   readonly property int popupPadding: spacingLarge
   readonly property int commandCenterMinWidth: 320
   readonly property int commandCenterMinHeight: 360
-  readonly property int commandCenterMaxWidth: 800
-  readonly property int commandCenterMaxHeight: 606
+  // Neo's hard shadows and block controls need a little more room in the
+  // Appearance tab; Material 3 keeps the compact Command Center footprint.
+  readonly property int commandCenterMaxWidth: neoBrutalism ? 864 : 800
+  readonly property int commandCenterMaxHeight: neoBrutalism ? 700 : 606
   readonly property int clockIntervalMs: 1000
   readonly property int volumeStep: 5
   readonly property int brightnessStep: 5

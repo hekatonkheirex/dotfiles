@@ -8,4 +8,6 @@ qmllint shell.qml \
   config/*.qml \
   bar/*.qml \
   bar/commandcenter/*.qml \
-  bar/primitives/*.qml
+  bar/primitives/*.qml \
+  bar/themes/material3/*.qml \
+  bar/themes/neo_brutalism/*.qml

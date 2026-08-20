@@ -16,13 +16,15 @@ PanelWindow {
 
   signal dismissed()
 
-  implicitWidth: wallpaperMode
+  readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
+
+  implicitWidth: (wallpaperMode
     ? Math.min(Config.commandCenterMaxWidth, Math.max(Config.popupWidth, Screen.desktopAvailableWidth - 32))
-    : Config.popupWidth
+    : Config.popupWidth) + neoShadowPadding
   visible: false
-  implicitHeight: wallpaperMode
+  implicitHeight: (wallpaperMode
     ? Math.min(Config.commandCenterMaxHeight, wallpaperGridHeight + 86)
-    : Math.min(clipItem.implicitHeight + 32, 500)
+    : Math.min(clipItem.implicitHeight + 32, 500)) + neoShadowPadding
 
   Behavior on implicitWidth {
     NumberAnimation {
@@ -137,7 +139,7 @@ PanelWindow {
   readonly property int wallpaperImageInset: 1
   readonly property int wallpaperCellGap: wallpaperCellWidth - wallpaperCardWidth
   // The grid has two 12 px margins: one from clipItem and one from the frame.
-  readonly property int wallpaperGridAvailableWidth: Math.max(1, implicitWidth - 48)
+  readonly property int wallpaperGridAvailableWidth: Math.max(1, implicitWidth - neoShadowPadding - 48)
   readonly property int wallpaperColumns: Math.max(1,
     Math.floor((wallpaperGridAvailableWidth + wallpaperCellGap) / wallpaperCellWidth))
   // Center the visible cards, rather than the larger cells that contain them.
@@ -531,12 +533,31 @@ PanelWindow {
   }
 
   Rectangle {
+    id: styleShadow
+    x: bg.x + Config.themeShadowOffset
+    y: bg.y + Config.themeShadowOffset
+    width: bg.width
+    height: bg.height
+    radius: bg.radius
+    color: Colors.styleShadow
+    visible: Config.neoBrutalism
+    z: -1
+  }
+
+  Rectangle {
     id: bg
-    anchors.fill: parent
-    color: Colors.surfaceContainer
-    radius: 24
-    border.color: Colors.outlineVariant
-    border.width: 1
+    anchors {
+      left: parent.left
+      top: parent.top
+      right: parent.right
+      bottom: parent.bottom
+      rightMargin: root.neoShadowPadding
+      bottomMargin: root.neoShadowPadding
+    }
+    color: Config.neoBrutalism ? Colors.styleSurfaceRaised : Colors.surfaceContainer
+    radius: Config.borderRadius
+    border.color: Colors.styleOutline
+    border.width: Config.themeBorderWidth
 
     transform: [
       Translate { id: transX; x: 0 },
@@ -665,7 +686,7 @@ PanelWindow {
         delegate: ListItem {
           width: appList.width
           height: 44
-          radius: 22
+          radius: Config.neoBrutalism ? Config.shapeMedium : 22
           leadingIcon: model.kind === "action" || model.kind === "wallpaper" ? model.icon : ""
           leadingImageSource: model.kind !== "action" && model.kind !== "wallpaper" && model.icon !== ""
             ? "file://" + model.icon : ""
@@ -695,8 +716,8 @@ PanelWindow {
         visible: root.wallpaperMode
         radius: Config.shapeMedium
         color: Colors.surfaceContainerLow
-        border.color: Colors.outlineVariant
-        border.width: 1
+        border.color: Colors.styleOutline
+        border.width: Config.themeBorderWidth
         clip: true
 
         GridView {
@@ -804,9 +825,11 @@ PanelWindow {
                 }
                 return "transparent"
               }
-              border.width: wallpaperDelegate.isSelected || wallpaperMouse.containsMouse ? 2 : 1
+              border.width: wallpaperDelegate.isSelected || wallpaperMouse.containsMouse
+                ? Config.themeFocusBorderWidth
+                : Config.themeBorderWidth
               border.color: wallpaperDelegate.isSelected || wallpaperMouse.containsMouse
-                ? Colors.primary : Colors.outlineVariant
+                ? Colors.primary : Colors.styleOutline
 
               Behavior on color {
                 ColorAnimation { duration: Config.animationDuration }

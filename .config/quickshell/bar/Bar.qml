@@ -29,12 +29,16 @@ PanelWindow {
     bottom: root.horizontal ? root.dockedBottom : true
   }
 
-  implicitHeight: (Config.barWidth) + 16
-  implicitWidth: (Config.barWidth) + 16
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
-  exclusiveZone: Config.barWidth
+  // Neo's floating full bar extends past the normal 44px layer reservation:
+  // reserve its inset surface and hard shadow so Niri can keep the window
+  // layout gap unchanged while still clearing the complete visual footprint.
+  readonly property int niriExclusiveZone: root.fullBar && Config.neoBrutalism
+    ? Config.barWidth + root.fullBarInset + Config.themeShadowOffset
+    : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
+  exclusiveZone: root.niriExclusiveZone
   WlrLayershell.namespace: "quickshell-panel"
   WlrLayershell.layer: WlrLayer.Top
 
@@ -118,7 +122,53 @@ PanelWindow {
   property bool fullBar: false
   readonly property bool pillsBar: !root.fullBar
   readonly property bool horizontalPillMode: root.horizontal && root.pillsBar
+  // Give vertical Neo pills a little more room for rotated labels and their
+  // hard shadow without changing Material 3 or full-bar geometry.
+  readonly property int verticalPillPanelWidth: !root.horizontal
+    && root.pillsBar
+    && Config.neoBrutalism
+    ? Config.barWidth + 2
+    : Config.barWidth
+  // Keep Neo pills aligned with the visible edge of focused Niri windows.
+  // The 4px focus ring sits inside the 18px layout gap, leaving a 14px
+  // visible inset on each side.
+  readonly property int horizontalPillInset: root.horizontal
+    && root.pillsBar
+    && Config.neoBrutalism
+    ? Config.neoFullBarInset
+    : 6
+  readonly property int verticalPillInset: !root.horizontal
+    && root.pillsBar
+    && Config.neoBrutalism
+    ? Config.neoFullBarInset
+    : 6
+  readonly property int verticalWindowEdgeMargin: !root.horizontal
+    && root.pillsBar
+    && Config.neoBrutalism
+    ? 2
+    : 0
   readonly property real expandProgress: 1.0
+  // Neo full bars need room for both the floating inset and the hard offset
+  // shadow. Pills only need the normal bar-sized layer surface, so their
+  // transparent coverage does not extend into the window gap.
+  readonly property int fullBarInset: root.fullBar && Config.neoBrutalism
+    ? Config.neoFullBarInset
+    : 0
+  readonly property int normalPanelExtent: root.fullBar
+    ? Config.barWidth + 16
+    : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
+  // The panel must include the Neo inset and hard shadow, otherwise the
+  // shadow is clipped at the docked edge even though the surface is aligned.
+  readonly property int fullBarPanelExtent: root.fullBar && Config.neoBrutalism
+    ? Config.barWidth + root.fullBarInset + Config.themeShadowOffset
+    : root.normalPanelExtent
+  readonly property int verticalClockHeight: !root.horizontal
+    && root.pillsBar
+    && Config.neoBrutalism
+    ? root.verticalPillPanelWidth + Config.spacingSmall
+    : Math.max(Config.clockVerticalHeight, root.verticalPillLength)
+  implicitHeight: root.horizontal ? root.fullBarPanelExtent : root.normalPanelExtent
+  implicitWidth: root.horizontal ? root.normalPanelExtent : root.fullBarPanelExtent
 
   mask: Region { item: barBg }
 
@@ -126,21 +176,49 @@ PanelWindow {
     anchors.fill: parent
 
     Rectangle {
+      id: barShadow
+      x: barBg.x + Config.themeShadowOffset
+      y: barBg.y + Config.themeShadowOffset
+      width: barBg.width
+      height: barBg.height
+      radius: barBg.radius
+      color: Colors.styleShadow
+      visible: Config.neoBrutalism && root.fullBar
+      z: -1
+    }
+
+    Rectangle {
       id: barBg
-      x: root.horizontal
-        ? (root.wSize + 6) * (1.0 - root.expandProgress)
-        : (root.dockedRight ? parent.width - Config.barWidth : 8 * (1.0 - root.expandProgress))
-      y: root.horizontal
-        ? (root.dockedBottom ? parent.height - Config.barWidth : 8 * (1.0 - root.expandProgress))
-        : (root.wSize + 6) * (1.0 - root.expandProgress)
+      x: root.fullBarInset > 0
+        ? root.fullBarInset
+        : (root.horizontal
+          ? (root.wSize + 6) * (1.0 - root.expandProgress)
+          : (root.dockedRight ? parent.width - root.verticalPillPanelWidth : 8 * (1.0 - root.expandProgress)))
+      y: root.fullBarInset > 0
+        ? root.fullBarInset
+        : (root.horizontal
+          ? (root.dockedBottom ? parent.height - Config.barWidth : 8 * (1.0 - root.expandProgress))
+          : (root.wSize + 6) * (1.0 - root.expandProgress))
       width: root.horizontal
-        ? (layout.implicitWidth + 12) + (parent.width - (layout.implicitWidth + 12)) * root.expandProgress
-        : (Config.barWidth) - 8 * (1.0 - root.expandProgress)
+        ? (root.fullBarInset > 0
+          ? parent.width - root.fullBarInset * 2
+          : (layout.implicitWidth + 12) + (parent.width - (layout.implicitWidth + 12)) * root.expandProgress)
+        : (root.fullBarInset > 0
+          ? Config.barWidth
+          : root.verticalPillPanelWidth - 8 * (1.0 - root.expandProgress))
       height: root.horizontal
-        ? (Config.barWidth) - 8 * (1.0 - root.expandProgress)
-        : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress
+        ? (root.fullBarInset > 0
+          ? Config.barWidth
+          : (Config.barWidth) - 8 * (1.0 - root.expandProgress))
+        : (root.fullBarInset > 0
+          ? parent.height - root.fullBarInset * 2
+          : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress)
       radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + (Config.borderRadius) * root.expandProgress
-      color: root.fullBar ? Colors.bg : "transparent"
+      color: root.fullBar
+        ? (Config.neoBrutalism ? Colors.styleSurface : Colors.bg)
+        : "transparent"
+      border.width: root.fullBar && Config.neoBrutalism ? Config.themeBorderWidth : 0
+      border.color: Colors.styleOutline
 
       // Square-off helper for the docked edge's near corner
       Rectangle {
@@ -149,7 +227,7 @@ PanelWindow {
         x: root.dockedRight ? barBg.width - width : 0
         y: root.dockedBottom ? barBg.height - height : 0
         color: barBg.color
-        visible: width > 0
+        visible: width > 0 && root.fullBarInset === 0
       }
 
       // Square-off helper for the docked edge's far corner
@@ -163,7 +241,7 @@ PanelWindow {
           ? (root.dockedBottom ? barBg.height - height : 0)
           : barBg.height - height
         color: barBg.color
-        visible: width > 0
+        visible: width > 0 && root.fullBarInset === 0
       }
 
       MouseArea {
@@ -181,16 +259,24 @@ PanelWindow {
           left: parent.left
           right: parent.right
           top: parent.top
-          leftMargin: root.horizontal ? 6 : 0
-          rightMargin: root.horizontal ? 6 : 0
-          topMargin: root.horizontal ? 0 : 6
-          bottomMargin: root.horizontal ? 0 : 6
+          leftMargin: root.horizontal
+            ? root.horizontalPillInset
+            : (root.dockedRight ? root.verticalWindowEdgeMargin : 0)
+          rightMargin: root.horizontal
+            ? root.horizontalPillInset
+            : (root.dockedLeft ? root.verticalWindowEdgeMargin : 0)
+          topMargin: root.horizontal ? 0 : root.verticalPillInset
+          bottomMargin: root.horizontal ? 0 : root.verticalPillInset
         }
         height: root.horizontal
           ? parent.height
-          : parent.height - 12
-        columnSpacing: Config.spacingSmall * root.expandProgress
-        rowSpacing: Config.spacingSmall * root.expandProgress
+          : parent.height - root.verticalPillInset * 2
+        columnSpacing: (Config.neoBrutalism
+          ? Math.max(Config.spacingSmall, Config.themeShadowOffset)
+          : Config.spacingSmall) * root.expandProgress
+        rowSpacing: (Config.neoBrutalism
+          ? Math.max(Config.spacingSmall, Config.themeShadowOffset)
+          : Config.spacingSmall) * root.expandProgress
 
         Item {
           id: launcherWrapper
@@ -204,11 +290,11 @@ PanelWindow {
                 root.pillsBar ? root.verticalPillLength : 0,
                 launcherWidget.verticalLayoutHeight
               ) * root.expandProgress * (Settings.ccShowLauncher ? 1 : 0)
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowLauncher
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -220,6 +306,7 @@ PanelWindow {
             anchors.fill: parent
             active: root.openPopup === "launcher"
             horizontal: root.horizontal
+            integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("launcher", launcherWidget)
             }
@@ -229,6 +316,7 @@ PanelWindow {
         WorkspaceIndicator {
           id: wsIndicator
           horizontal: root.horizontal
+          integrated: root.fullBar
           Layout.preferredWidth: Settings.ccShowWorkspaces
             ? (root.horizontal
               ? Math.max(implicitWidth, root.pillsBar ? root.horizontalPillLength : 0)
@@ -239,8 +327,8 @@ PanelWindow {
               ? parent.height
               : Math.max(implicitHeight, root.pillsBar ? root.verticalPillLength : 0))
             : 0
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           visible: Settings.ccShowWorkspaces
 
           PillSurface {
@@ -262,9 +350,14 @@ PanelWindow {
                 focusedWindowProgramText.implicitWidth,
                 focusedWindowDetailText.implicitWidth
               )
+          // Neo's rotated focused-window pill needs a little more room at
+          // both ends of its long axis than the compact Material 3 layout.
+          readonly property int verticalInfoPadding: Config.neoBrutalism
+            ? Config.spacingSmall + Config.spacingMedium
+            : Config.spacingSmall + Config.spacingCompact
           readonly property real verticalInfoHeight: Math.min(
             320,
-            Math.max(root.wSize, windowInfoTextWidth + 8)
+            Math.max(root.verticalPillPanelWidth, windowInfoTextWidth + verticalInfoPadding)
           )
           Layout.preferredWidth: root.horizontal
             ? (hasWindowInfo
@@ -275,17 +368,22 @@ PanelWindow {
             ? parent.height
             : (hasWindowInfo ? verticalInfoHeight * root.expandProgress : 0))
             * (Settings.ccShowFocusedWindow ? 1 : 0)
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && hasWindowInfo && Settings.ccShowFocusedWindow
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
             visible: root.pillsBar
             fitContent: !root.horizontal
-            contentWidth: parent.width
+            // Keep the focused-window shadow from landing directly on the
+            // vertical panel edge.
+            contentWidth: Math.max(
+              0,
+              parent.width - (Config.neoBrutalism && !root.horizontal ? 2 : 0)
+            )
             contentHeight: focusedWindowWrapper.verticalInfoHeight
           }
 
@@ -300,12 +398,17 @@ PanelWindow {
             width: root.horizontal
               ? Math.max(0, parent.width - 16)
               : Math.max(0, Math.min(
-                  parent.height - 8,
-                  focusedWindowWrapper.verticalInfoHeight - 8
+                  parent.height - focusedWindowWrapper.verticalInfoPadding,
+                  focusedWindowWrapper.verticalInfoHeight
+                    - focusedWindowWrapper.verticalInfoPadding
                 ))
             height: root.horizontal
               ? Math.max(0, parent.height - 8)
               : Config.labelSmallSize * 2
+                + (!root.horizontal && root.pillsBar
+                  && focusedWindowWrapper.detailText !== ""
+                  ? Config.spacingCompact
+                  : 0)
             rotation: root.horizontal ? 0 : 90
             columnSpacing: root.horizontalPillMode ? Config.spacingCompact : 0
             rowSpacing: root.horizontalPillMode ? 0 : 0
@@ -319,7 +422,11 @@ PanelWindow {
               font.weight: Font.Bold
               elide: Text.ElideRight
               maximumLineCount: 1
+              // In the vertical layout, left alignment becomes the top edge
+              // after the 90-degree rotation. Keep the program label anchored
+              // there while the longer detail label gets its own clearance.
               horizontalAlignment: Text.AlignLeft
+              verticalAlignment: Text.AlignVCenter
               Layout.fillWidth: true
             }
 
@@ -331,8 +438,13 @@ PanelWindow {
               font.pixelSize: Config.labelSmallSize
               elide: Text.ElideRight
               maximumLineCount: 1
-              horizontalAlignment: Text.AlignLeft
+              horizontalAlignment: root.horizontal ? Text.AlignLeft : Text.AlignHCenter
+              verticalAlignment: Text.AlignVCenter
               Layout.fillWidth: true
+              Layout.bottomMargin: !root.horizontal && root.pillsBar
+                && focusedWindowWrapper.detailText !== ""
+                ? Config.spacingCompact
+                : 0
             }
           }
         }
@@ -358,11 +470,11 @@ PanelWindow {
                 root.pillsBar ? root.verticalPillLength : 0,
                 audioIndicator.verticalLayoutHeight
               ) * root.expandProgress
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowAudio
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -375,6 +487,7 @@ PanelWindow {
             active: root.openPopup === "audio"
             horizontal: root.horizontal
             inlineContent: root.horizontalPillMode
+            integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("audio", audioIndicator)
             }
@@ -394,11 +507,11 @@ PanelWindow {
                 root.pillsBar ? root.verticalPillLength : 0,
                 brightnessIndicator.verticalLayoutHeight
               ) * root.expandProgress
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowDisplay
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -411,6 +524,7 @@ PanelWindow {
             active: root.openPopup === "brightness"
             horizontal: root.horizontal
             inlineContent: root.horizontalPillMode
+            integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("brightness", brightnessIndicator)
             }
@@ -430,11 +544,11 @@ PanelWindow {
                 root.pillsBar ? root.verticalPillLength : 0,
                 mediaIndicator.verticalLayoutHeight
               ) * root.expandProgress
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowMedia
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -447,6 +561,7 @@ PanelWindow {
             active: root.openPopup === "media"
             horizontal: root.horizontal
             inlineContent: root.horizontalPillMode
+            integrated: root.fullBar
             onClicked: function(mouse) {
               if (Settings.mediaControlsAlwaysVisible) {
                 Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
@@ -470,11 +585,11 @@ PanelWindow {
                 root.pillsBar ? root.verticalPillLength : 0,
                 weatherIndicator.verticalLayoutHeight
               ) * root.expandProgress
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowWeather
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -487,6 +602,7 @@ PanelWindow {
             active: root.openPopup === "weather"
             horizontal: root.horizontal
             inlineContent: root.horizontalPillMode
+            integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("weather", weatherIndicator)
             }
@@ -506,11 +622,11 @@ PanelWindow {
                 root.pillsBar ? root.verticalPillLength : 0,
                 batteryIndicator.verticalLayoutHeight
               ) * root.expandProgress
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowBattery
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -523,6 +639,7 @@ PanelWindow {
             active: root.openPopup === "battery"
             horizontal: root.horizontal
             inlineContent: root.horizontalPillMode
+            integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("battery", batteryIndicator)
             }
@@ -543,11 +660,11 @@ PanelWindow {
                 systemTray.preferredLength,
                 root.pillsBar ? root.verticalPillLength : 0
               ) * root.expandProgress
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: Settings.ccShowTray && systemTray.visibleCount > 0 && (root.expandProgress > 0)
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -557,6 +674,7 @@ PanelWindow {
           SystemTrayArea {
             id: systemTray
             horizontal: root.horizontal
+            integrated: root.fullBar
             anchors.fill: parent
             parentWindow: root
           }
@@ -573,14 +691,14 @@ PanelWindow {
           Layout.preferredHeight: root.horizontal
             ? parent.height
             : Math.max(
-                Config.clockVerticalHeight,
+                root.verticalClockHeight,
                 root.pillsBar ? root.verticalPillLength : 0
               ) * root.expandProgress
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowClock
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -639,8 +757,8 @@ PanelWindow {
               anchors.fill: parent
               radius: Config.shapeMedium
               color: "transparent"
-              border.width: clockWidget.activeFocus ? 2 : 0
-              border.color: Colors.primary
+              border.width: clockWidget.activeFocus ? Config.themeFocusBorderWidth : 0
+              border.color: Config.neoBrutalism ? Colors.styleOutline : Colors.primary
             }
 
             MouseArea {
@@ -665,11 +783,11 @@ PanelWindow {
                 root.pillsBar ? root.verticalPillLength : 0,
                 notifIndicator.verticalLayoutHeight
               ) * root.expandProgress
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowNotifications
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -682,6 +800,7 @@ PanelWindow {
             notificationCount: root.notificationCount
             active: root.openPopup === "notification"
             horizontal: root.horizontal
+            integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("notification", notifIndicator)
             }
@@ -699,11 +818,11 @@ PanelWindow {
                 root.pillsBar ? root.verticalPillLength : 0,
                 commandCenterIndicator.verticalLayoutHeight
               ) * root.expandProgress
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -717,6 +836,7 @@ PanelWindow {
             accessibleName: "Settings"
             active: root.openPopup === "commandcenter"
             horizontal: root.horizontal
+            integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("commandcenter", commandCenterIndicator)
             }
@@ -734,11 +854,11 @@ PanelWindow {
                 root.pillsBar ? root.verticalPillLength : 0,
                 menuIndicator.verticalLayoutHeight
               ) * root.expandProgress
-          Layout.fillHeight: root.horizontal || root.fullBar
-          Layout.alignment: root.horizontal || root.fullBar ? Qt.AlignVCenter : Qt.AlignTop
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0
-          clip: true
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
 
           PillSurface {
             horizontal: root.horizontal
@@ -751,6 +871,7 @@ PanelWindow {
             iconLabel: "power_settings_new"
             active: root.openPopup === "quickmenu"
             horizontal: root.horizontal
+            integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("quickmenu", menuIndicator)
             }

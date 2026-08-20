@@ -9,13 +9,16 @@ Flickable {
   id: lockMediaTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
+  readonly property int neoShadowAllowance: Config.neoBrutalism
+    ? Config.themeShadowOffset
+    : 0
   readonly property var lockTimeoutOptions: [0, 60, 120, 180, 300, 600, 900, 1800, 3600]
   readonly property var suspendTimeoutOptions: [0, 300, 600, 900, 1200, 1800, 3600, 7200]
   anchors.fill: parent
   visible: root.currentTab === 7
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight
+  contentHeight: mainColumn.implicitHeight + lockMediaTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
 
@@ -55,17 +58,17 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: lockMediaTab.width
-    spacing: Config.spacingLarge
+    width: Math.max(0, lockMediaTab.width - lockMediaTab.neoShadowAllowance)
+    spacing: Config.spacingLarge + lockMediaTab.neoShadowAllowance
 
     // Lock Screen card
-    Rectangle {
+    StyledSurface {
       Layout.fillWidth: true
       Layout.preferredHeight: lockCol.implicitHeight + 16
       radius: Config.shapeLarge
-      color: Colors.surfaceContainer
-      border.color: Colors.outlineVariant
-      border.width: 1
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
         id: lockCol
@@ -93,7 +96,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Show now playing on lock screen"
@@ -113,7 +116,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Use current wallpaper on lock screen"
@@ -145,7 +148,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -169,13 +172,13 @@ Flickable {
     }
 
     // Idle & Power card
-    Rectangle {
+    StyledSurface {
       Layout.fillWidth: true
       Layout.preferredHeight: idleCol.implicitHeight + 16
       radius: Config.shapeLarge
-      color: Colors.surfaceContainer
-      border.color: Colors.outlineVariant
-      border.width: 1
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
         id: idleCol
@@ -214,7 +217,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -249,7 +252,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
+            outline: Colors.styleOutlineStrong
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion

@@ -9,6 +9,7 @@ Item {
   id: root
 
   property bool horizontal: false
+  property bool integrated: false
 
   signal clicked(var mouse)
 
@@ -226,13 +227,18 @@ Item {
 
           color: {
             if (modelData.isFocused) return Colors.primary
-            var base = modelData.isOccupied ? Colors.surfaceContainerHighest : Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2)
+            var base = modelData.isOccupied ? Colors.surfaceContainerHighest : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.2)
             return Qt.tint(base, wsMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
           }
-          border.width: modelData.isFocused ? 0 : 1
+          border.width: root.integrated
+            ? 0
+            : (Config.neoBrutalism
+              ? Config.themeBorderWidth
+              : (modelData.isFocused ? 0 : Config.themeBorderWidth))
           border.color: {
+            if (Config.neoBrutalism) return Colors.styleOutline
             if (modelData.isFocused) return "transparent"
-            return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, modelData.isOccupied ? 0.3 : 0.1)
+            return Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, modelData.isOccupied ? 0.3 : 0.1)
           }
 
           Behavior on width {

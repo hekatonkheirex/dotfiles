@@ -123,9 +123,11 @@ PanelWindow {
     Quickshell.execDetached(option.cmd)
   }
 
-  implicitWidth: Config.popupWidth
+  readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
+
+  implicitWidth: Config.popupWidth + neoShadowPadding
   visible: false
-  implicitHeight: Math.min(contentColumn.implicitHeight + 32, 500)
+  implicitHeight: Math.min(contentColumn.implicitHeight + 32, 500) + neoShadowPadding
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-popup"
@@ -284,13 +286,32 @@ PanelWindow {
     }
 
     Rectangle {
+      id: styleShadow
+      x: Config.themeShadowOffset
+      y: Config.themeShadowOffset
+      width: bg.width
+      height: bg.height
+      radius: bg.radius
+      color: Colors.styleShadow
+      visible: Config.neoBrutalism
+      z: -1
+    }
+
+    Rectangle {
       id: bg
-      anchors.fill: parent
+      anchors {
+        left: parent.left
+        top: parent.top
+        right: parent.right
+        bottom: parent.bottom
+        rightMargin: root.neoShadowPadding
+        bottomMargin: root.neoShadowPadding
+      }
       radius: Config.borderRadius
-      color: Colors.surfaceContainerHigh
+      color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
       clip: true
-      border.width: 1
-      border.color: Colors.outlineVariant
+      border.width: Config.themeBorderWidth
+      border.color: Colors.styleOutline
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -344,7 +365,7 @@ PanelWindow {
         Rectangle {
           width: parent.width
           height: 1
-          color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
+          color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
         }
 
       Row {
@@ -404,7 +425,7 @@ PanelWindow {
         Rectangle {
           width: parent.width
           height: 1
-          color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
+          color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
         }
 
       Row {
