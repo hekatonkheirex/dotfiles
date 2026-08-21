@@ -2,12 +2,63 @@
 layout {
     
     focus-ring {
-        width 2
-        active-color "#b0c6ff"
-        inactive-color "#8c909f"
+        width 1
+        active-color "#e4e2e3"
+        inactive-color "#8f9097"
+    }
+    shadow {
+        off
     }
 }
 window-rule {
-    geometry-corner-radius 16
+    background-effect {
+        blur false
+    }
+}
+layer-rule {
+    background-effect {
+        blur false
+    }
+}
+animations {
+    workspace-switch {
+        duration-ms 250
+        curve "ease-out-quad"
+    }
+    window-open {
+        duration-ms 200
+        curve "ease-out-quad"
+    }
+    window-close {
+        duration-ms 120
+        curve "ease-out-quad"
+    }
+    horizontal-view-movement {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    window-movement {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    window-resize {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    config-notification-open-close {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    screenshot-ui-open {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    overview-open-close {
+        duration-ms 250
+        curve "ease-out-quad"
+    }
+}
+window-rule {
+    geometry-corner-radius 20
     clip-to-geometry true
 }

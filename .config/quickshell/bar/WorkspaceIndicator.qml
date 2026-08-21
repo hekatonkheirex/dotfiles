@@ -208,13 +208,13 @@ Item {
         Behavior on width {
           NumberAnimation {
             duration: Config.animationDuration
-            easing.type: Easing.OutBack
+            easing.type: Config.themeMotionEasing
           }
         }
         Behavior on height {
           NumberAnimation {
             duration: Config.animationDuration
-            easing.type: Easing.OutBack
+            easing.type: Config.themeMotionEasing
           }
         }
 
@@ -226,26 +226,27 @@ Item {
           radius: delegateItem.active ? Math.min(width, height) / 2 : 2
 
           color: {
-            if (modelData.isFocused) return Colors.primary
+            if (modelData.isFocused) return Config.nothingDesign ? Colors.fgSurface : Colors.primary
             var base = modelData.isOccupied ? Colors.surfaceContainerHighest : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.2)
             return Qt.tint(base, wsMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
           }
-          border.width: root.integrated
+          border.width: root.integrated || Config.nothingDesign
             ? 0
             : (Config.neoBrutalism
               ? Config.themeBorderWidth
               : (modelData.isFocused ? 0 : Config.themeBorderWidth))
           border.color: {
             if (Config.neoBrutalism) return Colors.styleOutline
+            if (Config.nothingDesign) return "transparent"
             if (modelData.isFocused) return "transparent"
             return Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, modelData.isOccupied ? 0.3 : 0.1)
           }
 
           Behavior on width {
-            NumberAnimation { duration: Config.animationDuration; easing.type: Easing.OutBack }
+          NumberAnimation { duration: Config.animationDuration; easing.type: Config.themeMotionEasing }
           }
           Behavior on height {
-            NumberAnimation { duration: Config.animationDuration; easing.type: Easing.OutBack }
+          NumberAnimation { duration: Config.animationDuration; easing.type: Config.themeMotionEasing }
           }
           Behavior on color {
             ColorAnimation { duration: Config.animationDuration}

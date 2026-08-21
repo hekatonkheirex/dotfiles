@@ -29,7 +29,7 @@ PanelWindow {
   property int focusedTab: currentTab
   property double openTime: 0
   readonly property bool compactLayout: root.implicitWidth <= 480
-  readonly property int sidebarWidth: root.implicitWidth <= 480 ? 96 : 132
+  readonly property int sidebarWidth: root.implicitWidth <= 480 ? 108 : 168
   readonly property int sidebarRowHeight: 44
   readonly property int sidebarRowSpacing: 2
 
@@ -356,9 +356,11 @@ PanelWindow {
         bottomMargin: Config.neoBrutalism ? Config.themeShadowOffset : 0
       }
       radius: Config.borderRadius
-      color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+      color: Config.neoBrutalism || Config.nothingDesign
+        ? Colors.styleSurface
+        : Colors.surfaceContainerHigh
       clip: true
-      border.width: Config.neoBrutalism ? Config.themeBorderWidth : 0
+      border.width: Config.neoBrutalism || Config.nothingDesign ? Config.themeBorderWidth : 0
       border.color: Colors.styleOutline
 
       transform: [
@@ -374,7 +376,7 @@ PanelWindow {
           from: 0.85
           to: 1.0
           duration: Config.motionLong
-          easing.type: Easing.OutBack
+          easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
           target: transX
@@ -382,7 +384,7 @@ PanelWindow {
           from: -30
           to: 0
           duration: Config.motionLong
-          easing.type: Easing.OutBack
+          easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
           target: bg

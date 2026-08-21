@@ -210,27 +210,42 @@ QtObject {
 
   // UI-style accents. These select how components use the active palette;
   // they do not replace or regenerate Matugen's color roles.
+  readonly property bool nothingDesign: Settings.themeStyle === "nothing"
   readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
-  // Neo uses the palette's on-surface role as its high-contrast ink in both
-  // modes. That keeps light-mode bar outlines opaque and dark while the same
-  // role becomes the inverted light outline in dark mode.
-  readonly property color styleInk: neoBrutalism
+  // Neo and Nothing use the palette's on-surface role as their high-contrast
+  // ink. Nothing softens secondary rules while keeping its primary grid lines
+  // crisp in both light and dark modes.
+  readonly property color styleInk: neoBrutalism || nothingDesign
     ? fgSurface
     : outline
-  readonly property color styleOutline: neoBrutalism ? styleInk : outlineVariant
-  readonly property color styleOutlineStrong: neoBrutalism ? styleInk : outline
+  readonly property color styleOutline: neoBrutalism
+    ? styleInk
+    : (nothingDesign
+      ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.38)
+      : outlineVariant)
+  readonly property color styleOutlineStrong: neoBrutalism
+    ? styleInk
+    : (nothingDesign
+      ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.72)
+      : outline)
   readonly property color styleShadow: neoBrutalism
     ? (darkMode ? fgSurface : shadow)
     : "transparent"
-  readonly property color styleSurface: neoBrutalism ? surfaceContainerLow : surfaceContainerHigh
-  readonly property color styleSurfaceRaised: neoBrutalism ? surfaceContainer : surfaceContainerHigh
-  readonly property color styleControl: neoBrutalism ? surfaceContainerHighest : surfaceContainerHigh
+  readonly property color styleSurface: neoBrutalism
+    ? surfaceContainerLow
+    : (nothingDesign ? surfaceContainerLow : surfaceContainerHigh)
+  readonly property color styleSurfaceRaised: neoBrutalism
+    ? surfaceContainer
+    : (nothingDesign ? surfaceContainer : surfaceContainerHigh)
+  readonly property color styleControl: neoBrutalism
+    ? surfaceContainerHighest
+    : surfaceContainerHigh
   readonly property color styleAccent: neoBrutalism
     ? (darkMode ? primary : primaryContainer)
-    : primary
+    : (nothingDesign ? error : primary)
   readonly property color styleAccentText: neoBrutalism
     ? (darkMode ? fgPrimary : fgPrimaryContainer)
-    : fgPrimary
+    : (nothingDesign ? fgError : fgPrimary)
 
   // Semantic status roles. Components should use these aliases instead of
   // introducing local status colors.

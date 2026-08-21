@@ -6,7 +6,7 @@ StatusIndicator {
   id: root
 
   iconLabel: "apps"
-  accentColor: Colors.primary
+  accentColor: Config.nothingDesign ? Colors.fgSurface : Colors.primary
   inactiveBg: "transparent"
   borderOnHoverOnly: true
   accessibleName: "Applications launcher"

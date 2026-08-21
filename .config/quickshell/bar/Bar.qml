@@ -123,11 +123,13 @@ PanelWindow {
   readonly property bool pillsBar: !root.fullBar
   readonly property bool horizontalPillMode: root.horizontal && root.pillsBar
   // Give vertical Neo pills a little more room for rotated labels and their
-  // hard shadow without changing Material 3 or full-bar geometry.
+  // hard shadow without changing Material 3 or full-bar geometry. Nothing's
+  // dot-matrix/mono labels (e.g. "100%") need a bit more width than the bar
+  // is thick, or they clip against the pill's rounded sides.
   readonly property int verticalPillPanelWidth: !root.horizontal
     && root.pillsBar
-    && Config.neoBrutalism
-    ? Config.barWidth + 2
+    && (Config.neoBrutalism || Config.nothingDesign)
+    ? Config.barWidth + (Config.neoBrutalism ? 2 : 18)
     : Config.barWidth
   // Keep Neo pills aligned with the visible edge of focused Niri windows.
   // The 4px focus ring sits inside the 18px layout gap, leaving a 14px
@@ -213,9 +215,9 @@ PanelWindow {
         : (root.fullBarInset > 0
           ? parent.height - root.fullBarInset * 2
           : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress)
-      radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + (Config.borderRadius) * root.expandProgress
+      radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + Config.barRadius * root.expandProgress
       color: root.fullBar
-        ? (Config.neoBrutalism ? Colors.styleSurface : Colors.bg)
+        ? ((Config.neoBrutalism || Config.nothingDesign) ? Colors.styleSurface : Colors.bg)
         : "transparent"
       border.width: root.fullBar && Config.neoBrutalism ? Config.themeBorderWidth : 0
       border.color: Colors.styleOutline
@@ -352,9 +354,10 @@ PanelWindow {
               )
           // Neo's rotated focused-window pill needs a little more room at
           // both ends of its long axis than the compact Material 3 layout.
+          // Nothing matches the breathing room used for the clock/icon pills.
           readonly property int verticalInfoPadding: Config.neoBrutalism
             ? Config.spacingSmall + Config.spacingMedium
-            : Config.spacingSmall + Config.spacingCompact
+            : (Config.nothingDesign ? Config.spacingMedium * 2 : Config.spacingSmall + Config.spacingCompact)
           readonly property real verticalInfoHeight: Math.min(
             320,
             Math.max(root.verticalPillPanelWidth, windowInfoTextWidth + verticalInfoPadding)
@@ -416,7 +419,7 @@ PanelWindow {
             Text {
               id: focusedWindowProgramText
               text: focusedWindowWrapper.programText
-              color: Colors.primary
+              color: Config.nothingDesign ? Colors.fgSurface : Colors.primary
               font.family: Config.fontFamily
               font.pixelSize: Config.labelSmallSize
               font.weight: Font.Bold
@@ -724,7 +727,12 @@ PanelWindow {
             }
 
             Column {
-              anchors.centerIn: parent
+              anchors.horizontalCenter: parent.horizontalCenter
+              anchors.verticalCenter: parent.verticalCenter
+              // Ndot's line-height metrics reserve descent space below each
+              // digit row that the visible glyphs never use, which skews
+              // Qt's naive vertical centering low. Nudge up to compensate.
+              anchors.verticalCenterOffset: Config.nothingDesign && !root.horizontalPillMode ? -4 : 0
               spacing: root.horizontalPillMode ? 0 : Config.clockLineSpacing
 
             Text {
@@ -732,10 +740,10 @@ PanelWindow {
                 text: root.horizontal
                   ? root.displayNow().toLocaleString(Qt.locale(), root.clockFormat())
                   : root.displayNow().toLocaleString(Qt.locale(), Settings.clock24h ? "HH" : "h")
-                color: Colors.primary
-                font.family: Config.fontFamily
+                color: Config.nothingDesign ? Colors.fgSurface : Colors.primary
+                font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
                 font.pixelSize: Config.clockPrimarySize
-                font.weight: Font.Bold
+                font.weight: Config.nothingDesign ? Font.Normal : Font.Bold
               }
 
               Text {
@@ -745,7 +753,9 @@ PanelWindow {
                   ? root.displayNow().toLocaleDateString(Qt.locale(), "MMM dd")
                   : root.displayNow().toLocaleString(Qt.locale(), "mm")
                 color: Colors.fgSurfaceVariant
-                font.family: Config.fontFamily
+                font.family: Config.nothingDesign
+                  ? (root.horizontal ? Config.monoFontFamily : Config.dotFontFamily)
+                  : Config.fontFamily
                 font.pixelSize: root.horizontal
                   ? Config.clockSecondarySize
                   : Config.clockPrimarySize
@@ -758,7 +768,9 @@ PanelWindow {
               radius: Config.shapeMedium
               color: "transparent"
               border.width: clockWidget.activeFocus ? Config.themeFocusBorderWidth : 0
-              border.color: Config.neoBrutalism ? Colors.styleOutline : Colors.primary
+              border.color: Config.neoBrutalism || Config.nothingDesign
+                ? Colors.styleOutline
+                : Colors.primary
             }
 
             MouseArea {

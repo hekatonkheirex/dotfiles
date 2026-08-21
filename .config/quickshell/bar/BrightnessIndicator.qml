@@ -7,7 +7,7 @@ import "../config"
 StatusIndicator {
   id: root
 
-  accentColor: Colors.brightness
+  accentColor: Config.nothingDesign ? Colors.fgSurface : Colors.brightness
   accessibleName: "Brightness"
   tooltipText: "Brightness"
 

@@ -9,7 +9,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **A single bar** (`bar/Bar.qml`) that supports top, bottom, left, and right placement, with a choice between one continuous full bar and a pills bar where each widget floats in its own pill. The display-style setting (`fullBar`) is persisted with the other Appearance preferences.
 - **Bar Placement**: Choose top, bottom, left, or right in the Settings Appearance tab, persisted across reboots (saved to `~/.config/quickshell/layout`). Legacy `horizontal` and `vertical` values remain supported as top and left.
 - **Lock screen** with PAM + fingerprint authentication.
-- **Notification handling** with history and toasts, styled in Material 3 Expressive.
+- **Notification handling** with history and toasts, styled through the selected UI system.
 - **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; the Quick Menu and Notifications tab share the persisted setting.
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
 - **App launcher** with fuzzy app search, local offline **voice search**, allowlisted shell actions via `>`, and wallpaper search via `@`.
@@ -17,7 +17,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Settings panel**: A multi-functional panel launched via `XF86Tools` with eleven tabs:
   - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
   - **General**: Motion, uptime, clock, calendar week start, timezone, bar contents, and weather location/refresh/privacy/unit settings
-  - **Appearance**: Color mode, independent UI style (Material 3 or Neo Brutalism), bar placement, sizing controls, palette source, color reload, and confirmed appearance reset
+  - **Appearance**: Color mode, independent UI style (Material 3, Neo Brutalism, or Nothing), bar placement, sizing controls, palette source, color reload, and confirmed appearance reset
   - **Wallpaper**: Active-wallpaper tracking, cached thumbnails, keyboard navigation, random selection, and wallpaper switching
   - **Network**: Wi-Fi power, scan, connect, disconnect, saved-network, and autoconnect controls; Wi-Fi is Settings-only and has no compact bar indicator
   - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls; Bluetooth is Settings-only and has no compact bar indicator
@@ -101,7 +101,8 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   │   └── TextFieldControl.qml
 │   └── themes/                 # Separate UI-style implementations
 │       ├── material3/          # Material 3 controls and ThemeTokens.qml
-│       └── neo_brutalism/      # Neo Brutalism controls and ThemeTokens.qml
+│       ├── neo_brutalism/      # Neo Brutalism controls and ThemeTokens.qml
+│       └── nothing/             # Nothing controls and ThemeTokens.qml
 ├── scripts/
 │   ├── launcher                # Launcher trigger (touches /tmp/qslauncher-trigger)
 │   ├── quickmenu                # Quick menu trigger (touches /tmp/qsquickmenu-trigger)
@@ -251,11 +252,11 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 
 ### `config/Config.qml`
 
-Build-time layout, typography, shape, and motion tokens: `barWidth`, `widgetSize`, type sizes, independent bar clock typography, spacing, style-dependent shape/border/shadow tokens, motion durations (`motionShort`/`Medium`/`Long`/`ExtraLong`, all zeroed when `reducedMotion` is on), `popupWidth`, Settings min/max dimensions, and step sizes for volume/brightness. `Settings.themeStyle` selects the component styling independently from the generated palette.
+Build-time layout, typography, shape, and motion tokens: `barWidth`, `widgetSize`, type sizes, independent bar clock typography, spacing, style-dependent shape/border/shadow tokens, motion durations (`motionShort`/`Medium`/`Long`/`ExtraLong`, all zeroed when `reducedMotion` is on), `popupWidth`, Settings min/max dimensions, and step sizes for volume/brightness. `Settings.themeStyle` selects the component styling independently from the generated palette. The Nothing style uses the installed `NType 82` family for interface text, `NType 82 Mono` for labels/data, and `NType 82 Headline` for display typography.
 
 ### `config/Settings.qml`
 
-Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs `fullBar` (continuous full bar versus floating pills), motion and sizing, independent bar clock font size, clock/calendar/timezone settings, last Settings tab, bar indicator visibility, color theme preference, UI style (`material3` or `neo-brutalism`), notification behavior, lock/power and media options, idle timeouts, and weather location/refresh/privacy/units. IP-based weather geolocation is a separate opt-in setting and is disabled by default. The persisted format is currently `schemaVersion: 1`; future breaking renames or removals must increment that marker and migrate the stored data before writing the new schema. Values round-trip live via `watchChanges: true`; call `Settings.save()` after mutating an alias to persist. The Appearance tab can restore appearance-owned defaults, while the confirmed System reset restores all settings and the default top bar placement.
+Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs `fullBar` (continuous full bar versus floating pills), motion and sizing, independent bar clock font size, clock/calendar/timezone settings, last Settings tab, bar indicator visibility, color theme preference, UI style (`material3`, `neo-brutalism`, or `nothing`), notification behavior, lock/power and media options, idle timeouts, and weather location/refresh/privacy/units. IP-based weather geolocation is a separate opt-in setting and is disabled by default. The persisted format is currently `schemaVersion: 1`; future breaking renames or removals must increment that marker and migrate the stored data before writing the new schema. Values round-trip live via `watchChanges: true`; call `Settings.save()` after mutating an alias to persist. The Appearance tab can restore appearance-owned defaults, while the confirmed System reset restores all settings and the default top bar placement.
 
 ### `config/Colors.qml`
 
@@ -265,9 +266,9 @@ Format: `l_<token>` (light), `d_<token>` (dark), and flat resolved `<token>` pro
 
 System dark mode is read once and monitored through `gsettings` (owned by `Colors.qml` itself, since it's the single instance everyone reads from). Mode toggles in the launcher or Settings call the existing desktop mode synchronizer, while the shell selects the matching Matugen light/dark roles locally.
 
-`Settings.themePreference` is the persisted owner of the color mode (`0` Auto, `1` Light, `2` Dark). `Settings.themeStyle` is the separate UI component style selector (`material3` or `neo-brutalism`). `shell.qml` reapplies the color-mode preference through `sync-theme-mode.sh` at startup and whenever it changes, keeping GTK, Qt/Kvantum, Kitty, and Niri synchronized without editing generated Matugen files. UI-style changes also refresh Niri's generated decorations immediately: Material 3 keeps the 2px primary ring, 10px base gaps, and soft shadow, while Neo Brutalism uses 18px gaps, a 4px high-contrast ring based on the active `on_surface` role, and a hard 10px offset shadow using the matching semantic shadow color. The Neo full bar uses a 14px edge inset so its visible edge aligns with the focused Niri window, and reserves the full floating footprint through Quickshell's layer-shell `exclusiveZone`; Material 3 keeps the normal reservation. The UI style changes Quickshell component geometry and ink treatment; it does not replace Matugen's palette.
+`Settings.themePreference` is the persisted owner of the color mode (`0` Auto, `1` Light, `2` Dark). `Settings.themeStyle` is the separate UI component style selector (`material3`, `neo-brutalism`, or `nothing`). `shell.qml` reapplies the color-mode preference through `sync-theme-mode.sh` at startup and whenever it changes, keeping GTK, Qt/Kvantum, Kitty, and Niri synchronized without editing generated Matugen files. UI-style changes also refresh Niri's generated decorations immediately; Nothing keeps the compact default focus ring and flat window treatment while its Quickshell surfaces use technical ink rules and segmented controls. Neo Brutalism retains its 18px gaps, high-contrast ring, and hard offset shadow. The Neo full bar uses a 14px edge inset so its visible edge aligns with the focused Niri window, and reserves the full floating footprint through Quickshell's layer-shell `exclusiveZone`; Material 3 and Nothing keep the normal reservation. The UI style changes Quickshell component geometry and ink treatment; it does not replace Matugen's palette.
 
-Neo Brutalism uses JetBrains Mono, bold semantic ink outlines, pastel semantic fills, and hard offset shadows through shared surfaces and controls. Its dark mode is the negative treatment: dark surfaces use light semantic ink for the thick borders and hard offsets. Material 3 retains its Roboto Flex typography, tonal surfaces, and expressive shape/elevation treatment.
+Neo Brutalism uses JetBrains Mono, bold semantic ink outlines, pastel semantic fills, and hard offset shadows through shared surfaces and controls. Its dark mode is the negative treatment: dark surfaces use light semantic ink for the thick borders and hard offsets. Material 3 retains its Roboto Flex typography, tonal surfaces, and expressive shape/elevation treatment. Nothing uses NType 82, NType 82 Mono, and NType 82 Headline, flat wallpaper-derived tonal surfaces, 1px ink rules, technical corners, segmented sliders, and restrained signal accents.
 
 ### `bar/PopupShield.qml`
 

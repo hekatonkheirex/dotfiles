@@ -205,7 +205,9 @@ PanelWindow {
     radius: Config.shapeLarge
     opacity: root.osdOpacity
     color: {
-      var c = Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+      var c = Config.neoBrutalism || Config.nothingDesign
+        ? Colors.styleSurface
+        : Colors.surfaceContainerHigh
       return Qt.rgba(c.r, c.g, c.b, 0.92)
     }
     border.width: Config.themeBorderWidth
@@ -268,7 +270,9 @@ PanelWindow {
           if (root.osdType === "airplane" && root.muted) return Colors.primary;
           return Colors.fgSurface;
         }
-        font.family: Config.fontFamily
+        font.family: Config.nothingDesign && root.osdType !== "mic" && root.osdType !== "airplane" && root.osdType !== "bluetooth"
+          ? Config.dotFontFamily
+          : Config.fontFamily
         font.pixelSize: 20
         font.weight: Font.Bold
       }

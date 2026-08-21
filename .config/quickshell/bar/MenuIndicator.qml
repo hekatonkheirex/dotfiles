@@ -6,7 +6,7 @@ StatusIndicator {
   id: root
 
   iconLabel: "settings"
-  accentColor: Colors.primary
+  accentColor: Config.nothingDesign ? Colors.fgSurface : Colors.primary
   accessibleName: "Power Options"
   tooltipText: "Power Options"
 }

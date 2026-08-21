@@ -16,9 +16,6 @@ Item {
   property color focusColor: theme.focus
   property color hoverOverlay: Colors.hoverOverlay
   property color pressOverlay: Colors.pressOverlay
-  readonly property color stateOverlay: root.pressed
-    ? root.pressOverlay
-    : (root.hovered || root.activeFocus ? root.hoverOverlay : Qt.rgba(0, 0, 0, 0))
   property int motionDuration: 150
   property bool reducedMotion: false
   property real stepSize: 0.05
@@ -27,6 +24,16 @@ Item {
   property real accessibleMinimumValue: 0
   property real accessibleMaximumValue: 100
   property string accessibleUnit: "%"
+
+  readonly property int segmentCount: 18
+  readonly property real segmentGap: 2
+  readonly property real normalizedValue: Math.max(0, Math.min(1, root.value))
+  readonly property real segmentWidth: root.segmentCount > 0
+    ? Math.max(1, (root.width - root.segmentGap * (root.segmentCount - 1)) / root.segmentCount)
+    : 0
+  readonly property bool hovered: sliderMouse.containsMouse
+  readonly property bool pressed: sliderMouse.pressed
+  readonly property bool active: root.hovered || root.pressed || root.activeFocus
 
   Accessible.role: Accessible.Slider
   Accessible.name: root.accessibleName
@@ -45,19 +52,6 @@ Item {
   width: parent ? parent.width : 240
   height: 40
   activeFocusOnTab: true
-
-  readonly property bool hovered: sliderMouse.containsMouse
-  readonly property bool pressed: sliderMouse.pressed
-  readonly property bool active: hovered || pressed || activeFocus
-  // Neo uses this control as a filled progress bar. The value fill and its
-  // contrasting base occupy the whole control box; there is no thumb, frame,
-  // or offset shadow competing with the bar itself.
-  readonly property real visualWidth: Math.max(0, root.width)
-  readonly property real barHeight: 14
-  readonly property real barRadius: theme.controlRadius
-  readonly property real barInset: 0
-  readonly property real barContentHeight: barHeight
-  readonly property real normalizedValue: Math.max(0, Math.min(1, root.value))
 
   function animateDuration(base) {
     return root.reducedMotion ? 0 : Math.max(0, root.motionDuration || base)
@@ -94,40 +88,53 @@ Item {
   }
 
   Rectangle {
-    id: focusRing
-    x: -2
-    y: -2
-    width: root.visualWidth + 4
-    height: root.height + 4
-    color: "transparent"
+    anchors.fill: parent
+    anchors.margins: -4
+    radius: theme.controlRadius + 4
+    color: root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
     border.width: root.activeFocus ? theme.focusBorderWidth : 0
     border.color: root.focusColor
-    radius: theme.controlSmallRadius
     visible: root.activeFocus
-    z: 5
+  }
+
+  Row {
+    id: segments
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    height: 12
+    spacing: root.segmentGap
+
+    Repeater {
+      model: root.segmentCount
+
+      Rectangle {
+        required property int index
+        width: root.segmentWidth
+        height: index < Math.ceil(root.normalizedValue * root.segmentCount) ? 12 : 8
+        anchors.verticalCenter: segments.verticalCenter
+        color: root.enabled
+          ? (index < Math.ceil(root.normalizedValue * root.segmentCount)
+            ? Qt.tint(root.muted ? root.outline : root.activeColor, root.pressed ? root.pressOverlay : Qt.rgba(0, 0, 0, 0))
+            : root.surfaceContainerHighest)
+          : root.surfaceContainerHigh
+
+        Behavior on height { NumberAnimation { duration: root.animateDuration(100); easing.type: Easing.OutCubic } }
+        Behavior on color { ColorAnimation { duration: root.animateDuration(100) } }
+      }
+    }
   }
 
   Rectangle {
-    id: barFrame
-    x: 0
-    y: root.height / 2 - height / 2
-    width: root.visualWidth
-    height: root.barHeight
-    radius: root.barRadius
-    color: root.enabled ? root.surfaceContainerHighest : root.surfaceContainerHigh
-    z: 0
-  }
-
-  Rectangle {
-    id: barFill
-    x: barFrame.x
-    y: barFrame.y
-    width: Math.max(0, barFrame.width * root.normalizedValue)
-    height: root.barContentHeight
-    radius: root.barRadius
-    color: Qt.tint(root.muted ? root.outline : root.activeColor, root.stateOverlay)
-    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
-    z: 1
+    id: marker
+    x: Math.max(0, Math.min(root.width - width, root.width * root.normalizedValue - width / 2))
+    y: 3
+    width: 2
+    height: root.height - 6
+    radius: 1
+    color: root.enabled ? (root.muted ? root.outline : root.activeColor) : root.outline
+    visible: root.active || root.normalizedValue > 0
+    Behavior on x { NumberAnimation { duration: root.animateDuration(120); easing.type: Easing.OutCubic } }
   }
 
   MouseArea {
@@ -142,9 +149,7 @@ Item {
       if (pressed) handleMouse(mouse.x)
     }
     function handleMouse(mx) {
-      root.setValue(root.visualWidth > 0
-        ? (Math.max(0, Math.min(root.visualWidth, mx)) / root.visualWidth)
-        : 0)
+      root.setValue(root.width > 0 ? mx / root.width : 0)
     }
     onReleased: root.interactionFinished()
   }
