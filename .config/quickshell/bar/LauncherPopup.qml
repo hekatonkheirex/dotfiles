@@ -554,7 +554,9 @@ PanelWindow {
       rightMargin: root.neoShadowPadding
       bottomMargin: root.neoShadowPadding
     }
-    color: Config.neoBrutalism ? Colors.styleSurfaceRaised : Colors.surfaceContainer
+    color: Config.neoBrutalism || Config.nothingDesign
+      ? Colors.styleSurfaceRaised
+      : Colors.surfaceContainer
     radius: Config.borderRadius
     border.color: Colors.styleOutline
     border.width: Config.themeBorderWidth
@@ -572,7 +574,7 @@ PanelWindow {
         from: 0.85
         to: 1.0
         duration: Config.motionLong
-        easing.type: Easing.OutBack
+        easing.type: Config.themeMotionEasing
       }
       NumberAnimation {
         target: transX
@@ -580,7 +582,7 @@ PanelWindow {
         from: -30
         to: 0
         duration: Config.motionLong
-        easing.type: Easing.OutBack
+        easing.type: Config.themeMotionEasing
       }
       NumberAnimation {
         target: bg
@@ -686,7 +688,7 @@ PanelWindow {
         delegate: ListItem {
           width: appList.width
           height: 44
-          radius: Config.neoBrutalism ? Config.shapeMedium : 22
+          radius: Config.neoBrutalism || Config.nothingDesign ? Config.shapeMedium : 22
           leadingIcon: model.kind === "action" || model.kind === "wallpaper" ? model.icon : ""
           leadingImageSource: model.kind !== "action" && model.kind !== "wallpaper" && model.icon !== ""
             ? "file://" + model.icon : ""
@@ -715,7 +717,7 @@ PanelWindow {
         Layout.preferredHeight: root.wallpaperMode ? root.wallpaperGridHeight : 0
         visible: root.wallpaperMode
         radius: Config.shapeMedium
-        color: Colors.surfaceContainerLow
+        color: Config.nothingDesign ? Colors.styleSurface : Colors.surfaceContainerLow
         border.color: Colors.styleOutline
         border.width: Config.themeBorderWidth
         clip: true

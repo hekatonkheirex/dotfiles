@@ -308,7 +308,9 @@ PanelWindow {
         bottomMargin: root.neoShadowPadding
       }
       radius: Config.borderRadius
-      color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+      color: Config.neoBrutalism || Config.nothingDesign
+        ? Colors.styleSurface
+        : Colors.surfaceContainerHigh
       clip: true
       border.width: Config.themeBorderWidth
       border.color: Colors.styleOutline
@@ -326,7 +328,7 @@ PanelWindow {
           from: 0.85
           to: 1.0
           duration: Config.motionLong
-          easing.type: Easing.OutBack
+          easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
           target: transX
@@ -334,7 +336,7 @@ PanelWindow {
           from: -30
           to: 0
           duration: Config.motionLong
-          easing.type: Easing.OutBack
+          easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
           target: bg

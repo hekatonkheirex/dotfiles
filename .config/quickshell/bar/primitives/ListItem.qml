@@ -20,7 +20,9 @@ Rectangle {
   property bool selected: false
   property bool navigationFocused: false
   property color leadingIconColor: root.selected
-    ? (Config.neoBrutalism ? Colors.styleAccentText : Colors.primary)
+    ? (Config.neoBrutalism
+      ? Colors.styleAccentText
+      : (Config.nothingDesign ? Colors.styleInk : Colors.primary))
     : Colors.fgSurface
   property string accessibleName: ""
   property string accessibleDescription: ""
@@ -54,7 +56,9 @@ Rectangle {
     if (root.selected) {
       return Config.neoBrutalism
         ? Colors.styleAccent
-        : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
+        : (Config.nothingDesign
+          ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
+          : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15))
     }
     if (root.navigationFocused) return Qt.tint("transparent", Colors.focusOverlay)
     if (itemMouse.containsMouse) return Qt.tint("transparent", Colors.hoverOverlay)
@@ -62,7 +66,9 @@ Rectangle {
   }
   border.color: Config.neoBrutalism
     ? Colors.styleOutlineStrong
-    : (root.selected ? Colors.primary : "transparent")
+    : (Config.nothingDesign
+      ? (root.selected ? Colors.styleOutlineStrong : "transparent")
+      : (root.selected ? Colors.primary : "transparent"))
   border.width: Config.themeBorderWidth
 
   Behavior on color {
@@ -89,7 +95,7 @@ Rectangle {
     anchors.rightMargin: 8
     spacing: Config.spacingSmall
 
-    Text {
+        Text {
       visible: root.leadingIcon !== "" && root.leadingImageSource === ""
       text: root.leadingIcon
       color: root.leadingIconColor
@@ -136,7 +142,9 @@ Rectangle {
         Layout.fillWidth: true
         text: root.title
         color: root.selected
-          ? (Config.neoBrutalism ? Colors.styleAccentText : Colors.primary)
+          ? (Config.neoBrutalism
+            ? Colors.styleAccentText
+            : (Config.nothingDesign ? Colors.styleInk : Colors.primary))
           : Colors.fgSurface
         font.family: Config.fontFamily
         font.pixelSize: (Config.fontPixelSize + 3)

@@ -6,7 +6,7 @@ import Quickshell.Wayland._WlrLayerShell
 import "../config"
 
 // Shared chrome for bar-anchored popups: layer-shell window setup, edge
-// anchoring, escape/focus-loss dismissal, and the M3 entry transform/fade.
+// anchoring, escape/focus-loss dismissal, and the shared entry transform/fade.
 // Each popup supplies its own content as children (forwarded into `bg`) and
 // still owns its own `surfaceHeight` binding, since the padding and cap vary
 // per popup.
@@ -38,7 +38,12 @@ PanelWindow {
   WlrLayershell.focusable: true
 
   anchors.left: true
-  margins.left: Config.barWidth + 4
+  // Match the actual rendered bar/pill thickness, not the base bar size:
+  // Nothing and Neo's pills-mode panel is wider than Config.barWidth, and a
+  // flat offset made popups overlap the bar's own widgets.
+  margins.left: (!Settings.fullBar && (Config.neoBrutalism || Config.nothingDesign)
+    ? Config.barWidth + (Config.neoBrutalism ? 2 : 18)
+    : Config.barWidth) + Config.spacingMedium
   property int screenH: Screen.desktopAvailableHeight
 
   anchors.top: true
@@ -91,7 +96,9 @@ PanelWindow {
         bottomMargin: root.neoShadowPadding
       }
       radius: Config.borderRadius
-      color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+      color: Config.neoBrutalism || Config.nothingDesign
+        ? Colors.styleSurface
+        : Colors.surfaceContainerHigh
       clip: true
       border.width: Config.themeBorderWidth
       border.color: Colors.styleOutline
@@ -109,7 +116,7 @@ PanelWindow {
           from: 0.85
           to: 1.0
           duration: Config.motionLong
-          easing.type: Easing.OutBack
+          easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
           target: transX
@@ -117,7 +124,7 @@ PanelWindow {
           from: -30
           to: 0
           duration: Config.motionLong
-          easing.type: Easing.OutBack
+          easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
           target: bg

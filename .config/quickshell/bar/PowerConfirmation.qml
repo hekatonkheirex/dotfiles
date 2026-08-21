@@ -11,7 +11,9 @@ FocusScope {
   property string actionIcon: ""
 
   property color scrimColor: Qt.rgba(0, 0, 0, 0.24)
-  property color dialogColor: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+  property color dialogColor: Config.neoBrutalism || Config.nothingDesign
+    ? Colors.styleSurface
+    : Colors.surfaceContainerHigh
   property color dialogTextColor: Colors.fgSurface
   property color dialogSecondaryTextColor: Colors.fgSurfaceVariant
   property color dialogBorderColor: Colors.styleOutline

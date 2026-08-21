@@ -17,10 +17,25 @@ This repository contains my personal configurations, customized scripts, and sys
 
 - **Window Manager** • Main: [Niri](https://niri-wm.github.io/niri/) (Scroll-stacking Wayland compositor)
 - **Desktop Shell & Panels** • Custom [Quickshell](https://quickshell.outfoxxed.me/) (QML-based status bar, widgets, volume/brightness popups, notifications, and desktop dashboard)
-- **Theme Suite** • Custom Material Design 3 Expressive themes (supporting Blue, Green, Yellow, Red, Purple, and Orange variants)
+- **Theme Suite** • Wallpaper-driven Material 3 Expressive desktop themes with a Quickshell style switch between Material 3 and Neo Brutalism
 - **Terminal** • [Kitty](https://sw.kovidgoyal.net/kitty/) configured with expressive dynamic themes
 - **Shell** • Zsh with [zinit](https://github.com/zdharma-continuum/zinit) and [Starship](https://github.com/starship/starship) prompt
 - **File Manager** • Gnome Nautilus
+
+### Current Quickshell configuration and styles
+
+Quickshell is a single QML shell rooted at [`shell.qml`](.config/quickshell/shell.qml). It owns the bar, launcher, Quick Menu, Command Center, popups, notifications, OSD, lock screen, and shared desktop state. The bar supports top, bottom, left, and right placement, plus continuous full-bar and floating-pills layouts.
+
+The current tracked state is `layout=left`, `fullBar=true`, automatic color mode (`themePreference=0`), Material 3 UI style (`themeStyle=material3`), and `colorscheme=matugen` for terminal/Niri synchronization. These values are persisted in [`settings.json`](.config/quickshell/settings.json), [`layout`](.config/quickshell/layout), and [`colorscheme`](.config/quickshell/colorscheme); the supported values remain configurable from the Appearance panel.
+
+The two Quickshell UI styles share the same semantic palette and controls:
+
+- **Material 3**: Roboto Flex typography, tonal surface elevation, expressive corner radii, and soft focus/elevation treatment.
+- **Neo Brutalism**: JetBrains Mono typography, high-contrast semantic ink, heavier borders, compact radii, and hard offset shadows. Its Niri gaps, focus ring, window radius, and shadow are synchronized by the existing theme scripts.
+
+The style changes geometry and ink treatment only. It does not replace the Matugen palette. The shell-specific file map is documented in [`~/.config/quickshell/README.md`](.config/quickshell/README.md).
+
+The generated GTK/Qt desktop themes are named `Material3-Expressive-Dynamic` and `Material3-Expressive-Dynamic-Dark`; they are synchronized independently from the Quickshell UI style.
 
 ---
 
@@ -30,81 +45,41 @@ To glue the desktop environment together, several custom scripts handle system t
 
 ### 💻 Quickshell Helpers (`.config/quickshell/`)
 
-- **[`voice-search.py`](file:///.config/quickshell/scripts/voice-search.py)**: An offline voice recognition launcher search tool.
+- **[`voice-search.py`](.config/quickshell/scripts/voice-search.py)**: An offline voice recognition launcher search tool.
   - *What it does*: It uses the `python-vosk` library and a local offline speech-to-text Vosk model (automatically downloaded on first run, ~40MB) to transcribe recorded voice input and output search queries in plain text.
-- **[`desktop-parser.py`](file:///.config/quickshell/bin/desktop-parser.py)**: An efficient desktop application parser.
+- **[`desktop-parser.py`](.config/quickshell/bin/desktop-parser.py)**: An efficient desktop application parser.
   - *What it does*: It scans standard XDG applications paths (`/usr/share/applications`, `~/.local/share/applications`), extracts details from `.desktop` files, resolves application icons from your current icon themes, caches the results to `/tmp/qs-app-cache-<uid>.json` (with cache invalidation matched to the directories' modified timestamps), and outputs JSON data to feed the launcher panel.
-- **[`idle.sh`](file:///.config/quickshell/scripts/idle.sh)**: Swayidle wrapper.
+- **[`idle.sh`](.config/quickshell/scripts/idle.sh)**: Swayidle wrapper.
   - *What it does*: Handles multi-level inactivity timeouts:
     - **150 seconds**: Dims screen brightness to 10% (saving previous level).
-    - **300 seconds**: Invokes the screen locker.
+    - **300 seconds by default**: Invokes the screen locker (configurable through `idleLockTimeoutSeconds`).
     - **600 seconds**: Shuts off monitor displays (using `niri` monitor controls or `wlopm`).
-    - **900 seconds**: Puts the machine to sleep (`systemctl suspend`).
-- **[`safe-logout.sh`](file:///.config/quickshell/scripts/safe-logout.sh)**: A clean session terminate utility.
+    - **900 seconds by default**: Puts the machine to sleep (`systemctl suspend`, configurable through `idleSuspendTimeoutSeconds`).
+- **[`safe-logout.sh`](.config/quickshell/scripts/safe-logout.sh)**: A clean session terminate utility.
   - *What it does*: First attempts composer-specific clean exits (e.g. `niri msg action quit`). If the desktop environment remains active after a half-second grace period, it sends a direct `SIGKILL` to the active systemd session using `loginctl kill-session`.
-- **Trigger Scripts (`launcher`, `lock`, `quickmenu`)**:
+- **Trigger Scripts (`launcher`, `quickmenu`, `commandcenter`, `lock`)**:
   - *What they do*: Simple wrappers that touch `/tmp/` trigger files (e.g., `/tmp/qslauncher-trigger`, `/tmp/qslock-trigger`, `/tmp/qsquickmenu-trigger`). The main Quickshell QML shell watches these files to toggle overlays and UI dashboards instantly.
 
 ### 🎨 Material You Theming Pipeline
 
-All desktop themes are dynamically generated from a single wallpaper-derived accent color using **matugen** (Material You color extraction).
+Quickshell's semantic colors are wallpaper-derived through **matugen**. The authored light and dark roles in `config/Colors.qml` are deterministic first-boot fallbacks; they are not the primary palette source.
 
-- **[`~/.local/bin/matugen-and-cache.sh`](file:///.local/bin/matugen-and-cache.sh)**: Runs matugen with wallpaper extraction, saves a transformed palette to `~/.cache/matugen/current_palette.json`, then generates `Colors.qml` for Quickshell.
-- **[`~/.local/bin/generate-all-themes.sh`](file:///.local/bin/generate-all-themes.sh)**: Runs all 4 theme generators in parallel (icons, SDDM, Kvantum) then sequentially (GTK theme), and refreshes gsettings + qt6ct icon theme.
-- **[`~/.local/bin/sync-theme-mode.sh`](file:///.local/bin/sync-theme-mode.sh)**: Syncs light/dark/auto mode across gsettings `color-scheme`, GTK 3/4 `settings.ini`, Kvantum theme, icon theme, and removes stale GTK4 user CSS overrides.
-- **[`~/.local/bin/auto-detect-theme.sh`](file:///.local/bin/auto-detect-theme.sh)**: Analyzes wallpaper brightness via ImageMagick and outputs `"light"` or `"dark"` to drive auto mode.
-- **`~/Projects/material3-expressive-shared/palette.py`**: Shared Python module — `accent_dict()` wraps matugen's raw palette into the format expected by all 5 generators.
+- **[`matugen-and-cache.sh`](.local/bin/matugen-and-cache.sh)**: Runs `matugen --type scheme-fidelity --prefer saturation`, caches both light and dark semantic roles in `~/.cache/matugen/current_palette.json` under `scheme-expressive`, and regenerates the Quickshell `Colors.qml` template.
+- **[`generate-all-themes.sh`](.local/bin/generate-all-themes.sh)**: Regenerates the GTK, icon, SDDM, and Kvantum outputs from the cached palette. The icon, SDDM, and Kvantum generators run in parallel; the GTK generator runs afterward, then the active desktop mode is refreshed.
+- **[`sync-theme-mode.sh`](.local/bin/sync-theme-mode.sh)**: Applies `light`, `dark`, or `auto` mode across GNOME settings, GTK 3/4, Libadwaita CSS links, Kvantum, Qt6ct, icons, Kitty, and Niri.
+- **[`auto-detect-theme.sh`](.local/bin/auto-detect-theme.sh)**: Reads the current wallpaper from the awww cache, measures its mean brightness with ImageMagick, and returns `light` or `dark` for automatic mode.
+- **[`sync-terminal-theme.sh`](.local/bin/sync-terminal-theme.sh)**: Synchronizes Kitty, Starship/fzf, and generated Niri decoration colors. It accepts the `matugen` or `claude` terminal palette selector and the Quickshell `material3` or `neo-brutalism` UI style.
 
 The theming flow:
-1. Wallpaper changes (via `wall`, `wall_shuffle.sh`, or CommandCenter grid)
-2. Matugen extracts M3 colors (scheme-expressive with saturation preference)
-3. `generate-all-themes.sh` rebuilds all 5 desktop themes with a single dynamic accent
-4. `sync-theme-mode.sh auto` detects wallpaper brightness and applies light/dark mode
+1. [`apply-wallpaper.sh`](.config/quickshell/scripts/apply-wallpaper.sh) applies the selected wallpaper with `awww` first.
+2. `matugen-and-cache.sh` refreshes the light/dark role cache and Quickshell template.
+3. `generate-all-themes.sh` rebuilds the GTK, icon, SDDM, and Kvantum themes.
+4. `sync-theme-mode.sh auto` detects the wallpaper brightness and applies the matching desktop mode.
+5. Quickshell restarts so `Colors.qml` loads the fresh palette.
 
-Accent color can also be set manually from the Command Center (Settings tab → Accent Color) which runs matugen with the chosen hex instead of wallpaper.
+The tracked [`colorscheme`](.config/quickshell/colorscheme) is currently `matugen`. `claude` is available as a fixed alternate palette for Kitty and Niri synchronization; Quickshell itself continues to consume the Matugen role cache. [`apply-accent-color.sh`](.config/quickshell/scripts/apply-accent-color.sh) remains only as a compatibility entry point and does not provide runtime accent editing.
 
-### 🧭 Theme History and YADM Branches
-
-The repository's current `main` branch contains the newer Ghost theme. The last active Material 3 snapshot is commit `3f2160bd` from 2026-07-09, using `Material3-Expressive-Dynamic`.
-
-Check the working tree before switching branches:
-
-```bash
-yadm status
-```
-
-Create the local Material 3 branch once, then switch to it whenever you want that configuration active:
-
-```bash
-yadm switch --create material3 3f2160bd   # first time only
-yadm switch material3                     # later switches
-```
-
-Return to the current Ghost configuration with:
-
-```bash
-yadm switch main
-```
-
-Do not use `yadm bootstrap` just to change between these snapshots. Restart Quickshell or start a new session after switching. Avoid `yadm switch --discard-changes` or other force options unless you intentionally want to discard local changes.
-
-#### Pushing Branches
-
-This command always pushes the local `main` branch, even when `material3` is checked out:
-
-```bash
-yadm push origin main
-```
-
-It does not publish `material3`, change the active branch, or roll the remote repository back. It normally reports `Everything up-to-date` because `main` remains the Ghost branch.
-
-To publish the Material 3 branch as a separate remote branch, use this only when that is intentional:
-
-```bash
-yadm push --set-upstream origin material3
-```
-
-Do not push `material3:main` or force-push it merely to switch themes. That would attempt to rewrite the remote `main` history; branch switching is a local yadm operation.
+Theme changes are runtime settings now; switching between Material 3 and Neo Brutalism or between light, dark, and automatic mode does not require a yadm branch checkout.
 
 ### 🔋 Thinkpad / Laptop Optimizations (`.config/thinkpad/`)
 

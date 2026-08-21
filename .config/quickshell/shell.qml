@@ -175,7 +175,7 @@ ShellRoot {
   // selected edge. Callers pass their own implicit size and Screen bound so
   // bindings stay reactive.
   function popupBarInset() {
-    return Config.barWidth + 4
+    return bar.verticalPillPanelWidth + Config.spacingMedium
       + (bar.fullBar && Config.neoBrutalism
         ? Config.themeShadowOffset + 2
         : 0)

@@ -1,4 +1,4 @@
-// Theme facade. The concrete Material 3 and Neo Brutalism implementations
+// Theme facade. Concrete Material 3, Neo Brutalism, and Nothing implementations
 // live in separate folders; existing popup call sites keep this stable type.
 import QtQml
 import QtQuick
@@ -6,6 +6,7 @@ import QtQuick.Controls
 import "../../config"
 import "../themes/material3" as Material3
 import "../themes/neo_brutalism" as NeoBrutalism
+import "../themes/nothing" as Nothing
 
 Item {
   id: root
@@ -20,7 +21,9 @@ Item {
   property color borderColor: Colors.styleOutline
   property bool outlined: false
   property bool selected: false
-  property real radius: Config.neoBrutalism ? 4 : size / 2
+  property real radius: Config.nothingDesign
+    ? Config.shapeCompact
+    : (Config.neoBrutalism ? 4 : size / 2)
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""
@@ -38,7 +41,9 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.neoBrutalism ? neoImplementation : materialImplementation
+    sourceComponent: Config.nothingDesign
+      ? nothingImplementation
+      : (Config.neoBrutalism ? neoImplementation : materialImplementation)
   }
 
   Component {
@@ -49,6 +54,11 @@ Item {
   Component {
     id: neoImplementation
     NeoBrutalism.IconButton {}
+  }
+
+  Component {
+    id: nothingImplementation
+    Nothing.IconButton {}
   }
 
   Binding { target: implementation.item; property: "iconLabel"; value: root.iconLabel }

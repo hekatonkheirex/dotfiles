@@ -71,12 +71,12 @@ FileView {
 
   function resetAppearanceDefaults() {
     barSize = 44
-    clockFontSize = 15
-    fontPixelSize = 9
+    clockFontSize = 18
+    fontPixelSize = 12
     fullBar = false
-    iconSize = 16
+    iconSize = 20
     spacingScale = 1.0
-    themeStyle = "material3"
+    themeStyle = "nothing"
     themePreference = 0
   }
 
@@ -149,11 +149,11 @@ FileView {
     property bool ccShowWorkspaces: true
     property bool clock24h: true
     property bool clockShowSeconds: false
-    property int clockFontSize: 15
+    property int clockFontSize: 18
     property bool doNotDisturb: false
-    property int fontPixelSize: 9
+    property int fontPixelSize: 12
     property bool fullBar: false
-    property int iconSize: 16
+    property int iconSize: 20
     property int idleLockTimeoutSeconds: 300
     property int idleSuspendTimeoutSeconds: 900
     property int lastSettingsTab: 0
@@ -174,7 +174,7 @@ FileView {
     property real spacingScale: 1.0
     property bool systemShowUptime: true
     // UI style, independent from the wallpaper-derived Matugen palette.
-    property string themeStyle: "material3"
+    property string themeStyle: "nothing"
     // 0 = auto, 1 = light, 2 = dark.
     property int themePreference: 0
     property string timezone: ""

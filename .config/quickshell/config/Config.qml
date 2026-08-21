@@ -21,12 +21,27 @@ QtObject {
   property int spacingLarge: Math.round(16 * spacingScale)
   property int spacingExtraLarge: Math.round(24 * spacingScale)
 
-  // UI style is separate from Colors.qml's Matugen palette. Material 3 is the
-  // default; Neo Brutalism changes component geometry and ink treatment while
-  // continuing to consume the same generated semantic color roles.
+  // UI style is separate from Colors.qml's Matugen palette. Each style keeps
+  // consuming the same generated semantic color roles.
+  readonly property bool nothingDesign: Settings.themeStyle === "nothing"
   readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
-  readonly property string fontFamily: neoBrutalism ? "JetBrains Mono" : "Roboto Flex"
-  readonly property string iconFont: "Material Symbols Outlined"
+  readonly property string fontFamily: nothingDesign
+    ? "NType 82"
+    : (neoBrutalism ? "JetBrains Mono" : "Roboto Flex")
+  readonly property string monoFontFamily: nothingDesign
+    ? "NType 82 Mono"
+    : (neoBrutalism ? "JetBrains Mono" : "Roboto Flex")
+  readonly property string displayFontFamily: nothingDesign
+    ? "NType 82 Headline"
+    : fontFamily
+  // Ndot is Nothing's dot-matrix numeral font, reserved for the clock digits
+  // the way the brand doc reserves it for product names/logotypes.
+  readonly property string dotFontFamily: nothingDesign
+    ? "Ndot 57"
+    : displayFontFamily
+  readonly property string iconFont: nothingDesign
+    ? "Material Symbols Rounded"
+    : "Material Symbols Outlined"
   property int iconSize: Settings.iconSize
   property int fontPixelSize: Settings.fontPixelSize
   readonly property int textCaptionSize: Math.max(8, fontPixelSize - 1)
@@ -40,16 +55,24 @@ QtObject {
   readonly property int labelSmallSize: fontPixelSize
   readonly property int clockPrimarySize: Settings.clockFontSize
   readonly property int clockSecondarySize: Math.max(8, Settings.clockFontSize - 5)
-  readonly property int clockLineSpacing: spacingCompact
-  readonly property int clockVerticalHeight: 42
+  // Tight on purpose: the vertical bar stacks HH/MM at the same clockPrimarySize
+  // and should read as one digital-clock block, not two separated labels.
+  readonly property int clockLineSpacing: 2
+  // Sized to the stacked hour/minute content instead of a flat constant, so
+  // it keeps breathing room as the clock font size changes. Both lines render
+  // at clockPrimarySize in vertical mode (secondary size is horizontal-only).
+  readonly property int clockVerticalHeight: Math.round(clockPrimarySize * 1.2) * 2
+    + clockLineSpacing
+    + spacingMedium * 2
 
-  // Neo Brutalism uses a compact three-step radius scale. The outer card,
-  // list rows, and controls must read as one system instead of mixing M3
-  // squircles with the Neo hard-edged controls.
-  readonly property int shapeCompact: neoBrutalism ? 4 : 8
-  readonly property int shapeMedium: neoBrutalism ? 6 : 12
-  readonly property int shapeLarge: neoBrutalism ? 10 : 16
+  // Nothing uses a soft, pill-leaning radius scale (Control Center toggles,
+  // widget cards). Neo Brutalism keeps its existing hard-edged geometry;
+  // Material 3 retains its expressive shapes.
+  readonly property int shapeCompact: nothingDesign ? 8 : (neoBrutalism ? 4 : 8)
+  readonly property int shapeMedium: nothingDesign ? 14 : (neoBrutalism ? 6 : 12)
+  readonly property int shapeLarge: nothingDesign ? 20 : (neoBrutalism ? 10 : 16)
   readonly property int borderRadius: shapeLarge
+  readonly property int barRadius: nothingDesign ? 0 : borderRadius
   readonly property int themeBorderWidth: neoBrutalism ? 3 : 1
   readonly property int themeFocusBorderWidth: neoBrutalism ? 4 : 2
   readonly property int themeShadowOffset: neoBrutalism ? 6 : 0
@@ -61,8 +84,10 @@ QtObject {
     : 0
   // Icon-plus-label Neo controls need room for the thick border and hard shadow.
   readonly property int themeActionButtonMinHeight: neoBrutalism ? 56 : 0
-  readonly property int themeOptionGap: neoBrutalism ? themeShadowOffset : 0
-  readonly property int themeFontWeight: neoBrutalism ? Font.DemiBold : Font.Normal
+  readonly property int themeOptionGap: neoBrutalism ? themeShadowOffset : (nothingDesign ? spacingCompact : 0)
+  readonly property int themeFontWeight: neoBrutalism
+    ? Font.DemiBold
+    : (nothingDesign ? Font.Medium : Font.Normal)
 
   // Motion is centralized here. reducedMotion mirrors the persisted Settings
   // singleton directly; compatibility consumers continue using animationDuration.
@@ -72,13 +97,16 @@ QtObject {
   readonly property int motionLong: reducedMotion ? 0 : 250
   readonly property int motionExtraLong: reducedMotion ? 0 : 450
   readonly property int animationDuration: motionMedium
+  // Nothing uses precise ease-out motion; Material 3 and Neo retain their
+  // expressive overshoot for entrances and state changes.
+  readonly property int themeMotionEasing: nothingDesign ? Easing.OutCubic : Easing.OutBack
 
   readonly property int popupWidth: 340
   readonly property int popupPadding: spacingLarge
   readonly property int commandCenterMinWidth: 320
   readonly property int commandCenterMinHeight: 360
   // Neo's hard shadows and block controls need a little more room in the
-  // Appearance tab; Material 3 keeps the compact Command Center footprint.
+  // Appearance tab; Nothing and Material 3 keep the compact footprint.
   readonly property int commandCenterMaxWidth: neoBrutalism ? 864 : 800
   readonly property int commandCenterMaxHeight: neoBrutalism ? 700 : 606
   readonly property int clockIntervalMs: 1000

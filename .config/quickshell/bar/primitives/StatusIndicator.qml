@@ -18,7 +18,7 @@ Item {
   property real iconOpacity: 1.0
   property string labelText: ""
   property real labelOpacity: 1.0
-  property color accentColor: Colors.primary
+  property color accentColor: Config.nothingDesign ? Colors.fgSurface : Colors.primary
   property color iconColor: root.accentColor
   property color labelColor: root.accentColor
   property color inactiveBg: Colors.surfaceContainerHigh
@@ -32,11 +32,18 @@ Item {
   property color badgeColor: Colors.error
   property color badgeTextColor: Colors.fgError
 
+  // Nothing's dot-matrix numeral font is reserved for pure numeric readouts
+  // (battery/brightness/volume %), not textual states like "Muted" or
+  // workspace names.
+  readonly property bool numericLabel: /^-?\d+%?$/.test(root.labelText)
+
   // Icon-only indicators do not need the full widget slot in the vertical
   // bar. Keep their hit target tied to the icon size so they do not leave
-  // larger visual gaps than indicators that also show a value label.
+  // larger visual gaps than indicators that also show a value label. Icon +
+  // label indicators size to their actual stacked content instead of a flat
+  // widget size, so the rounded pill has room for both without clipping.
   readonly property int verticalLayoutHeight: root.labelText !== ""
-    ? Config.widgetSize
+    ? Math.max(Config.widgetSize, Config.iconSize + Config.spacingSmall + Config.labelSmallSize + Config.spacingMedium * 2)
     : Math.min(Config.widgetSize, Config.iconSize + Config.spacingSmall)
   // Inline pills need breathing room around the icon/label pair. The
   // wrapper uses this value for its width, so the text does not end up under
@@ -62,6 +69,8 @@ Item {
   Accessible.description: root.accessibleDescription !== ""
     ? root.accessibleDescription
     : (root.active ? "Active" : "")
+  Accessible.focusable: root.activeFocusOnTab
+  Accessible.focused: root.activeFocus
 
   Rectangle {
     id: shadow
@@ -102,17 +111,18 @@ Item {
       var base = root.integrated
         ? "transparent"
         : (root.borderOnHoverOnly
-          ? (Config.neoBrutalism ? Colors.styleSurface : "transparent")
+          ? ((Config.neoBrutalism || Config.nothingDesign) ? Colors.styleSurface : "transparent")
           : root.inactiveBg)
       return Qt.tint(base, overlay)
     }
     border.color: {
       if (Config.neoBrutalism) return Colors.styleOutline
+      if (Config.nothingDesign) return "transparent"
       if (root.active) return root.activeFocus ? Colors.focusOverlay : "transparent"
       if (root.borderOnHoverOnly && !mouseArea.containsMouse && !root.activeFocus) return "transparent"
       return Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
     }
-    border.width: root.integrated ? 0 : Config.themeBorderWidth
+    border.width: root.integrated || Config.nothingDesign ? 0 : Config.themeBorderWidth
 
     Behavior on color {
       ColorAnimation { duration: Config.animationDuration }
@@ -129,7 +139,7 @@ Item {
       ? Config.spacingCompact
       : 0
     rowSpacing: !root.inlineContent && root.labelText !== ""
-      ? Config.spacingCompact
+      ? Config.spacingSmall
       : 0
 
     Text {
@@ -152,9 +162,12 @@ Item {
       text: root.labelText
       opacity: root.labelOpacity
       color: root.labelColor
-      font.family: Config.fontFamily
+      font.family: Config.nothingDesign
+        ? (root.numericLabel ? Config.dotFontFamily : Config.monoFontFamily)
+        : Config.fontFamily
       font.pixelSize: Config.labelSmallSize
-      font.weight: Config.neoBrutalism ? Config.themeFontWeight : Font.Medium
+      font.weight: Config.neoBrutalism || Config.nothingDesign ? Config.themeFontWeight : Font.Medium
+      font.letterSpacing: Config.nothingDesign ? 0.3 : 0
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
       Layout.preferredWidth: implicitWidth
@@ -201,7 +214,6 @@ Item {
     enabled: root.enabled
     cursorShape: Qt.PointingHandCursor
     onClicked: function(mouse) {
-      root.forceActiveFocus()
       root.clicked(mouse)
     }
     onWheel: function(wheelEvent) { root.wheel(wheelEvent) }

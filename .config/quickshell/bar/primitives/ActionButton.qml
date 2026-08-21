@@ -1,4 +1,4 @@
-// Theme facade. The concrete Material 3 and Neo Brutalism implementations
+// Theme facade. Concrete Material 3, Neo Brutalism, and Nothing implementations
 // live in separate folders; existing bar call sites keep this stable type.
 import QtQml
 import QtQuick
@@ -7,6 +7,7 @@ import QtQuick.Layouts
 import "../../config"
 import "../themes/material3" as Material3
 import "../themes/neo_brutalism" as NeoBrutalism
+import "../themes/nothing" as Nothing
 
 Item {
   id: root
@@ -21,7 +22,9 @@ Item {
   readonly property bool filled: root.selected || root.variant === "filled"
   property real iconSize: Config.iconSize + 4
   property color iconColor: root.filled ? Colors.styleAccentText : Colors.fgSurfaceVariant
-  property real radius: Config.neoBrutalism ? 4 : Config.shapeMedium
+  property real radius: Config.nothingDesign
+    ? Config.shapeCompact
+    : (Config.neoBrutalism ? 4 : Config.shapeMedium)
   property color color: {
     var overlay = root.pressed ? Colors.pressOverlay
       : (root.hovered ? Colors.hoverOverlay
@@ -29,11 +32,11 @@ Item {
     var base = root.filled
       ? Colors.styleAccent
       : (root.variant === "quiet"
-        ? (Config.neoBrutalism ? Colors.styleSurface : "transparent")
-        : (Config.neoBrutalism ? Colors.styleSurfaceRaised : Colors.surfaceContainer))
+        ? ((Config.neoBrutalism || Config.nothingDesign) ? Colors.styleSurface : "transparent")
+        : ((Config.neoBrutalism || Config.nothingDesign) ? Colors.styleSurfaceRaised : Colors.surfaceContainer))
     return Qt.tint(base, overlay)
   }
-  property color borderColor: Config.neoBrutalism
+  property color borderColor: Config.neoBrutalism || Config.nothingDesign
     ? Colors.styleOutlineStrong
     : (root.filled || root.variant === "quiet"
       ? "transparent"
@@ -56,7 +59,9 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.neoBrutalism ? neoImplementation : materialImplementation
+    sourceComponent: Config.nothingDesign
+      ? nothingImplementation
+      : (Config.neoBrutalism ? neoImplementation : materialImplementation)
   }
 
   Component {
@@ -67,6 +72,11 @@ Item {
   Component {
     id: neoImplementation
     NeoBrutalism.ActionButton {}
+  }
+
+  Component {
+    id: nothingImplementation
+    Nothing.ActionButton {}
   }
 
   Binding { target: implementation.item; property: "iconLabel"; value: root.iconLabel }

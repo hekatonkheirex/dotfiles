@@ -7,7 +7,7 @@ import "../config"
 StatusIndicator {
   id: root
 
-  accentColor: Colors.primary
+  accentColor: Config.nothingDesign ? Colors.fgSurface : Colors.primary
   accessibleName: "Audio"
   tooltipText: "Audio volume"
 
@@ -71,8 +71,12 @@ StatusIndicator {
     return "volume_up"
   }
   labelText: root.muted ? "Muted" : Math.round(root.volume * 100) + "%"
-  iconColor: root.muted && !root.active ? Colors.error : (root.active ? Colors.fgPrimary : Colors.primary)
-  labelColor: root.muted && !root.active ? Colors.error : (root.active ? Colors.fgPrimary : Colors.primary)
+  iconColor: root.muted && !root.active
+    ? Colors.error
+    : (Config.nothingDesign ? Colors.fgSurface : (root.active ? Colors.fgPrimary : Colors.primary))
+  labelColor: root.muted && !root.active
+    ? Colors.error
+    : (Config.nothingDesign ? Colors.fgSurface : (root.active ? Colors.fgPrimary : Colors.primary))
 
   onWheel: function(wheel) {
     var delta = wheel.angleDelta.y > 0 ? Config.volumeStep / 100 : -Config.volumeStep / 100

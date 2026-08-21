@@ -42,10 +42,16 @@ Item {
     radius: Config.neoBrutalism
       ? Config.shapeMedium
       : (root.horizontal ? height / 2 : width / 2)
-    color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+    color: Config.neoBrutalism || Config.nothingDesign
+      ? Colors.styleSurface
+      : Colors.surfaceContainerHigh
     border.color: Config.neoBrutalism
       ? Colors.styleOutline
-      : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.18)
-    border.width: Config.themeBorderWidth
+      : (Config.nothingDesign
+        ? "transparent"
+        : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.18))
+    border.width: Config.neoBrutalism
+      ? Config.themeBorderWidth
+      : (Config.nothingDesign ? 0 : 1)
   }
 }
