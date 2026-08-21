@@ -43,11 +43,13 @@ Item {
     clip: true
     color: systemTrayAreaRoot.integrated
       ? "transparent"
-      : (Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh)
+      : (Config.neoBrutalism || Config.nothingDesign ? Colors.styleSurface : Colors.surfaceContainerHigh)
     border.color: Config.neoBrutalism
       ? Colors.styleOutline
-      : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
-    border.width: systemTrayAreaRoot.integrated ? 0 : Config.themeBorderWidth
+      : (Config.nothingDesign
+        ? "transparent"
+        : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15))
+    border.width: systemTrayAreaRoot.integrated || Config.nothingDesign ? 0 : Config.themeBorderWidth
   }
 
   GridLayout {
@@ -136,7 +138,7 @@ Item {
           radius: Config.shapeMedium
           color: "transparent"
           border.width: trayIconDelegate.activeFocus ? Config.themeFocusBorderWidth : 0
-          border.color: Config.neoBrutalism ? Colors.styleOutline : Colors.primary
+          border.color: Config.neoBrutalism || Config.nothingDesign ? Colors.styleOutline : Colors.primary
         }
 
         QsMenuAnchor {

@@ -1,10 +1,11 @@
-// Theme facade. The concrete Material 3 and Neo Brutalism switches live in
+// Theme facade. Concrete Material 3, Neo Brutalism, and Nothing switches live in
 // separate folders while this interface remains stable for existing callers.
 import QtQml
 import QtQuick
 import "../config"
 import "themes/material3" as Material3
 import "themes/neo_brutalism" as NeoBrutalism
+import "themes/nothing" as Nothing
 
 Item {
   id: root
@@ -37,7 +38,9 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.neoBrutalism ? neoImplementation : materialImplementation
+    sourceComponent: Config.nothingDesign
+      ? nothingImplementation
+      : (Config.neoBrutalism ? neoImplementation : materialImplementation)
   }
 
   Component {
@@ -48,6 +51,11 @@ Item {
   Component {
     id: neoImplementation
     NeoBrutalism.SwitchControl {}
+  }
+
+  Component {
+    id: nothingImplementation
+    Nothing.SwitchControl {}
   }
 
   Binding { target: implementation.item; property: "checked"; value: root.checked }

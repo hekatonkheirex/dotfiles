@@ -118,7 +118,7 @@ Flickable {
 
       ActionButton {
         Layout.preferredWidth: 80
-        Layout.preferredHeight: Config.neoBrutalism ? 52 : 40
+        Layout.preferredHeight: Config.neoBrutalism ? 52 : (Config.nothingDesign ? 44 : 40)
         iconLabel: "shuffle"
         iconSize: Config.iconSizeSmall
         labelText: "Randomize"
@@ -186,7 +186,9 @@ Flickable {
             id: wallSurface
             anchors.fill: parent
             radius: wallDelegate.cornerRadius
-            color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+            color: Config.neoBrutalism || Config.nothingDesign
+              ? Colors.styleSurface
+              : Colors.surfaceContainerHigh
             clip: true
 
             Image {

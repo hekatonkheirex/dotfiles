@@ -16,7 +16,7 @@ QS_SCHEME_FILE="$HOME/.config/quickshell/colorscheme"
 if [ -z "$UI_STYLE" ]; then
   UI_STYLE=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || echo material3)
 fi
-[ "$UI_STYLE" != "neo-brutalism" ] && UI_STYLE=material3
+[ "$UI_STYLE" != "neo-brutalism" ] && [ "$UI_STYLE" != "nothing" ] && UI_STYLE=material3
 
 if [ -z "$MODE" ] || [ "$MODE" = "auto" ]; then
   MODE=$("$HOME/.local/bin/auto-detect-theme.sh" 2>/dev/null)
@@ -86,7 +86,7 @@ fi
   echo "theme-env.sh -> STARSHIP_CONFIG=$SCHEME-$MODE.toml, FZF from $SCHEME-$MODE.sh"
   echo "open shells will pick this up on their next prompt (mtime-checked precmd hook in .zshrc)"
 
-  # Niri focus-ring border colors
+  # Niri focus-ring colors and style-specific decoration overrides
   if [ "$SCHEME" = "claude" ]; then
     # Claude palette (matches config/Colors.qml cl_l_/cl_d_ primary + outline)
     if [ "$MODE" = "light" ]; then
@@ -125,6 +125,12 @@ fi
       else
         shadow_color="$shadow"
       fi
+    elif [ "$UI_STYLE" = "nothing" ]; then
+      focus_width=1
+      focus_active="$on_surface"
+      focus_inactive="$outline"
+      niri_corner_radius=20
+      layout_gaps=""
     else
       focus_width=2
       focus_active="$primary"
@@ -156,9 +162,69 @@ EOF
         color "$shadow_color"
     }
 EOF
+    elif [ "$UI_STYLE" = "nothing" ]; then
+      cat <<EOF >> "$colors_tmp"
+    shadow {
+        off
+    }
+EOF
     fi
 cat <<EOF >> "$colors_tmp"
 }
+EOF
+    if [ "$UI_STYLE" = "nothing" ]; then
+      cat <<EOF >> "$colors_tmp"
+window-rule {
+    background-effect {
+        blur false
+    }
+}
+layer-rule {
+    background-effect {
+        blur false
+    }
+}
+animations {
+    workspace-switch {
+        duration-ms 250
+        curve "ease-out-quad"
+    }
+    window-open {
+        duration-ms 200
+        curve "ease-out-quad"
+    }
+    window-close {
+        duration-ms 120
+        curve "ease-out-quad"
+    }
+    horizontal-view-movement {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    window-movement {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    window-resize {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    config-notification-open-close {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    screenshot-ui-open {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+    overview-open-close {
+        duration-ms 250
+        curve "ease-out-quad"
+    }
+}
+EOF
+    fi
+cat <<EOF >> "$colors_tmp"
 window-rule {
     geometry-corner-radius $niri_corner_radius
     clip-to-geometry true

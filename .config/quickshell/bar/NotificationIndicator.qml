@@ -7,7 +7,7 @@ StatusIndicator {
 
   property int notificationCount: 0
 
-  accentColor: Colors.primary
+  accentColor: Config.nothingDesign ? Colors.fgSurface : Colors.primary
   inactiveBg: "transparent"
   borderOnHoverOnly: true
   accessibleName: "Notifications"

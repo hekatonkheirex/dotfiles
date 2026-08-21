@@ -18,8 +18,7 @@ Flickable {
     ? Config.themeShadowOffset * 2
     : 0
   readonly property int optionButtonGap: Config.themeOptionGap
-  readonly property int optionButtonHeight: Config.neoBrutalism ? 52 : 40
-  readonly property int optionCardHeight: Config.neoBrutalism ? 116 : 104
+  readonly property int optionButtonHeight: Config.neoBrutalism ? 52 : (Config.nothingDesign ? 44 : 40)
   anchors.fill: parent
   visible: root.currentTab === 2
   clip: true
@@ -113,13 +112,14 @@ Flickable {
 
               Repeater {
                 model: [
-                  { value: "material3", icon: "auto_awesome", label: "Material 3" },
-                  { value: "neo-brutalism", icon: "square", label: "Neo Brutalism" }
+                  { value: "material3", icon: "auto_awesome", label: "Material" },
+                  { value: "neo-brutalism", icon: "square", label: "Neo" },
+                  { value: "nothing", icon: "grid_3x3", label: "Nothing" }
                 ]
 
                 delegate: ActionButton {
                   required property var modelData
-                  width: (parent.width - appearanceTab.optionButtonGap) / 2
+                  width: (parent.width - appearanceTab.optionButtonGap * 2) / 3
                   height: parent.height
                   iconLabel: modelData.icon
                   iconSize: 15
@@ -139,7 +139,9 @@ Flickable {
           Text {
             text: Settings.themeStyle === "neo-brutalism"
               ? "Pastel fills, bold ink borders, and hard offset shadows"
-              : "Rounded surfaces, tonal elevation, and expressive motion"
+              : (Settings.themeStyle === "nothing"
+                ? "Monochrome surfaces, technical grids, and signal accents"
+                : "Rounded surfaces, tonal elevation, and expressive motion")
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
             font.pixelSize: Math.max(8, Config.fontPixelSize - 1)
@@ -225,7 +227,7 @@ Flickable {
           }
 
           ActionButton {
-            Layout.preferredWidth: 90
+            Layout.preferredWidth: 140
             Layout.preferredHeight: Config.neoBrutalism
               ? appearanceTab.optionButtonHeight
               : 40
@@ -256,18 +258,21 @@ Flickable {
         Layout.row: appearanceTab.compactLayout ? 2 : 1
         Layout.fillWidth: true
         Layout.preferredWidth: 0
-        Layout.preferredHeight: appearanceTab.optionCardHeight
+        Layout.preferredHeight: barPlacementColumn.implicitHeight + 32
         radius: Config.shapeLarge
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
         outlineWidth: Config.themeBorderWidth
 
           ColumnLayout {
+            id: barPlacementColumn
             anchors.top: parent.top
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.left: parent.left
+            anchors.right: parent.right
             anchors.topMargin: 16
+            anchors.leftMargin: 16
+            anchors.rightMargin: 16
             spacing: Config.spacingSmall
-            Layout.alignment: Qt.AlignHCenter
 
             Text {
               text: "Bar Placement"
@@ -279,8 +284,7 @@ Flickable {
             }
 
             Item {
-              width: (appearanceTab.compactLayout ? 240 : 280)
-                - appearanceTab.neoControlAllowance
+              Layout.fillWidth: true
               Layout.alignment: Qt.AlignHCenter
               Layout.preferredHeight: appearanceTab.optionButtonHeight
               height: appearanceTab.optionButtonHeight
@@ -321,7 +325,7 @@ Flickable {
         Layout.row: appearanceTab.compactLayout ? 3 : 1
         Layout.fillWidth: true
         Layout.preferredWidth: 0
-        Layout.preferredHeight: appearanceTab.optionCardHeight
+        Layout.preferredHeight: barPlacementColumn.implicitHeight + 32
         radius: Config.shapeLarge
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline

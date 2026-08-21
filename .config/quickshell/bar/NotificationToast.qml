@@ -134,7 +134,9 @@ PanelWindow {
     }
     radius: Config.borderRadius
     activeFocusOnTab: true
-    color: Config.neoBrutalism ? Colors.styleSurface : Colors.surfaceContainerHigh
+    color: Config.neoBrutalism || Config.nothingDesign
+      ? Colors.styleSurface
+      : Colors.surfaceContainerHigh
     border.width: Config.themeBorderWidth
     border.color: Colors.styleOutline
 
@@ -162,7 +164,7 @@ PanelWindow {
         from: 0.8
         to: 1.0
         duration: Config.motionLong
-        easing.type: Easing.OutBack
+        easing.type: Config.themeMotionEasing
       }
       NumberAnimation {
         target: transX
@@ -170,7 +172,7 @@ PanelWindow {
         from: 50
         to: 0
         duration: Config.motionLong
-        easing.type: Easing.OutBack
+        easing.type: Config.themeMotionEasing
       }
       NumberAnimation {
         target: bg
