@@ -69,4 +69,14 @@ chmod 0644 "$temp_file"
 mv -f -- "$temp_file" "$config_file"
 trap - EXIT
 
-printf 'SDDM theme set to %s for %s mode. It will apply on the next greeter start.\n' "$theme_name" "$mode"
+# /etc/sddm.conf.d/*.conf is NOT honored by the installed sddm build (Current=
+# in /etc/sddm.conf wins regardless of drop-in files). Patch the base config's
+# [Theme] Current= line directly so the change actually takes effect.
+main_conf=/etc/sddm.conf
+if [[ -f "$main_conf" ]] && grep -q '^Current=' "$main_conf"; then
+  sed -i "s/^Current=.*/Current=$theme_name/" "$main_conf"
+else
+  printf 'Warning: could not find "Current=" in %s; SDDM base config left unchanged.\n' "$main_conf" >&2
+fi
+
+printf 'SDDM theme set to %s for %s mode.\n' "$theme_name" "$mode"
