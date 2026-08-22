@@ -43,8 +43,8 @@ Item {
     clip: true
     color: systemTrayAreaRoot.integrated
       ? "transparent"
-      : (Config.neoBrutalism || Config.nothingDesign ? Colors.styleSurface : Colors.surfaceContainerHigh)
-    border.color: Config.neoBrutalism
+      : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surfaceContainerHigh)
+    border.color: Config.neoBrutalism || Config.ghostTheme
       ? Colors.styleOutline
       : (Config.nothingDesign
         ? "transparent"
@@ -138,7 +138,7 @@ Item {
           radius: Config.shapeMedium
           color: "transparent"
           border.width: trayIconDelegate.activeFocus ? Config.themeFocusBorderWidth : 0
-          border.color: Config.neoBrutalism || Config.nothingDesign ? Colors.styleOutline : Colors.primary
+          border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Colors.styleOutline : Colors.primary
         }
 
         QsMenuAnchor {

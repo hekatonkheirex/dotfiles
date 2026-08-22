@@ -186,7 +186,7 @@ Flickable {
             id: wallSurface
             anchors.fill: parent
             radius: wallDelegate.cornerRadius
-            color: Config.neoBrutalism || Config.nothingDesign
+            color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
               ? Colors.styleSurface
               : Colors.surfaceContainerHigh
             clip: true

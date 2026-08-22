@@ -39,13 +39,15 @@ Item {
   Rectangle {
     id: surface
     anchors.fill: parent
-    radius: Config.neoBrutalism
-      ? Config.shapeMedium
-      : (root.horizontal ? height / 2 : width / 2)
-    color: Config.neoBrutalism || Config.nothingDesign
+    radius: Config.ghostTheme
+      ? 0
+      : (Config.neoBrutalism
+        ? Config.shapeMedium
+        : (root.horizontal ? height / 2 : width / 2))
+    color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
       ? Colors.styleSurface
       : Colors.surfaceContainerHigh
-    border.color: Config.neoBrutalism
+    border.color: Config.neoBrutalism || Config.ghostTheme
       ? Colors.styleOutline
       : (Config.nothingDesign
         ? "transparent"

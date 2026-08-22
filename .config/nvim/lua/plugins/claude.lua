@@ -14,6 +14,5 @@ return {
   },
   config = function(_, opts)
     require("claude").setup(opts)
-    vim.cmd.colorscheme("claude") -- dark variant; use "claude-light" for light
   end,
 }

@@ -19,11 +19,11 @@ PanelWindow {
   readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
 
   implicitWidth: (wallpaperMode
-    ? Math.min(Config.commandCenterMaxWidth, Math.max(Config.popupWidth, Screen.desktopAvailableWidth - 32))
+    ? Math.min(Config.settingsMaxWidth, Math.max(Config.popupWidth, Screen.desktopAvailableWidth - 32))
     : Config.popupWidth) + neoShadowPadding
   visible: false
   implicitHeight: (wallpaperMode
-    ? Math.min(Config.commandCenterMaxHeight, wallpaperGridHeight + 86)
+    ? Math.min(Config.settingsMaxHeight, wallpaperGridHeight + 86)
     : Math.min(clipItem.implicitHeight + 32, 500)) + neoShadowPadding
 
   Behavior on implicitWidth {
@@ -85,7 +85,7 @@ PanelWindow {
     }
     ListElement {
       kind: "action"
-      actionId: "commandcenter"
+      actionId: "settings"
       name: "Settings"
       comment: "Appearance, account, and general preferences"
       keywords: "settings preferences appearance account general dashboard"
@@ -292,8 +292,8 @@ PanelWindow {
       case "quickmenu":
         runLauncherScript("quickmenu")
         break
-      case "commandcenter":
-        runLauncherScript("commandcenter")
+      case "settings":
+        runLauncherScript("settings")
         break
       case "lock":
         runLauncherScript("lock")
@@ -554,7 +554,7 @@ PanelWindow {
       rightMargin: root.neoShadowPadding
       bottomMargin: root.neoShadowPadding
     }
-    color: Config.neoBrutalism || Config.nothingDesign
+    color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
       ? Colors.styleSurfaceRaised
       : Colors.surfaceContainer
     radius: Config.borderRadius
@@ -688,7 +688,7 @@ PanelWindow {
         delegate: ListItem {
           width: appList.width
           height: 44
-          radius: Config.neoBrutalism || Config.nothingDesign ? Config.shapeMedium : 22
+          radius: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.shapeMedium : 22
           leadingIcon: model.kind === "action" || model.kind === "wallpaper" ? model.icon : ""
           leadingImageSource: model.kind !== "action" && model.kind !== "wallpaper" && model.icon !== ""
             ? "file://" + model.icon : ""
@@ -717,7 +717,7 @@ PanelWindow {
         Layout.preferredHeight: root.wallpaperMode ? root.wallpaperGridHeight : 0
         visible: root.wallpaperMode
         radius: Config.shapeMedium
-        color: Config.nothingDesign ? Colors.styleSurface : Colors.surfaceContainerLow
+        color: Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surfaceContainerLow
         border.color: Colors.styleOutline
         border.width: Config.themeBorderWidth
         clip: true

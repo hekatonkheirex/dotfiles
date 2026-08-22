@@ -31,9 +31,9 @@ Rectangle {
 
   height: 36
   radius: Config.shapeMedium
-  color: Config.neoBrutalism || Config.nothingDesign ? Colors.styleSurface : Colors.surface
+  color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surface
   border.color: input.activeFocus
-    ? (Config.neoBrutalism || Config.nothingDesign ? Colors.styleOutlineStrong : Colors.primary)
+    ? (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Colors.styleOutlineStrong : Colors.primary)
     : Colors.styleOutlineStrong
   border.width: input.activeFocus ? Config.themeFocusBorderWidth : Config.themeBorderWidth
 

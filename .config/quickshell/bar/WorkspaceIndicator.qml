@@ -223,10 +223,12 @@ Item {
           anchors.centerIn: parent
           width: delegateItem.active ? (root.horizontal ? Math.min(32, delegateItem.width - 4) : 10) : (root.horizontal ? (modelData.isOccupied ? 10 : 6) : 4)
           height: delegateItem.active ? (root.horizontal ? 10 : Math.min(32, delegateItem.height - 4)) : (root.horizontal ? 4 : (modelData.isOccupied ? 10 : 6))
-          radius: delegateItem.active ? Math.min(width, height) / 2 : 2
+          radius: Config.ghostTheme
+            ? 0
+            : (delegateItem.active ? Math.min(width, height) / 2 : 2)
 
           color: {
-            if (modelData.isFocused) return Config.nothingDesign ? Colors.fgSurface : Colors.primary
+            if (modelData.isFocused) return Config.nothingDesign ? Colors.fgSurface : Colors.styleAccent
             var base = modelData.isOccupied ? Colors.surfaceContainerHighest : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.2)
             return Qt.tint(base, wsMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
           }
@@ -236,7 +238,7 @@ Item {
               ? Config.themeBorderWidth
               : (modelData.isFocused ? 0 : Config.themeBorderWidth))
           border.color: {
-            if (Config.neoBrutalism) return Colors.styleOutline
+            if (Config.neoBrutalism || Config.ghostTheme) return Colors.styleOutline
             if (Config.nothingDesign) return "transparent"
             if (modelData.isFocused) return "transparent"
             return Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, modelData.isOccupied ? 0.3 : 0.1)

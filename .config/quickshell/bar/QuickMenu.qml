@@ -308,7 +308,7 @@ PanelWindow {
         bottomMargin: root.neoShadowPadding
       }
       radius: Config.borderRadius
-      color: Config.neoBrutalism || Config.nothingDesign
+      color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
         ? Colors.styleSurface
         : Colors.surfaceContainerHigh
       clip: true

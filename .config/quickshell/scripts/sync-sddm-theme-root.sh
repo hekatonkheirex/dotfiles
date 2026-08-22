@@ -7,7 +7,7 @@ if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
 fi
 
 if [[ $# -ne 2 ]]; then
-  printf 'Usage: %s <light|dark> <material3|neo-brutalism|nothing>\n' "$0" >&2
+  printf 'Usage: %s <light|dark> <material3|neo-brutalism|nothing|ghost>\n' "$0" >&2
   exit 2
 fi
 
@@ -34,6 +34,11 @@ case "$ui_style" in
   neo-brutalism)
     theme_name="Neo-Brutalism-SDDM"
     [[ "$mode" == "dark" ]] && theme_name="Neo-Brutalism-Dark-SDDM"
+    ;;
+  ghost)
+    # Ghost recovered one dark-only greeter. Keep it selected for both desktop
+    # modes; the greeter itself owns its fixed HUD palette.
+    theme_name="Ghost-SDDM"
     ;;
   *)
     printf 'Unsupported UI style for SDDM: %s\n' "$ui_style" >&2

@@ -39,7 +39,7 @@ Flickable {
     implicitWidth: keyText.implicitWidth + 16
     implicitHeight: 22
     radius: Config.shapeMedium
-    color: Config.neoBrutalism || Config.nothingDesign
+    color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
       ? Colors.styleControl
       : Colors.surfaceContainerHighest
     border.color: Colors.styleOutline
@@ -52,7 +52,7 @@ Flickable {
       color: Colors.fgSurface
       font.family: Config.fontFamily
       font.pixelSize: Config.textCaptionSize
-      font.weight: Config.neoBrutalism || Config.nothingDesign ? Config.themeFontWeight : Font.Medium
+      font.weight: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.themeFontWeight : Font.Medium
     }
   }
 

@@ -173,7 +173,7 @@ FileView {
     property bool reduceMotion: false
     property real spacingScale: 1.0
     property bool systemShowUptime: true
-    // UI style; Nothing selects fixed Quickshell and GTK palettes while the
+    // UI style; Nothing and Ghost select fixed Quickshell palettes while the
     // other styles can use the wallpaper-derived Matugen roles.
     property string themeStyle: "nothing"
     // 0 = auto, 1 = light, 2 = dark.

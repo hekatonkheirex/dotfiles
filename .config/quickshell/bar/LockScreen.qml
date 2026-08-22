@@ -32,17 +32,21 @@ Item {
   readonly property color textColor: Colors.paletteRole("dark", "on_surface", Colors.d_onSurface)
   readonly property color mutedText: Qt.rgba(textColor.r, textColor.g, textColor.b, 0.7)
   readonly property color errorColor: Colors.destructive
-  readonly property bool flatLockMode: Config.nothingDesign || Config.neoBrutalism
+  readonly property bool flatLockMode: Config.nothingDesign || Config.neoBrutalism || Config.ghostTheme
   readonly property color flatBackground: root.flatLockMode
     ? (Colors.darkMode ? Colors.background : Colors.inverseSurface)
     : Colors.bg
   readonly property real inputRadius: Config.neoBrutalism ? Config.shapeCompact : Config.shapeMedium
-  readonly property color inputFill: Config.neoBrutalism
-    ? Qt.rgba(textColor.r, textColor.g, textColor.b, 0.10)
-    : Qt.rgba(1, 1, 1, 0.12)
-  readonly property color inputBorder: Config.neoBrutalism
-    ? Qt.rgba(textColor.r, textColor.g, textColor.b, 0.72)
-    : Qt.rgba(1, 1, 1, 0.2)
+  readonly property color inputFill: Config.ghostTheme
+    ? Qt.rgba(Colors.ghostCyan.r, Colors.ghostCyan.g, Colors.ghostCyan.b, 0.10)
+    : (Config.neoBrutalism
+      ? Qt.rgba(textColor.r, textColor.g, textColor.b, 0.10)
+      : Qt.rgba(1, 1, 1, 0.12))
+  readonly property color inputBorder: Config.ghostTheme
+    ? Colors.styleOutlineStrong
+    : (Config.neoBrutalism
+      ? Qt.rgba(textColor.r, textColor.g, textColor.b, 0.72)
+      : Qt.rgba(1, 1, 1, 0.2))
 
   readonly property string home: Quickshell.env("HOME")
   property date now: new Date()
