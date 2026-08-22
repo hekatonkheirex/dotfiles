@@ -15,13 +15,8 @@ layout {
     // Active and inactive colors are dynamically managed in colors.kdl
   }
   border {
-    off 
-    width 4
-    active-color "#ffc87f"
-    inactive-color "#505050"
-    urgent-color "#9b0000"
-    // active-gradient from="#e5989b" to="#ffb4a2" angle=45 relative-to="workspace-view" in="oklch longer hue"
-    // inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
+    off
+    // Border width and colors are dynamically managed in colors.kdl.
   }
   shadow {
     on

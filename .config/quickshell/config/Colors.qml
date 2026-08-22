@@ -1,8 +1,9 @@
-// Material You semantic palette backed by Matugen's wallpaper-derived cache.
+// Material 3 semantic palette with a fixed Nothing override.
 //
-// The hardcoded roles below remain deterministic fallbacks for first boot,
-// missing cache files, and generator failures. Matugen is the active source
-// whenever ~/.cache/matugen/current_palette.json contains both modes.
+// Material 3 and Neo Brutalism read Matugen's wallpaper-derived cache. The
+// Nothing style intentionally uses the authored light/dark palettes below so
+// its Quickshell surfaces do not change with the wallpaper. Desktop themes and
+// other Matugen consumers remain outside this local override.
 pragma Singleton
 import QtQml
 import QtQuick
@@ -54,10 +55,106 @@ QtObject {
   property var lightPalette: ({})
   property var darkPalette: ({})
   readonly property bool dynamicPaletteLoaded: Object.keys(lightPalette).length > 0 && Object.keys(darkPalette).length > 0
-  readonly property string paletteSource: dynamicPaletteLoaded ? "matugen" : "fallback"
+
+  // 0 = auto, 1 = light, 2 = dark. Settings is the persisted owner; this
+  // compatibility property keeps existing color bindings stable.
+  property int themePreference: Settings.themePreference
+  property bool systemDark: false
+  property bool darkMode: themePreference === 1 ? false : (themePreference === 2 ? true : systemDark)
+
+  readonly property bool nothingDesign: Settings.themeStyle === "nothing"
+  readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
+  readonly property string paletteSource: nothingDesign
+    ? "nothing"
+    : (dynamicPaletteLoaded ? "matugen" : "fallback")
+
+  // Nothing's Quickshell palette is deliberately stable and wallpaper-neutral.
+  // Red is the primary product signal; base surfaces and text stay neutral so
+  // the rounded controls do not inherit a wallpaper tint.
+  readonly property var nothingLightPalette: ({
+    background: "#f6f6f4",
+    surface: "#f6f6f4",
+    surface_dim: "#d9d9d6",
+    surface_bright: "#ffffff",
+    surface_container_lowest: "#ffffff",
+    surface_container_low: "#f0f0ee",
+    surface_container: "#e8e8e5",
+    surface_container_high: "#dfdfdc",
+    surface_container_highest: "#d4d4d1",
+    surface_variant: "#e2e2df",
+    primary: "#d71920",
+    on_primary: "#ffffff",
+    primary_container: "#f7d9d9",
+    on_primary_container: "#410006",
+    secondary: "#5f6060",
+    on_secondary: "#ffffff",
+    secondary_container: "#ddddda",
+    on_secondary_container: "#1b1b1a",
+    tertiary: "#757575",
+    on_tertiary: "#ffffff",
+    tertiary_container: "#e5e5e2",
+    on_tertiary_container: "#202020",
+    error: "#d71920",
+    on_error: "#ffffff",
+    error_container: "#f7d9d9",
+    on_error_container: "#410006",
+    on_background: "#1a1a1a",
+    on_surface: "#1a1a1a",
+    on_surface_variant: "#616161",
+    outline: "#858585",
+    outline_variant: "#c9c9c6",
+    inverse_surface: "#2b2b2a",
+    inverse_on_surface: "#f5f5f3",
+    inverse_primary: "#ffb3b3",
+    surface_tint: "#d71920",
+    shadow: "#000000",
+    scrim: "#000000"
+  })
+
+  readonly property var nothingDarkPalette: ({
+    background: "#151515",
+    surface: "#151515",
+    surface_dim: "#101010",
+    surface_bright: "#3a3a3a",
+    surface_container_lowest: "#0d0d0d",
+    surface_container_low: "#1d1d1d",
+    surface_container: "#252525",
+    surface_container_high: "#2e2e2e",
+    surface_container_highest: "#363636",
+    surface_variant: "#3b3b3b",
+    primary: "#d71920",
+    on_primary: "#ffffff",
+    primary_container: "#62131a",
+    on_primary_container: "#ffdada",
+    secondary: "#b8b8b5",
+    on_secondary: "#282828",
+    secondary_container: "#454545",
+    on_secondary_container: "#e6e6e3",
+    tertiary: "#a0a09d",
+    on_tertiary: "#2b2b2b",
+    tertiary_container: "#3f3f3d",
+    on_tertiary_container: "#e5e5e2",
+    error: "#d71920",
+    on_error: "#ffffff",
+    error_container: "#62131a",
+    on_error_container: "#ffdada",
+    on_background: "#f2f2f0",
+    on_surface: "#f2f2f0",
+    on_surface_variant: "#b8b8b5",
+    outline: "#888884",
+    outline_variant: "#4a4a48",
+    inverse_surface: "#f2f2f0",
+    inverse_on_surface: "#2a2a28",
+    inverse_primary: "#a90012",
+    surface_tint: "#d71920",
+    shadow: "#000000",
+    scrim: "#000000"
+  })
 
   function paletteRole(mode, key, fallback) {
-    var palette = mode === "dark" ? darkPalette : lightPalette
+    var palette = nothingDesign
+      ? (mode === "dark" ? nothingDarkPalette : nothingLightPalette)
+      : (mode === "dark" ? darkPalette : lightPalette)
     var value = palette ? palette[key] : null
     return typeof value === "string" && value.length > 0 ? value : fallback
   }
@@ -86,12 +183,6 @@ QtObject {
     onLoaded: colors.loadMatugenPalette()
     onFileChanged: colors.loadMatugenPalette()
   }
-
-  // 0 = auto, 1 = light, 2 = dark. Settings is the persisted owner; this
-  // compatibility property keeps existing color bindings stable.
-  property int themePreference: Settings.themePreference
-  property bool systemDark: false
-  property bool darkMode: themePreference === 1 ? false : (themePreference === 2 ? true : systemDark)
 
   // Light M3 Expressive roles.
   readonly property color l_background:                 "#fff8f7"
@@ -167,8 +258,8 @@ QtObject {
   readonly property color d_shadow:                    "#000000"
   readonly property color d_scrim:                     "#000000"
 
-  // Resolved surface and content roles. Matugen supplies the active values;
-  // the authored light/dark roles remain the safe fallback.
+  // Resolved surface and content roles. Nothing selects its fixed palette
+  // through paletteRole(); other styles use Matugen with authored fallbacks.
   property color background:                 paletteRole(darkMode ? "dark" : "light", "background", darkMode ? d_background : l_background)
   property color bg:                         background
   property color surface:                   paletteRole(darkMode ? "dark" : "light", "surface", darkMode ? d_surface : l_surface)
@@ -208,13 +299,11 @@ QtObject {
   property color shadow:                  paletteRole(darkMode ? "dark" : "light", "shadow", darkMode ? d_shadow : l_shadow)
   property color scrim:                   paletteRole(darkMode ? "dark" : "light", "scrim", darkMode ? d_scrim : l_scrim)
 
-  // UI-style accents. These select how components use the active palette;
-  // they do not replace or regenerate Matugen's color roles.
-  readonly property bool nothingDesign: Settings.themeStyle === "nothing"
-  readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
+  // UI-style accents. These select how components use the active local roles;
+  // they do not replace or regenerate Matugen's external color outputs.
   // Neo and Nothing use the palette's on-surface role as their high-contrast
-  // ink. Nothing softens secondary rules while keeping its primary grid lines
-  // crisp in both light and dark modes.
+  // ink. Nothing softens secondary rules while keeping its primary rules crisp
+  // in both light and dark modes.
   readonly property color styleInk: neoBrutalism || nothingDesign
     ? fgSurface
     : outline
