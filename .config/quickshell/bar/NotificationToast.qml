@@ -134,7 +134,7 @@ PanelWindow {
     }
     radius: Config.borderRadius
     activeFocusOnTab: true
-    color: Config.neoBrutalism || Config.nothingDesign
+    color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
       ? Colors.styleSurface
       : Colors.surfaceContainerHigh
     border.width: Config.themeBorderWidth

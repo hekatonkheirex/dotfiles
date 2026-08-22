@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import "../config"
 import "primitives"
+import "themes/ghost" as Ghost
 
 PanelWindow {
   id: root
@@ -89,13 +90,13 @@ PanelWindow {
     return menuIndicator ? menuIndicator.mapToItem(null, 0, 0).x + menuIndicator.width / 2 : 0
   }
 
-  function getCommandCenterX() {
+  function getSettingsX() {
     if (!root.horizontal) return 0
-    return commandCenterIndicator ? commandCenterIndicator.mapToItem(null, 0, 0).x + commandCenterIndicator.width / 2 : getMenuIndicatorX()
+    return settingsIndicator ? settingsIndicator.mapToItem(null, 0, 0).x + settingsIndicator.width / 2 : getMenuIndicatorX()
   }
 
-  function getCommandCenterY() {
-    return commandCenterIndicator ? commandCenterIndicator.mapToItem(null, 0, 0).y : getMenuIndicatorY()
+  function getSettingsY() {
+    return settingsIndicator ? settingsIndicator.mapToItem(null, 0, 0).y : getMenuIndicatorY()
   }
 
   function getMenuIndicatorY() {
@@ -122,13 +123,18 @@ PanelWindow {
   property bool fullBar: false
   readonly property bool pillsBar: !root.fullBar
   readonly property bool horizontalPillMode: root.horizontal && root.pillsBar
+  readonly property bool ghostHorizontalOneLiner: Config.ghostTheme && root.horizontal
+  readonly property bool horizontalInlineContent: root.horizontalPillMode
+    || root.ghostHorizontalOneLiner
+  readonly property bool clockSecondaryVisible: !root.horizontalPillMode
+    && !root.horizontal
   // Give vertical Neo pills a little more room for rotated labels and their
   // hard shadow without changing Material 3 or full-bar geometry. Nothing's
   // dot-matrix/mono labels (e.g. "100%") need a bit more width than the bar
   // is thick, or they clip against the pill's rounded sides.
   readonly property int verticalPillPanelWidth: !root.horizontal
     && root.pillsBar
-    && (Config.neoBrutalism || Config.nothingDesign)
+    && (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme)
     ? Config.barWidth + (Config.neoBrutalism ? 2 : 18)
     : Config.barWidth
   // Keep Neo pills aligned with the visible edge of focused Niri windows.
@@ -157,7 +163,7 @@ PanelWindow {
     ? Config.neoFullBarInset
     : 0
   readonly property int normalPanelExtent: root.fullBar
-    ? Config.barWidth + 16
+    ? (Config.ghostTheme ? Config.barWidth : Config.barWidth + 16)
     : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
   // The panel must include the Neo inset and hard shadow, otherwise the
   // shadow is clipped at the docked edge even though the surface is aligned.
@@ -169,6 +175,40 @@ PanelWindow {
     && Config.neoBrutalism
     ? root.verticalPillPanelWidth + Config.spacingSmall
     : Math.max(Config.clockVerticalHeight, root.verticalPillLength)
+
+  // The historical Ghost bar kept a bounded negative-space region on the
+  // bar axis, centered whenever the surrounding content leaves enough room.
+  // The current GridLayout still owns the content flow; these coordinates
+  // only define the Ghost surface cutout and its decorative signal field.
+  readonly property real ghostGapAxisLength: root.horizontal ? barBg.width : barBg.height
+  readonly property real ghostGapAvailableStart: gapSpacer
+    ? (root.horizontal ? layout.x + gapSpacer.x : layout.y + gapSpacer.y)
+    : 0
+  readonly property real ghostGapAvailableEnd: root.ghostGapAvailableStart
+    + (gapSpacer ? (root.horizontal ? gapSpacer.width : gapSpacer.height) : 0)
+  readonly property real ghostGapAvailableLength: Math.max(
+    0,
+    root.ghostGapAvailableEnd - root.ghostGapAvailableStart
+  )
+  readonly property real ghostGapCenter: root.ghostGapAxisLength / 2
+  readonly property real ghostGapCenterClearance: Math.min(
+    root.ghostGapCenter - root.ghostGapAvailableStart,
+    root.ghostGapAvailableEnd - root.ghostGapCenter
+  )
+  readonly property real ghostGapLength: Math.max(
+    0,
+    Math.min(
+      root.horizontal ? 600 : 300,
+      root.ghostGapAvailableLength,
+      2 * root.ghostGapCenterClearance
+    )
+  )
+  readonly property real ghostGapStart: root.ghostGapCenter - root.ghostGapLength / 2
+  readonly property real ghostGapEnd: root.ghostGapCenter + root.ghostGapLength / 2
+  readonly property bool ghostCentralGap: root.fullBar
+    && Config.ghostTheme
+    && root.ghostGapLength > 0
+
   implicitHeight: root.horizontal ? root.fullBarPanelExtent : root.normalPanelExtent
   implicitWidth: root.horizontal ? root.normalPanelExtent : root.fullBarPanelExtent
 
@@ -216,11 +256,24 @@ PanelWindow {
           ? parent.height - root.fullBarInset * 2
           : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress)
       radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + Config.barRadius * root.expandProgress
-      color: root.fullBar
-        ? ((Config.neoBrutalism || Config.nothingDesign) ? Colors.styleSurface : Colors.bg)
+      color: root.fullBar && !root.ghostCentralGap
+        ? ((Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme) ? Colors.styleSurface : Colors.bg)
         : "transparent"
       border.width: root.fullBar && Config.neoBrutalism ? Config.themeBorderWidth : 0
       border.color: Colors.styleOutline
+
+      // Historical Ghost chrome: the panel edges step into the transparent
+      // center instead of ending on a straight, synthetic cut line.
+      Ghost.GapTransition {
+        visible: root.ghostCentralGap
+        width: root.horizontal ? parent.width : parent.height
+        height: root.horizontal ? parent.height : parent.width
+        anchors.centerIn: parent
+        rotation: root.horizontal ? 0 : 90
+        panelColor: Colors.styleSurface
+        gapStart: root.ghostGapStart
+        gapEnd: root.ghostGapEnd
+      }
 
       // Square-off helper for the docked edge's near corner
       Rectangle {
@@ -244,6 +297,36 @@ PanelWindow {
           : barBg.height - height
         color: barBg.color
         visible: width > 0 && root.fullBarInset === 0
+      }
+
+      Item {
+        id: ghostGapRegion
+        visible: root.ghostCentralGap
+        x: root.horizontal ? root.ghostGapStart : 0
+        y: root.horizontal ? 0 : root.ghostGapStart
+        width: root.horizontal ? root.ghostGapLength : barBg.width
+        height: root.horizontal ? barBg.height : root.ghostGapLength
+        clip: true
+
+        Ghost.GapGlitch {
+          width: root.horizontal ? parent.width : parent.height
+          height: root.horizontal ? parent.height : parent.width
+          anchors.centerIn: parent
+          rotation: root.horizontal ? 0 : 90
+          colors_: Colors
+          motionEnabled: root.visible && !Config.reducedMotion
+        }
+
+        Ghost.GapTrace {
+          visible: root.horizontal
+          colors_: Colors
+          config: Config
+          horizontal: true
+          active: root.openPopup !== "" || mediaIndicator.mprisStatus === "Playing"
+          bridgeGap: root.openPopup === ""
+          gapStart: 0
+          gapEnd: width
+        }
       }
 
       MouseArea {
@@ -344,7 +427,7 @@ PanelWindow {
           property string programText: wsIndicator.focusedWindowProgram
           property string detailText: wsIndicator.focusedWindowInfo
           readonly property bool hasWindowInfo: programText !== "" || detailText !== ""
-          readonly property real windowInfoTextWidth: root.horizontalPillMode
+          readonly property real windowInfoTextWidth: root.horizontalInlineContent
             ? focusedWindowProgramText.implicitWidth
               + (programText !== "" && detailText !== "" ? Config.spacingCompact : 0)
               + focusedWindowDetailText.implicitWidth
@@ -393,9 +476,9 @@ PanelWindow {
           GridLayout {
             id: focusedWindowContent
             anchors.centerIn: parent
-            columns: root.horizontalPillMode ? 2 : 1
-            rows: root.horizontalPillMode ? 1 : 2
-            flow: root.horizontalPillMode
+            columns: root.horizontalInlineContent ? 2 : 1
+            rows: root.horizontalInlineContent ? 1 : 2
+            flow: root.horizontalInlineContent
               ? GridLayout.LeftToRight
               : GridLayout.TopToBottom
             width: root.horizontal
@@ -413,8 +496,8 @@ PanelWindow {
                   ? Config.spacingCompact
                   : 0)
             rotation: root.horizontal ? 0 : 90
-            columnSpacing: root.horizontalPillMode ? Config.spacingCompact : 0
-            rowSpacing: root.horizontalPillMode ? 0 : 0
+            columnSpacing: root.horizontalInlineContent ? Config.spacingCompact : 0
+            rowSpacing: root.horizontalInlineContent ? 0 : 0
 
             Text {
               id: focusedWindowProgramText
@@ -453,17 +536,47 @@ PanelWindow {
         }
 
         Item {
-          Layout.fillWidth: root.horizontal
-          Layout.fillHeight: !root.horizontal
-          Layout.preferredWidth: 0
-          Layout.preferredHeight: 0
+          id: gapSpacer
+          // The vertical layout also needs a full-width gap region. Without
+          // this, the spacer gets a zero-width column and the rotated Ghost
+          // field is clipped away even though the height gap exists.
+          Layout.fillWidth: true
+          Layout.fillHeight: true
+          Layout.preferredWidth: root.horizontal ? 0 : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : 0
           visible: root.expandProgress > 0
+          clip: true
+
+          // Restore the historical Ghost gap treatment inside the current
+          // flexible spacer. The spacer remains layout-owned; the effect is
+          // strictly decorative and cannot change popup geometry.
+          Ghost.GapGlitch {
+            id: ghostGapGlitch
+            visible: Config.ghostTheme && !root.fullBar
+            width: root.horizontal ? parent.width : parent.height
+            height: root.horizontal ? parent.height : parent.width
+            anchors.centerIn: parent
+            rotation: root.horizontal ? 0 : 90
+            colors_: Colors
+            motionEnabled: root.visible && !Config.reducedMotion
+          }
+
+          Ghost.GapTrace {
+            visible: Config.ghostTheme && !root.fullBar && root.horizontal
+            colors_: Colors
+            config: Config
+            horizontal: true
+            active: root.openPopup !== "" || mediaIndicator.mprisStatus === "Playing"
+            bridgeGap: root.openPopup === ""
+            gapStart: 0
+            gapEnd: width
+          }
         }
 
         Item {
           id: audioWrapper
           Layout.preferredWidth: root.horizontal
-            ? (root.horizontalPillMode
+            ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, audioIndicator.horizontalContentWidth)
               : root.wSize) * root.expandProgress
             : parent.width
@@ -489,7 +602,7 @@ PanelWindow {
             anchors.fill: parent
             active: root.openPopup === "audio"
             horizontal: root.horizontal
-            inlineContent: root.horizontalPillMode
+            inlineContent: root.horizontalInlineContent
             integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("audio", audioIndicator)
@@ -500,7 +613,7 @@ PanelWindow {
         Item {
           id: brightnessWrapper
           Layout.preferredWidth: root.horizontal
-            ? (root.horizontalPillMode
+            ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, brightnessIndicator.horizontalContentWidth)
               : root.wSize) * root.expandProgress
             : parent.width
@@ -526,7 +639,7 @@ PanelWindow {
             anchors.fill: parent
             active: root.openPopup === "brightness"
             horizontal: root.horizontal
-            inlineContent: root.horizontalPillMode
+            inlineContent: root.horizontalInlineContent
             integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("brightness", brightnessIndicator)
@@ -537,7 +650,7 @@ PanelWindow {
         Item {
           id: mediaWrapper
           Layout.preferredWidth: root.horizontal
-            ? (root.horizontalPillMode
+            ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, mediaIndicator.horizontalContentWidth)
               : root.wSize) * root.expandProgress
             : parent.width
@@ -563,7 +676,7 @@ PanelWindow {
             anchors.fill: parent
             active: root.openPopup === "media"
             horizontal: root.horizontal
-            inlineContent: root.horizontalPillMode
+            inlineContent: root.horizontalInlineContent
             integrated: root.fullBar
             onClicked: function(mouse) {
               if (Settings.mediaControlsAlwaysVisible) {
@@ -578,7 +691,7 @@ PanelWindow {
         Item {
           id: weatherWrapper
           Layout.preferredWidth: root.horizontal
-            ? (root.horizontalPillMode
+            ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, weatherIndicator.horizontalContentWidth)
               : root.wSize) * root.expandProgress
             : parent.width
@@ -604,7 +717,7 @@ PanelWindow {
             anchors.fill: parent
             active: root.openPopup === "weather"
             horizontal: root.horizontal
-            inlineContent: root.horizontalPillMode
+            inlineContent: root.horizontalInlineContent
             integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("weather", weatherIndicator)
@@ -615,7 +728,7 @@ PanelWindow {
         Item {
           id: batteryWrapper
           Layout.preferredWidth: root.horizontal
-            ? (root.horizontalPillMode
+            ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, batteryIndicator.horizontalContentWidth)
               : root.wSize) * root.expandProgress
             : parent.width
@@ -641,7 +754,7 @@ PanelWindow {
             anchors.fill: parent
             active: root.openPopup === "battery"
             horizontal: root.horizontal
-            inlineContent: root.horizontalPillMode
+            inlineContent: root.horizontalInlineContent
             integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("battery", batteryIndicator)
@@ -688,7 +801,10 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal
             ? Math.max(
                 root.wSize * 1.75,
-                root.pillsBar ? root.horizontalPillLength : 0
+                root.pillsBar ? root.horizontalPillLength : 0,
+                root.ghostHorizontalOneLiner
+                  ? clockContent.implicitWidth + Config.spacingSmall * 2
+                  : 0
               ) * root.expandProgress
             : parent.width
           Layout.preferredHeight: root.horizontal
@@ -726,17 +842,28 @@ PanelWindow {
               }
             }
 
-            Column {
-              anchors.horizontalCenter: parent.horizontalCenter
-              anchors.verticalCenter: parent.verticalCenter
+            GridLayout {
+              id: clockContent
+              anchors.centerIn: parent
+              columns: root.ghostHorizontalOneLiner && root.clockSecondaryVisible ? 2 : 1
+              rows: root.ghostHorizontalOneLiner
+                ? 1
+                : (root.clockSecondaryVisible ? 2 : 1)
+              flow: root.ghostHorizontalOneLiner && root.clockSecondaryVisible
+                ? GridLayout.LeftToRight
+                : GridLayout.TopToBottom
               // Ndot's line-height metrics reserve descent space below each
               // digit row that the visible glyphs never use, which skews
               // Qt's naive vertical centering low. Nudge up to compensate.
               anchors.verticalCenterOffset: Config.nothingDesign && !root.horizontalPillMode ? -4 : 0
-              spacing: root.horizontalPillMode ? 0 : Config.clockLineSpacing
+              columnSpacing: root.ghostHorizontalOneLiner && root.clockSecondaryVisible
+                ? Config.spacingCompact
+                : 0
+              rowSpacing: root.clockSecondaryVisible && !root.ghostHorizontalOneLiner
+                ? Config.clockLineSpacing
+                : 0
 
-            Text {
-              anchors.horizontalCenter: parent.horizontalCenter
+              Text {
                 text: root.horizontal
                   ? root.displayNow().toLocaleString(Qt.locale(), root.clockFormat())
                   : root.displayNow().toLocaleString(Qt.locale(), Settings.clock24h ? "HH" : "h")
@@ -744,11 +871,11 @@ PanelWindow {
                 font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
                 font.pixelSize: Config.clockPrimarySize
                 font.weight: Config.nothingDesign ? Font.Normal : Font.Bold
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
               }
 
               Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                visible: !root.horizontalPillMode
+                visible: root.clockSecondaryVisible
                 text: root.horizontal
                   ? root.displayNow().toLocaleDateString(Qt.locale(), "MMM dd")
                   : root.displayNow().toLocaleString(Qt.locale(), "mm")
@@ -760,6 +887,7 @@ PanelWindow {
                   ? Config.clockSecondarySize
                   : Config.clockPrimarySize
                 font.weight: root.horizontal ? Font.Medium : Font.Bold
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
               }
             }
 
@@ -768,7 +896,7 @@ PanelWindow {
               radius: Config.shapeMedium
               color: "transparent"
               border.width: clockWidget.activeFocus ? Config.themeFocusBorderWidth : 0
-              border.color: Config.neoBrutalism || Config.nothingDesign
+              border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
                 ? Colors.styleOutline
                 : Colors.primary
             }
@@ -820,7 +948,7 @@ PanelWindow {
         }
 
         Item {
-          id: commandCenterWrapper
+          id: settingsWrapper
           Layout.preferredWidth: root.horizontal
             ? (root.pillsBar ? root.horizontalPillLength : root.wSize) * root.expandProgress
             : parent.width
@@ -828,7 +956,7 @@ PanelWindow {
             ? parent.height
             : Math.max(
                 root.pillsBar ? root.verticalPillLength : 0,
-                commandCenterIndicator.verticalLayoutHeight
+                settingsIndicator.verticalLayoutHeight
               ) * root.expandProgress
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
@@ -842,15 +970,15 @@ PanelWindow {
           }
 
           MenuIndicator {
-            id: commandCenterIndicator
+            id: settingsIndicator
             anchors.fill: parent
             iconLabel: "settings"
             accessibleName: "Settings"
-            active: root.openPopup === "commandcenter"
+            active: root.openPopup === "settings"
             horizontal: root.horizontal
             integrated: root.fullBar
             onClicked: function(mouse) {
-              root.togglePopup("commandcenter", commandCenterIndicator)
+              root.togglePopup("settings", settingsIndicator)
             }
           }
         }

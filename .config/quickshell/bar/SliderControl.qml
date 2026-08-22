@@ -1,11 +1,12 @@
-// Theme facade. Concrete Material 3, Neo Brutalism, and Nothing sliders live in
-// separate folders while this interface remains stable for existing callers.
+// Theme facade. Concrete Material 3, Neo Brutalism, Nothing, and Ghost sliders
+// live in separate folders while this interface remains stable for callers.
 import QtQml
 import QtQuick
 import "../config"
 import "themes/material3" as Material3
 import "themes/neo_brutalism" as NeoBrutalism
 import "themes/nothing" as Nothing
+import "themes/ghost" as Ghost
 
 Item {
   id: root
@@ -42,9 +43,11 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.nothingDesign
-      ? nothingImplementation
-      : (Config.neoBrutalism ? neoImplementation : materialImplementation)
+    sourceComponent: Config.ghostTheme
+      ? ghostImplementation
+      : (Config.nothingDesign
+        ? nothingImplementation
+        : (Config.neoBrutalism ? neoImplementation : materialImplementation))
   }
 
   Component {
@@ -60,6 +63,11 @@ Item {
   Component {
     id: nothingImplementation
     Nothing.SliderControl {}
+  }
+
+  Component {
+    id: ghostImplementation
+    Ghost.SliderControl {}
   }
 
   Binding { target: implementation.item; property: "value"; value: root.value }

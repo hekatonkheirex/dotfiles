@@ -17,7 +17,7 @@ This repository contains my personal configurations, customized scripts, and sys
 
 - **Window Manager** • Main: [Niri](https://niri-wm.github.io/niri/) (Scroll-stacking Wayland compositor)
 - **Desktop Shell & Panels** • Custom [Quickshell](https://quickshell.outfoxxed.me/) (QML-based status bar, widgets, volume/brightness popups, notifications, and desktop dashboard)
-- **Theme Suite** • Wallpaper-driven Material 3 Expressive desktop themes with a Quickshell style switch between Material 3 and Neo Brutalism
+- **Theme Suite** • Four selectable Quickshell UI styles: Material 3, Neo Brutalism, Nothing, and Ghost, with shared desktop synchronization
 - **Terminal** • [Kitty](https://sw.kovidgoyal.net/kitty/) configured with expressive dynamic themes
 - **Shell** • Zsh with [zinit](https://github.com/zdharma-continuum/zinit) and [Starship](https://github.com/starship/starship) prompt
 - **File Manager** • Gnome Nautilus
@@ -65,10 +65,10 @@ To glue the desktop environment together, several custom scripts handle system t
 Quickshell's semantic colors are wallpaper-derived through **matugen**. The authored light and dark roles in `config/Colors.qml` are deterministic first-boot fallbacks; they are not the primary palette source.
 
 - **[`matugen-and-cache.sh`](.local/bin/matugen-and-cache.sh)**: Runs `matugen --type scheme-fidelity --prefer saturation`, caches both light and dark semantic roles in `~/.cache/matugen/current_palette.json` under `scheme-expressive`, and regenerates the Quickshell `Colors.qml` template.
-- **[`generate-all-themes.sh`](.local/bin/generate-all-themes.sh)**: Regenerates the GTK, icon, SDDM, and Kvantum outputs from the cached palette. The icon, SDDM, and Kvantum generators run in parallel; the GTK generator runs afterward, then the active desktop mode is refreshed.
+- **[`generate-all-themes.sh`](.local/bin/generate-all-themes.sh)**: Regenerates the dynamic Material 3 and Neo GTK, icon, SDDM, and Kvantum outputs from the cached palette. The fixed Nothing and Ghost assets are installed by the UI suite installer.
 - **[`sync-theme-mode.sh`](.local/bin/sync-theme-mode.sh)**: Applies `light`, `dark`, or `auto` mode across GNOME settings, GTK 3/4, Libadwaita CSS links, Kvantum, Qt6ct, icons, Kitty, and Niri.
 - **[`auto-detect-theme.sh`](.local/bin/auto-detect-theme.sh)**: Reads the current wallpaper from the awww cache, measures its mean brightness with ImageMagick, and returns `light` or `dark` for automatic mode.
-- **[`sync-terminal-theme.sh`](.local/bin/sync-terminal-theme.sh)**: Synchronizes Kitty, Starship/fzf, and generated Niri decoration colors. It accepts the `matugen` or `claude` terminal palette selector and the Quickshell `material3` or `neo-brutalism` UI style.
+- **[`sync-terminal-theme.sh`](.local/bin/sync-terminal-theme.sh)**: Synchronizes Kitty, Starship/fzf, btop, Neovim state, and generated Niri decoration colors. It accepts the `matugen` or `claude` terminal palette selector and the Quickshell `material3`, `neo-brutalism`, `nothing`, or `ghost` UI style.
 
 The theming flow:
 1. [`apply-wallpaper.sh`](.config/quickshell/scripts/apply-wallpaper.sh) applies the selected wallpaper with `awww` first.
@@ -79,7 +79,7 @@ The theming flow:
 
 The tracked [`colorscheme`](.config/quickshell/colorscheme) is currently `matugen`. `claude` is available as a fixed alternate palette for Kitty and Niri synchronization; Quickshell itself continues to consume the Matugen role cache. [`apply-accent-color.sh`](.config/quickshell/scripts/apply-accent-color.sh) remains only as a compatibility entry point and does not provide runtime accent editing.
 
-Theme changes are runtime settings now; switching between Material 3 and Neo Brutalism or between light, dark, and automatic mode does not require a yadm branch checkout.
+Theme changes are runtime settings now; switching between Material 3, Neo Brutalism, Nothing, or Ghost, or between light, dark, and automatic mode, does not require a yadm branch checkout.
 
 ### 🔋 Thinkpad / Laptop Optimizations (`.config/thinkpad/`)
 
@@ -97,7 +97,7 @@ System-level rules located in `.config/thinkpad` automate power management, secu
 
 ## 🚀 Installation & Bootstrapping
 
-We provide an interactive installer that checks package dependencies, configures an AUR helper, installs standard/AUR packages, and copies system configurations.
+We provide an interactive installer that checks package dependencies, configures an AUR helper, installs standard/AUR packages, copies system configurations, and can clone/build/install the four UI style families without storing generated theme assets in yadm.
 
 ### Method A: YADM (Recommended)
 
@@ -115,6 +115,8 @@ We provide an interactive installer that checks package dependencies, configures
     ```bash
     yadm bootstrap
     ```
+
+   The final bootstrap step offers to clone the theme sources into `~/Projects`, run their existing installers, install the system SDDM themes and bridge, and synchronize the active desktop. The source projects and generated outputs remain outside yadm.
 
 ### Method B: Standard Git Clone
 

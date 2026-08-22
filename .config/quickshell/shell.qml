@@ -74,7 +74,10 @@ ShellRoot {
   }
 
   property string barPosition: "top"
-  readonly property bool isHorizontal: shell.barPosition === "top" || shell.barPosition === "bottom"
+  // Horizontal placements are rendered as one left-to-right row by Bar.qml.
+  // Keep Ghost's selected edge intact instead of forcing every Ghost bar to top.
+  readonly property bool isHorizontal: shell.barPosition === "top"
+    || shell.barPosition === "bottom"
   property bool fullBar: Settings.fullBar
 
   function normalizeBarPosition(value) {
@@ -253,13 +256,18 @@ ShellRoot {
       bar.openPopup = bar.openPopup === "quickmenu" ? "" : "quickmenu"
     }
 
-    function commandcenter() {
+    function settings() {
       if (bar.horizontal) {
-        bar.popupAnchorX = bar.getCommandCenterX()
+        bar.popupAnchorX = bar.getSettingsX()
       } else {
-        bar.popupAnchorY = bar.getCommandCenterY()
+        bar.popupAnchorY = bar.getSettingsY()
       }
-      bar.openPopup = bar.openPopup === "commandcenter" ? "" : "commandcenter"
+      bar.openPopup = bar.openPopup === "settings" ? "" : "settings"
+    }
+
+    // Compatibility alias for existing scripts and external IPC callers.
+    function commandcenter() {
+      settings()
     }
 
     function layout() {
@@ -272,7 +280,8 @@ ShellRoot {
     triggers: ({
       "qslauncher-trigger": "launcher",
       "qsquickmenu-trigger": "quickmenu",
-      "qscommandcenter-trigger": "commandcenter",
+      "qssettings-trigger": "settings",
+      "qscommandcenter-trigger": "settings",
       "qslock-trigger": "lock",
       "qsosd-vol": "osd-volume",
       "qsosd-bright": "osd-brightness",
@@ -284,7 +293,7 @@ ShellRoot {
       switch (name) {
         case "launcher": ipc.launcher(); break
         case "quickmenu": ipc.quickmenu(); break
-        case "commandcenter": ipc.commandcenter(); break
+        case "settings": ipc.settings(); break
         case "lock": ipc.lock(); break
         case "osd-volume": osd.show("volume"); break
         case "osd-brightness": osd.show("brightness"); break
@@ -482,9 +491,9 @@ ShellRoot {
     }
   }
 
-  CommandCenter {
-    id: commandCenter
-    visible: bar.openPopup === "commandcenter" && !lockScreen.locked
+  SettingsPanel {
+    id: settingsPanel
+    visible: bar.openPopup === "settings" && !lockScreen.locked
     onDismissed: bar.openPopup = ""
     onLockRequested: lockScreen.lockScreen()
     isHorizontal: shell.isHorizontal

@@ -41,7 +41,7 @@ PanelWindow {
   // Match the actual rendered bar/pill thickness, not the base bar size:
   // Nothing and Neo's pills-mode panel is wider than Config.barWidth, and a
   // flat offset made popups overlap the bar's own widgets.
-  margins.left: (!Settings.fullBar && (Config.neoBrutalism || Config.nothingDesign)
+  margins.left: (!Settings.fullBar && (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme)
     ? Config.barWidth + (Config.neoBrutalism ? 2 : 18)
     : Config.barWidth) + Config.spacingMedium
   property int screenH: Screen.desktopAvailableHeight
@@ -96,7 +96,7 @@ PanelWindow {
         bottomMargin: root.neoShadowPadding
       }
       radius: Config.borderRadius
-      color: Config.neoBrutalism || Config.nothingDesign
+      color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
         ? Colors.styleSurface
         : Colors.surfaceContainerHigh
       clip: true

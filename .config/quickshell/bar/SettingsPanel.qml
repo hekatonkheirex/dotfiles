@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
-import "commandcenter"
+import "settings"
 import "primitives"
 import "../config"
 
@@ -117,12 +117,12 @@ PanelWindow {
     }
   }
 
-  implicitWidth: Math.min(Config.commandCenterMaxWidth,
-                          Math.max(Config.commandCenterMinWidth, desktopW - 32))
+  implicitWidth: Math.min(Config.settingsMaxWidth,
+                          Math.max(Config.settingsMinWidth, desktopW - 32))
                  + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
   visible: false
-  implicitHeight: Math.min(Config.commandCenterMaxHeight,
-                           Math.max(Config.commandCenterMinHeight, desktopH - 32))
+  implicitHeight: Math.min(Config.settingsMaxHeight,
+                           Math.max(Config.settingsMinHeight, desktopH - 32))
                   + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
@@ -356,11 +356,11 @@ PanelWindow {
         bottomMargin: Config.neoBrutalism ? Config.themeShadowOffset : 0
       }
       radius: Config.borderRadius
-      color: Config.neoBrutalism || Config.nothingDesign
+      color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
         ? Colors.styleSurface
         : Colors.surfaceContainerHigh
       clip: true
-      border.width: Config.neoBrutalism || Config.nothingDesign ? Config.themeBorderWidth : 0
+      border.width: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.themeBorderWidth : 0
       border.color: Colors.styleOutline
 
       transform: [

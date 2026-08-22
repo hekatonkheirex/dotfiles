@@ -20,7 +20,7 @@ Rectangle {
   property bool selected: false
   property bool navigationFocused: false
   property color leadingIconColor: root.selected
-    ? (Config.neoBrutalism
+    ? (Config.neoBrutalism || Config.ghostTheme
       ? Colors.styleAccentText
       : (Config.nothingDesign ? Colors.styleInk : Colors.primary))
     : Colors.fgSurface
@@ -54,7 +54,7 @@ Rectangle {
   }
   color: {
     if (root.selected) {
-      return Config.neoBrutalism
+      return Config.neoBrutalism || Config.ghostTheme
         ? Colors.styleAccent
         : (Config.nothingDesign
           ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
@@ -64,7 +64,7 @@ Rectangle {
     if (itemMouse.containsMouse) return Qt.tint("transparent", Colors.hoverOverlay)
     return root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
   }
-  border.color: Config.neoBrutalism
+  border.color: Config.neoBrutalism || Config.ghostTheme
     ? Colors.styleOutlineStrong
     : (Config.nothingDesign
       ? (root.selected ? Colors.styleOutlineStrong : "transparent")
@@ -142,7 +142,7 @@ Rectangle {
         Layout.fillWidth: true
         text: root.title
         color: root.selected
-          ? (Config.neoBrutalism
+          ? (Config.neoBrutalism || Config.ghostTheme
             ? Colors.styleAccentText
             : (Config.nothingDesign ? Colors.styleInk : Colors.primary))
           : Colors.fgSurface

@@ -18,7 +18,9 @@ Item {
   property real iconOpacity: 1.0
   property string labelText: ""
   property real labelOpacity: 1.0
-  property color accentColor: Config.nothingDesign ? Colors.fgSurface : Colors.primary
+  property color accentColor: Config.nothingDesign
+    ? Colors.fgSurface
+    : (Config.ghostTheme ? Colors.styleAccent : Colors.primary)
   property color iconColor: root.accentColor
   property color labelColor: root.accentColor
   property color inactiveBg: Colors.surfaceContainerHigh
@@ -36,6 +38,10 @@ Item {
   // (battery/brightness/volume %), not textual states like "Muted" or
   // workspace names.
   readonly property bool numericLabel: /^-?\d+%?$/.test(root.labelText)
+  // Compensate for the extra ascent/descent in the icon font and numeric
+  // label line boxes so the visible glyphs sit close without changing the
+  // indicator's hit area.
+  readonly property int stackedContentSpacing: -Config.spacingCompact
 
   // Icon-only indicators do not need the full widget slot in the vertical
   // bar. Keep their hit target tied to the icon size so they do not leave
@@ -43,7 +49,7 @@ Item {
   // label indicators size to their actual stacked content instead of a flat
   // widget size, so the rounded pill has room for both without clipping.
   readonly property int verticalLayoutHeight: root.labelText !== ""
-    ? Math.max(Config.widgetSize, Config.iconSize + Config.spacingSmall + Config.labelSmallSize + Config.spacingMedium * 2)
+    ? Math.max(Config.widgetSize, Config.iconSize + root.stackedContentSpacing + Config.labelSmallSize + Config.spacingMedium * 2)
     : Math.min(Config.widgetSize, Config.iconSize + Config.spacingSmall)
   // Inline pills need breathing room around the icon/label pair. The
   // wrapper uses this value for its width, so the text does not end up under
@@ -100,9 +106,11 @@ Item {
       topMargin: root.horizontal ? 6 : 0
       bottomMargin: root.horizontal ? 6 : 0
     }
-    radius: Config.neoBrutalism
-      ? Config.shapeMedium
-      : (root.horizontal ? height / 2 : width / 2)
+    radius: Config.ghostTheme
+      ? 0
+      : (Config.neoBrutalism
+        ? Config.shapeMedium
+        : (root.horizontal ? height / 2 : width / 2))
     clip: true
     color: {
       var overlay = mouseArea.pressed ? Colors.pressOverlay
@@ -111,12 +119,12 @@ Item {
       var base = root.integrated
         ? "transparent"
         : (root.borderOnHoverOnly
-          ? ((Config.neoBrutalism || Config.nothingDesign) ? Colors.styleSurface : "transparent")
+          ? ((Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme) ? Colors.styleSurface : "transparent")
           : root.inactiveBg)
       return Qt.tint(base, overlay)
     }
     border.color: {
-      if (Config.neoBrutalism) return Colors.styleOutline
+      if (Config.neoBrutalism || Config.ghostTheme) return Colors.styleOutline
       if (Config.nothingDesign) return "transparent"
       if (root.active) return root.activeFocus ? Colors.focusOverlay : "transparent"
       if (root.borderOnHoverOnly && !mouseArea.containsMouse && !root.activeFocus) return "transparent"
@@ -138,9 +146,7 @@ Item {
     columnSpacing: root.inlineContent && root.labelText !== ""
       ? Config.spacingCompact
       : 0
-    rowSpacing: !root.inlineContent && root.labelText !== ""
-      ? Config.spacingSmall
-      : 0
+    rowSpacing: !root.inlineContent ? root.stackedContentSpacing : 0
 
     Text {
       id: iconText
@@ -166,7 +172,7 @@ Item {
         ? (root.numericLabel ? Config.dotFontFamily : Config.monoFontFamily)
         : Config.fontFamily
       font.pixelSize: Config.labelSmallSize
-      font.weight: Config.neoBrutalism || Config.nothingDesign ? Config.themeFontWeight : Font.Medium
+      font.weight: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.themeFontWeight : Font.Medium
       font.letterSpacing: Config.nothingDesign ? 0.3 : 0
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight

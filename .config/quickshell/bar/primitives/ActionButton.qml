@@ -1,5 +1,6 @@
-// Theme facade. Concrete Material 3, Neo Brutalism, and Nothing implementations
-// live in separate folders; existing bar call sites keep this stable type.
+// Theme facade. Concrete Material 3, Neo Brutalism, Nothing, and Ghost
+// implementations live in separate folders; existing bar call sites keep this
+// stable type.
 import QtQml
 import QtQuick
 import QtQuick.Controls
@@ -8,6 +9,7 @@ import "../../config"
 import "../themes/material3" as Material3
 import "../themes/neo_brutalism" as NeoBrutalism
 import "../themes/nothing" as Nothing
+import "../themes/ghost" as Ghost
 
 Item {
   id: root
@@ -32,11 +34,11 @@ Item {
     var base = root.filled
       ? Colors.styleAccent
       : (root.variant === "quiet"
-        ? ((Config.neoBrutalism || Config.nothingDesign) ? Colors.styleSurface : "transparent")
-        : ((Config.neoBrutalism || Config.nothingDesign) ? Colors.styleSurfaceRaised : Colors.surfaceContainer))
+        ? ((Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme) ? Colors.styleSurface : "transparent")
+        : ((Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme) ? Colors.styleSurfaceRaised : Colors.surfaceContainer))
     return Qt.tint(base, overlay)
   }
-  property color borderColor: Config.neoBrutalism || Config.nothingDesign
+  property color borderColor: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
     ? Colors.styleOutlineStrong
     : (root.filled || root.variant === "quiet"
       ? "transparent"
@@ -59,9 +61,11 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.nothingDesign
-      ? nothingImplementation
-      : (Config.neoBrutalism ? neoImplementation : materialImplementation)
+    sourceComponent: Config.ghostTheme
+      ? ghostImplementation
+      : (Config.nothingDesign
+        ? nothingImplementation
+        : (Config.neoBrutalism ? neoImplementation : materialImplementation))
   }
 
   Component {
@@ -77,6 +81,11 @@ Item {
   Component {
     id: nothingImplementation
     Nothing.ActionButton {}
+  }
+
+  Component {
+    id: ghostImplementation
+    Ghost.ActionButton {}
   }
 
   Binding { target: implementation.item; property: "iconLabel"; value: root.iconLabel }

@@ -41,6 +41,8 @@ Item {
   Accessible.description: root.accessibleDescription !== ""
     ? root.accessibleDescription
     : (root.selected ? "Selected" : "")
+  Accessible.focusable: root.enabled
+  Accessible.focused: root.activeFocus
 
   Rectangle {
     id: shadow
@@ -81,6 +83,13 @@ Item {
     opacity: root.enabled ? 1.0 : 0.38
     font.family: Config.iconFont
     font.pixelSize: root.iconSize
+  }
+
+  Keys.onPressed: function(event) {
+    if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
+      root.clicked(null)
+      event.accepted = true
+    }
   }
 
   MouseArea {

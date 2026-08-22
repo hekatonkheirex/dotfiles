@@ -8,7 +8,7 @@ if [ -z "$UI_STYLE" ] && command -v jq &>/dev/null; then
   UI_STYLE=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || echo material3)
 fi
 case "$UI_STYLE" in
-  nothing|neo-brutalism|material3) ;;
+  nothing|neo-brutalism|material3|ghost) ;;
   *) UI_STYLE=material3 ;;
 esac
 
@@ -132,6 +132,37 @@ esac
         icon_theme="$neo_icon_theme"
       else
         echo "Neo Brutalism icon theme not found at ~/.local/share/icons/$neo_icon_theme or ~/.icons/$neo_icon_theme; keeping Material 3 icons."
+      fi
+      qt_fixed_font="JetBrains Mono,14,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"
+      qt_general_font="JetBrains Mono,13,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"
+    fi
+
+    if [ "$UI_STYLE" = "ghost" ]; then
+      local ghost_theme="Ghost-Light"
+      local ghost_icon_theme="Ghost-Light-Icons"
+      # Kvantum's recovered dirs kept their original (inconsistent) naming:
+      # "Ghost" for light, "Ghost-Dark" for dark — not the Ghost-Light pair
+      # GTK/icons use.
+      local ghost_qt_theme="Ghost"
+      [ "$mode" = "dark" ] && ghost_theme="Ghost-Dark"
+      [ "$mode" = "dark" ] && ghost_icon_theme="Ghost-Dark-Icons"
+      [ "$mode" = "dark" ] && ghost_qt_theme="Ghost-Dark"
+      if [ -d "$HOME/.themes/$ghost_theme/gtk-4.0" ]; then
+        gtk_theme="$ghost_theme"
+        gtk_font="JetBrains Mono 13"
+      else
+        echo "Ghost GTK theme not found at ~/.themes/$ghost_theme; keeping Material 3 GTK."
+      fi
+      if [ -f "$HOME/.config/Kvantum/$ghost_qt_theme/$ghost_qt_theme.kvconfig" ]; then
+        qt_theme="$ghost_qt_theme"
+      else
+        echo "Ghost Kvantum theme not found at ~/.config/Kvantum/$ghost_qt_theme; keeping Material 3 Qt style."
+      fi
+      if [ -f "$HOME/.local/share/icons/$ghost_icon_theme/index.theme" ] || \
+        [ -f "$HOME/.icons/$ghost_icon_theme/index.theme" ]; then
+        icon_theme="$ghost_icon_theme"
+      else
+        echo "Ghost icon theme not found at ~/.local/share/icons/$ghost_icon_theme or ~/.icons/$ghost_icon_theme; keeping Material 3 icons."
       fi
       qt_fixed_font="JetBrains Mono,14,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"
       qt_general_font="JetBrains Mono,13,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"

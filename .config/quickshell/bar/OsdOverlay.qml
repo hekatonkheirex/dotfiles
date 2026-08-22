@@ -205,7 +205,7 @@ PanelWindow {
     radius: Config.shapeLarge
     opacity: root.osdOpacity
     color: {
-      var c = Config.neoBrutalism || Config.nothingDesign
+      var c = Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
         ? Colors.styleSurface
         : Colors.surfaceContainerHigh
       return Qt.rgba(c.r, c.g, c.b, 0.92)
