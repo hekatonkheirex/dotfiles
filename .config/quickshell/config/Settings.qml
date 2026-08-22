@@ -173,7 +173,8 @@ FileView {
     property bool reduceMotion: false
     property real spacingScale: 1.0
     property bool systemShowUptime: true
-    // UI style, independent from the wallpaper-derived Matugen palette.
+    // UI style; Nothing selects fixed Quickshell and GTK palettes while the
+    // other styles can use the wallpaper-derived Matugen roles.
     property string themeStyle: "nothing"
     // 0 = auto, 1 = light, 2 = dark.
     property int themePreference: 0

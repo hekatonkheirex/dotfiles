@@ -140,7 +140,7 @@ Flickable {
             text: Settings.themeStyle === "neo-brutalism"
               ? "Pastel fills, bold ink borders, and hard offset shadows"
               : (Settings.themeStyle === "nothing"
-                ? "Monochrome surfaces, technical grids, and signal accents"
+                ? "Neutral surfaces, rounded controls, and signal accents"
                 : "Rounded surfaces, tonal elevation, and expressive motion")
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
