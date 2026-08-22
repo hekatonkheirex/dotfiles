@@ -85,10 +85,12 @@ Flickable {
         ColumnLayout {
           id: uiStyleColumn
           anchors.top: parent.top
-          anchors.horizontalCenter: parent.horizontalCenter
+          anchors.left: parent.left
+          anchors.right: parent.right
           anchors.topMargin: 16
+          anchors.leftMargin: 16
+          anchors.rightMargin: 16
           spacing: Config.spacingSmall
-          Layout.alignment: Qt.AlignHCenter
 
           Text {
             text: "UI Style"
@@ -100,27 +102,43 @@ Flickable {
           }
 
             Item {
-              width: (appearanceTab.compactLayout ? 200 : 220)
-                - appearanceTab.neoControlAllowance
-              Layout.alignment: Qt.AlignHCenter
-              Layout.preferredHeight: appearanceTab.optionButtonHeight
-              height: appearanceTab.optionButtonHeight
+              Layout.fillWidth: true
+              Layout.alignment: Qt.AlignLeft
+              Layout.preferredWidth: 0
+              Layout.minimumWidth: 0
+              Layout.maximumWidth: parent.width
+              Layout.preferredHeight: appearanceTab.optionButtonHeight * 2
+                + appearanceTab.optionButtonGap
+              height: appearanceTab.optionButtonHeight * 2
+                + appearanceTab.optionButtonGap
 
-            Row {
-              anchors.fill: parent
-              spacing: appearanceTab.optionButtonGap
+            GridLayout {
+              anchors.left: parent.left
+              anchors.right: parent.right
+              anchors.top: parent.top
+              anchors.bottom: parent.bottom
+              anchors.leftMargin: Config.spacingCompact
+              anchors.rightMargin: Config.spacingCompact
+              clip: true
+              columns: 2
+              rows: 2
+              columnSpacing: appearanceTab.optionButtonGap
+              rowSpacing: appearanceTab.optionButtonGap
 
               Repeater {
                 model: [
                   { value: "material3", icon: "auto_awesome", label: "Material" },
                   { value: "neo-brutalism", icon: "square", label: "Neo" },
-                  { value: "nothing", icon: "grid_3x3", label: "Nothing" }
+                  { value: "nothing", icon: "grid_3x3", label: "Nothing" },
+                  { value: "ghost", icon: "network_intelligence", label: "Ghost" }
                 ]
 
                 delegate: ActionButton {
                   required property var modelData
-                  width: (parent.width - appearanceTab.optionButtonGap * 2) / 3
-                  height: parent.height
+                  Layout.fillWidth: true
+                  Layout.fillHeight: true
+                  Layout.minimumWidth: 0
+                  Layout.minimumHeight: 0
                   iconLabel: modelData.icon
                   iconSize: 15
                   labelText: modelData.label
@@ -141,7 +159,9 @@ Flickable {
               ? "Pastel fills, bold ink borders, and hard offset shadows"
               : (Settings.themeStyle === "nothing"
                 ? "Neutral surfaces, rounded controls, and signal accents"
-                : "Rounded surfaces, tonal elevation, and expressive motion")
+                : (Settings.themeStyle === "ghost"
+                  ? "Void panels, cyan hairlines, and a Section 9 HUD"
+                  : "Rounded surfaces, tonal elevation, and expressive motion"))
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
             font.pixelSize: Math.max(8, Config.fontPixelSize - 1)

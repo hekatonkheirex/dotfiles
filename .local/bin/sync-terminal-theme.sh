@@ -1,6 +1,6 @@
 #!/bin/bash
-# Syncs kitty, starship, fzf and niri window decorations to the current
-# light/dark mode + colorscheme (matugen | claude) and Quickshell UI style. Called from
+# Syncs kitty, starship, fzf, btop, Neovim and niri window decorations to the
+# current light/dark mode + colorscheme (matugen | claude) and Quickshell UI style. Called from
 # sync-theme-mode.sh (mode changes) and Quickshell style/color changes. Safe to
 # call with no args: re-reads current state and re-applies.
 set -u
@@ -16,12 +16,48 @@ QS_SCHEME_FILE="$HOME/.config/quickshell/colorscheme"
 if [ -z "$UI_STYLE" ]; then
   UI_STYLE=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || echo material3)
 fi
-[ "$UI_STYLE" != "neo-brutalism" ] && [ "$UI_STYLE" != "nothing" ] && UI_STYLE=material3
+case "$UI_STYLE" in
+  neo-brutalism|nothing|ghost) ;;
+  *) UI_STYLE=material3 ;;
+esac
 
 if [ -z "$MODE" ] || [ "$MODE" = "auto" ]; then
   MODE=$("$HOME/.local/bin/auto-detect-theme.sh" 2>/dev/null)
   [ "$MODE" != "light" ] && [ "$MODE" != "dark" ] && MODE=dark
 fi
+
+BTOP_CONFIG="$HOME/.config/btop/btop.conf"
+BTOP_DEFAULT_THEME="$HOME/.config/btop/themes/catppuccin_mocha.theme"
+BTOP_GHOST_THEME="$HOME/.config/btop/themes/ghost.theme"
+NVIM_THEME_STATE="$HOME/.cache/quickshell/nvim-colorscheme"
+
+sync_editor_and_monitor_themes() {
+  local btop_theme="$BTOP_DEFAULT_THEME"
+  local nvim_colorscheme="claude"
+
+  if [ "$UI_STYLE" = "ghost" ]; then
+    # The recovered btop palette is intentionally dark-only, like the Ghost
+    # SDDM greeter. Neovim has authored variants for both resolved modes.
+    btop_theme="$BTOP_GHOST_THEME"
+    nvim_colorscheme="ghost"
+    [ "$MODE" = "light" ] && nvim_colorscheme="ghost-light"
+  fi
+
+  if [ -f "$BTOP_CONFIG" ]; then
+    if [ -f "$btop_theme" ]; then
+      sed -i "s|^[[:space:]]*color_theme[[:space:]]*=.*|color_theme = \"$btop_theme\"|" "$BTOP_CONFIG"
+      echo "btop color_theme -> $btop_theme"
+    else
+      echo "btop theme not found: $btop_theme; keeping current color_theme"
+    fi
+  fi
+
+  mkdir -p "$(dirname "$NVIM_THEME_STATE")"
+  local state_tmp="${NVIM_THEME_STATE}.tmp.$$"
+  printf '%s\n' "$nvim_colorscheme" > "$state_tmp"
+  mv -f -- "$state_tmp" "$NVIM_THEME_STATE"
+  echo "Neovim colorscheme state -> $nvim_colorscheme"
+}
 
 # The UI style owns the terminal palette when it has a distinct identity.
 # Material 3 keeps the selected terminal colorscheme, Nothing is fixed, and
@@ -35,12 +71,19 @@ if [ "$UI_STYLE" = "nothing" ]; then
 elif [ "$UI_STYLE" = "neo-brutalism" ]; then
   KITTY_THEME_NAME="neo-brutalism-matugen-$MODE.conf"
   STARSHIP_THEME_NAME="neo-brutalism-matugen-$MODE.toml"
+elif [ "$UI_STYLE" = "ghost" ]; then
+  # Ghost keeps fixed mode-paired Kitty and Starship assets recovered from
+  # the same theme suite.
+  KITTY_THEME_NAME="ghost-$MODE.conf"
+  STARSHIP_THEME_NAME="ghost-$MODE.toml"
 fi
 KITTY_CONF="$HOME/.config/kitty/$KITTY_THEME_NAME"
 STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
 
 {
   echo "=== $(date) sync-terminal-theme MODE=$MODE SCHEME=$SCHEME UI_STYLE=$UI_STYLE KITTY=$KITTY_THEME_NAME STARSHIP=$STARSHIP_THEME_NAME ==="
+
+  sync_editor_and_monitor_themes
 
   if [ "$UI_STYLE" = "neo-brutalism" ] && [ -x "$NEO_TERMINAL_GENERATOR" ]; then
     for kitty_mode in light dark; do
@@ -154,6 +197,16 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
     shadow="#000000"
   fi
 
+  # Ghost is the recovered GITS palette: a fixed void/cyan HUD, not derived
+  # from the wallpaper and not mode-paired (it never had a light variant of
+  # its own). Same active/inactive ring regardless of $MODE.
+  if [ "$UI_STYLE" = "ghost" ]; then
+    primary="#57d9cc"
+    outline="#2f6f68"
+    on_surface="#57d9cc"
+    shadow="#000000"
+  fi
+
   if [ -n "${primary:-}" ] && [ "$primary" != "null" ]; then
     if [ -z "${on_surface:-}" ] || [ "$on_surface" = "null" ]; then
       on_surface="${FG:-$outline}"
@@ -180,6 +233,12 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
       focus_active="$on_surface"
       focus_inactive="$outline"
       niri_corner_radius=20
+      layout_gaps=""
+    elif [ "$UI_STYLE" = "ghost" ]; then
+      focus_width=1
+      focus_active="$on_surface"
+      focus_inactive="$outline"
+      niri_corner_radius=0
       layout_gaps=""
     else
       focus_width=2
@@ -219,7 +278,7 @@ EOF
         color "$shadow_color"
     }
 EOF
-    elif [ "$UI_STYLE" = "nothing" ]; then
+    elif [ "$UI_STYLE" = "nothing" ] || [ "$UI_STYLE" = "ghost" ]; then
       cat <<EOF >> "$colors_tmp"
     shadow {
         off

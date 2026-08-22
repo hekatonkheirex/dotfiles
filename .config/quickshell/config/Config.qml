@@ -6,11 +6,23 @@ import Quickshell
 QtObject {
   readonly property string wmType: "niri"
   readonly property bool isNiri: wmType === "niri"
+  // UI style is separate from Matugen's external desktop palette. Material 3
+  // and Neo Brutalism consume its generated roles; Nothing and Ghost use
+  // Colors.qml's fixed light and dark roles.
+  readonly property bool nothingDesign: Settings.themeStyle === "nothing"
+  readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
+  readonly property bool ghostTheme: Settings.themeStyle === "ghost"
 
   // Compact X390 geometry and shared spacing used by active surfaces.
   // Live-adjustable via the Appearance settings tab's Bar Size slider.
-  readonly property int barWidth: Settings.barSize
-  readonly property int widgetSize: Settings.barSize
+  // Ghost keeps the recovered 34px HUD rail; the shared slider can still make
+  // it smaller, while Material, Neo, and Nothing retain the selected size.
+  readonly property int barWidth: ghostTheme
+    ? Math.min(Settings.barSize, 34)
+    : Settings.barSize
+  readonly property int widgetSize: ghostTheme
+    ? Math.min(Settings.barSize, 34)
+    : Settings.barSize
   // Live-adjustable via the Appearance settings tab (single density scale);
   // mirrors Settings the same way reducedMotion below does, so every binding
   // that reads these updates immediately without touching the consuming file.
@@ -21,17 +33,12 @@ QtObject {
   property int spacingLarge: Math.round(16 * spacingScale)
   property int spacingExtraLarge: Math.round(24 * spacingScale)
 
-  // UI style is separate from Matugen's external desktop palette. Material 3
-  // and Neo Brutalism consume its generated roles; Nothing uses Colors.qml's
-  // fixed neutral/red light and dark roles.
-  readonly property bool nothingDesign: Settings.themeStyle === "nothing"
-  readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
   readonly property string fontFamily: nothingDesign
     ? "NType 82"
-    : (neoBrutalism ? "JetBrains Mono" : "Roboto Flex")
+    : ((neoBrutalism || ghostTheme) ? "JetBrains Mono" : "Roboto Flex")
   readonly property string monoFontFamily: nothingDesign
     ? "NType 82 Mono"
-    : (neoBrutalism ? "JetBrains Mono" : "Roboto Flex")
+    : ((neoBrutalism || ghostTheme) ? "JetBrains Mono" : "Roboto Flex")
   readonly property string displayFontFamily: nothingDesign
     ? "NType 82 Headline"
     : fontFamily
@@ -69,11 +76,13 @@ QtObject {
   // Nothing uses a soft, pill-leaning radius scale (Control Center toggles,
   // widget cards). Neo Brutalism keeps its existing hard-edged geometry;
   // Material 3 retains its expressive shapes.
-  readonly property int shapeCompact: nothingDesign ? 8 : (neoBrutalism ? 4 : 8)
-  readonly property int shapeMedium: nothingDesign ? 14 : (neoBrutalism ? 6 : 12)
-  readonly property int shapeLarge: nothingDesign ? 20 : (neoBrutalism ? 10 : 16)
+  // Ghost carries the recovered GITS theme's frameRadius: 0 — every surface
+  // is a hard, square HUD panel, no rounding at any scale.
+  readonly property int shapeCompact: ghostTheme ? 0 : (nothingDesign ? 8 : (neoBrutalism ? 4 : 8))
+  readonly property int shapeMedium: ghostTheme ? 0 : (nothingDesign ? 14 : (neoBrutalism ? 6 : 12))
+  readonly property int shapeLarge: ghostTheme ? 0 : (nothingDesign ? 20 : (neoBrutalism ? 10 : 16))
   readonly property int borderRadius: shapeLarge
-  readonly property int barRadius: nothingDesign ? 0 : borderRadius
+  readonly property int barRadius: (nothingDesign || ghostTheme) ? 0 : borderRadius
   readonly property int themeBorderWidth: neoBrutalism ? 3 : 1
   readonly property int themeFocusBorderWidth: neoBrutalism ? 4 : 2
   readonly property int themeShadowOffset: neoBrutalism ? 6 : 0
@@ -100,16 +109,16 @@ QtObject {
   readonly property int animationDuration: motionMedium
   // Nothing uses precise ease-out motion; Material 3 and Neo retain their
   // expressive overshoot for entrances and state changes.
-  readonly property int themeMotionEasing: nothingDesign ? Easing.OutCubic : Easing.OutBack
+  readonly property int themeMotionEasing: (nothingDesign || ghostTheme) ? Easing.OutCubic : Easing.OutBack
 
   readonly property int popupWidth: 340
   readonly property int popupPadding: spacingLarge
-  readonly property int commandCenterMinWidth: 320
-  readonly property int commandCenterMinHeight: 360
+  readonly property int settingsMinWidth: 320
+  readonly property int settingsMinHeight: 360
   // Neo's hard shadows and block controls need a little more room in the
   // Appearance tab; Nothing and Material 3 keep the compact footprint.
-  readonly property int commandCenterMaxWidth: neoBrutalism ? 864 : 800
-  readonly property int commandCenterMaxHeight: neoBrutalism ? 700 : 606
+  readonly property int settingsMaxWidth: neoBrutalism ? 864 : 800
+  readonly property int settingsMaxHeight: neoBrutalism ? 700 : 606
   readonly property int clockIntervalMs: 1000
   readonly property int volumeStep: 5
   readonly property int brightnessStep: 5

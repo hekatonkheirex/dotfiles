@@ -1,9 +1,9 @@
-// Material 3 semantic palette with a fixed Nothing override.
+// Material 3 semantic palette with fixed Nothing and Ghost overrides.
 //
 // Material 3 and Neo Brutalism read Matugen's wallpaper-derived cache. The
-// Nothing style intentionally uses the authored light/dark palettes below so
-// its Quickshell surfaces do not change with the wallpaper. Desktop themes and
-// other Matugen consumers remain outside this local override.
+// Nothing and Ghost styles intentionally use the authored light/dark palettes
+// below so their Quickshell surfaces do not change with the wallpaper. Desktop
+// themes and other Matugen consumers remain outside these local overrides.
 pragma Singleton
 import QtQml
 import QtQuick
@@ -64,9 +64,41 @@ QtObject {
 
   readonly property bool nothingDesign: Settings.themeStyle === "nothing"
   readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
-  readonly property string paletteSource: nothingDesign
-    ? "nothing"
-    : (dynamicPaletteLoaded ? "matugen" : "fallback")
+  readonly property bool ghostTheme: Settings.themeStyle === "ghost"
+  readonly property string paletteSource: ghostTheme
+    ? "ghost"
+    : (nothingDesign
+      ? "nothing"
+      : (dynamicPaletteLoaded ? "matugen" : "fallback"))
+
+  // GITS ("Ghost in the Shell") palette. Recovered from the pre-Matugen
+  // Section 9 theme (commit 8634528e). It is fixed and wallpaper-neutral, but
+  // still has authored light and dark roles so the external Ghost suite and
+  // Quickshell remain synchronized when the color-mode preference changes.
+  readonly property color ghostVoid: darkMode ? "#05080a" : "#f3f7f6"
+  readonly property color ghostPanel: darkMode ? "#0d1418" : "#f4fbfa"
+  readonly property color ghostPanelRaised: darkMode ? "#12191d" : "#eaf5f3"
+  readonly property color ghostPanelHighest: darkMode ? "#1c262a" : "#d5e3e0"
+  readonly property color ghostHairline: darkMode
+    ? Qt.rgba(120/255, 220/255, 208/255, 0.16)
+    : Qt.rgba(0/255, 107/255, 99/255, 0.16)
+  readonly property color ghostHairlineStrong: darkMode
+    ? Qt.rgba(120/255, 220/255, 208/255, 0.32)
+    : Qt.rgba(0/255, 107/255, 99/255, 0.32)
+  readonly property color ghostCyan: darkMode ? "#57d9cc" : "#006d67"
+  readonly property color ghostText: darkMode ? "#cdeeea" : "#10201f"
+  readonly property color ghostMuted: darkMode ? "#678984" : "#4f6260"
+  readonly property color ghostDanger: darkMode ? "#e0625a" : "#b3261e"
+  readonly property color ghostAccentFill: darkMode ? "#246a63" : "#006d67"
+  readonly property color ghostAccentText: darkMode ? "#05080a" : "#ffffff"
+  readonly property color ghostSuccess: darkMode ? "#8fe38a" : "#287a3a"
+  readonly property color ghostSuccessText: darkMode ? "#05080a" : "#ffffff"
+  readonly property color ghostSuccessContainer: darkMode ? "#1e4f1d" : "#d8f3d2"
+  readonly property color ghostSuccessContainerText: darkMode ? "#b9f2ac" : "#0a2108"
+  readonly property color ghostWarning: darkMode ? "#e0a94a" : "#875400"
+  readonly property color ghostWarningText: darkMode ? "#05080a" : "#ffffff"
+  readonly property color ghostWarningContainer: darkMode ? "#574500" : "#ffe2a6"
+  readonly property color ghostWarningContainerText: darkMode ? "#ffe082" : "#231a00"
 
   // Nothing's Quickshell palette is deliberately stable and wallpaper-neutral.
   // Red is the primary product signal; base surfaces and text stay neutral so
@@ -151,10 +183,92 @@ QtObject {
     scrim: "#000000"
   })
 
+  readonly property var ghostLightPalette: ({
+    background: "#f3f7f6",
+    surface: "#f3f7f6",
+    surface_dim: "#d5e3e0",
+    surface_bright: "#ffffff",
+    surface_container_lowest: "#ffffff",
+    surface_container_low: "#f4fbfa",
+    surface_container: "#eaf5f3",
+    surface_container_high: "#ddebe8",
+    surface_container_highest: "#d5e3e0",
+    surface_variant: "#d5e3e0",
+    primary: "#006d67",
+    on_primary: "#ffffff",
+    primary_container: "#b8e8e3",
+    on_primary_container: "#00201d",
+    secondary: "#4f6260",
+    on_secondary: "#ffffff",
+    secondary_container: "#d5e3e0",
+    on_secondary_container: "#10201f",
+    tertiary: "#875400",
+    on_tertiary: "#ffffff",
+    tertiary_container: "#f5dfb3",
+    on_tertiary_container: "#2a1700",
+    error: "#b3261e",
+    on_error: "#ffffff",
+    error_container: "#f9dedc",
+    on_error_container: "#410e0b",
+    on_background: "#10201f",
+    on_surface: "#10201f",
+    on_surface_variant: "#4f6260",
+    outline: "#607874",
+    outline_variant: "#a9c4bf",
+    inverse_surface: "#293331",
+    inverse_on_surface: "#ecf5f2",
+    inverse_primary: "#5cd9cf",
+    surface_tint: "#006d67",
+    shadow: "#000000",
+    scrim: "#000000"
+  })
+
+  readonly property var ghostDarkPalette: ({
+    background: "#05080a",
+    surface: "#0d1418",
+    surface_dim: "#05080a",
+    surface_bright: "#1c262a",
+    surface_container_lowest: "#05080a",
+    surface_container_low: "#0d1418",
+    surface_container: "#12191d",
+    surface_container_high: "#12191d",
+    surface_container_highest: "#1c262a",
+    surface_variant: "#1c262a",
+    primary: "#57d9cc",
+    on_primary: "#05080a",
+    primary_container: "#246a63",
+    on_primary_container: "#cdeeea",
+    secondary: "#678984",
+    on_secondary: "#05080a",
+    secondary_container: "#1c262a",
+    on_secondary_container: "#cdeeea",
+    tertiary: "#e0a94a",
+    on_tertiary: "#05080a",
+    tertiary_container: "#3a2d0f",
+    on_tertiary_container: "#ffe2a6",
+    error: "#e0625a",
+    on_error: "#05080a",
+    error_container: "#4a201e",
+    on_error_container: "#ffd9d5",
+    on_background: "#cdeeea",
+    on_surface: "#cdeeea",
+    on_surface_variant: "#678984",
+    outline: "#2f6f68",
+    outline_variant: "#1c4d48",
+    inverse_surface: "#cdeeea",
+    inverse_on_surface: "#05080a",
+    inverse_primary: "#006d67",
+    surface_tint: "#57d9cc",
+    shadow: "#000000",
+    scrim: "#000000"
+  })
+
   function paletteRole(mode, key, fallback) {
-    var palette = nothingDesign
-      ? (mode === "dark" ? nothingDarkPalette : nothingLightPalette)
-      : (mode === "dark" ? darkPalette : lightPalette)
+    var palette = ghostTheme
+      ? (mode === "dark" ? ghostDarkPalette : ghostLightPalette)
+      : (nothingDesign
+        ? (mode === "dark" ? nothingDarkPalette : nothingLightPalette)
+        : (mode === "dark" ? darkPalette : lightPalette))
     var value = palette ? palette[key] : null
     return typeof value === "string" && value.length > 0 ? value : fallback
   }
@@ -258,8 +372,9 @@ QtObject {
   readonly property color d_shadow:                    "#000000"
   readonly property color d_scrim:                     "#000000"
 
-  // Resolved surface and content roles. Nothing selects its fixed palette
-  // through paletteRole(); other styles use Matugen with authored fallbacks.
+  // Resolved surface and content roles. Nothing and Ghost select their fixed
+  // palettes through paletteRole(); other styles use Matugen with authored
+  // fallbacks.
   property color background:                 paletteRole(darkMode ? "dark" : "light", "background", darkMode ? d_background : l_background)
   property color bg:                         background
   property color surface:                   paletteRole(darkMode ? "dark" : "light", "surface", darkMode ? d_surface : l_surface)
@@ -304,37 +419,41 @@ QtObject {
   // Neo and Nothing use the palette's on-surface role as their high-contrast
   // ink. Nothing softens secondary rules while keeping its primary rules crisp
   // in both light and dark modes.
-  readonly property color styleInk: neoBrutalism || nothingDesign
-    ? fgSurface
-    : outline
-  readonly property color styleOutline: neoBrutalism
-    ? styleInk
-    : (nothingDesign
-      ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.38)
-      : outlineVariant)
-  readonly property color styleOutlineStrong: neoBrutalism
-    ? styleInk
-    : (nothingDesign
-      ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.72)
-      : outline)
-  readonly property color styleShadow: neoBrutalism
-    ? (darkMode ? fgSurface : shadow)
-    : "transparent"
-  readonly property color styleSurface: neoBrutalism
-    ? surfaceContainerLow
-    : (nothingDesign ? surfaceContainerLow : surfaceContainerHigh)
-  readonly property color styleSurfaceRaised: neoBrutalism
-    ? surfaceContainer
-    : (nothingDesign ? surfaceContainer : surfaceContainerHigh)
-  readonly property color styleControl: neoBrutalism
-    ? surfaceContainerHighest
-    : surfaceContainerHigh
-  readonly property color styleAccent: neoBrutalism
-    ? (darkMode ? primary : primaryContainer)
-    : (nothingDesign ? error : primary)
-  readonly property color styleAccentText: neoBrutalism
-    ? (darkMode ? fgPrimary : fgPrimaryContainer)
-    : (nothingDesign ? fgError : fgPrimary)
+  readonly property color styleInk: ghostTheme
+    ? ghostText
+    : ((neoBrutalism || nothingDesign) ? fgSurface : outline)
+  readonly property color styleOutline: ghostTheme
+    ? ghostHairline
+    : (neoBrutalism
+      ? styleInk
+      : (nothingDesign
+        ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.38)
+        : outlineVariant))
+  readonly property color styleOutlineStrong: ghostTheme
+    ? ghostHairlineStrong
+    : (neoBrutalism
+      ? styleInk
+      : (nothingDesign
+        ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.72)
+        : outline))
+  readonly property color styleShadow: ghostTheme
+    ? "transparent"
+    : (neoBrutalism ? (darkMode ? fgSurface : shadow) : "transparent")
+  readonly property color styleSurface: ghostTheme
+    ? ghostPanel
+    : (neoBrutalism ? surfaceContainerLow : (nothingDesign ? surfaceContainerLow : surfaceContainerHigh))
+  readonly property color styleSurfaceRaised: ghostTheme
+    ? ghostPanelRaised
+    : (neoBrutalism ? surfaceContainer : (nothingDesign ? surfaceContainer : surfaceContainerHigh))
+  readonly property color styleControl: ghostTheme
+    ? ghostPanelHighest
+    : (neoBrutalism ? surfaceContainerHighest : surfaceContainerHigh)
+  readonly property color styleAccent: ghostTheme
+    ? ghostCyan
+    : (neoBrutalism ? (darkMode ? primary : primaryContainer) : (nothingDesign ? error : primary))
+  readonly property color styleAccentText: ghostTheme
+    ? ghostAccentText
+    : (neoBrutalism ? (darkMode ? fgPrimary : fgPrimaryContainer) : (nothingDesign ? fgError : fgPrimary))
 
   // Semantic status roles. Components should use these aliases instead of
   // introducing local status colors.
@@ -355,14 +474,14 @@ QtObject {
   readonly property color d_warningContainer:           "#574500"
   readonly property color d_onWarningContainer:         "#ffe082"
 
-  property color success:                  darkMode ? d_success                  : l_success
-  property color fgSuccess:                darkMode ? d_onSuccess                : l_onSuccess
-  property color successContainer:         darkMode ? d_successContainer         : l_successContainer
-  property color fgSuccessContainer:       darkMode ? d_onSuccessContainer       : l_onSuccessContainer
-  property color warning:                  darkMode ? d_warning                  : l_warning
-  property color fgWarning:                darkMode ? d_onWarning                : l_onWarning
-  property color warningContainer:         darkMode ? d_warningContainer         : l_warningContainer
-  property color fgWarningContainer:       darkMode ? d_onWarningContainer       : l_onWarningContainer
+  property color success:                  ghostTheme ? ghostSuccess : (darkMode ? d_success                  : l_success)
+  property color fgSuccess:                ghostTheme ? ghostSuccessText : (darkMode ? d_onSuccess                : l_onSuccess)
+  property color successContainer:         ghostTheme ? ghostSuccessContainer : (darkMode ? d_successContainer         : l_successContainer)
+  property color fgSuccessContainer:       ghostTheme ? ghostSuccessContainerText : (darkMode ? d_onSuccessContainer       : l_onSuccessContainer)
+  property color warning:                  ghostTheme ? ghostWarning : (darkMode ? d_warning                  : l_warning)
+  property color fgWarning:                ghostTheme ? ghostWarningText : (darkMode ? d_onWarning                : l_onWarning)
+  property color warningContainer:         ghostTheme ? ghostWarningContainer : (darkMode ? d_warningContainer         : l_warningContainer)
+  property color fgWarningContainer:       ghostTheme ? ghostWarningContainerText : (darkMode ? d_onWarningContainer       : l_onWarningContainer)
   property color info:                     primary
   property color fgInfo:                   fgPrimary
   property color brightness:               primary

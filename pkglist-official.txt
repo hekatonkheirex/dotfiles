@@ -35,6 +35,7 @@ fzf
 gammastep
 git
 github-cli
+glib2
 gnome-epub-thumbnailer
 gnome-keyring
 grim
@@ -63,6 +64,8 @@ kvantum
 lazygit
 libid3tag
 libva-intel-driver
+libxml2
+librsvg
 linux-firmware
 linux-zen
 linux-zen-headers
@@ -103,6 +106,7 @@ python-vosk
 qbittorrent
 qt5-wayland
 qt6-5compat
+qt6-declarative
 qt6ct
 quickshell
 reflector

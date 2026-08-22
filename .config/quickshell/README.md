@@ -17,7 +17,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Settings panel**: A multi-functional panel launched via `XF86Tools` with eleven tabs:
   - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
   - **General**: Motion, uptime, clock, calendar week start, timezone, bar contents, and weather location/refresh/privacy/unit settings
-  - **Appearance**: Color mode, independent UI style (Material 3, Neo Brutalism, or Nothing), bar placement, sizing controls, palette source, color reload, and confirmed appearance reset
+  - **Appearance**: Color mode, independent UI style (Material 3, Neo Brutalism, Nothing, or Ghost), bar placement, sizing controls, palette source, color reload, and confirmed appearance reset
   - **Wallpaper**: Active-wallpaper tracking, cached thumbnails, keyboard navigation, random selection, and wallpaper switching
   - **Network**: Wi-Fi power, scan, connect, disconnect, saved-network, and autoconnect controls; Wi-Fi is Settings-only and has no compact bar indicator
   - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls; Bluetooth is Settings-only and has no compact bar indicator
@@ -38,12 +38,12 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 ├── config/
 │   ├── Config.qml             # Build-time layout, typography, shape, and motion tokens
 │   ├── Settings.qml           # Persisted preferences singleton (FileView + JsonAdapter over settings.json)
-│   ├── Colors.qml             # Material roles, fixed Nothing palette, Matugen fallback + system dark-mode tracking
+│   ├── Colors.qml             # Material roles, fixed Nothing/Ghost palettes, Matugen fallback + system dark-mode tracking
 │   └── cava.ini                # cava config for the real-time audio visualizer
 ├── bar/
 │   ├── Bar.qml                 # The panel itself — full-bar/pills-bar styles, orientation-aware active indicators
-│   ├── CommandCenter.qml       # Settings panel shell (state, processes, tab bar) — content in commandcenter/
-│   ├── commandcenter/
+│   ├── SettingsPanel.qml       # Settings panel shell (state, processes, tab bar) — content in settings/
+│   ├── settings/
 │   │   ├── AccountTab.qml
 │   │   ├── AppearanceTab.qml
 │   │   ├── WallpaperTab.qml
@@ -102,17 +102,23 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   └── themes/                 # Separate UI-style implementations
 │       ├── material3/          # Material 3 controls and ThemeTokens.qml
 │       ├── neo_brutalism/      # Neo Brutalism controls and ThemeTokens.qml
-│       └── nothing/             # Nothing controls and ThemeTokens.qml
+│       ├── nothing/             # Nothing controls and ThemeTokens.qml
+│       └── ghost/               # Ghost (GITS) controls and ThemeTokens.qml
 ├── scripts/
 │   ├── launcher                # Launcher trigger (touches /tmp/qslauncher-trigger)
 │   ├── quickmenu                # Quick menu trigger (touches /tmp/qsquickmenu-trigger)
-│   ├── commandcenter            # Settings trigger (touches /tmp/qscommandcenter-trigger)
+│   ├── settings                 # Settings trigger (touches /tmp/qssettings-trigger)
+│   ├── commandcenter            # Legacy alias for settings
 │   ├── lock                     # Lock trigger (touches /tmp/qslock-trigger)
 │   ├── apply-wallpaper.sh       # Wallpaper selection + Matugen/theme refresh
 │   ├── generate-neo-kitty-theme.sh # Generates the Neo Brutalism Kitty/Starship pair from Matugen
 │   ├── apply-accent-color.sh    # Compatibility stub — palette is fixed by Matugen, not user-selectable
 │   ├── generate-thumbnails.sh   # Generates/caches wallpaper thumbnails for the Wallpaper tab
 │   ├── m3-qmllint-gate.sh       # QML regression gate for the M3 refactor, including shared primitives
+│   ├── install-ui-suite.sh      # Clones and installs all four external UI style families
+│   ├── verify-ui-suite.sh       # Verifies user-level assets across all four UI style families
+│   ├── install-sddm-integration.sh # Installs the root SDDM bridge and polkit policy
+│   ├── verify-sddm-integration.sh  # Verifies the bridge and all supported SDDM theme assets
 │   ├── idle.sh                  # swayidle: dim, lock, display off, suspend
 │   ├── lid.sh                   # Lid close: lock
 │   ├── safe-logout.sh           # Clean Niri quit, falls back to a session kill
@@ -181,7 +187,7 @@ Keybindings live in Niri's `~/.config/niri/keybinds.kdl` and spawn Quickshell's 
 |---|---|---|
 | `Mod+D` | Toggle app launcher popup | `scripts/launcher` → `touch /tmp/qslauncher-trigger` |
 | `Mod+Escape` | Toggle quick settings menu | `scripts/quickmenu` → `touch /tmp/qsquickmenu-trigger` |
-| `XF86Tools` | Toggle Settings popup | `scripts/commandcenter` → `touch /tmp/qscommandcenter-trigger` |
+| `XF86Tools` | Toggle Settings popup | `scripts/settings` → `touch /tmp/qssettings-trigger` |
 | `Mod+Alt+L` | Lock screen | `scripts/lock` → `touch /tmp/qslock-trigger` |
 | `XF86AudioRaiseVolume` / `LowerVolume` / `Mute` | Volume up/down/mute | `wpctl` + `touch /tmp/qsosd-vol` |
 | `XF86AudioMicMute` | Mic mute toggle | `wpctl` + `touch /tmp/qsosd-mic` |
@@ -198,7 +204,8 @@ Any script or keybinding can trigger Quickshell actions by creating these files 
 
 - `/tmp/qslauncher-trigger` — toggles the launcher popup
 - `/tmp/qsquickmenu-trigger` — toggles the quick settings menu
-- `/tmp/qscommandcenter-trigger` — toggles the Settings popup
+- `/tmp/qssettings-trigger` — toggles the Settings popup
+- `/tmp/qscommandcenter-trigger` — legacy alias for the Settings popup
 - `/tmp/qslock-trigger` — activates the lock screen
 - `/tmp/qsosd-vol` / `qsosd-bright` / `qsosd-mic` / `qsosd-airplane` / `qsosd-bluetooth` — show the corresponding OSD
 
@@ -211,7 +218,8 @@ Any script or keybinding can trigger Quickshell actions by creating these files 
 - `ipc.launcher()` — toggle launcher popup
 - `ipc.lock()` — activate lock screen
 - `ipc.quickmenu()` — toggle quick menu
-- `ipc.commandcenter()` — toggle Settings popup
+- `ipc.settings()` — toggle Settings popup
+- `ipc.commandcenter()` — legacy alias for `ipc.settings()`
 - `ipc.layout()` — toggle bar orientation
 
 Callable externally via `quickshell ipc call shell launcher` (and similarly for the others).
@@ -257,17 +265,17 @@ Build-time layout, typography, shape, and motion tokens: `barWidth`, `widgetSize
 
 ### `config/Settings.qml`
 
-Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs `fullBar` (continuous full bar versus floating pills), motion and sizing, independent bar clock font size, clock/calendar/timezone settings, last Settings tab, bar indicator visibility, color theme preference, UI style (`material3`, `neo-brutalism`, or `nothing`), notification behavior, lock/power and media options, idle timeouts, and weather location/refresh/privacy/units. IP-based weather geolocation is a separate opt-in setting and is disabled by default. The persisted format is currently `schemaVersion: 1`; future breaking renames or removals must increment that marker and migrate the stored data before writing the new schema. Values round-trip live via `watchChanges: true`; call `Settings.save()` after mutating an alias to persist. The Appearance tab can restore appearance-owned defaults, while the confirmed System reset restores all settings and the default top bar placement.
+Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs `fullBar` (continuous full bar versus floating pills), motion and sizing, independent bar clock font size, clock/calendar/timezone settings, last Settings tab, bar indicator visibility, color theme preference, UI style (`material3`, `neo-brutalism`, `nothing`, or `ghost`), notification behavior, lock/power and media options, idle timeouts, and weather location/refresh/privacy/units. IP-based weather geolocation is a separate opt-in setting and is disabled by default. The persisted format is currently `schemaVersion: 1`; future breaking renames or removals must increment that marker and migrate the stored data before writing the new schema. Values round-trip live via `watchChanges: true`; call `Settings.save()` after mutating an alias to persist. The Appearance tab can restore appearance-owned defaults, while the confirmed System reset restores all settings and the default top bar placement.
 
 ### `config/Colors.qml`
 
-Material You / Material 3 semantic roles are resolved in `Colors.qml` from Matugen's `~/.cache/matugen/current_palette.json`. The file keeps authored light/dark fallbacks for first boot and generator failures. When `Settings.themeStyle` is `nothing`, Quickshell selects its fixed neutral/red light or dark palette instead; the Matugen cache remains available to Material 3, Neo Brutalism, and external desktop integrations.
+Material You / Material 3 semantic roles are resolved in `Colors.qml` from Matugen's `~/.cache/matugen/current_palette.json`. The file keeps authored light/dark fallbacks for first boot and generator failures. When `Settings.themeStyle` is `nothing` or `ghost`, Quickshell selects the matching fixed light/dark palette instead; the Matugen cache remains available to Material 3, Neo Brutalism, and external desktop integrations.
 
 Format: `l_<token>` (light), `d_<token>` (dark), and flat resolved `<token>` properties (no prefix) for current mode. Text/icon colors are prefixed with `fg` (e.g. `fgSurface`, `fgPrimary`) to prevent conflicts with QML's internal signal handler compiler rules.
 
 System dark mode is read once and monitored through `gsettings` (owned by `Colors.qml` itself, since it's the single instance everyone reads from). Mode toggles in the launcher or Settings call the existing desktop mode synchronizer, while the shell selects the matching Matugen light/dark roles locally.
 
-`Settings.themePreference` is the persisted owner of the color mode (`0` Auto, `1` Light, `2` Dark). `Settings.themeStyle` is the UI style selector (`material3`, `neo-brutalism`, or `nothing`). `shell.qml` reapplies the color-mode and UI-style preference through `sync-theme-mode.sh` at startup and whenever either changes, keeping GTK, icons, Qt/Kvantum, fonts, Kitty, Starship, Niri, and SDDM synchronized without editing generated Matugen files. Nothing selects the installed `Nothing-OS`/`Nothing-OS-Dark` GTK theme, matching `Nothing-Light-Icons`/`Nothing-Dark-Icons`, `Nothing-OS`/`Nothing-OS-Dark` Kvantum, NType 82/NType 82 Mono in Qt6ct, fixed Quickshell colors, fixed Nothing Kitty and Starship palettes, matching Niri decorations, and the corresponding `Nothing-OS-SDDM` greeter. Neo Brutalism selects the installed `Neo-Brutalism`/`Neo-Brutalism-Dark` GTK and Kvantum themes, matching `Neo-Brutalism-Icons`/`Neo-Brutalism-Dark-Icons`, JetBrains Mono in GTK and Qt6ct, generated Matugen Kitty and Starship palettes, Matugen-derived Niri decorations, and the corresponding `Neo-Brutalism-SDDM` greeter. The SDDM bridge updates a root-owned drop-in on explicit style or mode changes and does not restart the display manager; the new theme applies at the next greeter start. Neo Brutalism retains its 18px gaps, high-contrast ring, and hard offset shadow. The Neo full bar uses a 14px edge inset so its visible edge aligns with the focused Niri window, and reserves the full floating footprint through Quickshell's layer-shell `exclusiveZone`; Material 3 and Nothing keep the normal reservation.
+`Settings.themePreference` is the persisted owner of the color mode (`0` Auto, `1` Light, `2` Dark). `Settings.themeStyle` is the UI style selector (`material3`, `neo-brutalism`, `nothing`, or `ghost`). Ghost is a fourth style branch alongside Neo and Nothing: it uses fixed, wallpaper-neutral light/dark roles, a cyan HUD accent, square (`0`-radius) surfaces, and the dedicated controls in `bar/themes/ghost/`. The shared surfaces, indicators, workspace state, launcher, lock screen, Settings panel, and OSD consume those semantic Ghost roles instead of falling back to Matugen colors. `shell.qml` reapplies the color-mode and UI-style preference through `sync-theme-mode.sh` at startup and whenever either changes, keeping GTK, icons, Qt/Kvantum, fonts, Kitty, Starship, Niri, btop, Neovim, and SDDM synchronized without editing generated Matugen files. Ghost selects the recovered `Ghost-Light`/`Ghost-Dark` GTK and icon themes, the `Ghost`/`Ghost-Dark` Kvantum pair, JetBrains Mono, fixed `ghost-light.conf`/`ghost-dark.conf` Kitty palettes, matching Starship files, the fixed dark Ghost btop palette, `ghost`/`ghost-light` Neovim colorschemes, a cyan-on-hairline Niri focus ring with no shadow and `0` corner radius, and the dark-only `Ghost-SDDM` greeter for both modes. btop and Neovim state is written by `sync-terminal-theme.sh`; new Neovim sessions select the resolved variant, while an already-running Neovim or btop process needs its normal restart/reload behavior. The SDDM bridge updates a root-owned drop-in on explicit style or mode changes and does not restart the display manager; the new theme applies at the next greeter start. Nothing and Neo Brutalism retain their existing GTK, icon, Kvantum, font, terminal, Niri, and SDDM behavior. Neo Brutalism retains its 18px gaps, high-contrast ring, and hard offset shadow. The Neo full bar uses a 14px edge inset so its visible edge aligns with the focused Niri window, and reserves the full floating footprint through Quickshell's layer-shell `exclusiveZone`; Material 3 and Nothing keep the normal reservation.
 
 Neo Brutalism uses JetBrains Mono, bold semantic ink outlines, pastel semantic fills, and hard offset shadows through shared surfaces and controls. Its dark mode is the negative treatment: dark surfaces use light semantic ink for the thick borders and hard offsets. Material 3 retains its Roboto Flex typography, tonal surfaces, and expressive shape/elevation treatment. Nothing uses NType 82, NType 82 Mono, and NType 82 Headline, flat neutral tonal surfaces, rounded controls, segmented sliders, and restrained signal accents.
 
@@ -292,8 +300,8 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 - **Weather**: Uses a configured manual location by default, optionally supports IP geolocation, refreshes on the persisted interval, reports the last update time, and shows an explicit unavailable/offline state when data cannot be fetched.
 - **Notifications**: Retains history while DND or quiet hours suppress toast delivery; critical-notification bypass, toast placement, retention, and clear-history actions are persisted.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a polling re-query runs in `shell.qml` after reloads.
-- **Theme ownership**: Matugen remains the dynamic palette source for Material 3, Neo Brutalism, and external desktop themes. `scripts/apply-wallpaper.sh` applies the wallpaper via `awww`, refreshes the Matugen cache, regenerates the existing Material 3 and Neo Brutalism desktop themes, and re-runs the light/dark synchronizer. `config/Colors.qml` consumes those cached semantic roles except when `Settings.themeStyle` is `nothing`, where it selects the fixed Quickshell palette; `sync-theme-mode.sh` selects the matching GTK, icon, Kvantum, Qt6ct, Kitty, and Starship settings for each available style, with `generate-neo-kitty-theme.sh` refreshing Neo's terminal files from the cache. The root-owned `scripts/sync-sddm-theme-root.sh` helper, installed at `/usr/local/libexec/quickshell-sync-sddm-theme` with its polkit action, updates the SDDM greeter drop-in only when the explicit selector changes. `scripts/apply-accent-color.sh` is a compatibility stub. The independent `Settings.themeStyle` choice is propagated to GTK, icons, Qt/Kvantum, fonts, Kitty, Starship, and SDDM by the theme synchronizers and to Niri focus-ring/window-border width/colors by `sync-terminal-theme.sh`, while Neo full-bar geometry owns its extra layer-shell reservation in `Bar.qml`.
-- Refresh the system-level SDDM bridge after changing its source or policy with `sudo install -o root -g root -m 0755 ~/.config/quickshell/scripts/sync-sddm-theme-root.sh /usr/local/libexec/quickshell-sync-sddm-theme` and `sudo install -o root -g root -m 0644 ~/.config/quickshell/scripts/org.quickshell.sddm-theme.policy /usr/share/polkit-1/actions/org.quickshell.sddm-theme.policy`. The bridge updates `/etc/sddm.conf.d/99-quickshell-theme.conf` and patches `Current=` in `/etc/sddm.conf` directly, since the installed sddm build reads the base config over the drop-in; it never restarts SDDM from the live session.
+- **Theme ownership**: Matugen remains the dynamic palette source for Material 3, Neo Brutalism, and external desktop themes. `scripts/apply-wallpaper.sh` applies the wallpaper via `awww`, refreshes the Matugen cache, regenerates the existing Material 3 and Neo Brutalism desktop themes, and re-runs the light/dark synchronizer. `config/Colors.qml` consumes those cached semantic roles except when `Settings.themeStyle` is `nothing` or `ghost`, where it selects a fixed light/dark Quickshell palette; `sync-theme-mode.sh` selects the matching GTK, icon, Kvantum, Qt6ct, Kitty, Starship, btop, and Neovim settings for each available style, with `generate-neo-kitty-theme.sh` refreshing Neo's terminal files from the cache. The root-owned `scripts/sync-sddm-theme-root.sh` helper, installed at `/usr/local/libexec/quickshell-sync-sddm-theme` with its polkit action, supports the single dark-only `Ghost-SDDM` greeter for both modes and updates the SDDM drop-in only when the explicit selector changes. `scripts/apply-accent-color.sh` is a compatibility stub. The independent `Settings.themeStyle` choice is propagated to GTK, icons, Qt/Kvantum, fonts, Kitty, Starship, btop, Neovim, and SDDM by the theme synchronizers and to Niri focus-ring/window-border width/colors by `sync-terminal-theme.sh`, while Neo full-bar geometry owns its extra layer-shell reservation in `Bar.qml`.
+- **New deployment**: `yadm bootstrap` (or `/home/mura/install.sh`) offers to run `scripts/install-ui-suite.sh`. The installer clones the Material 3, Neo Brutalism, Nothing, and Ghost source projects into `~/Projects`, reuses their existing build/install scripts, installs the system SDDM outputs and bridge, syncs the active terminal/editor/desktop state, and leaves generated theme assets outside yadm. Run it directly with `./scripts/install-ui-suite.sh`; use `--dry-run`, `--skip-sddm`, `--skip-cursors`, or `--skip-nvim` for controlled deployments. `scripts/verify-ui-suite.sh` checks GTK, icons, Kvantum, cursors, Kitty, Starship, btop, Neovim, and SDDM across the full suite.
 - **Appearance tab**: Owns color mode, UI style, palette source/reload, bar placement, bar display style, UI sizing, independent bar-clock sizing controls, and the confirmed appearance-default reset.
 - **Wallpaper tab**: Lists images from `~/Pictures/Walls`; `scripts/generate-thumbnails.sh` produces and caches 200×130 center-cropped thumbnails under `~/.cache/quickshell/wallpaper-thumbs`, regenerating only when the source is newer than the cached thumbnail. The tab tracks the active wallpaper, supports keyboard selection, and exposes randomize/apply actions.
 - **Lock & Power tab**: Owns lock-screen options, idle lock/suspend timeouts, Caffeine, and TLP power-profile selection with automatic AC/battery restore.
