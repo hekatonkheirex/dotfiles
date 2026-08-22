@@ -106,19 +106,20 @@ ShellRoot {
   function syncThemeMode() {
     Quickshell.execDetached([
       Quickshell.env("HOME") + "/.local/bin/sync-theme-mode.sh",
-      shell.themeModeName(Settings.themePreference)
+      shell.themeModeName(Settings.themePreference),
+      "",
+      Settings.themeStyle,
+      "--sync-sddm"
     ])
   }
 
-  // Niri's focused-window ring follows the independent Quickshell UI style.
-  // Pass the current value explicitly so a style change is synchronized even
-  // before Settings.save() has finished writing settings.json.
-  function syncNiriUiStyle() {
+  function syncUiStyle() {
     Quickshell.execDetached([
-      Quickshell.env("HOME") + "/.local/bin/sync-terminal-theme.sh",
+      Quickshell.env("HOME") + "/.local/bin/sync-theme-mode.sh",
       shell.themeModeName(Settings.themePreference),
-      "",
-      Settings.themeStyle
+      "--quiet",
+      Settings.themeStyle,
+      "--sync-sddm"
     ])
   }
 
@@ -148,7 +149,8 @@ ShellRoot {
     command: [
       Quickshell.env("HOME") + "/.local/bin/sync-theme-mode.sh",
       shell.themeModeName(Settings.themePreference),
-      "--quiet"
+      "--quiet",
+      Settings.themeStyle
     ]
     running: true
   }
@@ -156,7 +158,7 @@ ShellRoot {
   Connections {
     target: Settings
     function onThemePreferenceChanged() { shell.syncThemeMode() }
-    function onThemeStyleChanged() { shell.syncNiriUiStyle() }
+    function onThemeStyleChanged() { shell.syncUiStyle() }
   }
 
   Process {

@@ -21,8 +21,9 @@ QtObject {
   property int spacingLarge: Math.round(16 * spacingScale)
   property int spacingExtraLarge: Math.round(24 * spacingScale)
 
-  // UI style is separate from Colors.qml's Matugen palette. Each style keeps
-  // consuming the same generated semantic color roles.
+  // UI style is separate from Matugen's external desktop palette. Material 3
+  // and Neo Brutalism consume its generated roles; Nothing uses Colors.qml's
+  // fixed neutral/red light and dark roles.
   readonly property bool nothingDesign: Settings.themeStyle === "nothing"
   readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
   readonly property string fontFamily: nothingDesign

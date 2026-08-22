@@ -27,12 +27,22 @@ Item {
   // Lock screen sits on a fixed dark photo scrim independent of the desktop's
   // light/dark mode, so text stays fixed light for legibility rather than
   // following Colors.fgSurface (which flips with darkMode and would go
-  // near-black in light mode). Read the dark-scheme on_surface role directly
-  // from the live Matugen palette (falling back to the authored constant),
-  // so the fixed-light text still tracks the current wallpaper.
+  // near-black in light mode). Read the dark-scheme on_surface role through
+  // Colors so Nothing keeps its fixed text while other styles track Matugen.
   readonly property color textColor: Colors.paletteRole("dark", "on_surface", Colors.d_onSurface)
   readonly property color mutedText: Qt.rgba(textColor.r, textColor.g, textColor.b, 0.7)
   readonly property color errorColor: Colors.destructive
+  readonly property bool flatLockMode: Config.nothingDesign || Config.neoBrutalism
+  readonly property color flatBackground: root.flatLockMode
+    ? (Colors.darkMode ? Colors.background : Colors.inverseSurface)
+    : Colors.bg
+  readonly property real inputRadius: Config.neoBrutalism ? Config.shapeCompact : Config.shapeMedium
+  readonly property color inputFill: Config.neoBrutalism
+    ? Qt.rgba(textColor.r, textColor.g, textColor.b, 0.10)
+    : Qt.rgba(1, 1, 1, 0.12)
+  readonly property color inputBorder: Config.neoBrutalism
+    ? Qt.rgba(textColor.r, textColor.g, textColor.b, 0.72)
+    : Qt.rgba(1, 1, 1, 0.2)
 
   readonly property string home: Quickshell.env("HOME")
   property date now: new Date()
@@ -277,6 +287,8 @@ Item {
         AnimatedBackground {
           anchors.fill: parent
           running: root.locked
+          flatMode: root.flatLockMode
+          flatColor: root.flatBackground
           visible: !Settings.lockUseWallpaper || !root.wallpaperReady
         }
 
@@ -287,6 +299,7 @@ Item {
 
         Rectangle {
           anchors.fill: parent
+          visible: !root.flatLockMode || (Settings.lockUseWallpaper && root.wallpaperReady)
           gradient: Gradient {
             orientation: Gradient.Vertical
             GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.5) }
@@ -354,11 +367,14 @@ Item {
               return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
             }
             color: textColor
-            font.family: Config.fontFamily
+            font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
             font.pixelSize: Settings.lockClockSize
-            font.weight: Font.Bold
-            style: Text.Sunken
-            styleColor: Qt.rgba(0, 0, 0, 0.3)
+            font.weight: Config.nothingDesign
+              ? Font.Normal
+              : (Config.neoBrutalism ? Font.DemiBold : Font.Bold)
+            font.letterSpacing: Config.neoBrutalism ? 0.8 : 0
+            style: root.flatLockMode ? Text.Normal : Text.Sunken
+            styleColor: root.flatLockMode ? "transparent" : Qt.rgba(0, 0, 0, 0.3)
           }
 
           Text {
@@ -404,10 +420,10 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             width: 280
             height: 48
-            radius: Config.shapeMedium
-            color: Qt.rgba(1, 1, 1, 0.12)
+            radius: root.inputRadius
+            color: root.inputFill
             border.width: Config.themeBorderWidth
-            border.color: Qt.rgba(1, 1, 1, 0.2)
+            border.color: root.inputBorder
 
             TextInput {
               anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
@@ -450,7 +466,15 @@ Item {
             font.family: Config.fontFamily
             font.pixelSize: 15
             font.weight: Font.Bold
-            visible: root.lockError.length > 0
+            opacity: root.flatLockMode && root.lockError.length === 0 ? 0 : 1
+            visible: root.flatLockMode ? opacity > 0 : root.lockError.length > 0
+
+            Behavior on opacity {
+              NumberAnimation {
+                duration: root.flatLockMode ? Config.motionShort : 0
+                easing.type: Easing.OutCubic
+              }
+            }
           }
 
           Text {
@@ -551,6 +575,8 @@ Item {
       AnimatedBackground {
         anchors.fill: parent
         running: root.locked
+        flatMode: root.flatLockMode
+        flatColor: root.flatBackground
         visible: !Settings.lockUseWallpaper || !root.wallpaperReady
       }
 
@@ -561,6 +587,7 @@ Item {
 
       Rectangle {
         anchors.fill: parent
+        visible: !root.flatLockMode || (Settings.lockUseWallpaper && root.wallpaperReady)
         gradient: Gradient {
           orientation: Gradient.Vertical
           GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.5) }
@@ -580,11 +607,14 @@ Item {
             return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
           }
           color: root.textColor
-          font.family: Config.fontFamily
+          font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
           font.pixelSize: Settings.lockClockSize
-          font.weight: Font.Bold
-          style: Text.Sunken
-          styleColor: Qt.rgba(0, 0, 0, 0.3)
+          font.weight: Config.nothingDesign
+            ? Font.Normal
+            : (Config.neoBrutalism ? Font.DemiBold : Font.Bold)
+          font.letterSpacing: Config.neoBrutalism ? 0.8 : 0
+          style: root.flatLockMode ? Text.Normal : Text.Sunken
+          styleColor: root.flatLockMode ? "transparent" : Qt.rgba(0, 0, 0, 0.3)
         }
 
         Text {
@@ -630,10 +660,10 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           width: 280
           height: 48
-          radius: Config.shapeMedium
-          color: Qt.rgba(1, 1, 1, 0.12)
+          radius: root.inputRadius
+          color: root.inputFill
           border.width: Config.themeBorderWidth
-          border.color: Qt.rgba(1, 1, 1, 0.2)
+          border.color: root.inputBorder
 
           TextInput {
             anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
@@ -676,7 +706,15 @@ Item {
           font.family: Config.fontFamily
           font.pixelSize: 15
           font.weight: Font.Bold
-          visible: root.lockError.length > 0
+          opacity: root.flatLockMode && root.lockError.length === 0 ? 0 : 1
+          visible: root.flatLockMode ? opacity > 0 : root.lockError.length > 0
+
+          Behavior on opacity {
+            NumberAnimation {
+              duration: root.flatLockMode ? Config.motionShort : 0
+              easing.type: Easing.OutCubic
+            }
+          }
         }
 
         Text {
