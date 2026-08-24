@@ -9,6 +9,7 @@ import Quickshell.Services.UPower
 import Quickshell.Io
 import "config"
 import "bar"
+import "ui" as Ui
 
 ShellRoot {
   id: shell
@@ -230,6 +231,12 @@ ShellRoot {
     id: lockScreen
   }
 
+  Ui.WelcomeScreen {
+    id: welcomeScreen
+    colors_: Colors
+    config: Config
+  }
+
   IpcHandler {
     id: ipc
     target: "shell"
@@ -245,6 +252,10 @@ ShellRoot {
 
     function lock() {
       lockScreen.lockScreen()
+    }
+
+    function welcome() {
+      welcomeScreen.show()
     }
 
     function quickmenu() {
