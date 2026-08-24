@@ -41,6 +41,19 @@ sync_editor_and_monitor_themes() {
     btop_theme="$BTOP_GHOST_THEME"
     nvim_colorscheme="ghost"
     [ "$MODE" = "light" ] && nvim_colorscheme="ghost-light"
+  elif [ "$UI_STYLE" = "nothing" ]; then
+    nvim_colorscheme="nothing"
+    [ "$MODE" = "light" ] && nvim_colorscheme="nothing-light"
+  elif [ "$UI_STYLE" = "neo-brutalism" ]; then
+    # Neo Brutalism always follows the wallpaper-derived Matugen roles,
+    # regardless of the selected terminal colorscheme ($SCHEME).
+    nvim_colorscheme="matugen"
+    [ "$MODE" = "light" ] && nvim_colorscheme="matugen-light"
+  elif [ "$SCHEME" = "matugen" ]; then
+    # Material 3 (the default UI_STYLE) follows the selected terminal
+    # colorscheme: matugen here, claude via the default above.
+    nvim_colorscheme="matugen"
+    [ "$MODE" = "light" ] && nvim_colorscheme="matugen-light"
   fi
 
   if [ -f "$BTOP_CONFIG" ]; then
