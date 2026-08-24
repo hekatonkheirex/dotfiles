@@ -17,8 +17,8 @@ if [ -z "$UI_STYLE" ]; then
   UI_STYLE=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || echo material3)
 fi
 case "$UI_STYLE" in
-  neo-brutalism|nothing|ghost) ;;
-  *) UI_STYLE=material3 ;;
+neo-brutalism | nothing | ghost) ;;
+*) UI_STYLE=material3 ;;
 esac
 
 if [ -z "$MODE" ] || [ "$MODE" = "auto" ]; then
@@ -54,7 +54,7 @@ sync_editor_and_monitor_themes() {
 
   mkdir -p "$(dirname "$NVIM_THEME_STATE")"
   local state_tmp="${NVIM_THEME_STATE}.tmp.$$"
-  printf '%s\n' "$nvim_colorscheme" > "$state_tmp"
+  printf '%s\n' "$nvim_colorscheme" >"$state_tmp"
   mv -f -- "$state_tmp" "$NVIM_THEME_STATE"
   echo "Neovim colorscheme state -> $nvim_colorscheme"
 }
@@ -87,8 +87,8 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
 
   if [ "$UI_STYLE" = "neo-brutalism" ] && [ -x "$NEO_TERMINAL_GENERATOR" ]; then
     for kitty_mode in light dark; do
-      "$NEO_TERMINAL_GENERATOR" "$kitty_mode" \
-        || echo "Neo Brutalism Kitty/Starship $kitty_mode generation failed; keeping the previous themes."
+      "$NEO_TERMINAL_GENERATOR" "$kitty_mode" ||
+        echo "Neo Brutalism Kitty/Starship $kitty_mode generation failed; keeping the previous themes."
     done
   fi
 
@@ -139,7 +139,7 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
       echo "ZSH_HIGHLIGHT_STYLES[$s]='fg=$(col 5)'"
     done
     for s in commandseparator back-quoted-argument-delimiter back-double-quoted-argument back-dollar-quoted-argument \
-             single-quoted-argument-unclosed double-quoted-argument-unclosed unknown-token back-quoted-argument-unclosed; do
+      single-quoted-argument-unclosed double-quoted-argument-unclosed unknown-token back-quoted-argument-unclosed; do
       echo "ZSH_HIGHLIGHT_STYLES[$s]='fg=$(col 1)'"
     done
     for s in command-substitution-quoted command-substitution-delimiter-quoted single-quoted-argument double-quoted-argument rc-quote; do
@@ -157,7 +157,7 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
     for s in dollar-quoted-argument dollar-double-quoted-argument assign named-fd numeric-fd redirection arg0 default cursor; do
       echo "ZSH_HIGHLIGHT_STYLES[$s]='fg=$FG'"
     done
-  } > "$HOME/.config/theme-env.sh"
+  } >"$HOME/.config/theme-env.sh"
 
   echo "kitty theme.conf -> $KITTY_THEME_NAME"
   echo "theme-env.sh -> STARSHIP_CONFIG=$STARSHIP_THEME_NAME, FZF from $SCHEME-$MODE.sh"
@@ -167,9 +167,15 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
   if [ "$SCHEME" = "claude" ]; then
     # Claude palette (matches config/Colors.qml cl_l_/cl_d_ primary + outline)
     if [ "$MODE" = "light" ]; then
-      primary="#D97757"; outline="#898781"; on_surface="${FG:-#24191b}"; shadow="#000000"
+      primary="#D97757"
+      outline="#898781"
+      on_surface="${FG:-#24191b}"
+      shadow="#000000"
     else
-      primary="#DF8D72"; outline="#8F8A8A"; on_surface="${FG:-#f3dde0}"; shadow="${FG:-#000000}"
+      primary="#DF8D72"
+      outline="#8F8A8A"
+      on_surface="${FG:-#f3dde0}"
+      shadow="${FG:-#000000}"
     fi
   else
     cache_file="$HOME/.cache/matugen/current_palette.json"
@@ -229,7 +235,7 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
         shadow_color="$shadow"
       fi
     elif [ "$UI_STYLE" = "nothing" ]; then
-      focus_width=1
+      focus_width=2
       focus_active="$on_surface"
       focus_inactive="$outline"
       niri_corner_radius=20
@@ -251,7 +257,7 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
     mkdir -p "$HOME/.config/niri"
     colors_file="$HOME/.config/niri/colors.kdl"
     colors_tmp="$colors_file.tmp.$$"
-    cat <<EOF > "$colors_tmp"
+    cat <<EOF >"$colors_tmp"
 // Generated dynamically by sync-terminal-theme.sh
 layout {
     $layout_gaps
@@ -269,7 +275,7 @@ layout {
     }
 EOF
     if [ "$UI_STYLE" = "neo-brutalism" ]; then
-      cat <<EOF >> "$colors_tmp"
+      cat <<EOF >>"$colors_tmp"
     shadow {
         softness 0
         spread 0
@@ -279,17 +285,17 @@ EOF
     }
 EOF
     elif [ "$UI_STYLE" = "nothing" ] || [ "$UI_STYLE" = "ghost" ]; then
-      cat <<EOF >> "$colors_tmp"
+      cat <<EOF >>"$colors_tmp"
     shadow {
         off
     }
 EOF
     fi
-cat <<EOF >> "$colors_tmp"
+    cat <<EOF >>"$colors_tmp"
 }
 EOF
     if [ "$UI_STYLE" = "nothing" ]; then
-      cat <<EOF >> "$colors_tmp"
+      cat <<EOF >>"$colors_tmp"
 window-rule {
     background-effect {
         blur false
@@ -340,7 +346,7 @@ animations {
 }
 EOF
     fi
-cat <<EOF >> "$colors_tmp"
+    cat <<EOF >>"$colors_tmp"
 window-rule {
     geometry-corner-radius $niri_corner_radius
     clip-to-geometry true
@@ -349,10 +355,28 @@ EOF
     mv -f "$colors_tmp" "$colors_file"
     echo "niri colors.kdl -> style=$UI_STYLE gaps=${neo_gap:-default} width=$focus_width radius=$niri_corner_radius active=$focus_active inactive=$focus_inactive shadow=${shadow_color:-default} offset=${neo_shadow_offset:-default}"
 
+    # Ghost is the only style with its own cursor pack (the recovered
+    # ghost-section9 set, no light/dark split). Every other style keeps the
+    # default Bibata cursors.
+    cursor_theme="Bibata-Modern-Classic"
+    if [ "$UI_STYLE" = "ghost" ]; then
+      if [ -f "$HOME/.icons/ghost-section9/index.theme" ]; then
+        cursor_theme="ghost-section9"
+      else
+        echo "Ghost cursor theme not found at ~/.icons/ghost-section9; keeping $cursor_theme."
+      fi
+    fi
+    gsettings set org.gnome.desktop.interface cursor-theme "$cursor_theme"
+    decorations_file="$HOME/.config/niri/decorations.kdl"
+    [ -f "$decorations_file" ] && sed -i "s/xcursor-theme \".*\"/xcursor-theme \"$cursor_theme\"/" "$decorations_file"
+    environments_file="$HOME/.config/niri/environments.kdl"
+    [ -f "$environments_file" ] && sed -i "s/XCURSOR_THEME \".*\"/XCURSOR_THEME \"$cursor_theme\"/" "$environments_file"
+    echo "cursor theme -> $cursor_theme"
+
     # Niri does not need a session restart for included config changes. Reload
     # the live config so changing the UI style updates the focused ring now.
     if command -v niri &>/dev/null; then
       niri msg action load-config-file >/dev/null 2>&1 || true
     fi
   fi
-} >> /tmp/sync-terminal-theme.log 2>&1
+} >>/tmp/sync-terminal-theme.log 2>&1

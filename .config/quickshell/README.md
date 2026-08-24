@@ -9,6 +9,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **A single bar** (`bar/Bar.qml`) that supports top, bottom, left, and right placement, with a choice between one continuous full bar and a pills bar where each widget floats in its own pill. The display-style setting (`fullBar`) is persisted with the other Appearance preferences.
 - **Bar Placement**: Choose top, bottom, left, or right in the Settings Appearance tab, persisted across reboots (saved to `~/.config/quickshell/layout`). Legacy `horizontal` and `vertical` values remain supported as top and left.
 - **Lock screen** with PAM + fingerprint authentication.
+- **Ghost startup welcome**: when the Ghost style is selected, the original post-SDDM cyberbrain boot trace and female figure artwork briefly appear after Quickshell starts.
 - **Notification handling** with history and toasts, styled through the selected UI system.
 - **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; the Quick Menu and Notifications tab share the persisted setting.
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
@@ -35,6 +36,10 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 ├── shell.qml                  # Entry point — ShellRoot, IpcHandler, popups, battery alert, file triggers
 ├── settings.json              # Persisted user settings (JsonAdapter-backed)
 ├── layout                     # Persisted bar placement ("top" | "bottom" | "left" | "right")
+├── resources/
+│   └── images/welcome-cyberbrain.png # Recovered Ghost startup artwork
+├── ui/
+│   └── WelcomeScreen.qml       # Post-SDDM Ghost startup overlay
 ├── config/
 │   ├── Config.qml             # Build-time layout, typography, shape, and motion tokens
 │   ├── Settings.qml           # Persisted preferences singleton (FileView + JsonAdapter over settings.json)
@@ -167,6 +172,8 @@ spawn-sh-at-startup "dbus-update-activation-environment --systemd --all && syste
 
 Quickshell auto-discovers `~/.config/quickshell/shell.qml` as the default config when run without arguments.
 
+When `Settings.themeStyle` is `ghost`, `ui/WelcomeScreen.qml` starts automatically after the shell is ready. It can also be replayed with `quickshell ipc call shell welcome`; other styles leave the overlay disabled.
+
 ### Lid Switch
 
 Lid close is handled in `~/.config/niri/config.kdl`:
@@ -218,6 +225,7 @@ Any script or keybinding can trigger Quickshell actions by creating these files 
 - `ipc.launcher()` — toggle launcher popup
 - `ipc.lock()` — activate lock screen
 - `ipc.quickmenu()` — toggle quick menu
+- `ipc.welcome()` — replay the Ghost startup welcome overlay when Ghost is selected
 - `ipc.settings()` — toggle Settings popup
 - `ipc.commandcenter()` — legacy alias for `ipc.settings()`
 - `ipc.layout()` — toggle bar orientation
@@ -275,7 +283,7 @@ Format: `l_<token>` (light), `d_<token>` (dark), and flat resolved `<token>` pro
 
 System dark mode is read once and monitored through `gsettings` (owned by `Colors.qml` itself, since it's the single instance everyone reads from). Mode toggles in the launcher or Settings call the existing desktop mode synchronizer, while the shell selects the matching Matugen light/dark roles locally.
 
-`Settings.themePreference` is the persisted owner of the color mode (`0` Auto, `1` Light, `2` Dark). `Settings.themeStyle` is the UI style selector (`material3`, `neo-brutalism`, `nothing`, or `ghost`). Ghost is a fourth style branch alongside Neo and Nothing: it uses fixed, wallpaper-neutral light/dark roles, a cyan HUD accent, square (`0`-radius) surfaces, and the dedicated controls in `bar/themes/ghost/`. The shared surfaces, indicators, workspace state, launcher, lock screen, Settings panel, and OSD consume those semantic Ghost roles instead of falling back to Matugen colors. `shell.qml` reapplies the color-mode and UI-style preference through `sync-theme-mode.sh` at startup and whenever either changes, keeping GTK, icons, Qt/Kvantum, fonts, Kitty, Starship, Niri, btop, Neovim, and SDDM synchronized without editing generated Matugen files. Ghost selects the recovered `Ghost-Light`/`Ghost-Dark` GTK and icon themes, the `Ghost`/`Ghost-Dark` Kvantum pair, JetBrains Mono, fixed `ghost-light.conf`/`ghost-dark.conf` Kitty palettes, matching Starship files, the fixed dark Ghost btop palette, `ghost`/`ghost-light` Neovim colorschemes, a cyan-on-hairline Niri focus ring with no shadow and `0` corner radius, and the dark-only `Ghost-SDDM` greeter for both modes. btop and Neovim state is written by `sync-terminal-theme.sh`; new Neovim sessions select the resolved variant, while an already-running Neovim or btop process needs its normal restart/reload behavior. The SDDM bridge updates a root-owned drop-in on explicit style or mode changes and does not restart the display manager; the new theme applies at the next greeter start. Nothing and Neo Brutalism retain their existing GTK, icon, Kvantum, font, terminal, Niri, and SDDM behavior. Neo Brutalism retains its 18px gaps, high-contrast ring, and hard offset shadow. The Neo full bar uses a 14px edge inset so its visible edge aligns with the focused Niri window, and reserves the full floating footprint through Quickshell's layer-shell `exclusiveZone`; Material 3 and Nothing keep the normal reservation.
+`Settings.themePreference` is the persisted owner of the color mode (`0` Auto, `1` Light, `2` Dark). `Settings.themeStyle` is the UI style selector (`material3`, `neo-brutalism`, `nothing`, or `ghost`). Ghost is a fourth style branch alongside Neo and Nothing: it uses fixed, wallpaper-neutral light/dark roles, a cyan HUD accent, square (`0`-radius) surfaces, and the dedicated controls in `bar/themes/ghost/`. The shared surfaces, indicators, workspace state, launcher, lock screen, Settings panel, and OSD consume those semantic Ghost roles instead of falling back to Matugen colors. `shell.qml` reapplies the color-mode and UI-style preference through `sync-theme-mode.sh` at startup and whenever either changes, keeping GTK, icons, Qt/Kvantum, fonts, Kitty, Starship, Niri, btop, Neovim, and SDDM synchronized without editing generated Matugen files. Ghost selects the recovered `Ghost-Light`/`Ghost-Dark` GTK and icon themes, the `Ghost`/`Ghost-Dark` Kvantum pair, JetBrains Mono, fixed `ghost-light.conf`/`ghost-dark.conf` Kitty palettes, matching Starship files, the fixed dark Ghost btop palette, `ghost`/`ghost-light` Neovim colorschemes, a cyan-on-hairline Niri focus ring with no shadow and `0` corner radius, the recovered `ghost-section9` Xcursor theme (GTK `cursor-theme` plus Niri's `decorations.kdl`/`environments.kdl`), and the dark-only `Ghost-SDDM` greeter for both modes. btop and Neovim state is written by `sync-terminal-theme.sh`; new Neovim sessions select the resolved variant, while an already-running Neovim or btop process needs its normal restart/reload behavior. The SDDM bridge updates a root-owned drop-in on explicit style or mode changes and does not restart the display manager; the new theme applies at the next greeter start. Nothing and Neo Brutalism retain their existing GTK, icon, Kvantum, font, terminal, Niri, and SDDM behavior. Neo Brutalism retains its 18px gaps, high-contrast ring, and hard offset shadow. The Neo full bar uses a 14px edge inset so its visible edge aligns with the focused Niri window, and reserves the full floating footprint through Quickshell's layer-shell `exclusiveZone`; Material 3 and Nothing keep the normal reservation.
 
 Neo Brutalism uses JetBrains Mono, bold semantic ink outlines, pastel semantic fills, and hard offset shadows through shared surfaces and controls. Its dark mode is the negative treatment: dark surfaces use light semantic ink for the thick borders and hard offsets. Material 3 retains its Roboto Flex typography, tonal surfaces, and expressive shape/elevation treatment. Nothing uses NType 82, NType 82 Mono, and NType 82 Headline, flat neutral tonal surfaces, rounded controls, segmented sliders, and restrained signal accents.
 
