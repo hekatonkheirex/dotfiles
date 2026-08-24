@@ -4,7 +4,9 @@ local function readQuickshellColorscheme()
     local lines = vim.fn.readfile(statePath)
     local candidate = (lines[1] or ""):match("^%s*(.-)%s*$")
     if candidate == "ghost" or candidate == "ghost-light"
-        or candidate == "claude" or candidate == "claude-light" then
+        or candidate == "claude" or candidate == "claude-light"
+        or candidate == "nothing" or candidate == "nothing-light"
+        or candidate == "matugen" or candidate == "matugen-light" then
       return candidate
     end
   end
