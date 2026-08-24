@@ -24,7 +24,6 @@ vim.o.formatoptions =
 vim.o.expandtab = true -- expand tab to spaces
 
 vim.o.termguicolors = true
-vim.o.background = "light" -- matches claude.lua's flavour = "light"
 vim.o.cursorcolumn = false
 
 vim.g.python3_host_prog = "/usr/bin/python3"
