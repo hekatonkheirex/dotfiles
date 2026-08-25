@@ -8,7 +8,7 @@ import "../config"
 StatusIndicator {
   id: root
 
-  accentColor: Config.nothingDesign ? Colors.fgSurface : Colors.primary
+  accentColor: Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
   accessibleName: "Battery"
 
   readonly property var batteryDevice: {

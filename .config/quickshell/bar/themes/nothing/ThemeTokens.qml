@@ -8,6 +8,11 @@ QtObject {
   readonly property int focusBorderWidth: 2
   readonly property int shadowOffset: 0
   readonly property int contentVerticalOffset: 0
+  readonly property bool evolution: Config.nothingEvolution
+  readonly property real surfaceAlpha: evolution ? Config.evolutionSurfaceAlpha : 1.0
+  readonly property real raisedAlpha: evolution ? Config.evolutionRaisedAlpha : 1.0
+  readonly property real controlAlpha: evolution ? Config.evolutionControlAlpha : 1.0
+  readonly property bool translucent: evolution
   readonly property string fontFamily: Config.fontFamily
   readonly property string monoFontFamily: Config.monoFontFamily
   readonly property color ink: Colors.styleInk

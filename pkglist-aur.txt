@@ -6,10 +6,9 @@ herdr-bin
 libgnome-keyring
 localsend-bin
 onlyoffice-bin
+openai-codex-bin
 paru
 raw-thumbnailer
-sunshine-bin
-t3code-bin
 timeshift-autosnap
 ttfautohint
 unimatrix-git

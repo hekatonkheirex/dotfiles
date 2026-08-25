@@ -22,7 +22,9 @@ Rectangle {
   property color leadingIconColor: root.selected
     ? (Config.neoBrutalism || Config.ghostTheme
       ? Colors.styleAccentText
-      : (Config.nothingDesign ? Colors.styleInk : Colors.primary))
+      : (Config.nothingEvolution
+        ? Colors.styleSelectedText
+        : (Config.nothingDesign ? Colors.styleInk : Colors.primary)))
     : Colors.fgSurface
   property string accessibleName: ""
   property string accessibleDescription: ""
@@ -144,7 +146,9 @@ Rectangle {
         color: root.selected
           ? (Config.neoBrutalism || Config.ghostTheme
             ? Colors.styleAccentText
-            : (Config.nothingDesign ? Colors.styleInk : Colors.primary))
+            : (Config.nothingEvolution
+              ? Colors.styleSelectedText
+              : (Config.nothingDesign ? Colors.styleInk : Colors.primary)))
           : Colors.fgSurface
         font.family: Config.fontFamily
         font.pixelSize: (Config.fontPixelSize + 3)

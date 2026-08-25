@@ -32,6 +32,7 @@ PanelWindow {
 
   property bool caffeineOn: false
   property bool airplaneOn: false
+  property bool bluetoothOn: false
 
   Process {
     id: idleCheck
@@ -55,6 +56,15 @@ PanelWindow {
     }
   }
 
+  Process {
+    id: bluetoothCheck
+    command: ["sh", "-c", "bluetoothctl show 2>/dev/null | grep -q 'Powered: yes' && echo on || echo off"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: root.bluetoothOn = text.trim() === "on"
+    }
+  }
+
   function toggleCaffeine() {
     if (root.caffeineOn) {
       Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
@@ -72,6 +82,13 @@ PanelWindow {
       : "nmcli radio wifi on; bluetoothctl power on"
     Quickshell.execDetached(["sh", "-c", cmd])
     root.airplaneOn = newState
+    root.bluetoothOn = !newState
+  }
+
+  function toggleBluetooth() {
+    var newState = !root.bluetoothOn
+    Quickshell.execDetached(["bluetoothctl", "power", newState ? "on" : "off"])
+    root.bluetoothOn = newState
   }
 
   function focusPower(index) {
@@ -233,6 +250,7 @@ PanelWindow {
       root.openTime = Date.now()
       idleCheck.running = true
       airplaneCheck.running = true
+      bluetoothCheck.running = true
       if (Config.isNiri) {
         focusedWindowQuery.running = true
         focusDismissArmTimer.restart()
@@ -357,7 +375,7 @@ PanelWindow {
         spacing: 14
 
         Text {
-          text: "Power Options"
+          text: Config.nothingEvolution ? "Quick Settings" : "Power Options"
           color: Colors.fgSurface
           font.family: Config.fontFamily
           font.pixelSize: (Config.fontPixelSize + 8)
@@ -376,7 +394,7 @@ PanelWindow {
         layoutDirection: Qt.RightToLeft
 
         ActionButton {
-          width: (parent.width - 3 * 8) / 4
+          width: (parent.width - 4 * 8) / 5
           height: width
           iconLabel: "coffee"
           labelText: "Caffeine"
@@ -387,7 +405,7 @@ PanelWindow {
         }
 
         ActionButton {
-          width: (parent.width - 3 * 8) / 4
+          width: (parent.width - 4 * 8) / 5
           height: width
           iconLabel: root.airplaneOn ? "airplanemode_active" : "airplanemode_inactive"
           labelText: "Airplane"
@@ -398,7 +416,18 @@ PanelWindow {
         }
 
         ActionButton {
-          width: (parent.width - 3 * 8) / 4
+          width: (parent.width - 4 * 8) / 5
+          height: width
+          iconLabel: root.bluetoothOn ? "bluetooth_connected" : "bluetooth_disabled"
+          labelText: "Bluetooth"
+          selected: root.bluetoothOn
+          accessibleName: "Bluetooth"
+          accessibleDescription: root.bluetoothOn ? "Enabled" : "Disabled"
+          onActivated: root.toggleBluetooth()
+        }
+
+        ActionButton {
+          width: (parent.width - 4 * 8) / 5
           height: width
           iconLabel: "do_not_disturb_on"
           labelText: "DND"
@@ -411,7 +440,7 @@ PanelWindow {
         }
 
         ActionButton {
-          width: (parent.width - 3 * 8) / 4
+          width: (parent.width - 4 * 8) / 5
           height: width
           iconLabel: "lock"
           labelText: "Lock"

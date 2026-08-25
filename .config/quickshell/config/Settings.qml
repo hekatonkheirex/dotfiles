@@ -41,7 +41,10 @@ FileView {
   property alias idleLockTimeoutSeconds: adapter.idleLockTimeoutSeconds
   property alias idleSuspendTimeoutSeconds: adapter.idleSuspendTimeoutSeconds
   property alias lastSettingsTab: adapter.lastSettingsTab
+  property alias settingsPanelWidth: adapter.settingsPanelWidth
+  property alias settingsPanelHeight: adapter.settingsPanelHeight
   property alias lockClockSize: adapter.lockClockSize
+  property alias lockClockFace: adapter.lockClockFace
   property alias lockShowMedia: adapter.lockShowMedia
   property alias lockUseWallpaper: adapter.lockUseWallpaper
   property alias mediaControlsAlwaysVisible: adapter.mediaControlsAlwaysVisible
@@ -57,6 +60,7 @@ FileView {
   property alias reduceMotion: adapter.reduceMotion
   property alias spacingScale: adapter.spacingScale
   property alias systemShowUptime: adapter.systemShowUptime
+  property alias nothingVariant: adapter.nothingVariant
   property alias themeStyle: adapter.themeStyle
   property alias themePreference: adapter.themePreference
   property alias timezone: adapter.timezone
@@ -77,6 +81,8 @@ FileView {
     iconSize = 20
     spacingScale = 1.0
     themeStyle = "nothing"
+    nothingVariant = "evolution"
+    lockClockFace = "micrographics"
     themePreference = 0
   }
 
@@ -106,6 +112,7 @@ FileView {
     idleSuspendTimeoutSeconds = 900
     lastSettingsTab = 0
     lockClockSize = 72
+    lockClockFace = "micrographics"
     lockShowMedia = true
     lockUseWallpaper = false
     mediaControlsAlwaysVisible = false
@@ -157,6 +164,9 @@ FileView {
     property int idleLockTimeoutSeconds: 300
     property int idleSuspendTimeoutSeconds: 900
     property int lastSettingsTab: 0
+    // -1 = user hasn't resized the settings panel yet; fall back to Config's default size.
+    property int settingsPanelWidth: -1
+    property int settingsPanelHeight: -1
     property real lockClockSize: 72
     property bool lockShowMedia: true
     property bool lockUseWallpaper: false
@@ -173,9 +183,13 @@ FileView {
     property bool reduceMotion: false
     property real spacingScale: 1.0
     property bool systemShowUptime: true
-    // UI style; Nothing and Ghost select fixed Quickshell palettes while the
-    // other styles can use the wallpaper-derived Matugen roles.
+    // UI style; Nothing Classic and Ghost select fixed Quickshell palettes,
+    // while Nothing Evolution and the other styles can use Matugen roles.
     property string themeStyle: "nothing"
+    // Classic Nothing remains available as a fallback while Evolution uses
+    // the wallpaper-aware Nothing OS 5 visual language.
+    property string nothingVariant: "evolution"
+    property string lockClockFace: "micrographics"
     // 0 = auto, 1 = light, 2 = dark.
     property int themePreference: 0
     property string timezone: ""

@@ -1,0 +1,85 @@
+layout {
+  gaps 10
+  background-color "transparent"
+  center-focused-column "never"
+  always-center-single-column true
+  preset-column-widths {
+    proportion 0.33333
+    proportion 0.5
+    proportion 0.66667
+  }
+  default-column-width { proportion 0.5; }
+  focus-ring {
+    on
+    width 2
+    // Active and inactive colors are dynamically managed in colors.kdl
+  }
+  border {
+    off
+    // Border width and colors are dynamically managed in colors.kdl.
+  }
+  shadow {
+    on
+    softness 30
+    spread 5
+    offset x=0 y=5
+    color "#50505066"
+  }
+  struts {
+    // left 64
+    // right 64
+    // top 64
+    // bottom 64
+  }
+}
+
+animations {
+  on
+  workspace-switch {
+        duration-ms 500
+        curve "cubic-bezier" 0.05 0.7 0.1 1.0
+    }
+    window-open {
+        duration-ms 400
+        curve "cubic-bezier" 0.05 0.7 0.1 1.0
+    }
+    window-close {
+        duration-ms 200
+        curve "cubic-bezier" 0.3 0.0 0.8 0.15
+    }
+    horizontal-view-movement {
+        spring damping-ratio=0.85 stiffness=423 epsilon=0.0001
+    }
+    window-movement {
+        spring damping-ratio=0.75 stiffness=323 epsilon=0.0001
+    }
+    window-resize {
+        spring damping-ratio=0.85 stiffness=423 epsilon=0.0001
+    }
+    config-notification-open-close {
+        spring damping-ratio=0.65 stiffness=923 epsilon=0.001
+    }
+    screenshot-ui-open {
+        duration-ms 200
+        curve "ease-out-quad"
+    }
+    overview-open-close {
+        spring damping-ratio=0.85 stiffness=800 epsilon=0.0001
+    }
+}
+
+blur {
+    // off
+    passes 3
+    offset 3.0
+    noise 0.02
+    saturation 1.5
+}
+
+
+cursor {
+    xcursor-theme "Bibata-Modern-Classic"
+    xcursor-size 24
+}
+
+prefer-no-csd
