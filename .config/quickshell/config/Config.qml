@@ -7,9 +7,10 @@ QtObject {
   readonly property string wmType: "niri"
   readonly property bool isNiri: wmType === "niri"
   // UI style is separate from Matugen's external desktop palette. Material 3
-  // and Neo Brutalism consume its generated roles; Nothing and Ghost use
-  // Colors.qml's fixed light and dark roles.
+  // and Neo Brutalism consume its generated roles; classic Nothing and Ghost
+  // use authored roles while Nothing Evolution consumes the adaptive cache.
   readonly property bool nothingDesign: Settings.themeStyle === "nothing"
+  readonly property bool nothingEvolution: nothingDesign && Settings.nothingVariant === "evolution"
   readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
   readonly property bool ghostTheme: Settings.themeStyle === "ghost"
 
@@ -33,20 +34,24 @@ QtObject {
   property int spacingLarge: Math.round(16 * spacingScale)
   property int spacingExtraLarge: Math.round(24 * spacingScale)
 
-  readonly property string fontFamily: nothingDesign
-    ? "NType 82"
-    : ((neoBrutalism || ghostTheme) ? "JetBrains Mono" : "Roboto Flex")
-  readonly property string monoFontFamily: nothingDesign
-    ? "NType 82 Mono"
-    : ((neoBrutalism || ghostTheme) ? "JetBrains Mono" : "Roboto Flex")
-  readonly property string displayFontFamily: nothingDesign
-    ? "NType 82 Headline"
-    : fontFamily
-  // Ndot is Nothing's dot-matrix numeral font, reserved for the clock digits
-  // the way the brand doc reserves it for product names/logotypes.
-  readonly property string dotFontFamily: nothingDesign
-    ? "Ndot 57"
-    : displayFontFamily
+  readonly property string fontFamily: nothingEvolution
+    ? "Geist"
+    : (nothingDesign
+      ? "NType 82"
+      : ((neoBrutalism || ghostTheme) ? "JetBrains Mono" : "Roboto Flex"))
+  readonly property string monoFontFamily: nothingEvolution
+    ? "Geist Mono"
+    : (nothingDesign
+      ? "NType 82 Mono"
+      : ((neoBrutalism || ghostTheme) ? "JetBrains Mono" : "Roboto Flex"))
+  readonly property string displayFontFamily: nothingEvolution
+    ? "Geist"
+    : (nothingDesign ? "NType 82 Headline" : fontFamily)
+  // Evolution dials dot-matrix typography back to intentional accent areas;
+  // compact clocks and numeric readouts use Geist Mono instead.
+  readonly property string dotFontFamily: nothingEvolution
+    ? "Geist Mono"
+    : (nothingDesign ? "Ndot 57" : displayFontFamily)
   readonly property string iconFont: nothingDesign
     ? "Material Symbols Rounded"
     : "Material Symbols Outlined"
@@ -78,11 +83,11 @@ QtObject {
   // Material 3 retains its expressive shapes.
   // Ghost carries the recovered GITS theme's frameRadius: 0 — every surface
   // is a hard, square HUD panel, no rounding at any scale.
-  readonly property int shapeCompact: ghostTheme ? 0 : (nothingDesign ? 8 : (neoBrutalism ? 4 : 8))
-  readonly property int shapeMedium: ghostTheme ? 0 : (nothingDesign ? 14 : (neoBrutalism ? 6 : 12))
-  readonly property int shapeLarge: ghostTheme ? 0 : (nothingDesign ? 20 : (neoBrutalism ? 10 : 16))
+  readonly property int shapeCompact: ghostTheme ? 0 : (nothingEvolution ? 10 : (nothingDesign ? 8 : (neoBrutalism ? 4 : 8)))
+  readonly property int shapeMedium: ghostTheme ? 0 : (nothingEvolution ? 18 : (nothingDesign ? 14 : (neoBrutalism ? 6 : 12)))
+  readonly property int shapeLarge: ghostTheme ? 0 : (nothingEvolution ? 24 : (nothingDesign ? 20 : (neoBrutalism ? 10 : 16)))
   readonly property int borderRadius: shapeLarge
-  readonly property int barRadius: (nothingDesign || ghostTheme) ? 0 : borderRadius
+  readonly property int barRadius: nothingEvolution ? shapeMedium : ((nothingDesign || ghostTheme) ? 0 : borderRadius)
   readonly property int themeBorderWidth: neoBrutalism ? 3 : 1
   readonly property int themeFocusBorderWidth: neoBrutalism ? 4 : 2
   readonly property int themeShadowOffset: neoBrutalism ? 6 : 0
@@ -94,10 +99,12 @@ QtObject {
     : 0
   // Icon-plus-label Neo controls need room for the thick border and hard shadow.
   readonly property int themeActionButtonMinHeight: neoBrutalism ? 56 : 0
-  readonly property int themeOptionGap: neoBrutalism ? themeShadowOffset : (nothingDesign ? spacingCompact : 0)
+  readonly property int themeOptionGap: neoBrutalism
+    ? themeShadowOffset
+    : (nothingEvolution ? spacingSmall : (nothingDesign ? spacingCompact : 0))
   readonly property int themeFontWeight: neoBrutalism
     ? Font.DemiBold
-    : (nothingDesign ? Font.Medium : Font.Normal)
+    : (nothingEvolution ? Font.Medium : (nothingDesign ? Font.Medium : Font.Normal))
 
   // Motion is centralized here. reducedMotion mirrors the persisted Settings
   // singleton directly; compatibility consumers continue using animationDuration.
@@ -110,6 +117,9 @@ QtObject {
   // Nothing uses precise ease-out motion; Material 3 and Neo retain their
   // expressive overshoot for entrances and state changes.
   readonly property int themeMotionEasing: (nothingDesign || ghostTheme) ? Easing.OutCubic : Easing.OutBack
+  readonly property real evolutionSurfaceAlpha: 0.86
+  readonly property real evolutionRaisedAlpha: 0.92
+  readonly property real evolutionControlAlpha: 0.74
 
   readonly property int popupWidth: 340
   readonly property int popupPadding: spacingLarge
@@ -117,8 +127,10 @@ QtObject {
   readonly property int settingsMinHeight: 360
   // Neo's hard shadows and block controls need a little more room in the
   // Appearance tab; Nothing and Material 3 keep the compact footprint.
-  readonly property int settingsMaxWidth: neoBrutalism ? 864 : 800
-  readonly property int settingsMaxHeight: neoBrutalism ? 700 : 606
+  readonly property int settingsMaxWidth: neoBrutalism ? 1200 : 1100
+  readonly property int settingsMaxHeight: neoBrutalism ? 900 : 820
+  readonly property int settingsDefaultWidth: 900
+  readonly property int settingsDefaultHeight: 680
   readonly property int clockIntervalMs: 1000
   readonly property int volumeStep: 5
   readonly property int brightnessStep: 5

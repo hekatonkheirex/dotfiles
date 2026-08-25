@@ -49,11 +49,13 @@ Item {
       : Colors.surfaceContainerHigh
     border.color: Config.neoBrutalism || Config.ghostTheme
       ? Colors.styleOutline
-      : (Config.nothingDesign
-        ? "transparent"
-        : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.18))
+      : (Config.nothingEvolution
+        ? Colors.styleOutline
+        : (Config.nothingDesign
+          ? "transparent"
+          : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.18)))
     border.width: Config.neoBrutalism
       ? Config.themeBorderWidth
-      : (Config.nothingDesign ? 0 : 1)
+      : (Config.nothingEvolution ? Config.themeBorderWidth : (Config.nothingDesign ? 0 : 1))
   }
 }

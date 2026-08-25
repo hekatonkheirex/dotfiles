@@ -25,13 +25,82 @@ PanelWindow {
   property bool fullBar: false
   signal toggleFullBar()
 
-  property int currentTab: Math.max(0, Math.min(10, Settings.lastSettingsTab))
+  property int currentTab: Math.max(0, Math.min(11, Settings.lastSettingsTab))
   property int focusedTab: currentTab
   property double openTime: 0
   readonly property bool compactLayout: root.implicitWidth <= 480
   readonly property int sidebarWidth: root.implicitWidth <= 480 ? 108 : 168
   readonly property int sidebarRowHeight: 44
   readonly property int sidebarRowSpacing: 2
+
+  property string searchQuery: ""
+
+  // Static settings index for the search box. Section-level entries for tabs
+  // built from custom controls (sliders, segmented pickers) that don't wrap
+  // each setting in a ListItem; per-setting entries where they do.
+  readonly property var searchEntries: [
+    { tab: 0, icon: "person", title: "Machine info", subtitle: "Hostname, OS, kernel, CPU, GPU" },
+    { tab: 0, icon: "wifi", title: "Network status", subtitle: "Account" },
+    { tab: 1, icon: "motion_photos_off", title: "Reduced motion", subtitle: "General" },
+    { tab: 1, icon: "schedule", title: "Show uptime", subtitle: "General" },
+    { tab: 1, icon: "schedule", title: "24-hour clock", subtitle: "General" },
+    { tab: 1, icon: "timer", title: "Show seconds", subtitle: "General" },
+    { tab: 1, icon: "calendar_view_week", title: "Week starts Monday", subtitle: "General" },
+    { tab: 1, icon: "apps", title: "Bar item visibility", subtitle: "Launcher, workspaces, clock, tray, audio, weather..." },
+    { tab: 1, icon: "my_location", title: "Use IP geolocation", subtitle: "General · Weather" },
+    { tab: 2, icon: "auto_awesome", title: "UI Style", subtitle: "Appearance · Material, Neo, Nothing, Ghost, Evolution" },
+    { tab: 2, icon: "dark_mode", title: "Color Scheme", subtitle: "Appearance · Auto, Light, Dark" },
+    { tab: 2, icon: "palette", title: "Color palette", subtitle: "Appearance · Matugen wallpaper colors" },
+    { tab: 2, icon: "dock_to_bottom", title: "Bar Placement", subtitle: "Appearance · Top, bottom, left, right" },
+    { tab: 2, icon: "format_size", title: "UI Font Size", subtitle: "Appearance · Sizing" },
+    { tab: 2, icon: "schedule", title: "Clock Size", subtitle: "Appearance · Sizing" },
+    { tab: 2, icon: "photo_size_select_small", title: "Icon Size", subtitle: "Appearance · Sizing" },
+    { tab: 2, icon: "space_bar", title: "Spacing", subtitle: "Appearance · Sizing" },
+    { tab: 2, icon: "height", title: "Bar Size", subtitle: "Appearance · Sizing" },
+    { tab: 3, icon: "wallpaper", title: "Wallpaper", subtitle: "Wallpaper · Browse and set" },
+    { tab: 5, icon: "wifi", title: "Wi-Fi", subtitle: "Network · Connect, forget, password" },
+    { tab: 6, icon: "bluetooth", title: "Bluetooth", subtitle: "Bluetooth · Pair and connect devices" },
+    { tab: 7, icon: "image", title: "Show album art", subtitle: "Media" },
+    { tab: 7, icon: "linear_scale", title: "Show progress bar", subtitle: "Media" },
+    { tab: 7, icon: "touch_app", title: "Controls always visible", subtitle: "Media" },
+    { tab: 8, icon: "music_note", title: "Show now playing", subtitle: "Lock & Power" },
+    { tab: 8, icon: "wallpaper", title: "Use current wallpaper", subtitle: "Lock & Power · Lock screen" },
+    { tab: 8, icon: "schedule", title: "Clock face", subtitle: "Lock & Power · Lock screen" },
+    { tab: 8, icon: "lock", title: "Lock after inactivity", subtitle: "Lock & Power" },
+    { tab: 8, icon: "bedtime", title: "Suspend after inactivity", subtitle: "Lock & Power" },
+    { tab: 8, icon: "bolt", title: "Power Profiles", subtitle: "Lock & Power" },
+    { tab: 9, icon: "do_not_disturb_on", title: "Do Not Disturb", subtitle: "Notifications" },
+    { tab: 9, icon: "bedtime", title: "Quiet hours", subtitle: "Notifications" },
+    { tab: 9, icon: "priority_high", title: "Critical notifications bypass quiet hours", subtitle: "Notifications" },
+    { tab: 10, icon: "monitor_heart", title: "CPU Usage", subtitle: "System · Diagnostics" },
+    { tab: 10, icon: "memory", title: "Memory (RAM)", subtitle: "System · Diagnostics" },
+    { tab: 10, icon: "storage", title: "Disk Storage", subtitle: "System · Diagnostics" },
+    { tab: 10, icon: "swap_horiz", title: "Swap", subtitle: "System · Diagnostics" },
+    { tab: 10, icon: "thermostat", title: "CPU Temp", subtitle: "System · Diagnostics" },
+    { tab: 10, icon: "mode_fan", title: "Fan Speed", subtitle: "System · Diagnostics" },
+    { tab: 10, icon: "battery_full", title: "Battery", subtitle: "System · Diagnostics" },
+    { tab: 10, icon: "battery_alert", title: "Battery Health", subtitle: "System · Diagnostics" },
+    { tab: 10, icon: "battery_charging_full", title: "Battery Cycles", subtitle: "System · Diagnostics" },
+    { tab: 10, icon: "trending_up", title: "Load Average", subtitle: "System · Diagnostics" },
+    { tab: 11, icon: "apps", title: "App shortcuts", subtitle: "Shortcuts" },
+    { tab: 11, icon: "window", title: "Window shortcuts", subtitle: "Shortcuts" },
+    { tab: 11, icon: "workspaces", title: "Workspace shortcuts", subtitle: "Shortcuts" },
+    { tab: 11, icon: "keyboard", title: "System shortcuts", subtitle: "Shortcuts" },
+    { tab: 4, icon: "monitor", title: "Display scale", subtitle: "Display & Input · Outputs" },
+    { tab: 4, icon: "screen_rotation", title: "Display transform", subtitle: "Display & Input · Outputs" },
+    { tab: 4, icon: "touch_app", title: "Tap to click", subtitle: "Display & Input · Touchpad" },
+    { tab: 4, icon: "swap_vert", title: "Natural scroll", subtitle: "Display & Input · Touchpad, mouse, trackpoint" },
+    { tab: 4, icon: "mouse", title: "Pointer accel speed", subtitle: "Display & Input · Mouse, trackpoint" }
+  ]
+
+  readonly property var searchResults: {
+    var q = root.searchQuery.trim().toLowerCase()
+    if (q === "") return []
+    return root.searchEntries.filter(function(entry) {
+      return entry.title.toLowerCase().indexOf(q) !== -1
+          || entry.subtitle.toLowerCase().indexOf(q) !== -1
+    })
+  }
 
   // Account tab: session info
   property string uptimeText: "up ..."
@@ -108,7 +177,7 @@ PanelWindow {
   Timer {
     id: statsTimer
     interval: 3000
-    running: root.visible && root.currentTab === 9
+    running: root.visible && root.currentTab === 10
     repeat: true
     triggeredOnStart: true
     onTriggered: {
@@ -117,19 +186,23 @@ PanelWindow {
     }
   }
 
-  implicitWidth: Math.min(Config.settingsMaxWidth,
-                          Math.max(Config.settingsMinWidth, desktopW - 32))
+  // -1 sentinel means "no custom size yet" (see Settings.settingsPanelWidth/Height);
+  // fall back to Config.settingsDefaultWidth/Height until the user drags the resize handle.
+  implicitWidth: Math.min(Math.min(Config.settingsMaxWidth, desktopW - 32),
+                          Math.max(Config.settingsMinWidth, Settings.settingsPanelWidth > 0 ? Settings.settingsPanelWidth : Config.settingsDefaultWidth))
                  + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
   visible: false
-  implicitHeight: Math.min(Config.settingsMaxHeight,
-                           Math.max(Config.settingsMinHeight, desktopH - 32))
+  implicitHeight: Math.min(Math.min(Config.settingsMaxHeight, desktopH - 32),
+                           Math.max(Config.settingsMinHeight, Settings.settingsPanelHeight > 0 ? Settings.settingsPanelHeight : Config.settingsDefaultHeight))
                   + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-popup"
   WlrLayershell.layer: WlrLayer.Top
 
-  // Center window on desktop
+  // Center window on desktop. This is intentional: as the panel is resized via the
+  // drag handle, implicitWidth/implicitHeight change and these margins recompute,
+  // so the panel grows while staying centered rather than growing from a fixed corner.
   property int desktopW: Screen.desktopAvailableWidth
   property int desktopH: Screen.desktopAvailableHeight
 
@@ -303,7 +376,16 @@ PanelWindow {
     Keys.priority: Keys.BeforeItem
 
     Keys.onPressed: function(event) {
-      if (event.key === Qt.Key_Escape) {
+      // Let the search field handle its own keys (typing, cursor movement,
+      // its own Escape/Up/Down) instead of the sidebar's global shortcuts —
+      // this handler runs BeforeItem, so it would otherwise steal Space,
+      // Enter, Up/Down, and Escape from the text being typed.
+      if (searchField.input.activeFocus) return
+
+      if (event.key === Qt.Key_Slash) {
+        searchField.input.forceActiveFocus()
+        event.accepted = true
+      } else if (event.key === Qt.Key_Escape) {
         if (Date.now() - root.openTime > 150) {
           root.dismissed()
         }
@@ -411,10 +493,41 @@ PanelWindow {
           Layout.maximumWidth: root.sidebarWidth
           Layout.fillWidth: false
           Layout.fillHeight: true
-          spacing: 0
+          spacing: Config.spacingSmall
+
+          TextFieldControl {
+            id: searchField
+            Layout.fillWidth: true
+            leadingIcon: "search"
+            leadingIconSize: 16
+            placeholder: root.compactLayout ? "Search" : "Search settings"
+            accessibleName: "Search settings"
+            onEscapePressed: {
+              if (root.searchQuery !== "") {
+                input.text = ""
+              } else {
+                root.dismissed()
+              }
+            }
+            onAccepted: {
+              var results = root.searchResults
+              if (results.length > 0) {
+                root.selectTab(results[0].tab)
+                input.text = ""
+              }
+            }
+          }
+
+          Connections {
+            target: searchField.input
+            function onTextChanged() {
+              root.searchQuery = searchField.text
+            }
+          }
 
           Flickable {
             id: sidebarScroll
+            visible: root.searchQuery.trim() === ""
             Layout.fillWidth: true
             Layout.fillHeight: true
             contentWidth: width
@@ -436,6 +549,7 @@ PanelWindow {
                   { icon: "tune", label: "General" },
                   { icon: "palette", label: "Appearance" },
                   { icon: "wallpaper", label: "Wallpaper" },
+                  { icon: "monitor", label: "Display & Input" },
                   { icon: "wifi", label: "Network" },
                   { icon: "bluetooth", label: "Bluetooth" },
                   { icon: "play_circle", label: "Media" },
@@ -506,6 +620,69 @@ PanelWindow {
               }
             }
           }
+
+          Flickable {
+            id: searchResultsScroll
+            visible: root.searchQuery.trim() !== ""
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            contentWidth: width
+            contentHeight: searchResultsColumn.implicitHeight
+            interactive: contentHeight > height
+            boundsBehavior: Flickable.StopAtBounds
+            flickableDirection: Flickable.VerticalFlick
+            clip: true
+
+            ColumnLayout {
+              id: searchResultsColumn
+              width: searchResultsScroll.width
+              spacing: root.sidebarRowSpacing
+
+              Repeater {
+                model: root.searchResults
+
+                delegate: ListItem {
+                  required property var modelData
+
+                  Layout.fillWidth: true
+                  activeFocusOnTab: true
+                  leadingIcon: modelData.icon
+                  title: modelData.title
+                  subtitle: modelData.subtitle
+                  accessibleName: modelData.title
+                  accessibleDescription: "Jump to " + modelData.subtitle
+
+                  Keys.onReturnPressed: function(event) {
+                    root.selectTab(modelData.tab)
+                    searchField.text = ""
+                    event.accepted = true
+                  }
+                  Keys.onSpacePressed: function(event) {
+                    root.selectTab(modelData.tab)
+                    searchField.text = ""
+                    event.accepted = true
+                  }
+
+                  onClicked: {
+                    root.selectTab(modelData.tab)
+                    searchField.text = ""
+                  }
+                }
+              }
+
+              Text {
+                visible: root.searchResults.length === 0
+                Layout.fillWidth: true
+                Layout.topMargin: Config.spacingSmall
+                text: "No settings found"
+                color: Colors.fgSurfaceVariant
+                font.family: Config.fontFamily
+                font.pixelSize: Config.fontPixelSize
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+              }
+            }
+          }
         }
 
         Rectangle {
@@ -566,6 +743,77 @@ PanelWindow {
           SystemTab {
             root: root
           }
+
+          DisplayInputTab {
+            root: root
+          }
+      }
+    }
+
+    // Resize handle, bottom-right corner of the visible surface. A direct
+    // child of bg (not nested inside contentColumn) so anchoring to bg.right/
+    // bg.bottom is valid, and it lines up with bg's real edge even when
+    // neo-brutalism's shadow offset shrinks bg relative to the window bounds.
+    MouseArea {
+      id: resizeHandle
+      width: 18
+      height: 18
+      anchors.right: bg.right
+      anchors.bottom: bg.bottom
+      z: 1000
+      cursorShape: Qt.SizeFDiagCursor
+      hoverEnabled: true
+      enabled: !entryAnimation.running
+
+      property point pressLocal
+      property real startWidth: 0
+      property real startHeight: 0
+      property bool didResize: false
+
+      onPressed: function(mouse) {
+        pressLocal = mapToItem(mainItem, mouse.x, mouse.y)
+        startWidth = root.implicitWidth - (Config.neoBrutalism ? Config.themeShadowOffset : 0)
+        startHeight = root.implicitHeight - (Config.neoBrutalism ? Config.themeShadowOffset : 0)
+        didResize = false
+      }
+
+      onPositionChanged: function(mouse) {
+        if (!pressed) return
+        var p = mapToItem(mainItem, mouse.x, mouse.y)
+        var deltaX = p.x - pressLocal.x
+        var deltaY = p.y - pressLocal.y
+        var maxW = Math.min(Config.settingsMaxWidth, root.desktopW - 32)
+        var maxH = Math.min(Config.settingsMaxHeight, root.desktopH - 32)
+        Settings.settingsPanelWidth = Math.round(Math.max(Config.settingsMinWidth, Math.min(maxW, startWidth + deltaX)))
+        Settings.settingsPanelHeight = Math.round(Math.max(Config.settingsMinHeight, Math.min(maxH, startHeight + deltaY)))
+        didResize = true
+      }
+
+      onReleased: {
+        if (didResize) Settings.save()
+      }
+
+      Rectangle {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: 3
+        anchors.bottomMargin: 3
+        width: 8
+        height: 2
+        rotation: -45
+        color: Colors.fgSurfaceVariant
+        opacity: 0.4
+      }
+      Rectangle {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: 7
+        anchors.bottomMargin: 7
+        width: 8
+        height: 2
+        rotation: -45
+        color: Colors.fgSurfaceVariant
+        opacity: 0.4
       }
     }
   }

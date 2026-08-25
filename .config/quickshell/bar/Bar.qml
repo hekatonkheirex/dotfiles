@@ -502,7 +502,7 @@ PanelWindow {
             Text {
               id: focusedWindowProgramText
               text: focusedWindowWrapper.programText
-              color: Config.nothingDesign ? Colors.fgSurface : Colors.primary
+              color: Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
               font.family: Config.fontFamily
               font.pixelSize: Config.labelSmallSize
               font.weight: Font.Bold
@@ -855,7 +855,7 @@ PanelWindow {
               // Ndot's line-height metrics reserve descent space below each
               // digit row that the visible glyphs never use, which skews
               // Qt's naive vertical centering low. Nudge up to compensate.
-              anchors.verticalCenterOffset: Config.nothingDesign && !root.horizontalPillMode ? -4 : 0
+              anchors.verticalCenterOffset: Config.nothingDesign && !Config.nothingEvolution && !root.horizontalPillMode ? -4 : 0
               columnSpacing: root.ghostHorizontalOneLiner && root.clockSecondaryVisible
                 ? Config.spacingCompact
                 : 0
@@ -867,10 +867,10 @@ PanelWindow {
                 text: root.horizontal
                   ? root.displayNow().toLocaleString(Qt.locale(), root.clockFormat())
                   : root.displayNow().toLocaleString(Qt.locale(), Settings.clock24h ? "HH" : "h")
-                color: Config.nothingDesign ? Colors.fgSurface : Colors.primary
+                color: Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
                 font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
                 font.pixelSize: Config.clockPrimarySize
-                font.weight: Config.nothingDesign ? Font.Normal : Font.Bold
+                font.weight: Config.nothingEvolution ? Font.Medium : (Config.nothingDesign ? Font.Normal : Font.Bold)
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
               }
 

@@ -15,7 +15,7 @@ Flickable {
   readonly property var lockTimeoutOptions: [0, 60, 120, 180, 300, 600, 900, 1800, 3600]
   readonly property var suspendTimeoutOptions: [0, 300, 600, 900, 1200, 1800, 3600, 7200]
   anchors.fill: parent
-  visible: root.currentTab === 7
+  visible: root.currentTab === 8
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight + lockMediaTab.neoShadowAllowance
@@ -121,6 +121,50 @@ Flickable {
             reducedMotion: Config.reducedMotion
             accessibleName: "Use current wallpaper on lock screen"
             onToggled: { Settings.lockUseWallpaper = !Settings.lockUseWallpaper; Settings.save() }
+          }
+        }
+
+        ListItem {
+          Layout.fillWidth: true
+          visible: Config.nothingEvolution
+          leadingIcon: "schedule"
+          title: "Clock face"
+          subtitle: Settings.lockClockFace === "gooey"
+            ? "Gooey"
+            : "Micrographics"
+          accessibleName: "Lock screen clock face"
+          accessibleDescription: "Choose the Nothing Evolution lock screen clock face"
+
+          Item {
+            width: lockMediaTab.compactLayout ? 144 : 184
+            height: 36
+
+            Row {
+              anchors.fill: parent
+              spacing: Config.spacingCompact
+
+              Repeater {
+                model: [
+                  { value: "gooey", label: "Gooey" },
+                  { value: "micrographics", label: "Micro" }
+                ]
+
+                delegate: ActionButton {
+                  required property var modelData
+                  width: (parent.width - Config.spacingCompact) / 2
+                  height: parent.height
+                  labelText: modelData.label
+                  iconLabel: modelData.value === "gooey" ? "bubble_chart" : "data_object"
+                  iconSize: 15
+                  selected: Settings.lockClockFace === modelData.value
+                  accessibleName: modelData.label + " clock face"
+                  onActivated: {
+                    Settings.lockClockFace = modelData.value
+                    Settings.save()
+                  }
+                }
+              }
+            }
           }
         }
 

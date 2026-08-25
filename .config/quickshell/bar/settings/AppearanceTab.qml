@@ -19,6 +19,7 @@ Flickable {
     : 0
   readonly property int optionButtonGap: Config.themeOptionGap
   readonly property int optionButtonHeight: Config.neoBrutalism ? 52 : (Config.nothingDesign ? 44 : 40)
+  readonly property int uiStyleRows: 3
   anchors.fill: parent
   visible: root.currentTab === 2
   clip: true
@@ -29,6 +30,10 @@ Flickable {
 
   property string themeStatus: ""
   property bool resetConfirm: false
+  property string wmStatusMessage: ""
+  function onWmFieldFailed(message) {
+    wmStatusMessage = message
+  }
 
   onVisibleChanged: {
   }
@@ -107,10 +112,10 @@ Flickable {
               Layout.preferredWidth: 0
               Layout.minimumWidth: 0
               Layout.maximumWidth: parent.width
-              Layout.preferredHeight: appearanceTab.optionButtonHeight * 2
-                + appearanceTab.optionButtonGap
-              height: appearanceTab.optionButtonHeight * 2
-                + appearanceTab.optionButtonGap
+              Layout.preferredHeight: appearanceTab.optionButtonHeight * appearanceTab.uiStyleRows
+                + appearanceTab.optionButtonGap * (appearanceTab.uiStyleRows - 1)
+              height: appearanceTab.optionButtonHeight * appearanceTab.uiStyleRows
+                + appearanceTab.optionButtonGap * (appearanceTab.uiStyleRows - 1)
 
             GridLayout {
               anchors.left: parent.left
@@ -121,16 +126,17 @@ Flickable {
               anchors.rightMargin: Config.spacingCompact
               clip: true
               columns: 2
-              rows: 2
+              rows: appearanceTab.uiStyleRows
               columnSpacing: appearanceTab.optionButtonGap
               rowSpacing: appearanceTab.optionButtonGap
 
               Repeater {
                 model: [
-                  { value: "material3", icon: "auto_awesome", label: "Material" },
-                  { value: "neo-brutalism", icon: "square", label: "Neo" },
-                  { value: "nothing", icon: "grid_3x3", label: "Nothing" },
-                  { value: "ghost", icon: "network_intelligence", label: "Ghost" }
+                  { value: "material3", variant: "", icon: "auto_awesome", label: "Material" },
+                  { value: "neo-brutalism", variant: "", icon: "square", label: "Neo" },
+                  { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Nothing" },
+                  { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost" },
+                  { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution" }
                 ]
 
                 delegate: ActionButton {
@@ -143,10 +149,12 @@ Flickable {
                   iconSize: 15
                   labelText: modelData.label
                   selected: Settings.themeStyle === modelData.value
+                    && (modelData.value !== "nothing" || Settings.nothingVariant === modelData.variant)
                   accessibleName: modelData.label + " UI style"
                   accessibleDescription: selected ? "Selected" : "Use the " + modelData.label + " UI style"
                   onActivated: {
                     Settings.themeStyle = modelData.value
+                    if (modelData.value === "nothing") Settings.nothingVariant = modelData.variant
                     Settings.save()
                   }
                 }
@@ -157,11 +165,13 @@ Flickable {
           Text {
             text: Settings.themeStyle === "neo-brutalism"
               ? "Pastel fills, bold ink borders, and hard offset shadows"
-              : (Settings.themeStyle === "nothing"
-                ? "Neutral surfaces, rounded controls, and signal accents"
+              : (Settings.themeStyle === "nothing" && Settings.nothingVariant === "evolution"
+                ? "Geist type, adaptive wallpaper colour, and translucent layers"
+                : (Settings.themeStyle === "nothing"
+                  ? "Neutral surfaces, rounded controls, and signal accents"
                 : (Settings.themeStyle === "ghost"
                   ? "Void panels, cyan hairlines, and a Section 9 HUD"
-                  : "Rounded surfaces, tonal elevation, and expressive motion"))
+                  : "Rounded surfaces, tonal elevation, and expressive motion")))
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
             font.pixelSize: Math.max(8, Config.fontPixelSize - 1)
@@ -715,6 +725,90 @@ Flickable {
           accessibleName: "Cancel appearance reset"
           accessibleDescription: "Keep the current appearance settings"
           onActivated: appearanceTab.resetConfirm = false
+        }
+      }
+    }
+
+    // Niri window manager (gaps, animations, blur, cursor)
+    StyledSurface {
+      Layout.fillWidth: true
+      Layout.preferredHeight: wmColumn.implicitHeight + 24
+      radius: Config.shapeLarge
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
+
+      ColumnLayout {
+        id: wmColumn
+        anchors.fill: parent
+        anchors.margins: 12
+        spacing: Config.spacingSmall
+
+        Text {
+          text: "Window Manager"
+          color: Colors.fgSurface
+          font.family: Config.fontFamily
+          font.pixelSize: Config.textTitleSize
+          font.weight: Font.Bold
+        }
+
+        RemoteSliderRow {
+          Layout.fillWidth: true
+          cliFile: "decorations"; cliField: "gaps"
+          label: "Gaps"; min: 0; max: 32; unit: "px"
+          onWriteFailed: appearanceTab.onWmFieldFailed(message)
+        }
+        RemoteSwitchRow {
+          Layout.fillWidth: true
+          cliFile: "decorations"; cliField: "focus-ring-enabled"
+          leadingIcon: "crop_free"; title: "Focus ring"
+          onWriteFailed: appearanceTab.onWmFieldFailed(message)
+        }
+        RemoteSwitchRow {
+          Layout.fillWidth: true
+          cliFile: "decorations"; cliField: "border-enabled"
+          leadingIcon: "crop_din"; title: "Window border"
+          onWriteFailed: appearanceTab.onWmFieldFailed(message)
+        }
+        RemoteSwitchRow {
+          Layout.fillWidth: true
+          cliFile: "decorations"; cliField: "shadow-enabled"
+          leadingIcon: "blur_on"; title: "Window shadow"
+          onWriteFailed: appearanceTab.onWmFieldFailed(message)
+        }
+        RemoteSwitchRow {
+          Layout.fillWidth: true
+          cliFile: "decorations"; cliField: "animations-enabled"
+          leadingIcon: "animation"; title: "Animations"
+          onWriteFailed: appearanceTab.onWmFieldFailed(message)
+        }
+        RemoteSwitchRow {
+          Layout.fillWidth: true
+          cliFile: "decorations"; cliField: "blur-enabled"
+          leadingIcon: "lens_blur"; title: "Background blur"
+          onWriteFailed: appearanceTab.onWmFieldFailed(message)
+        }
+        RemoteSliderRow {
+          Layout.fillWidth: true
+          cliFile: "decorations"; cliField: "blur-passes"
+          label: "Blur passes"; min: 1; max: 5
+          onWriteFailed: appearanceTab.onWmFieldFailed(message)
+        }
+        RemoteSliderRow {
+          Layout.fillWidth: true
+          cliFile: "decorations"; cliField: "cursor-size"
+          label: "Cursor size"; min: 16; max: 48; unit: "px"
+          onWriteFailed: appearanceTab.onWmFieldFailed(message)
+        }
+
+        Text {
+          visible: appearanceTab.wmStatusMessage !== ""
+          Layout.fillWidth: true
+          text: appearanceTab.wmStatusMessage
+          color: Colors.destructive
+          font.family: Config.fontFamily
+          font.pixelSize: Config.fontPixelSize
+          wrapMode: Text.WordWrap
         }
       }
     }

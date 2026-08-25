@@ -1,9 +1,10 @@
-// Material 3 semantic palette with fixed Nothing and Ghost overrides.
+// Material 3 semantic palette with fixed Nothing/Ghost and adaptive
+// Nothing Evolution roles.
 //
 // Material 3 and Neo Brutalism read Matugen's wallpaper-derived cache. The
-// Nothing and Ghost styles intentionally use the authored light/dark palettes
-// below so their Quickshell surfaces do not change with the wallpaper. Desktop
-// themes and other Matugen consumers remain outside these local overrides.
+// Classic Nothing and Ghost intentionally use authored light/dark palettes.
+// Nothing Evolution consumes the existing wallpaper-derived Matugen cache and
+// layers translucent semantic surfaces on top.
 pragma Singleton
 import QtQml
 import QtQuick
@@ -63,13 +64,16 @@ QtObject {
   property bool darkMode: themePreference === 1 ? false : (themePreference === 2 ? true : systemDark)
 
   readonly property bool nothingDesign: Settings.themeStyle === "nothing"
+  readonly property bool nothingEvolution: nothingDesign && Settings.nothingVariant === "evolution"
   readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
   readonly property bool ghostTheme: Settings.themeStyle === "ghost"
   readonly property string paletteSource: ghostTheme
     ? "ghost"
-    : (nothingDesign
-      ? "nothing"
-      : (dynamicPaletteLoaded ? "matugen" : "fallback"))
+    : (nothingEvolution
+      ? (dynamicPaletteLoaded ? "matugen" : "nothing-evolution-fallback")
+      : (nothingDesign
+        ? "nothing"
+        : (dynamicPaletteLoaded ? "matugen" : "fallback")))
 
   // GITS ("Ghost in the Shell") palette. Recovered from the pre-Matugen
   // Section 9 theme (commit 8634528e). It is fixed and wallpaper-neutral, but
@@ -266,11 +270,20 @@ QtObject {
   function paletteRole(mode, key, fallback) {
     var palette = ghostTheme
       ? (mode === "dark" ? ghostDarkPalette : ghostLightPalette)
-      : (nothingDesign
-        ? (mode === "dark" ? nothingDarkPalette : nothingLightPalette)
-        : (mode === "dark" ? darkPalette : lightPalette))
+      : (nothingEvolution
+        ? (mode === "dark" ? darkPalette : lightPalette)
+        : (nothingDesign
+          ? (mode === "dark" ? nothingDarkPalette : nothingLightPalette)
+          : (mode === "dark" ? darkPalette : lightPalette)))
     var value = palette ? palette[key] : null
     return typeof value === "string" && value.length > 0 ? value : fallback
+  }
+
+  function surfaceRole(mode, key, fallback, alpha) {
+    var value = paletteRole(mode, key, fallback)
+    return nothingEvolution
+      ? Qt.rgba(value.r, value.g, value.b, alpha)
+      : value
   }
 
   function loadMatugenPalette() {
@@ -377,15 +390,15 @@ QtObject {
   // fallbacks.
   property color background:                 paletteRole(darkMode ? "dark" : "light", "background", darkMode ? d_background : l_background)
   property color bg:                         background
-  property color surface:                   paletteRole(darkMode ? "dark" : "light", "surface", darkMode ? d_surface : l_surface)
-  property color surfaceDim:                paletteRole(darkMode ? "dark" : "light", "surface_dim", darkMode ? d_surfaceDim : l_surfaceDim)
-  property color surfaceBright:             paletteRole(darkMode ? "dark" : "light", "surface_bright", darkMode ? d_surfaceBright : l_surfaceBright)
-  property color surfaceContainerLowest:    paletteRole(darkMode ? "dark" : "light", "surface_container_lowest", darkMode ? d_surfaceContainerLowest : l_surfaceContainerLowest)
-  property color surfaceContainerLow:       paletteRole(darkMode ? "dark" : "light", "surface_container_low", darkMode ? d_surfaceContainerLow : l_surfaceContainerLow)
-  property color surfaceContainer:          paletteRole(darkMode ? "dark" : "light", "surface_container", darkMode ? d_surfaceContainer : l_surfaceContainer)
-  property color surfaceContainerHigh:      paletteRole(darkMode ? "dark" : "light", "surface_container_high", darkMode ? d_surfaceContainerHigh : l_surfaceContainerHigh)
-  property color surfaceContainerHighest:   paletteRole(darkMode ? "dark" : "light", "surface_container_highest", darkMode ? d_surfaceContainerHighest : l_surfaceContainerHighest)
-  property color surfaceVariant:            paletteRole(darkMode ? "dark" : "light", "surface_variant", darkMode ? d_surfaceVariant : l_surfaceVariant)
+  property color surface:                   surfaceRole(darkMode ? "dark" : "light", "surface", darkMode ? d_surface : l_surface, 0.84)
+  property color surfaceDim:                surfaceRole(darkMode ? "dark" : "light", "surface_dim", darkMode ? d_surfaceDim : l_surfaceDim, 0.76)
+  property color surfaceBright:             surfaceRole(darkMode ? "dark" : "light", "surface_bright", darkMode ? d_surfaceBright : l_surfaceBright, 0.94)
+  property color surfaceContainerLowest:    surfaceRole(darkMode ? "dark" : "light", "surface_container_lowest", darkMode ? d_surfaceContainerLowest : l_surfaceContainerLowest, 0.78)
+  property color surfaceContainerLow:       surfaceRole(darkMode ? "dark" : "light", "surface_container_low", darkMode ? d_surfaceContainerLow : l_surfaceContainerLow, Config.evolutionSurfaceAlpha)
+  property color surfaceContainer:          surfaceRole(darkMode ? "dark" : "light", "surface_container", darkMode ? d_surfaceContainer : l_surfaceContainer, Config.evolutionRaisedAlpha)
+  property color surfaceContainerHigh:      surfaceRole(darkMode ? "dark" : "light", "surface_container_high", darkMode ? d_surfaceContainerHigh : l_surfaceContainerHigh, 0.90)
+  property color surfaceContainerHighest:   surfaceRole(darkMode ? "dark" : "light", "surface_container_highest", darkMode ? d_surfaceContainerHighest : l_surfaceContainerHighest, 0.94)
+  property color surfaceVariant:            surfaceRole(darkMode ? "dark" : "light", "surface_variant", darkMode ? d_surfaceVariant : l_surfaceVariant, 0.88)
   property color primary:                   paletteRole(darkMode ? "dark" : "light", "primary", darkMode ? d_primary : l_primary)
   property color fgPrimary:                 paletteRole(darkMode ? "dark" : "light", "on_primary", darkMode ? d_onPrimary : l_onPrimary)
   property color primaryContainer:          paletteRole(darkMode ? "dark" : "light", "primary_container", darkMode ? d_primaryContainer : l_primaryContainer)
@@ -426,34 +439,59 @@ QtObject {
     ? ghostHairline
     : (neoBrutalism
       ? styleInk
-      : (nothingDesign
-        ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.38)
-        : outlineVariant))
+      : (nothingEvolution
+        ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.30)
+        : (nothingDesign
+          ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.38)
+          : outlineVariant)))
   readonly property color styleOutlineStrong: ghostTheme
     ? ghostHairlineStrong
     : (neoBrutalism
       ? styleInk
-      : (nothingDesign
-        ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.72)
-        : outline))
+      : (nothingEvolution
+        ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.58)
+        : (nothingDesign
+          ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.72)
+          : outline)))
   readonly property color styleShadow: ghostTheme
     ? "transparent"
     : (neoBrutalism ? (darkMode ? fgSurface : shadow) : "transparent")
   readonly property color styleSurface: ghostTheme
     ? ghostPanel
-    : (neoBrutalism ? surfaceContainerLow : (nothingDesign ? surfaceContainerLow : surfaceContainerHigh))
+    : (neoBrutalism
+      ? surfaceContainerLow
+      : (nothingEvolution
+        ? Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b, Config.evolutionSurfaceAlpha)
+        : (nothingDesign ? surfaceContainerLow : surfaceContainerHigh)))
   readonly property color styleSurfaceRaised: ghostTheme
     ? ghostPanelRaised
-    : (neoBrutalism ? surfaceContainer : (nothingDesign ? surfaceContainer : surfaceContainerHigh))
+    : (neoBrutalism
+      ? surfaceContainer
+      : (nothingEvolution
+        ? Qt.rgba(surfaceContainer.r, surfaceContainer.g, surfaceContainer.b, Config.evolutionRaisedAlpha)
+        : (nothingDesign ? surfaceContainer : surfaceContainerHigh)))
   readonly property color styleControl: ghostTheme
     ? ghostPanelHighest
-    : (neoBrutalism ? surfaceContainerHighest : surfaceContainerHigh)
+    : (neoBrutalism
+      ? surfaceContainerHighest
+      : (nothingEvolution
+        ? Qt.rgba(surfaceContainerHigh.r, surfaceContainerHigh.g, surfaceContainerHigh.b, Config.evolutionControlAlpha)
+        : surfaceContainerHigh))
   readonly property color styleAccent: ghostTheme
     ? ghostCyan
-    : (neoBrutalism ? (darkMode ? primary : primaryContainer) : (nothingDesign ? error : primary))
+    : (neoBrutalism
+      ? (darkMode ? primary : primaryContainer)
+      : (nothingEvolution ? primary : (nothingDesign ? error : primary)))
   readonly property color styleAccentText: ghostTheme
     ? ghostAccentText
-    : (neoBrutalism ? (darkMode ? fgPrimary : fgPrimaryContainer) : (nothingDesign ? fgError : fgPrimary))
+    : (neoBrutalism
+      ? (darkMode ? fgPrimary : fgPrimaryContainer)
+      : (nothingEvolution ? fgPrimary : (nothingDesign ? fgError : fgPrimary)))
+  // Evolution list rows use a translucent accent wash rather than a solid
+  // primary container. Keep their content tied to the surface foreground;
+  // Matugen's on_primary role can be dark in dark mode and disappear on that
+  // low-alpha wash.
+  readonly property color styleSelectedText: nothingEvolution ? fgSurface : styleAccentText
 
   // Semantic status roles. Components should use these aliases instead of
   // introducing local status colors.
