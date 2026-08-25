@@ -10,7 +10,7 @@ Flickable {
     ? Config.themeShadowOffset
     : 0
   anchors.fill: parent
-  visible: root.currentTab === 4
+  visible: root.currentTab === 5
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight + networkTab.neoShadowAllowance

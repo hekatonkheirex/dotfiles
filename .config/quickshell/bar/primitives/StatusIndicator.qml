@@ -18,9 +18,12 @@ Item {
   property real iconOpacity: 1.0
   property string labelText: ""
   property real labelOpacity: 1.0
-  property color accentColor: Config.nothingDesign
-    ? Colors.fgSurface
+  property color accentColor: Config.nothingEvolution
+    ? Colors.styleAccent
+    : (Config.nothingDesign
+      ? Colors.fgSurface
     : (Config.ghostTheme ? Colors.styleAccent : Colors.primary)
+    )
   property color iconColor: root.accentColor
   property color labelColor: root.accentColor
   property color inactiveBg: Colors.surfaceContainerHigh
@@ -125,12 +128,19 @@ Item {
     }
     border.color: {
       if (Config.neoBrutalism || Config.ghostTheme) return Colors.styleOutline
+      if (Config.nothingEvolution) {
+        return root.active || mouseArea.containsMouse || root.activeFocus
+          ? Colors.styleOutline
+          : "transparent"
+      }
       if (Config.nothingDesign) return "transparent"
       if (root.active) return root.activeFocus ? Colors.focusOverlay : "transparent"
       if (root.borderOnHoverOnly && !mouseArea.containsMouse && !root.activeFocus) return "transparent"
       return Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
     }
-    border.width: root.integrated || Config.nothingDesign ? 0 : Config.themeBorderWidth
+    border.width: root.integrated || Config.nothingDesign
+      ? (Config.nothingEvolution && !root.integrated ? Config.themeBorderWidth : 0)
+      : Config.themeBorderWidth
 
     Behavior on color {
       ColorAnimation { duration: Config.animationDuration }

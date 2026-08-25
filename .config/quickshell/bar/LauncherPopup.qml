@@ -602,7 +602,7 @@ PanelWindow {
       TextFieldControl {
         id: searchInputControl
         Layout.fillWidth: true
-        height: 46
+        height: Config.nothingEvolution ? 48 : 46
         leadingIcon: "search"
         leadingIconSize: 22
         placeholder: root.voiceRecording

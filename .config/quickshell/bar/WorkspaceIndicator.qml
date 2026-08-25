@@ -228,17 +228,28 @@ Item {
             : (delegateItem.active ? Math.min(width, height) / 2 : 2)
 
           color: {
-            if (modelData.isFocused) return Config.nothingDesign ? Colors.fgSurface : Colors.styleAccent
-            var base = modelData.isOccupied ? Colors.surfaceContainerHighest : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.2)
+            if (modelData.isFocused) return Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.styleAccent)
+            var base = modelData.isOccupied
+              ? (Config.nothingEvolution
+                ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.72)
+                : Colors.surfaceContainerHighest)
+              : (Config.nothingEvolution
+                ? Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.45)
+                : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.2))
             return Qt.tint(base, wsMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
           }
-          border.width: root.integrated || Config.nothingDesign
+          border.width: root.integrated
             ? 0
-            : (Config.neoBrutalism
-              ? Config.themeBorderWidth
-              : (modelData.isFocused ? 0 : Config.themeBorderWidth))
+            : (Config.nothingEvolution
+              ? ((modelData.isFocused || wsMouse.containsMouse) ? Config.themeBorderWidth : 0)
+              : (Config.nothingDesign
+                ? 0
+                : (Config.neoBrutalism
+                  ? Config.themeBorderWidth
+                  : (modelData.isFocused ? 0 : Config.themeBorderWidth))))
           border.color: {
             if (Config.neoBrutalism || Config.ghostTheme) return Colors.styleOutline
+            if (Config.nothingEvolution) return Colors.styleOutline
             if (Config.nothingDesign) return "transparent"
             if (modelData.isFocused) return "transparent"
             return Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, modelData.isOccupied ? 0.3 : 0.1)

@@ -7,7 +7,7 @@ import "../../config"
 Item {
   id: root
 
-  property color surfaceColor: Colors.surfaceContainer
+  property color surfaceColor: Config.nothingEvolution ? Colors.styleSurface : Colors.surfaceContainer
   property color outlineColor: Colors.styleOutline
   property real outlineWidth: Config.themeBorderWidth
   property real radius: Config.shapeLarge

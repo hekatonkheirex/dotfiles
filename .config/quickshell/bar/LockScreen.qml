@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
 import "primitives"
+import "themes/nothing" as Nothing
 import "../config"
 
 Item {
@@ -23,7 +24,7 @@ Item {
       currentWallpaperProc.running = false
     }
   }
-  readonly property color accentColor: Colors.primary
+  readonly property color accentColor: Config.nothingEvolution ? Colors.styleAccent : Colors.primary
   // Lock screen sits on a fixed dark photo scrim independent of the desktop's
   // light/dark mode, so text stays fixed light for legibility rather than
   // following Colors.fgSurface (which flips with darkMode and would go
@@ -366,6 +367,7 @@ Item {
 
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
+            visible: !Config.nothingEvolution
             text: {
               var d = root.now
               return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
@@ -381,8 +383,19 @@ Item {
             styleColor: root.flatLockMode ? "transparent" : Qt.rgba(0, 0, 0, 0.3)
           }
 
+          Nothing.ClockFace {
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: Config.nothingEvolution && root.locked
+            face: Settings.lockClockFace
+            now: root.now
+            clockSize: Settings.lockClockSize
+            primaryColor: root.accentColor
+            secondaryColor: root.mutedText
+          }
+
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
+            visible: !Config.nothingEvolution
             text: {
               var d = root.now
               var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -606,6 +619,7 @@ Item {
 
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
+          visible: !Config.nothingEvolution
           text: {
             var d = root.now
             return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
@@ -621,8 +635,19 @@ Item {
           styleColor: root.flatLockMode ? "transparent" : Qt.rgba(0, 0, 0, 0.3)
         }
 
+        Nothing.ClockFace {
+          anchors.horizontalCenter: parent.horizontalCenter
+          visible: Config.nothingEvolution && root.locked
+          face: Settings.lockClockFace
+          now: root.now
+          clockSize: Settings.lockClockSize
+          primaryColor: root.accentColor
+          secondaryColor: root.mutedText
+        }
+
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
+          visible: !Config.nothingEvolution
           text: {
             var d = root.now
             var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]

@@ -3,69 +3,18 @@ layout {
     
     focus-ring {
         width 2
-        active-color "#f2f2f0"
-        inactive-color "#888884"
+        active-color "#e9bac9"
+        inactive-color "#9b8d91"
     }
     border {
         off
         width 2
-        active-color "#f2f2f0"
-        inactive-color "#888884"
-        urgent-color "#d71920"
-    }
-    shadow {
-        off
+        active-color "#e9bac9"
+        inactive-color "#9b8d91"
+        urgent-color "#e9bac9"
     }
 }
 window-rule {
-    background-effect {
-        blur false
-    }
-}
-layer-rule {
-    background-effect {
-        blur false
-    }
-}
-animations {
-    workspace-switch {
-        duration-ms 250
-        curve "ease-out-quad"
-    }
-    window-open {
-        duration-ms 200
-        curve "ease-out-quad"
-    }
-    window-close {
-        duration-ms 120
-        curve "ease-out-quad"
-    }
-    horizontal-view-movement {
-        duration-ms 150
-        curve "ease-out-quad"
-    }
-    window-movement {
-        duration-ms 150
-        curve "ease-out-quad"
-    }
-    window-resize {
-        duration-ms 150
-        curve "ease-out-quad"
-    }
-    config-notification-open-close {
-        duration-ms 150
-        curve "ease-out-quad"
-    }
-    screenshot-ui-open {
-        duration-ms 150
-        curve "ease-out-quad"
-    }
-    overview-open-close {
-        duration-ms 250
-        curve "ease-out-quad"
-    }
-}
-window-rule {
-    geometry-corner-radius 20
+    geometry-corner-radius 16
     clip-to-geometry true
 }

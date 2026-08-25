@@ -15,7 +15,7 @@ Flickable {
     ? Config.themeShadowOffset
     : 0
   anchors.fill: parent
-  visible: root.currentTab === 10
+  visible: root.currentTab === 11
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight + shortcutsTab.neoShadowAllowance
