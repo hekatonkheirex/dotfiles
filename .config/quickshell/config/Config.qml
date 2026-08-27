@@ -33,6 +33,10 @@ QtObject {
   property int spacingMedium: Math.round(12 * spacingScale)
   property int spacingLarge: Math.round(16 * spacingScale)
   property int spacingExtraLarge: Math.round(24 * spacingScale)
+  property int spacingPage: Math.round(32 * spacingScale)
+  // Reserve visual breathing room between tab content and the outer settings
+  // scrollbar, which is intentionally overlaid on the Flickable edge.
+  readonly property int settingsScrollbarGutter: spacingMedium
 
   readonly property string fontFamily: nothingEvolution
     ? "Geist"
@@ -52,20 +56,89 @@ QtObject {
   readonly property string dotFontFamily: nothingEvolution
     ? "Geist Mono"
     : (nothingDesign ? "Ndot 57" : displayFontFamily)
-  readonly property string iconFont: nothingDesign
-    ? "Material Symbols Rounded"
-    : "Material Symbols Outlined"
+  // Keep icon geometry coherent with the active visual language. Material 3
+  // and Ghost use the calm outlined family, Nothing uses rounded symbols, and
+  // Neo uses the sharper family to match its square surfaces.
+  readonly property string iconFont: neoBrutalism
+    ? "Material Symbols Sharp"
+    : (nothingDesign ? "Material Symbols Rounded" : "Material Symbols Outlined")
+  // Material Symbols is a variable font. These defaults keep icons crisp and
+  // let semantic states opt into fill without scattering font-axis values
+  // through individual controls.
+  readonly property int iconWeight: neoBrutalism ? 500 : 400
+  readonly property int iconGrade: 0
+  function iconVariableAxes(fill, pixelSize) {
+    var normalizedFill = Math.max(0, Math.min(1, fill))
+    var opticalSize = Math.max(20, Math.min(48, pixelSize))
+    return {
+      "FILL": normalizedFill,
+      "GRAD": iconGrade,
+      "opsz": opticalSize,
+      "wght": iconWeight
+    }
+  }
   property int iconSize: Settings.iconSize
   property int fontPixelSize: Settings.fontPixelSize
-  readonly property int textCaptionSize: Math.max(8, fontPixelSize - 1)
-  readonly property int textBodySize: fontPixelSize + 1
-  readonly property int textBodyLargeSize: fontPixelSize + 3
-  readonly property int textTitleSize: fontPixelSize + 5
-  readonly property int textHeadlineSize: fontPixelSize + 8
+
+  // Compact Material 3 type roles. The shell is a resizable desktop surface,
+  // so these keep the current laptop density while preserving the hierarchy
+  // and naming of the M3 type scale. Use weight and line height to express
+  // emphasis; do not make every setting row compete with its page heading.
+  readonly property int typeLabelSmallSize: Math.max(8, fontPixelSize - 1)
+  readonly property int typeLabelMediumSize: fontPixelSize
+  readonly property int typeLabelLargeSize: fontPixelSize + 2
+  readonly property int typeBodySmallSize: Math.max(10, fontPixelSize - 1)
+  readonly property int typeBodyMediumSize: fontPixelSize + 1
+  readonly property int typeBodyLargeSize: fontPixelSize + 3
+  readonly property int typeTitleSmallSize: fontPixelSize + 2
+  readonly property int typeTitleMediumSize: fontPixelSize + 3
+  readonly property int typeTitleLargeSize: fontPixelSize + 5
+  readonly property int typeHeadlineSmallSize: fontPixelSize + 8
+  readonly property int typeHeadlineMediumSize: fontPixelSize + 12
+  readonly property int typeHeadlineLargeSize: fontPixelSize + 16
+  readonly property int typeDisplaySmallSize: fontPixelSize + 20
+  readonly property int typeDisplayMediumSize: fontPixelSize + 28
+  readonly property int typeDisplayLargeSize: fontPixelSize + 36
+
+  readonly property int typeLabelSmallLineHeight: 16
+  readonly property int typeLabelMediumLineHeight: 18
+  readonly property int typeLabelLargeLineHeight: 20
+  readonly property int typeBodySmallLineHeight: 16
+  readonly property int typeBodyMediumLineHeight: 19
+  readonly property int typeBodyLargeLineHeight: 22
+  readonly property int typeTitleSmallLineHeight: 18
+  readonly property int typeTitleMediumLineHeight: 20
+  readonly property int typeTitleLargeLineHeight: 22
+  readonly property int typeHeadlineSmallLineHeight: 24
+  readonly property int typeHeadlineMediumLineHeight: 28
+  readonly property int typeHeadlineLargeLineHeight: 32
+  readonly property int typeDisplaySmallLineHeight: 36
+  readonly property int typeDisplayMediumLineHeight: 44
+  readonly property int typeDisplayLargeLineHeight: 52
+
+  // Qt expresses tracking in pixels. Keep display/headline tracking slightly
+  // tight, leave body copy neutral, and give labels only a subtle separation.
+  readonly property real typeDisplayTracking: -0.4
+  readonly property real typeHeadlineTracking: -0.2
+  readonly property real typeTitleTracking: 0
+  readonly property real typeBodyTracking: 0
+  readonly property real typeLabelTracking: 0.1
+  readonly property real typeMonoTracking: 0.8
+  readonly property int typeRegularWeight: Font.Normal
+  readonly property int typeMediumWeight: Font.Medium
+  readonly property int typeStrongWeight: Font.Bold
+
+  // Backward-compatible aliases used by older delegates. New UI should use
+  // the named type roles above so hierarchy remains explicit at call sites.
+  readonly property int textCaptionSize: typeLabelSmallSize
+  readonly property int textBodySize: typeBodyMediumSize
+  readonly property int textBodyLargeSize: typeBodyLargeSize
+  readonly property int textTitleSize: typeTitleLargeSize
+  readonly property int textHeadlineSize: typeHeadlineSmallSize
   readonly property int iconSizeSmall: Math.max(12, iconSize - 2)
 
   // Bar clock typography is independently adjustable from global UI sizing.
-  readonly property int labelSmallSize: fontPixelSize
+  readonly property int labelSmallSize: typeLabelMediumSize
   readonly property int clockPrimarySize: Settings.clockFontSize
   readonly property int clockSecondarySize: Math.max(8, Settings.clockFontSize - 5)
   // Tight on purpose: the vertical bar stacks HH/MM at the same clockPrimarySize
@@ -99,9 +172,16 @@ QtObject {
     : 0
   // Icon-plus-label Neo controls need room for the thick border and hard shadow.
   readonly property int themeActionButtonMinHeight: neoBrutalism ? 56 : 0
+  // Material 3 uses a compact horizontal icon-plus-label action. The other
+  // themes retain their taller stacked treatment; compact selector delegates
+  // still provide their own height.
+  readonly property int themeLabeledActionButtonHeight: (nothingDesign || neoBrutalism || ghostTheme) ? 64 : 48
+  // Keep compact settings choices visually distinct in every theme. The
+  // button content has its own compact spacing; this value separates adjacent
+  // choices so their outlines and labels do not visually merge.
   readonly property int themeOptionGap: neoBrutalism
     ? themeShadowOffset
-    : (nothingEvolution ? spacingSmall : (nothingDesign ? spacingCompact : 0))
+    : (nothingEvolution ? spacingSmall : spacingCompact)
   readonly property int themeFontWeight: neoBrutalism
     ? Font.DemiBold
     : (nothingEvolution ? Font.Medium : (nothingDesign ? Font.Medium : Font.Normal))
@@ -114,8 +194,20 @@ QtObject {
   readonly property int motionLong: reducedMotion ? 0 : 250
   readonly property int motionExtraLong: reducedMotion ? 0 : 450
   readonly property int animationDuration: motionMedium
-  // Nothing uses precise ease-out motion; Material 3 and Neo retain their
-  // expressive overshoot for entrances and state changes.
+  // Spatial motion uses the same spring model across interactive controls and
+  // transient surfaces. Material 3 keeps a restrained expressive settle;
+  // authored styles use the same physics without overshoot.
+  readonly property bool expressiveMotion: !nothingDesign && !neoBrutalism && !ghostTheme
+  readonly property real motionSpatialSpring: 2.0
+  readonly property real motionSpatialDamping: expressiveMotion ? 0.78 : 1.0
+  readonly property real motionSpatialMass: 1.0
+  readonly property real motionSpatialEpsilon: 0.01
+  // Transient surfaces should settle promptly while retaining a small amount
+  // of expressive movement. Keep this separate from interactive controls so
+  // popup and Settings entrances do not feel sluggish.
+  readonly property real motionSurfaceSpring: 4.5
+  readonly property real motionSurfaceDamping: expressiveMotion ? 0.90 : 1.0
+  // Remaining effect transitions use theme-specific easing.
   readonly property int themeMotionEasing: (nothingDesign || ghostTheme) ? Easing.OutCubic : Easing.OutBack
   readonly property real evolutionSurfaceAlpha: 0.86
   readonly property real evolutionRaisedAlpha: 0.92
@@ -125,6 +217,9 @@ QtObject {
   readonly property int popupPadding: spacingLarge
   readonly property int settingsMinWidth: 320
   readonly property int settingsMinHeight: 360
+  // Shared label column for remote settings rows. Sized for the longest
+  // current label while allowing larger type settings to preserve full text.
+  readonly property int settingsRowLabelWidth: 200
   // Neo's hard shadows and block controls need a little more room in the
   // Appearance tab; Nothing and Material 3 keep the compact footprint.
   readonly property int settingsMaxWidth: neoBrutalism ? 1200 : 1100

@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -21,6 +22,7 @@ Flickable {
   contentHeight: mainColumn.implicitHeight + accountTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
+  ScrollBar.vertical: SettingsScrollBar { scrollTarget: accountTab }
 
   property string fullName: ""
   property string hostname: ""
@@ -94,8 +96,8 @@ Flickable {
       text: infoRow.icon
       font.family: Config.iconFont
       font.pixelSize: 16
+      font.variableAxes: Config.iconVariableAxes(0, 16)
       color: Colors.primary
-      Layout.leftMargin: 8
       Layout.preferredWidth: 20
     }
 
@@ -103,7 +105,10 @@ Flickable {
       text: infoRow.label
       color: Colors.fgSurfaceVariant
       font.family: Config.fontFamily
-      font.pixelSize: 13
+      font.pixelSize: Config.typeBodyMediumSize
+      font.letterSpacing: Config.typeBodyTracking
+      lineHeight: Config.typeBodyMediumLineHeight
+      lineHeightMode: Text.FixedHeight
       Layout.preferredWidth: 90
     }
 
@@ -111,34 +116,44 @@ Flickable {
       text: infoRow.value || "—"
       color: Colors.fgSurface
       font.family: Config.fontFamily
-      font.pixelSize: 13
-      font.weight: Font.Medium
+      font.pixelSize: Config.typeBodyMediumSize
+      font.weight: Config.typeMediumWeight
+      font.letterSpacing: Config.typeBodyTracking
+      lineHeight: Config.typeBodyMediumLineHeight
+      lineHeightMode: Text.FixedHeight
       elide: Text.ElideRight
       Layout.fillWidth: true
-      Layout.rightMargin: 8
     }
   }
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, accountTab.width - accountTab.neoShadowAllowance)
+    width: Math.max(0, accountTab.width - accountTab.neoShadowAllowance - Config.settingsScrollbarGutter)
     spacing: Config.spacingLarge + accountTab.neoShadowAllowance
+
+    SettingsPageHeader {
+      pageTitle: "Account"
+      subtitle: "Profile, session, and machine information."
+    }
 
   StyledSurface {
     id: profileCard
+    variant: "elevated"
     Layout.fillWidth: true
     Layout.preferredHeight: accountTab.compactLayout ? 196 : 152
     radius: Config.shapeLarge
     surfaceColor: Colors.surfaceContainer
-    outlineColor: Colors.styleOutlineStrong
+    outlineColor: Colors.styleOutline
     outlineWidth: Config.themeBorderWidth
 
     Flow {
       id: profileFlow
-      width: accountTab.compactLayout ? parent.width - 16 : 360
+      width: accountTab.compactLayout ? parent.width - Config.spacingLarge : 360
       height: accountTab.compactLayout ? 180 : 96
       anchors.centerIn: parent
-      spacing: accountTab.compactLayout ? 8 : 20
+          spacing: accountTab.compactLayout
+            ? Config.spacingSmall
+            : Config.spacingLarge + Config.spacingCompact
       flow: Flow.LeftToRight
 
       Item {
@@ -183,6 +198,7 @@ Flickable {
             text: "person"
             font.family: Config.iconFont
             font.pixelSize: 48
+            font.variableAxes: Config.iconVariableAxes(0, 48)
             color: Colors.fgSurfaceVariant
             visible: profilePic.status !== Image.Ready
           }
@@ -198,51 +214,78 @@ Flickable {
           id: profileDetails
           width: parent.width
           anchors.verticalCenter: parent.verticalCenter
-          spacing: accountTab.compactLayout ? 4 : 8
+          spacing: accountTab.compactLayout
+            ? Config.spacingCompact
+            : Config.spacingSmall
 
           Text {
             id: profileName
             text: accountTab.fullName || Quickshell.env("USER") || "User"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: accountTab.compactLayout ? 16 : 22
-            font.weight: Font.Bold
+            font.pixelSize: accountTab.compactLayout
+              ? Config.typeTitleLargeSize
+              : Config.typeHeadlineMediumSize
+            font.weight: Config.typeStrongWeight
+            font.letterSpacing: Config.typeTitleTracking
+            lineHeight: accountTab.compactLayout
+              ? Config.typeTitleLargeLineHeight
+              : Config.typeHeadlineMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             width: profileDetails.width
             wrapMode: Text.NoWrap
           }
 
           Row {
-            spacing: 6
+            spacing: Config.spacingSmall
             Text {
               text: "navigation"
               font.family: Config.iconFont
               font.pixelSize: accountTab.compactLayout ? 13 : 15
+              font.variableAxes: Config.iconVariableAxes(0, accountTab.compactLayout ? 13 : 15)
               color: Colors.primary
             }
             Text {
               text: "on niri"
               color: Colors.fgSurfaceVariant
               font.family: Config.fontFamily
-              font.pixelSize: accountTab.compactLayout ? 12 : 14
+              font.pixelSize: accountTab.compactLayout
+                ? Config.typeLabelMediumSize
+                : Config.typeLabelLargeSize
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: accountTab.compactLayout
+                ? Config.typeLabelMediumLineHeight
+                : Config.typeLabelLargeLineHeight
+              lineHeightMode: Text.FixedHeight
             }
           }
 
           Row {
             visible: Settings.systemShowUptime
-            spacing: 6
+            spacing: Config.spacingSmall
             Text {
               text: "schedule"
               font.family: Config.iconFont
               font.pixelSize: accountTab.compactLayout ? 13 : 15
+              font.variableAxes: Config.iconVariableAxes(0, accountTab.compactLayout ? 13 : 15)
               color: Colors.fgSurfaceVariant
             }
             Text {
               text: root.uptimeText.replace("up ", "")
               color: Colors.fgSurfaceVariant
               font.family: Config.fontFamily
-              font.pixelSize: accountTab.compactLayout ? 12 : 14
+              font.pixelSize: accountTab.compactLayout
+                ? Config.typeLabelMediumSize
+                : Config.typeLabelLargeSize
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: accountTab.compactLayout
+                ? Config.typeLabelMediumLineHeight
+                : Config.typeLabelLargeLineHeight
+              lineHeightMode: Text.FixedHeight
               elide: Text.ElideRight
-              width: Math.max(0, profileDetails.width - 21)
+              width: Math.max(0, profileDetails.width
+                - (accountTab.compactLayout ? 13 : 15)
+                - Config.spacingSmall)
             }
           }
         }
@@ -252,42 +295,48 @@ Flickable {
 
   // Machine Info card
   StyledSurface {
+    variant: "filled"
     Layout.fillWidth: true
-    Layout.preferredHeight: machineInfoCol.implicitHeight + 16
+    Layout.preferredHeight: machineInfoCol.implicitHeight + Config.spacingMedium * 2
     radius: Config.shapeLarge
     surfaceColor: Colors.surfaceContainer
-    outlineColor: Colors.styleOutlineStrong
+    outlineColor: Colors.styleOutline
     outlineWidth: Config.themeBorderWidth
 
     ColumnLayout {
       id: machineInfoCol
       anchors.fill: parent
-      anchors.margins: 8
-      spacing: 0
+      anchors.margins: Config.spacingMedium
+      spacing: Config.spacingSmall
 
       Text {
         text: "Machine"
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: 11
-        font.weight: Font.Medium
-        Layout.leftMargin: 8
-        Layout.topMargin: 4
-        Layout.bottomMargin: 4
+        font.pixelSize: Config.typeLabelSmallSize
+        font.weight: Config.typeMediumWeight
+        font.letterSpacing: Config.typeLabelTracking
+        lineHeight: Config.typeLabelSmallLineHeight
+        lineHeightMode: Text.FixedHeight
       }
 
-      InfoRow { icon: "dns"; label: "Hostname"; value: accountTab.hostname }
-      InfoRow { icon: "terminal"; label: "OS"; value: accountTab.osName }
-      InfoRow { icon: "settings_suggest"; label: "Kernel"; value: accountTab.kernel }
-      InfoRow { icon: "memory"; label: "CPU"; value: accountTab.cpuModel }
-      InfoRow { icon: "sports_esports"; label: "GPU"; value: accountTab.gpuModel }
-      InfoRow { icon: "code"; label: "Shell"; value: accountTab.shellName }
-      InfoRow { icon: "grid_view"; label: "Niri"; value: accountTab.niriVersion }
-      InfoRow { icon: "dashboard"; label: "Quickshell"; value: accountTab.quickshellVersion }
-      InfoRow {
-        icon: "lan"
-        label: "Network"
-        value: accountTab.localIp ? (accountTab.localIp + " (" + accountTab.localIface + ")") : ""
+      ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 0
+
+        InfoRow { icon: "dns"; label: "Hostname"; value: accountTab.hostname }
+        InfoRow { icon: "terminal"; label: "OS"; value: accountTab.osName }
+        InfoRow { icon: "settings_suggest"; label: "Kernel"; value: accountTab.kernel }
+        InfoRow { icon: "memory"; label: "CPU"; value: accountTab.cpuModel }
+        InfoRow { icon: "sports_esports"; label: "GPU"; value: accountTab.gpuModel }
+        InfoRow { icon: "code"; label: "Shell"; value: accountTab.shellName }
+        InfoRow { icon: "grid_view"; label: "Niri"; value: accountTab.niriVersion }
+        InfoRow { icon: "dashboard"; label: "Quickshell"; value: accountTab.quickshellVersion }
+        InfoRow {
+          icon: "lan"
+          label: "Network"
+          value: accountTab.localIp ? (accountTab.localIp + " (" + accountTab.localIface + ")") : ""
+        }
       }
     }
   }
@@ -298,14 +347,15 @@ Flickable {
     columns: accountTab.compactLayout ? 1 : 2
     // Neo controls carry a hard offset shadow; keep that footprint out of
     // the inter-button gap so the two outlines remain visually separate.
-    columnSpacing: 12 + accountTab.neoShadowAllowance
-    rowSpacing: 12 + accountTab.neoShadowAllowance
+    columnSpacing: Config.spacingMedium + accountTab.neoShadowAllowance
+    rowSpacing: Config.spacingMedium + accountTab.neoShadowAllowance
 
     ActionButton {
       Layout.fillWidth: true
-      Layout.preferredHeight: 56
+      Layout.preferredHeight: Config.themeLabeledActionButtonHeight
       iconLabel: "lock"
       labelText: "Lock Screen"
+      variant: "elevated"
       accessibleName: "Lock screen"
       accessibleDescription: "Locks the session"
       onActivated: {
@@ -316,9 +366,10 @@ Flickable {
 
     ActionButton {
       Layout.fillWidth: true
-      Layout.preferredHeight: 56
+      Layout.preferredHeight: Config.themeLabeledActionButtonHeight
       iconLabel: "restart_alt"
       labelText: "Restart Shell"
+      variant: "elevated"
       accessibleName: "Restart Quickshell"
       accessibleDescription: "Restarts the quickshell.service unit"
       onActivated: {

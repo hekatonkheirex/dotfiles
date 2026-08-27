@@ -7,7 +7,7 @@ StartLimitBurst=5
 
 [Service]
 Type=simple
-ExecStart=/home/mura/.config/niri/services/clipboard-history/capture
+ExecStart=/home/mura/.config/quickshell/scripts/clipboard-history-capture
 Restart=on-failure
 RestartSec=2s
 NoNewPrivileges=yes

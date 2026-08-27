@@ -1,6 +1,7 @@
 // Wi-Fi content for the Settings Network tab. Lifted out of the old
 // standalone Wi-Fi popup.
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -285,11 +286,11 @@ Item {
   Column {
     id: contentColumn
     width: parent.width
-    spacing: 12
+    spacing: Config.spacingMedium
 
     RowLayout {
       width: parent.width
-      spacing: 12
+      spacing: Config.spacingMedium
 
       Item { Layout.fillWidth: true }
 
@@ -325,18 +326,17 @@ Item {
 
     ColumnLayout {
       width: parent.width
-      spacing: 8
+      spacing: Config.spacingSmall
       visible: !root.statusKnown
 
       Item { Layout.preferredHeight: 12 }
 
-      Text {
+      LoadingIndicator {
         Layout.alignment: Qt.AlignHCenter
-        text: "sync"
-        color: Colors.fgSurfaceVariant
-        font.family: Config.iconFont
-        font.pixelSize: 48
-        opacity: 0.25
+        size: 40
+        contained: true
+        running: statusQuery.running
+        accessibleName: "Checking Wi-Fi status"
       }
 
       Text {
@@ -344,14 +344,17 @@ Item {
         text: "Checking Wi-Fi status"
         color: Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: Config.fontPixelSize + 4
-        font.weight: Font.Bold
+        font.pixelSize: Config.typeTitleLargeSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeTitleTracking
+        lineHeight: Config.typeTitleLargeLineHeight
+        lineHeightMode: Text.FixedHeight
       }
     }
 
     ColumnLayout {
       width: parent.width
-      spacing: 8
+      spacing: Config.spacingSmall
       visible: root.unavailable
 
       Item { Layout.preferredHeight: 12 }
@@ -362,6 +365,7 @@ Item {
         color: Colors.error
         font.family: Config.iconFont
         font.pixelSize: 48
+        font.variableAxes: Config.iconVariableAxes(0, 48)
         opacity: 0.75
       }
 
@@ -371,8 +375,11 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         color: Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: Config.fontPixelSize + 4
-        font.weight: Font.Bold
+        font.pixelSize: Config.typeTitleLargeSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeTitleTracking
+        lineHeight: Config.typeTitleLargeLineHeight
+        lineHeightMode: Text.FixedHeight
       }
 
       Text {
@@ -382,14 +389,17 @@ Item {
         wrapMode: Text.WordWrap
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: Config.fontPixelSize + 1
+        font.pixelSize: Config.typeBodyMediumSize
+        font.letterSpacing: Config.typeBodyTracking
+        lineHeight: Config.typeBodyMediumLineHeight
+        lineHeightMode: Text.FixedHeight
       }
     }
 
     // Wi-Fi is Off
     ColumnLayout {
       width: parent.width
-      spacing: 8
+      spacing: Config.spacingSmall
       visible: root.statusKnown && !root.unavailable && !root.wifiOn
 
       Item {
@@ -402,6 +412,7 @@ Item {
         color: Colors.fgSurfaceVariant
         font.family: Config.iconFont
         font.pixelSize: 48
+        font.variableAxes: Config.iconVariableAxes(0, 48)
         opacity: 0.25
       }
 
@@ -410,8 +421,11 @@ Item {
         text: "Wi-Fi is turned off"
         color: Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: (Config.fontPixelSize + 4)
-        font.weight: Font.Bold
+        font.pixelSize: Config.typeTitleLargeSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeTitleTracking
+        lineHeight: Config.typeTitleLargeLineHeight
+        lineHeightMode: Text.FixedHeight
       }
 
       Text {
@@ -419,18 +433,47 @@ Item {
         text: "Enable Wi-Fi to scan and connect."
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: (Config.fontPixelSize + 1)
+        font.pixelSize: Config.typeBodyMediumSize
+        font.letterSpacing: Config.typeBodyTracking
+        lineHeight: Config.typeBodyMediumLineHeight
+        lineHeightMode: Text.FixedHeight
       }
     }
 
     // Wi-Fi is On: list networks
     ColumnLayout {
       width: parent.width
-      spacing: 8
+      spacing: Config.spacingSmall
       visible: root.statusKnown && !root.unavailable && root.wifiOn
 
       ListModel {
         id: wifiListModel
+      }
+
+      RowLayout {
+        visible: listQuery.running
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignHCenter
+        spacing: Config.spacingSmall
+
+        LoadingIndicator {
+          size: 20
+          running: listQuery.running
+          accessibleName: "Scanning for Wi-Fi networks"
+          Layout.preferredWidth: 20
+          Layout.preferredHeight: 20
+        }
+
+        Text {
+          text: "Scanning for networks..."
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.typeLabelMediumSize
+          font.letterSpacing: Config.typeLabelTracking
+          lineHeight: Config.typeLabelMediumLineHeight
+          lineHeightMode: Text.FixedHeight
+          Layout.fillWidth: true
+        }
       }
 
       ListView {
@@ -439,9 +482,10 @@ Item {
         Layout.preferredHeight: Math.min(300, contentHeight)
         model: wifiListModel
         clip: true
-        spacing: 4
+        spacing: 0
         delegate: wifiItemDelegate
         boundsBehavior: Flickable.StopAtBounds
+        ScrollBar.vertical: SettingsScrollBar { scrollTarget: listView }
       }
 
       Text {
@@ -451,7 +495,10 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: Config.fontPixelSize + 2
+        font.pixelSize: Config.typeTitleSmallSize
+        font.letterSpacing: Config.typeTitleTracking
+        lineHeight: Config.typeTitleSmallLineHeight
+        lineHeightMode: Text.FixedHeight
       }
     }
 
@@ -464,46 +511,83 @@ Item {
         text: "Saved Networks"
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: Config.textCaptionSize
-        font.weight: Font.Medium
+        font.pixelSize: Config.typeLabelSmallSize
+        font.weight: Config.typeMediumWeight
+        font.letterSpacing: Config.typeLabelTracking
+        lineHeight: Config.typeLabelSmallLineHeight
+        lineHeightMode: Text.FixedHeight
       }
 
       ListView {
+        id: savedListView
         Layout.fillWidth: true
         Layout.preferredHeight: Math.min(240, contentHeight)
         model: savedListModel
         clip: true
-        spacing: Config.spacingCompact
+        spacing: 0
         boundsBehavior: Flickable.StopAtBounds
+        ScrollBar.vertical: SettingsScrollBar { scrollTarget: savedListView }
 
-        delegate: ListItem {
+        delegate: Item {
+          id: savedDelegate
           width: ListView.view.width
-          leadingIcon: model.active ? "wifi" : "wifi_find"
-          leadingIconColor: model.active ? Colors.primary : Colors.fgSurface
-          title: model.name
-          subtitle: model.active ? "Connected" : "Saved network"
-          accessibleName: model.name + " saved Wi-Fi network"
+          height: savedRow.height + (hasDivider ? listDivider.height : 0)
+          readonly property bool hasDivider: index < ListView.view.count - 1
 
-          SwitchControl {
-            checked: model.autoconnect
-            activeColor: Colors.primary
-            surfaceContainerHigh: Colors.surfaceContainerHigh
-            surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.styleOutlineStrong
-            motionDuration: Config.motionMedium
-            reducedMotion: Config.reducedMotion
-            accessibleName: "Autoconnect to " + model.name
-            onToggled: root.setAutoconnect(model.name, !model.autoconnect)
+          ListItem {
+            id: savedRow
+            width: parent.width
+            leadingIcon: model.active ? "wifi" : "wifi_find"
+            leadingIconColor: model.active ? Colors.primary : Colors.fgSurface
+            title: model.name
+            subtitle: model.active ? "Connected" : "Saved network"
+            statusActive: model.active
+            accessibleName: model.name + " saved Wi-Fi network"
+
+            // Use a fixed action group so the switch focus ring and delete hit
+            // area cannot collapse into the same trailing layout space.
+            Row {
+              id: savedNetworkActions
+              spacing: Config.spacingLarge
+              width: autoConnectSwitch.width + spacing + forgetButton.width
+              height: Math.max(autoConnectSwitch.height, forgetButton.height)
+
+              SwitchControl {
+                id: autoConnectSwitch
+                width: 52
+                height: 32
+                checked: model.autoconnect
+                activeColor: Colors.primary
+                surfaceContainerHigh: Colors.surfaceContainerHigh
+                surfaceContainerHighest: Colors.surfaceContainerHighest
+                outline: Colors.styleOutlineStrong
+                motionDuration: Config.motionMedium
+                reducedMotion: Config.reducedMotion
+                accessibleName: "Autoconnect to " + model.name
+                onToggled: root.setAutoconnect(model.name, !model.autoconnect)
+              }
+
+              IconButton {
+                id: forgetButton
+                width: 32
+                height: 32
+                size: 32
+                iconSize: 18
+                iconLabel: "delete"
+                iconColor: Colors.error
+                accessibleName: "Forget " + model.name
+                tooltipText: "Forget saved network"
+                onClicked: root.requestForget(model.name)
+              }
+            }
           }
 
-          IconButton {
-            size: 28
-            iconSize: 18
-            iconLabel: "delete"
-            iconColor: Colors.error
-            accessibleName: "Forget " + model.name
-            tooltipText: "Forget saved network"
-            onClicked: root.requestForget(model.name)
+          ListDivider {
+            id: listDivider
+            anchors.bottom: parent.bottom
+            insetStart: 48
+            insetEnd: Config.spacingSmall
+            visible: savedDelegate.hasDivider
           }
         }
       }
@@ -536,7 +620,7 @@ Item {
         Layout.preferredWidth: 72
         Layout.preferredHeight: 36
         labelText: "Cancel"
-        variant: "quiet"
+        variant: "text"
         accessibleName: "Cancel forget saved network"
         onActivated: root.pendingDeleteConnection = ""
       }
@@ -544,9 +628,12 @@ Item {
 
     Text {
       text: root.statusMessage
-      color: Colors.primary
-      font.family: Config.fontFamily
-      font.pixelSize: Config.fontPixelSize + 1
+        color: Colors.primary
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeBodyMediumSize
+        font.letterSpacing: Config.typeBodyTracking
+        lineHeight: Config.typeBodyMediumLineHeight
+        lineHeightMode: Text.FixedHeight
       wrapMode: Text.Wrap
       width: parent.width
       visible: root.statusMessage !== ""
@@ -559,11 +646,12 @@ Item {
     Item {
       id: delegateRoot
       width: ListView.view.width
-      height: expanded ? 104 : 48
+      height: (expanded ? 104 : 48) + (hasDivider ? listDivider.height : 0)
       clip: true
 
       readonly property bool expanded: root.selectedIndex === index
       readonly property bool isCurrent: model.active
+      readonly property bool hasDivider: index < ListView.view.count - 1
 
       Behavior on height {
         NumberAnimation {
@@ -588,7 +676,8 @@ Item {
         }
         title: model.ssid
         subtitle: isCurrent ? "Connected" : ""
-        selected: isCurrent
+        selected: expanded
+        statusActive: isCurrent
         accessibleName: model.ssid + " Wi-Fi network"
         accessibleDescription: isCurrent ? "Connected, signal " + model.signal + " percent" : "Signal " + model.signal + " percent"
         onClicked: root.selectedIndex = (root.selectedIndex === index) ? -1 : index
@@ -597,7 +686,10 @@ Item {
           text: model.signal + "%"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: Config.fontPixelSize
+          font.pixelSize: Config.typeLabelMediumSize
+          font.letterSpacing: Config.typeLabelTracking
+          lineHeight: Config.typeLabelMediumLineHeight
+          lineHeightMode: Text.FixedHeight
           Layout.alignment: Qt.AlignVCenter
         }
 
@@ -607,6 +699,7 @@ Item {
           color: Colors.outline
           font.family: Config.iconFont
           font.pixelSize: 16
+          font.variableAxes: Config.iconVariableAxes(0, 16)
           Layout.alignment: Qt.AlignVCenter
         }
       }
@@ -616,12 +709,12 @@ Item {
           left: parent.left
           right: parent.right
           top: collapsedRow.bottom
-          topMargin: 8
-          leftMargin: 12
-          rightMargin: 12
+          topMargin: Config.spacingSmall
+          leftMargin: Config.spacingMedium
+          rightMargin: Config.spacingMedium
         }
         visible: delegateRoot.expanded
-        spacing: 12
+        spacing: Config.spacingMedium
 
         TextFieldControl {
           id: passField
@@ -658,6 +751,14 @@ Item {
             }
           }
         }
+      }
+
+      ListDivider {
+        id: listDivider
+        anchors.bottom: parent.bottom
+        insetStart: 48
+        insetEnd: Config.spacingSmall
+        visible: delegateRoot.hasDivider
       }
     }
   }

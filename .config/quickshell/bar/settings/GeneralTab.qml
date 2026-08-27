@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import "../"
@@ -22,6 +23,7 @@ Flickable {
   contentHeight: mainColumn.implicitHeight + generalTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
+  ScrollBar.vertical: SettingsScrollBar { scrollTarget: generalTab }
 
   function saveWeatherLocation() {
     var value = weatherLocationField.input.text.trim()
@@ -33,8 +35,13 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, generalTab.width - generalTab.neoShadowAllowance)
+    width: Math.max(0, generalTab.width - generalTab.neoShadowAllowance - Config.settingsScrollbarGutter)
     spacing: Config.spacingLarge + generalTab.neoShadowAllowance
+
+    SettingsPageHeader {
+      pageTitle: "General"
+      subtitle: "Configure the clock, bar contents, and weather."
+    }
 
     GridLayout {
       Layout.fillWidth: true
@@ -44,8 +51,9 @@ Flickable {
 
       // Behavior toggle group
       StyledSurface {
+        variant: "filled"
         Layout.fillWidth: true
-        Layout.preferredHeight: behaviorCol.implicitHeight + 16
+        Layout.preferredHeight: behaviorCol.implicitHeight + Config.spacingSmall * 2
         radius: Config.shapeLarge
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
@@ -105,8 +113,9 @@ Flickable {
 
       // Clock & Calendar toggle group
       StyledSurface {
+        variant: "filled"
         Layout.fillWidth: true
-        Layout.preferredHeight: clockCol.implicitHeight + 16
+        Layout.preferredHeight: clockCol.implicitHeight + Config.spacingSmall * 2
         radius: Config.shapeLarge
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
@@ -176,22 +185,25 @@ Flickable {
             Layout.fillWidth: true
             Layout.preferredHeight: generalTab.compactLayout ? 64 : 44
             columns: generalTab.compactLayout ? 1 : 2
-            columnSpacing: 8
-            rowSpacing: 4
+            columnSpacing: Config.spacingSmall
+            rowSpacing: Config.spacingCompact
 
             Text {
               text: "Timezone"
               color: Colors.fgSurface
               font.family: Config.fontFamily
-              font.pixelSize: Config.fontPixelSize + 3
-              font.weight: Font.Medium
+              font.pixelSize: Config.typeBodyLargeSize
+              font.weight: Config.typeMediumWeight
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyLargeLineHeight
+              lineHeightMode: Text.FixedHeight
               Layout.fillWidth: generalTab.compactLayout
               Layout.preferredWidth: generalTab.compactLayout ? 0 : 80
               Layout.minimumWidth: generalTab.compactLayout ? 0 : 80
               Layout.preferredHeight: generalTab.compactLayout ? 20 : 44
               verticalAlignment: Text.AlignVCenter
               elide: Text.ElideRight
-              Layout.leftMargin: 8
+              Layout.leftMargin: Config.spacingSmall
             }
 
             TextFieldControl {
@@ -225,8 +237,9 @@ Flickable {
     // Compact bar contents. Settings and the power menu intentionally stay
     // outside this list so there is always a way back into the shell.
     StyledSurface {
+      variant: "filled"
       Layout.fillWidth: true
-      Layout.preferredHeight: barContentsCol.implicitHeight + 24
+      Layout.preferredHeight: barContentsCol.implicitHeight + Config.spacingSmall * 2
       radius: Config.shapeLarge
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
@@ -242,8 +255,11 @@ Flickable {
           text: "Bar Contents"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: Config.fontPixelSize + 2
-          font.weight: Font.Medium
+          font.pixelSize: Config.typeTitleSmallSize
+          font.weight: Config.typeMediumWeight
+          font.letterSpacing: Config.typeTitleTracking
+          lineHeight: Config.typeTitleSmallLineHeight
+          lineHeightMode: Text.FixedHeight
           Layout.leftMargin: Config.spacingCompact
         }
 
@@ -251,7 +267,10 @@ Flickable {
           text: "Settings and the power menu always remain available. Wi-Fi and Bluetooth stay Settings-only."
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: Config.fontPixelSize
+          font.pixelSize: Config.typeLabelMediumSize
+          font.letterSpacing: Config.typeLabelTracking
+          lineHeight: Config.typeLabelMediumLineHeight
+          lineHeightMode: Text.FixedHeight
           wrapMode: Text.WordWrap
           Layout.fillWidth: true
           Layout.leftMargin: Config.spacingCompact
@@ -308,8 +327,9 @@ Flickable {
 
     // Weather location, privacy, and units
     StyledSurface {
+      variant: "filled"
       Layout.fillWidth: true
-      Layout.preferredHeight: weatherCol.implicitHeight + 24
+      Layout.preferredHeight: weatherCol.implicitHeight + Config.spacingMedium * 2
       radius: Config.shapeLarge
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
@@ -337,6 +357,7 @@ Flickable {
               color: Colors.fgPrimary
               font.family: Config.iconFont
               font.pixelSize: Config.iconSize
+              font.variableAxes: Config.iconVariableAxes(0, Config.iconSize)
             }
           }
 
@@ -345,7 +366,10 @@ Flickable {
             color: Colors.fgSurface
             font.family: Config.fontFamily
             font.pixelSize: Config.textBodyLargeSize
-            font.weight: Font.Bold
+            font.weight: Config.typeStrongWeight
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyLargeLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.fillWidth: true
             elide: Text.ElideRight
           }
@@ -364,6 +388,9 @@ Flickable {
                 height: parent.height
                 labelText: "°C"
                 selected: Settings.weatherUnits === "metric"
+                checkable: true
+                grouped: true
+                groupPosition: "first"
                 accessibleName: "Metric units"
                 onActivated: { Settings.weatherUnits = "metric"; Settings.save() }
               }
@@ -373,6 +400,9 @@ Flickable {
                 height: parent.height
                 labelText: "°F"
                 selected: Settings.weatherUnits === "imperial"
+                checkable: true
+                grouped: true
+                groupPosition: "last"
                 accessibleName: "Imperial units"
                 onActivated: { Settings.weatherUnits = "imperial"; Settings.save() }
               }
@@ -419,7 +449,10 @@ Flickable {
             : "No manual location configured"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: Config.fontPixelSize
+          font.pixelSize: Config.typeLabelMediumSize
+          font.letterSpacing: Config.typeLabelTracking
+          lineHeight: Config.typeLabelMediumLineHeight
+          lineHeightMode: Text.FixedHeight
           elide: Text.ElideRight
         }
 
@@ -455,7 +488,10 @@ Flickable {
             text: "Refresh interval"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
+            font.pixelSize: Config.typeBodyMediumSize
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: generalTab.compactLayout ? 88 : 112
             Layout.leftMargin: Config.spacingCompact
           }
@@ -486,8 +522,11 @@ Flickable {
             text: Settings.weatherRefreshIntervalMinutes + "m"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
-            font.weight: Font.Medium
+            font.pixelSize: Config.typeBodyMediumSize
+            font.weight: Config.typeMediumWeight
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: 30
             Layout.rightMargin: Config.spacingCompact
           }

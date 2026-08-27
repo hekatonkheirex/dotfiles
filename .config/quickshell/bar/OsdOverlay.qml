@@ -215,7 +215,7 @@ PanelWindow {
 
     Column {
       anchors.centerIn: parent
-      spacing: 8
+      spacing: Config.spacingSmall
 
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -229,6 +229,7 @@ PanelWindow {
         }
         font.family: Config.iconFont
         font.pixelSize: 28
+        font.variableAxes: Config.iconVariableAxes(0, 28)
         color: {
           if (root.osdType === "volume") return root.muted ? (Colors.error) : (Colors.primary);
           if (root.osdType === "mic") return root.muted ? (Colors.error) : (Colors.primary);
@@ -252,7 +253,8 @@ PanelWindow {
         }
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: 12
+        font.pixelSize: Config.typeLabelMediumSize
+        font.letterSpacing: Config.typeLabelTracking
       }
 
       Text {
@@ -273,8 +275,9 @@ PanelWindow {
         font.family: Config.nothingDesign && root.osdType !== "mic" && root.osdType !== "airplane" && root.osdType !== "bluetooth"
           ? Config.dotFontFamily
           : Config.fontFamily
-        font.pixelSize: 20
-        font.weight: Font.Bold
+        font.pixelSize: Config.typeHeadlineSmallSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeHeadlineTracking
       }
 
       Rectangle {

@@ -87,5 +87,6 @@ StatusIndicator {
   }
 
   iconLabel: root.status === "ok" ? Colors.weatherIcon(root.desc) : "cloud_off"
+  loading: root.status === "loading"
   labelText: root.status === "ok" ? root.temp : "--"
 }

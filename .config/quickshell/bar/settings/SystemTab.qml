@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -21,6 +22,7 @@ Flickable {
   contentHeight: mainColumn.implicitHeight + systemTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
+  ScrollBar.vertical: SettingsScrollBar { scrollTarget: systemTab }
 
   property real statsSwapPct: -1
   property string statsSwapStr: "Unavailable"
@@ -206,6 +208,7 @@ Flickable {
         text: statCell.icon
         font.family: Config.iconFont
         font.pixelSize: Config.iconSize
+        font.variableAxes: Config.iconVariableAxes(0, Config.iconSize)
         color: Colors.primary
       }
       Text {
@@ -241,12 +244,18 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, systemTab.width - systemTab.neoShadowAllowance)
+    width: Math.max(0, systemTab.width - systemTab.neoShadowAllowance - Config.settingsScrollbarGutter)
     spacing: Config.spacingLarge + systemTab.neoShadowAllowance
 
+    SettingsPageHeader {
+      pageTitle: "System"
+      subtitle: "View system usage, diagnostics, and shell actions."
+    }
+
     StyledSurface {
+      variant: "filled"
       Layout.fillWidth: true
-      Layout.preferredHeight: statsGrid.implicitHeight + 16
+      Layout.preferredHeight: statsGrid.implicitHeight + Config.spacingMedium * 2
       radius: Config.shapeLarge
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
@@ -257,7 +266,7 @@ Flickable {
         anchors.fill: parent
         anchors.margins: Config.spacingMedium
         columns: systemTab.compactLayout ? 1 : 3
-        columnSpacing: systemTab.compactLayout ? 0 : 20
+        columnSpacing: systemTab.compactLayout ? 0 : Config.spacingLarge + Config.spacingCompact
         rowSpacing: Config.spacingLarge
 
         StatCell {
@@ -338,7 +347,7 @@ Flickable {
 
     Text {
       Layout.fillWidth: true
-      Layout.leftMargin: 4
+      Layout.leftMargin: Config.spacingCompact
       text: root.statsCpuCount > 0
         ? "Load average is 1 / 5 / 15 minute, normalized against " + systemTab.cpuCount + " CPU threads."
         : "CPU thread count unavailable; load average normalization is unavailable."
@@ -356,9 +365,11 @@ Flickable {
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "restart_alt"
+        contentSpacing: Config.spacingMedium
         labelText: "Reload Quickshell"
+        variant: "elevated"
         accessibleName: "Reload Quickshell"
         accessibleDescription: "Restart the managed quickshell service"
         onActivated: systemTab.restartShell()
@@ -366,8 +377,9 @@ Flickable {
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "content_copy"
+        contentSpacing: Config.spacingMedium
         labelText: "Copy Diagnostics"
         variant: "outlined"
         accessibleName: "Copy diagnostics"
@@ -377,8 +389,9 @@ Flickable {
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "settings_backup_restore"
+        contentSpacing: Config.spacingMedium
         labelText: "Reset Settings"
         variant: "outlined"
         visible: !systemTab.resetConfirm
@@ -389,8 +402,9 @@ Flickable {
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "warning"
+        contentSpacing: Config.spacingMedium
         labelText: "Confirm Reset"
         variant: "filled"
         visible: systemTab.resetConfirm
@@ -406,10 +420,11 @@ Flickable {
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "close"
+        contentSpacing: Config.spacingMedium
         labelText: "Cancel Reset"
-        variant: "quiet"
+        variant: "text"
         visible: systemTab.resetConfirm
         accessibleName: "Cancel reset settings"
         onActivated: systemTab.resetConfirm = false
@@ -422,7 +437,10 @@ Flickable {
       text: systemTab.actionStatus
       color: systemTab.actionStatus.indexOf("Could not") >= 0 ? Colors.error : Colors.fgSurfaceVariant
       font.family: Config.fontFamily
-      font.pixelSize: Config.fontPixelSize
+      font.pixelSize: Config.typeBodySmallSize
+      font.letterSpacing: Config.typeBodyTracking
+      lineHeight: Config.typeBodySmallLineHeight
+      lineHeightMode: Text.FixedHeight
       wrapMode: Text.WordWrap
       visible: systemTab.actionStatus !== ""
     }

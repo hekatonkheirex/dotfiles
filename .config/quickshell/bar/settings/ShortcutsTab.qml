@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import "../"
@@ -21,6 +22,7 @@ Flickable {
   contentHeight: mainColumn.implicitHeight + shortcutsTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
+  ScrollBar.vertical: SettingsScrollBar { scrollTarget: shortcutsTab }
   property string actionStatus: ""
 
   function openKeybinds() {
@@ -36,7 +38,7 @@ Flickable {
 
   component KeyChip: Rectangle {
     property string keys: ""
-    implicitWidth: keyText.implicitWidth + 16
+    implicitWidth: keyText.implicitWidth + Config.spacingLarge
     implicitHeight: 22
     radius: Config.shapeMedium
     color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
@@ -70,18 +72,18 @@ Flickable {
       font.family: Config.fontFamily
       font.pixelSize: Config.textBodyLargeSize
       Layout.fillWidth: true
-      Layout.leftMargin: 8
     }
 
-    KeyChip { keys: shortcutRow.keys; Layout.rightMargin: 8 }
+    KeyChip { keys: shortcutRow.keys }
   }
 
   component GroupCard: StyledSurface {
     id: groupCard
-    default property alias rows: rowsCol.data
+    variant: "filled"
+    default property alias rows: rowsList.data
     property string title: ""
     Layout.fillWidth: true
-    Layout.preferredHeight: rowsCol.implicitHeight + 16
+    Layout.preferredHeight: rowsCol.implicitHeight + Config.spacingLarge * 2
     radius: Config.shapeLarge
     surfaceColor: Colors.surfaceContainer
     outlineColor: Colors.styleOutline
@@ -90,8 +92,8 @@ Flickable {
     ColumnLayout {
       id: rowsCol
       anchors.fill: parent
-      anchors.margins: Config.spacingSmall
-      spacing: 0
+      anchors.margins: Config.spacingLarge
+      spacing: Config.spacingCompact
 
       Text {
         text: groupCard.title
@@ -99,25 +101,24 @@ Flickable {
         font.family: Config.fontFamily
         font.pixelSize: Config.textCaptionSize
         font.weight: Font.Medium
-        Layout.leftMargin: 8
-        Layout.topMargin: 4
-        Layout.bottomMargin: 4
+      }
+
+      ColumnLayout {
+        id: rowsList
+        Layout.fillWidth: true
+        spacing: 0
       }
     }
   }
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, shortcutsTab.width - shortcutsTab.neoShadowAllowance)
+    width: Math.max(0, shortcutsTab.width - shortcutsTab.neoShadowAllowance - Config.settingsScrollbarGutter)
     spacing: Config.spacingLarge + shortcutsTab.neoShadowAllowance
 
-    Text {
-      Layout.fillWidth: true
-      text: "Curated common bindings. The source of truth is ~/.config/niri/keybinds.kdl."
-      color: Colors.fgSurfaceVariant
-      font.family: Config.fontFamily
-      font.pixelSize: Config.fontPixelSize
-      wrapMode: Text.WordWrap
+    SettingsPageHeader {
+      pageTitle: "Shortcuts"
+      subtitle: "Curated common bindings. The source of truth is ~/.config/niri/keybinds.kdl."
     }
 
     RowLayout {
@@ -126,17 +127,20 @@ Flickable {
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 44
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "open_in_new"
+        contentSpacing: Config.spacingMedium
         labelText: "Open Full Config"
+        variant: "elevated"
         accessibleName: "Open full keybind configuration"
         onActivated: shortcutsTab.openKeybinds()
       }
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 44
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "content_copy"
+        contentSpacing: Config.spacingMedium
         labelText: "Copy Keybinds"
         variant: "outlined"
         accessibleName: "Copy full keybind configuration"
@@ -149,7 +153,10 @@ Flickable {
       text: shortcutsTab.actionStatus
       color: Colors.fgSurfaceVariant
       font.family: Config.fontFamily
-      font.pixelSize: Math.max(8, Config.fontPixelSize - 1)
+      font.pixelSize: Config.typeBodySmallSize
+      font.letterSpacing: Config.typeBodyTracking
+      lineHeight: Config.typeBodySmallLineHeight
+      lineHeightMode: Text.FixedHeight
       visible: shortcutsTab.actionStatus !== ""
     }
 

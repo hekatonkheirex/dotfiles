@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import Quickshell
@@ -19,12 +20,12 @@ PanelWindow {
   readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
 
   implicitWidth: (wallpaperMode
-    ? Math.min(Config.settingsMaxWidth, Math.max(Config.popupWidth, Screen.desktopAvailableWidth - 32))
+    ? Math.min(Config.settingsMaxWidth, Math.max(Config.popupWidth, Screen.desktopAvailableWidth - Config.spacingPage))
     : Config.popupWidth) + neoShadowPadding
   visible: false
   implicitHeight: (wallpaperMode
     ? Math.min(Config.settingsMaxHeight, wallpaperGridHeight + 86)
-    : Math.min(clipItem.implicitHeight + 32, 500)) + neoShadowPadding
+    : Math.min(clipItem.implicitHeight + Config.spacingPage, clipboardMode ? 560 : 500)) + neoShadowPadding
 
   Behavior on implicitWidth {
     NumberAnimation {
@@ -45,11 +46,11 @@ PanelWindow {
   WlrLayershell.focusable: true
 
   anchors.left: true
-  margins.left: Config.barWidth + 4
+  margins.left: Config.barWidth + Config.spacingCompact
   property int screenH: Screen.desktopAvailableHeight
 
   anchors.top: true
-  margins.top: Math.max(10, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
+  margins.top: Math.max(Config.spacingSmall, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
 
   ListModel { id: appModel }
   ListModel {
@@ -70,6 +71,9 @@ PanelWindow {
       path: ""
       exec: ""
       terminal: false
+      clipboardLine: ""
+      clipboardPreview: ""
+      clipboardMime: ""
     }
   }
   ListModel {
@@ -123,23 +127,55 @@ PanelWindow {
       keywords: "theme mode dark"
       icon: "dark_mode"
     }
+    ListElement {
+      kind: "action"
+      actionId: "clipboard-open"
+      name: "Clipboard history"
+      comment: "Search and restore copied entries"
+      keywords: "clipboard copy paste history provider"
+      icon: "content_paste"
+    }
+    ListElement {
+      kind: "action"
+      actionId: "capture-screen"
+      name: "Capture screen"
+      comment: "Save a screenshot and copy it to the clipboard"
+      keywords: "screenshot capture screen clipboard image"
+      icon: "screenshot_monitor"
+    }
+    ListElement {
+      kind: "action"
+      actionId: "capture-region"
+      name: "Capture region"
+      comment: "Select a region, save it, and copy it to the clipboard"
+      keywords: "screenshot capture region select clipboard image"
+      icon: "crop"
+    }
   }
   ListModel { id: wallpaperModel }
+  ListModel { id: clipboardModel }
 
   property string searchText: ""
   property int selectedIndex: 0
   property bool voiceRecording: false
   property bool voiceTranscribing: false
+  property bool clipboardLoaded: false
+  property bool clipboardLoading: false
+  property bool clipboardWipeArmed: false
+  property bool clipboardWipeRunning: false
+  property string clipboardStatus: ""
   readonly property bool actionMode: searchText.trim().startsWith(">")
   readonly property bool wallpaperMode: searchText.trim().startsWith("@")
+  readonly property bool clipboardMode: searchText.trim().startsWith(";")
   readonly property int wallpaperCellWidth: 180
   readonly property int wallpaperCellHeight: 124
   readonly property int wallpaperCardWidth: 164
   readonly property int wallpaperCardHeight: 108
   readonly property int wallpaperImageInset: 1
   readonly property int wallpaperCellGap: wallpaperCellWidth - wallpaperCardWidth
-  // The grid has two 12 px margins: one from clipItem and one from the frame.
-  readonly property int wallpaperGridAvailableWidth: Math.max(1, implicitWidth - neoShadowPadding - 48)
+  // The grid has two horizontal margins from clipItem and the frame.
+  readonly property int wallpaperGridAvailableWidth: Math.max(1,
+    implicitWidth - neoShadowPadding - Config.spacingMedium * 4)
   readonly property int wallpaperColumns: Math.max(1,
     Math.floor((wallpaperGridAvailableWidth + wallpaperCellGap) / wallpaperCellWidth))
   // Center the visible cards, rather than the larger cells that contain them.
@@ -149,7 +185,7 @@ PanelWindow {
     ? Math.max(1, Math.ceil(Math.max(1, filteredModel.count) / wallpaperColumns))
     : 1
   readonly property int wallpaperGridHeight:
-    Math.min(480, Math.max(220, wallpaperRows * wallpaperCellHeight + 16))
+    Math.min(480, Math.max(220, wallpaperRows * wallpaperCellHeight + Config.spacingLarge))
 
   Process {
     id: wallpaperProc
@@ -199,6 +235,70 @@ PanelWindow {
             if (visible) filterApps()
           } catch (e) { print("LauncherPopup parse error:", e) }
         }
+      }
+    }
+  }
+
+  Process {
+    id: clipboardProc
+    command: ["sh", "-c", "if command -v cliphist >/dev/null 2>&1; then cliphist list; fi"]
+    running: false
+
+    stdout: StdioCollector {
+      onStreamFinished: {
+        clipboardModel.clear()
+        var lines = (text || "").split(/\r?\n/)
+        for (var i = 0; i < lines.length; i++) {
+          var rawLine = lines[i].replace(/\r$/, "")
+          if (rawLine === "") continue
+
+          var separator = rawLine.indexOf("\t")
+          var preview = separator >= 0 ? rawLine.substring(separator + 1) : rawLine
+          clipboardModel.append({
+            kind: "clipboard",
+            actionId: "",
+            name: root.clipboardDisplayText(preview),
+            comment: "Press Enter to restore this entry",
+            keywords: "clipboard copy paste " + preview,
+            generic_name: "",
+            categories: "",
+            icon: root.clipboardMime(preview) === "image" ? "image" : "content_paste",
+            path: "",
+            exec: "",
+            terminal: false,
+            clipboardLine: rawLine,
+            clipboardPreview: root.clipboardDisplayText(preview),
+            clipboardMime: root.clipboardMime(preview)
+          })
+        }
+        root.clipboardLoaded = true
+        root.clipboardLoading = false
+        if (root.visible && root.clipboardMode) root.filterApps()
+      }
+    }
+
+    onRunningChanged: {
+      if (running) root.clipboardLoading = true
+    }
+  }
+
+  Process {
+    id: clipboardWipeProc
+    command: ["sh", "-c", "if command -v cliphist >/dev/null 2>&1; then exec cliphist wipe; else exit 127; fi"]
+    running: false
+
+    onExited: (exitCode) => {
+      root.clipboardWipeRunning = false
+      if (exitCode === 0) {
+        clipboardModel.clear()
+        root.clipboardLoaded = false
+        root.clipboardLoading = false
+        root.clipboardStatus = "Clipboard history cleared"
+        root.filterApps()
+        clipboardRefreshTimer.restart()
+      } else {
+        root.clipboardStatus = "Could not clear clipboard history"
+        root.filterApps()
       }
     }
   }
@@ -283,8 +383,127 @@ PanelWindow {
       icon: item.icon || "",
       path: item.path || "",
       exec: item.exec || "",
-      terminal: item.terminal === true
+      terminal: item.terminal === true,
+      clipboardLine: item.clipboardLine || "",
+      clipboardPreview: item.clipboardPreview || "",
+      clipboardMime: item.clipboardMime || ""
     })
+  }
+
+  function clipboardDisplayText(value) {
+    var clean = String(value || "").replace(/\s+/g, " ").trim()
+    if (clean === "") return "(empty clipboard entry)"
+    return clean.length > 120 ? clean.substring(0, 117) + "…" : clean
+  }
+
+  function clipboardMime(value) {
+    var clean = String(value || "").toLowerCase()
+    return clean.indexOf("image/") === 0 || clean.indexOf("[image") === 0 ? "image" : "text"
+  }
+
+  function refreshClipboard() {
+    if (!root.clipboardMode || clipboardProc.running) return
+    root.clipboardLoaded = false
+    root.clipboardLoading = true
+    clipboardModel.clear()
+    clipboardProc.running = true
+  }
+
+  function requestClipboardWipe() {
+    if (root.clipboardWipeRunning) return
+
+    if (root.clipboardWipeArmed) {
+      root.clipboardWipeArmed = false
+      root.clipboardStatus = "Clearing clipboard history…"
+      root.clipboardWipeRunning = true
+      clipboardWipeProc.running = true
+      root.filterApps()
+      return
+    }
+
+    root.clipboardStatus = ""
+    root.clipboardWipeArmed = true
+    clipboardWipeTimer.restart()
+    root.filterApps()
+  }
+
+  function deleteClipboardEntry(line) {
+    if (!line) return
+    Quickshell.execDetached(["sh", "-c",
+      "if command -v cliphist >/dev/null 2>&1; then printf '%s\\n' \"$1\" | cliphist delete; fi",
+      "clipboard-delete", line])
+    clipboardModel.clear()
+    root.clipboardLoaded = false
+    root.filterApps()
+    clipboardRefreshTimer.restart()
+  }
+
+  function restoreClipboardEntry(line) {
+    if (!line) return
+    Quickshell.execDetached(["sh", "-c",
+      "if command -v cliphist >/dev/null 2>&1 && command -v wl-copy >/dev/null 2>&1; then printf '%s\\n' \"$1\" | cliphist decode | wl-copy; fi",
+      "clipboard-restore", line])
+    dismissed()
+  }
+
+  function clipboardPreviewForSelection() {
+    if (!root.clipboardMode) return ""
+    if (root.clipboardStatus !== "") return root.clipboardStatus
+    if (filteredModel.count === 0) {
+      return root.clipboardLoading ? "Loading clipboard history…" : "No clipboard history available"
+    }
+    if (root.selectedIndex < 0 || root.selectedIndex >= filteredModel.count) return ""
+    var item = filteredModel.get(root.selectedIndex)
+    if (item.kind === "clipboard-action") {
+      return root.clipboardWipeArmed
+        ? "Press Enter again to remove every saved clipboard entry"
+        : "Remove every saved clipboard entry"
+    }
+    return item.kind === "clipboard" ? item.clipboardPreview : ""
+  }
+
+  function filterClipboardResults(query) {
+    var matches = []
+    for (var i = 0; i < clipboardModel.count; i++) {
+      var item = clipboardModel.get(i)
+      var score = scoreSpecialResult(item, query)
+      if (score > 0) matches.push({ item: item, score: score })
+    }
+
+    var wipeAction = {
+      kind: "clipboard-action",
+      actionId: "clipboard-wipe",
+      name: root.clipboardWipeRunning
+        ? "Clearing clipboard history…"
+        : (root.clipboardWipeArmed ? "Confirm clear clipboard history" : "Clear clipboard history"),
+      comment: root.clipboardWipeRunning
+        ? "Waiting for cliphist to finish"
+        : (root.clipboardWipeArmed
+        ? "Press Enter again to remove all saved entries"
+        : "Remove all saved clipboard entries"),
+      keywords: "clipboard clear wipe history delete",
+      icon: root.clipboardWipeRunning ? "sync" : (root.clipboardWipeArmed ? "warning" : "delete_sweep")
+    }
+    var wipeScore = scoreSpecialResult(wipeAction, query)
+    // Keep the destructive action available in the normal `;` view even when
+    // the history is empty or the user has not typed a filter yet. A previous
+    // score adjustment reduced the empty-query score to zero, which removed
+    // the action from the model entirely.
+    if (!query) {
+      // Keep the action above the history entries so it remains reachable in
+      // the constrained launcher viewport without requiring a long scroll.
+      matches.push({ item: wipeAction, score: 2 })
+    } else if (wipeScore > 0) {
+      matches.push({ item: wipeAction, score: wipeScore })
+    }
+
+    matches.sort(function(a, b) {
+      if (b.score !== a.score) return b.score - a.score
+      return a.item.name.localeCompare(b.item.name)
+    })
+
+    for (var j = 0; j < matches.length; j++) appendFilteredResult(matches[j].item, matches[j].item.kind)
+    selectedIndex = Math.max(0, Math.min(selectedIndex, filteredModel.count - 1))
   }
 
   function runAction(actionId) {
@@ -307,6 +526,18 @@ PanelWindow {
       case "theme-dark":
         setThemeMode(2)
         break
+      case "clipboard-open":
+        searchInputControl.text = ";"
+        return
+      case "capture-screen":
+        runCaptureScript("screen")
+        break
+      case "capture-region":
+        runCaptureScript("region")
+        break
+      case "clipboard-wipe":
+        requestClipboardWipe()
+        return
       default:
         return
     }
@@ -321,6 +552,14 @@ PanelWindow {
       filename
     ])
     dismissed()
+  }
+
+  function runCaptureScript(mode) {
+    Quickshell.execDetached([
+      "bash",
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/capture-screen.sh",
+      mode
+    ])
   }
 
   function scoreSpecialResult(item, query) {
@@ -377,6 +616,13 @@ PanelWindow {
       filterSpecialResults(wallpaperModel, q.substring(1).trim())
       return
     }
+    if (q.startsWith(";")) {
+      filterClipboardResults(q.substring(1).trim())
+      if (!clipboardLoaded && !clipboardProc.running) refreshClipboard()
+      return
+    }
+    root.clipboardWipeArmed = false
+    root.clipboardLoaded = false
     if (q === "") {
       for (var i = 0; i < appModel.count; i++) {
         appendFilteredResult(appModel.get(i), "app")
@@ -510,6 +756,12 @@ PanelWindow {
       searchText = ""
       selectedIndex = 0
       filteredModel.clear()
+      clipboardModel.clear()
+      clipboardLoaded = false
+      clipboardLoading = false
+      clipboardWipeArmed = false
+      clipboardWipeRunning = false
+      clipboardStatus = ""
       if (appModel.count > 0) {
         for (var i = 0; i < appModel.count; i++) {
           appendFilteredResult(appModel.get(i), "app")
@@ -517,7 +769,15 @@ PanelWindow {
       }
       wallpaperProc.running = false
       wallpaperProc.running = true
-      entryAnimation.start()
+      if (Config.reducedMotion) {
+        entryAnimation.stop()
+        scaleTransform.xScale = 1.0
+        scaleTransform.yScale = 1.0
+        transX.x = 0
+        bg.opacity = 1.0
+      } else {
+        entryAnimation.start()
+      }
       root.voiceRecording = false
       root.voiceTranscribing = false
     } else {
@@ -529,7 +789,27 @@ PanelWindow {
         root.voiceTranscribing = false
         transcriberProc.running = false
       }
+      if (clipboardProc.running) clipboardProc.running = false
+      clipboardWipeTimer.stop()
+      clipboardRefreshTimer.stop()
     }
+  }
+
+  Timer {
+    id: clipboardWipeTimer
+    interval: 5000
+    repeat: false
+    onTriggered: {
+      root.clipboardWipeArmed = false
+      if (root.clipboardMode) root.filterApps()
+    }
+  }
+
+  Timer {
+    id: clipboardRefreshTimer
+    interval: 180
+    repeat: false
+    onTriggered: root.refreshClipboard()
   }
 
   Rectangle {
@@ -568,21 +848,25 @@ PanelWindow {
 
     ParallelAnimation {
       id: entryAnimation
-      NumberAnimation {
+      SpringAnimation {
         target: scaleTransform
         properties: "xScale,yScale"
         from: 0.85
         to: 1.0
-        duration: Config.motionLong
-        easing.type: Config.themeMotionEasing
+        spring: Config.motionSurfaceSpring
+        damping: Config.motionSurfaceDamping
+        mass: Config.motionSpatialMass
+        epsilon: Config.motionSpatialEpsilon
       }
-      NumberAnimation {
+      SpringAnimation {
         target: transX
         property: "x"
         from: -30
         to: 0
-        duration: Config.motionLong
-        easing.type: Config.themeMotionEasing
+        spring: Config.motionSurfaceSpring
+        damping: Config.motionSurfaceDamping
+        mass: Config.motionSpatialMass
+        epsilon: Config.motionSpatialEpsilon
       }
       NumberAnimation {
         target: bg
@@ -596,8 +880,8 @@ PanelWindow {
 
     ColumnLayout {
       id: clipItem
-      anchors { fill: parent; margins: 12 }
-      spacing: 12
+      anchors { fill: parent; margins: Config.spacingMedium }
+      spacing: Config.spacingMedium
 
       TextFieldControl {
         id: searchInputControl
@@ -611,16 +895,20 @@ PanelWindow {
             ? "Transcribing..."
             : (root.actionMode
               ? "Run a shell action..."
-              : (root.wallpaperMode ? "Search wallpapers..." : "Search apps · > actions · @ walls")))
+              : (root.wallpaperMode
+                ? "Search wallpapers..."
+                : (root.clipboardMode ? "Search clipboard history..." : "Search apps · > actions · ; clipboard · @ walls"))))
         showPlaceholderOnFocus: true
         captureHorizontalArrows: root.wallpaperMode
-        accessibleName: "Search applications"
+        accessibleName: "Search applications and launcher providers"
 
         onAccepted: {
           if (filteredModel.count > 0 && root.selectedIndex >= 0 && root.selectedIndex < filteredModel.count) {
             var result = filteredModel.get(root.selectedIndex)
             if (result.kind === "action") root.runAction(result.actionId)
             else if (result.kind === "wallpaper") root.applyWallpaper(result.path)
+            else if (result.kind === "clipboard") root.restoreClipboardEntry(result.clipboardLine)
+            else if (result.kind === "clipboard-action") root.runAction(result.actionId)
             else root.launchApp(result.exec, result.terminal)
           }
         }
@@ -683,14 +971,17 @@ PanelWindow {
         model: filteredModel
         clip: true
         currentIndex: root.selectedIndex
-        spacing: 4
+        spacing: Config.spacingCompact
+        ScrollBar.vertical: SettingsScrollBar { scrollTarget: appList }
 
         delegate: ListItem {
           width: appList.width
-          height: 44
+          height: root.clipboardMode ? 54 : 44
           radius: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.shapeMedium : 22
-          leadingIcon: model.kind === "action" || model.kind === "wallpaper" ? model.icon : ""
+          leadingIcon: model.kind === "action" || model.kind === "wallpaper"
+            || model.kind === "clipboard-action" || model.kind === "clipboard" ? model.icon : ""
           leadingImageSource: model.kind !== "action" && model.kind !== "wallpaper" && model.icon !== ""
+            && model.kind !== "clipboard-action" && model.kind !== "clipboard"
             ? "file://" + model.icon : ""
           leadingFallbackText: model.kind !== "action" && model.kind !== "wallpaper" && model.icon === ""
             ? model.name.charAt(0).toUpperCase() : ""
@@ -706,7 +997,57 @@ PanelWindow {
             root.selectedIndex = index
             if (model.kind === "action") root.runAction(model.actionId)
             else if (model.kind === "wallpaper") root.applyWallpaper(model.path)
+            else if (model.kind === "clipboard") root.restoreClipboardEntry(model.clipboardLine)
+            else if (model.kind === "clipboard-action") root.runAction(model.actionId)
             else root.launchApp(model.exec, model.terminal)
+          }
+
+          IconButton {
+            visible: root.clipboardMode && model.kind === "clipboard"
+            size: 30
+            iconSize: 18
+            iconLabel: "delete"
+            variant: "tonal"
+            accessibleName: "Delete clipboard entry"
+            accessibleDescription: "Delete this entry from clipboard history"
+            tooltipText: "Delete clipboard entry"
+            onClicked: root.deleteClipboardEntry(model.clipboardLine)
+          }
+        }
+      }
+
+      Rectangle {
+        id: clipboardPreview
+        visible: root.clipboardMode
+        Layout.fillWidth: true
+        Layout.preferredHeight: 70
+        radius: Config.shapeMedium
+        color: Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surfaceContainerLow
+        border.color: Colors.styleOutline
+        border.width: Config.themeBorderWidth
+
+        ColumnLayout {
+          anchors.fill: parent
+          anchors.margins: Config.spacingSmall
+          spacing: 2
+
+          Text {
+            text: "Selected preview"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeLabelSmallSize
+            font.weight: Font.Medium
+          }
+
+          Text {
+            Layout.fillWidth: true
+            text: root.clipboardPreviewForSelection()
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeBodySmallSize
+            elide: Text.ElideRight
+            maximumLineCount: 2
+            wrapMode: Text.Wrap
           }
         }
       }
@@ -725,7 +1066,7 @@ PanelWindow {
         GridView {
           id: wallpaperGrid
           anchors.fill: parent
-          anchors.margins: 12
+          anchors.margins: Config.spacingMedium
           leftMargin: Math.max(0, (width - root.wallpaperRowWidth) / 2)
           cellWidth: root.wallpaperCellWidth
           cellHeight: root.wallpaperCellHeight
@@ -734,6 +1075,7 @@ PanelWindow {
           clip: true
           boundsBehavior: Flickable.StopAtBounds
           activeFocusOnTab: true
+          ScrollBar.vertical: SettingsScrollBar { scrollTarget: wallpaperGrid }
 
           Keys.onPressed: function(event) {
             if (event.key === Qt.Key_Left || event.key === Qt.Key_Right
@@ -851,13 +1193,16 @@ PanelWindow {
 
               Text {
                 anchors.fill: parent
-                anchors.leftMargin: 8
-                anchors.rightMargin: 8
+                anchors.leftMargin: Config.spacingSmall
+                anchors.rightMargin: Config.spacingSmall
                 verticalAlignment: Text.AlignVCenter
                 text: model.name
                 color: Colors.fgSurface
                 font.family: Config.fontFamily
-                font.pixelSize: Config.fontPixelSize
+                font.pixelSize: Config.typeLabelMediumSize
+                font.letterSpacing: Config.typeLabelTracking
+                lineHeight: Config.typeLabelMediumLineHeight
+                lineHeightMode: Text.FixedHeight
                 elide: Text.ElideRight
               }
             }
@@ -882,7 +1227,10 @@ PanelWindow {
             text: "No wallpapers found"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 2
+            font.pixelSize: Config.typeTitleSmallSize
+            font.letterSpacing: Config.typeTitleTracking
+            lineHeight: Config.typeTitleSmallLineHeight
+            lineHeightMode: Text.FixedHeight
           }
         }
       }

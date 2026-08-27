@@ -11,6 +11,7 @@ Item {
   property string iconLabel: ""
   property int size: 32
   property int iconSize: 18
+  property string variant: "standard"
   property color iconColor: theme.ink
   property color hoverColor: Qt.tint("transparent", Colors.hoverOverlay)
   property color pressColor: Qt.tint("transparent", Colors.pressOverlay)
@@ -18,6 +19,7 @@ Item {
   property color borderColor: theme.outline
   property bool outlined: false
   property bool selected: false
+  property bool checkable: false
   property real radius: theme.controlSmallRadius
   property string accessibleName: ""
   property string accessibleDescription: ""
@@ -34,7 +36,9 @@ Item {
   readonly property bool hovered: mouseArea.containsMouse
   readonly property bool pressed: mouseArea.pressed
 
-  Accessible.role: Accessible.Button
+  Accessible.role: root.checkable ? Accessible.CheckBox : Accessible.Button
+  Accessible.checkable: root.checkable
+  Accessible.checked: root.checkable && root.selected
   Accessible.name: root.accessibleName !== ""
     ? root.accessibleName
     : (root.tooltipText !== "" ? root.tooltipText : root.iconLabel)
@@ -83,6 +87,7 @@ Item {
     opacity: root.enabled ? 1.0 : 0.38
     font.family: Config.iconFont
     font.pixelSize: root.iconSize
+    font.variableAxes: Config.iconVariableAxes(root.selected ? 1 : 0, root.iconSize)
   }
 
   Keys.onPressed: function(event) {

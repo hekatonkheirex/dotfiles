@@ -8,7 +8,7 @@ import "../config"
 PopupBase {
   id: root
 
-  surfaceHeight: Math.min(contentColumn.implicitHeight + 24, 450)
+  surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingExtraLarge, 450)
 
   property var batteryDevice: null
   property real pct: -1
@@ -84,44 +84,52 @@ PopupBase {
     id: contentColumn
     anchors {
       fill: parent
-      margins: 12
+      margins: Config.popupPadding
     }
-    spacing: 12
+    spacing: Config.spacingMedium
 
     Text {
       text: "Battery"
       color: Colors.fgSurface
       font.family: Config.fontFamily
-      font.pixelSize: (Config.fontPixelSize + 8)
-      font.weight: Font.Bold
+      font.pixelSize: Config.typeHeadlineSmallSize
+      font.weight: Config.typeStrongWeight
+      font.letterSpacing: Config.typeHeadlineTracking
+      lineHeight: Config.typeHeadlineSmallLineHeight
+      lineHeightMode: Text.FixedHeight
     }
 
     PopupDivider {}
 
     Row {
-      spacing: 12
+      spacing: Config.spacingMedium
       Text {
         text: pct >= 0 ? Math.round(pct) + "%" : "--%"
         color: (pct <= 10 ? Colors.destructive : Colors.fgSurface)
         font.family: Config.fontFamily
-        font.pixelSize: (Config.fontPixelSize + 16)
-        font.weight: Font.Bold
+        font.pixelSize: Config.typeHeadlineLargeSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeHeadlineTracking
+        lineHeight: Config.typeHeadlineLargeLineHeight
+        lineHeightMode: Text.FixedHeight
       }
       Column {
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 2
+        spacing: Config.spacingCompact
         Text {
           text: root.stateLabel
           color: (root.charging ? Colors.primary : Colors.fgSurfaceVariant)
           font.family: Config.fontFamily
-          font.pixelSize: (Config.fontPixelSize + 2)
-          font.weight: Font.Medium
+          font.pixelSize: Config.typeTitleSmallSize
+          font.weight: Config.typeMediumWeight
+          font.letterSpacing: Config.typeTitleTracking
         }
         Text {
           text: batteryDevice && batteryDevice.energyCapacity ? batteryDevice.energyCapacity.toFixed(1) + " Wh" : ""
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: (Config.fontPixelSize + 1)
+          font.pixelSize: Config.typeBodyMediumSize
+          font.letterSpacing: Config.typeBodyTracking
         }
       }
     }
@@ -146,7 +154,8 @@ PopupBase {
       text: root.timeLabel
       color: Colors.fgSurfaceVariant
       font.family: Config.fontFamily
-      font.pixelSize: (Config.fontPixelSize + 1)
+      font.pixelSize: Config.typeBodyMediumSize
+      font.letterSpacing: Config.typeBodyTracking
       visible: root.timeLabel !== ""
     }
 
@@ -157,37 +166,39 @@ PopupBase {
 
       ColumnLayout {
         Layout.fillWidth: true
-        spacing: 2
+        spacing: Config.spacingCompact
         Text {
           text: root.charging ? "Charge Rate" : "Discharge Rate"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: (Config.fontPixelSize + 1)
+          font.pixelSize: Config.typeBodyMediumSize
+          font.letterSpacing: Config.typeBodyTracking
         }
         Text {
           text: batteryDevice && batteryDevice.changeRate !== undefined ? batteryDevice.changeRate.toFixed(1) + " W" : "-- W"
           color: Colors.fgSurface
           font.family: Config.fontFamily
-          font.pixelSize: (Config.fontPixelSize + 2)
-          font.weight: Font.Medium
+          font.pixelSize: Config.typeTitleSmallSize
+          font.weight: Config.typeMediumWeight
         }
       }
 
       ColumnLayout {
         Layout.fillWidth: true
-        spacing: 2
+        spacing: Config.spacingCompact
         Text {
           text: "Cycle Count"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: (Config.fontPixelSize + 1)
+          font.pixelSize: Config.typeBodyMediumSize
+          font.letterSpacing: Config.typeBodyTracking
         }
         Text {
           text: root.cycles
           color: Colors.fgSurface
           font.family: Config.fontFamily
-          font.pixelSize: (Config.fontPixelSize + 2)
-          font.weight: Font.Medium
+          font.pixelSize: Config.typeTitleSmallSize
+          font.weight: Config.typeMediumWeight
         }
       }
     }
@@ -196,7 +207,8 @@ PopupBase {
       text: batteryDevice ? batteryDevice.model || batteryDevice.vendor || "" : ""
       color: Colors.fgSurfaceVariant
       font.family: Config.fontFamily
-      font.pixelSize: (Config.fontPixelSize + 1)
+      font.pixelSize: Config.typeBodyMediumSize
+      font.letterSpacing: Config.typeBodyTracking
     }
   }
 }

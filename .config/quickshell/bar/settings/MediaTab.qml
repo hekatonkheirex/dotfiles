@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import "../"
 import "../primitives"
@@ -17,15 +18,22 @@ Flickable {
   contentHeight: mainColumn.implicitHeight + mediaTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
+  ScrollBar.vertical: SettingsScrollBar { scrollTarget: mediaTab }
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, mediaTab.width - mediaTab.neoShadowAllowance)
+    width: Math.max(0, mediaTab.width - mediaTab.neoShadowAllowance - Config.settingsScrollbarGutter)
     spacing: Config.spacingLarge + mediaTab.neoShadowAllowance
 
+    SettingsPageHeader {
+      pageTitle: "Media"
+      subtitle: "Configure media playback controls and the media popup."
+    }
+
     StyledSurface {
+      variant: "filled"
       Layout.fillWidth: true
-      Layout.preferredHeight: mediaCol.implicitHeight + 16
+      Layout.preferredHeight: mediaCol.implicitHeight + Config.spacingSmall * 2
       radius: Config.shapeLarge
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
@@ -43,8 +51,8 @@ Flickable {
           font.family: Config.fontFamily
           font.pixelSize: Config.textCaptionSize
           font.weight: Font.Medium
-          Layout.leftMargin: 8
-          Layout.topMargin: 4
+          Layout.leftMargin: Config.spacingSmall
+          Layout.topMargin: Config.spacingCompact
         }
 
         ListItem {

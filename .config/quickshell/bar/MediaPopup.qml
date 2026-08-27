@@ -9,7 +9,7 @@ PopupBase {
   id: root
 
   surfaceWidth: 360
-  surfaceHeight: Math.min(contentColumn.implicitHeight + 32, 480)
+  surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 480)
 
   property string mprisStatus: "NoPlayer"
   property string mprisTitle: ""
@@ -115,7 +115,7 @@ PopupBase {
       fill: parent
       margins: Config.popupPadding
     }
-    spacing: 20
+    spacing: Config.spacingExtraLarge
 
     Item {
       Layout.alignment: Qt.AlignHCenter
@@ -208,6 +208,7 @@ PopupBase {
             text: "music_note"
             font.family: Config.iconFont
             font.pixelSize: 36
+            font.variableAxes: Config.iconVariableAxes(0, 36)
             color: Colors.fgSurfaceVariant
           }
         }
@@ -215,15 +216,16 @@ PopupBase {
     }
 
     ColumnLayout {
-      spacing: 4
+      spacing: Config.spacingCompact
       Layout.fillWidth: true
 
       Text {
         text: root.mprisTitle ? root.mprisTitle : "No Media Playing"
         color: Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: 15
-        font.weight: Font.Bold
+        font.pixelSize: Config.typeBodyLargeSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeBodyTracking
         elide: Text.ElideRight
         Layout.fillWidth: true
         horizontalAlignment: Text.AlignHCenter
@@ -233,7 +235,8 @@ PopupBase {
         text: root.mprisArtist ? root.mprisArtist : "Unknown Artist"
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: 12
+        font.pixelSize: Config.typeLabelMediumSize
+        font.letterSpacing: Config.typeLabelTracking
         elide: Text.ElideRight
         Layout.fillWidth: true
         horizontalAlignment: Text.AlignHCenter
@@ -242,14 +245,15 @@ PopupBase {
 
     RowLayout {
       Layout.fillWidth: true
-      spacing: 10
+      spacing: Config.spacingSmall
       visible: Settings.mediaShowProgressBar
 
       Text {
         text: root.formatTime(root.elapsedSeconds)
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: 10
+        font.pixelSize: Config.typeLabelSmallSize
+        font.letterSpacing: Config.typeLabelTracking
       }
 
       WaveProgressBar {
@@ -267,13 +271,14 @@ PopupBase {
         text: root.mprisLengthStr
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: 10
+        font.pixelSize: Config.typeLabelSmallSize
+        font.letterSpacing: Config.typeLabelTracking
       }
     }
 
     RowLayout {
       Layout.alignment: Qt.AlignHCenter
-      spacing: 16
+      spacing: Config.spacingLarge
 
       IconButton {
         size: 40
@@ -288,8 +293,8 @@ PopupBase {
         size: 48
         iconSize: 22
         iconLabel: root.mprisStatus === "Playing" ? "pause" : "play_arrow"
+        variant: "filled"
         iconColor: Colors.fgPrimary
-        backgroundColor: Colors.primary
         accessibleName: root.mprisStatus === "Playing" ? "Pause playback" : "Play playback"
         tooltipText: root.mprisStatus === "Playing" ? "Pause playback" : "Play playback"
         onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
@@ -308,8 +313,7 @@ PopupBase {
         size: 36
         iconSize: 16
         iconLabel: "queue_music"
-        backgroundColor: Colors.surfaceContainer
-        outlined: true
+        variant: "outlined"
         accessibleName: "Switch active player"
         tooltipText: "Switch active player"
         onClicked: Quickshell.execDetached(["sh", "-c", "echo shift > /tmp/qsmpris-fifo"])

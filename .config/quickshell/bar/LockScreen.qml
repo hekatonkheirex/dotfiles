@@ -315,7 +315,7 @@ Item {
 
         Column {
           anchors.centerIn: parent
-          spacing: 16
+          spacing: Config.spacingLarge
 
             Rectangle {
               anchors.horizontalCenter: parent.horizontalCenter
@@ -359,8 +359,9 @@ Item {
                 text: root.username().charAt(0).toUpperCase()
                 color: Colors.fgPrimaryContainer
                 font.family: Config.fontFamily
-                font.pixelSize: 36
-                font.weight: Font.Bold
+                font.pixelSize: Config.typeDisplaySmallSize
+                font.weight: Config.typeStrongWeight
+                font.letterSpacing: Config.typeDisplayTracking
                 visible: profileImage.status !== Image.Ready
               }
             }
@@ -404,18 +405,22 @@ Item {
             }
             color: mutedText
             font.family: Config.fontFamily
-            font.pixelSize: 20
+            font.pixelSize: Config.typeHeadlineSmallSize
+            font.letterSpacing: Config.typeHeadlineTracking
+            lineHeight: Config.typeHeadlineSmallLineHeight
+            lineHeightMode: Text.FixedHeight
           }
 
           Row {
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 8
+            spacing: Config.spacingSmall
             visible: Settings.lockShowMedia && root.lockMprisTitle !== ""
 
             Text {
               text: root.lockMprisStatus === "Playing" ? "pause" : "play_arrow"
               font.family: Config.iconFont
               font.pixelSize: 16
+              font.variableAxes: Config.iconVariableAxes(0, 16)
               color: mutedText
               anchors.verticalCenter: parent.verticalCenter
             }
@@ -424,14 +429,17 @@ Item {
               text: root.lockMprisTitle + (root.lockMprisArtist ? " - " + root.lockMprisArtist : "")
               color: mutedText
               font.family: Config.fontFamily
-              font.pixelSize: 14
+              font.pixelSize: Config.typeBodyMediumSize
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyMediumLineHeight
+              lineHeightMode: Text.FixedHeight
               elide: Text.ElideRight
               width: Math.min(implicitWidth, 320)
               anchors.verticalCenter: parent.verticalCenter
             }
           }
 
-          Item { height: 8 }
+          Item { height: Config.spacingSmall }
 
           Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -443,10 +451,15 @@ Item {
             border.color: root.inputBorder
 
             TextInput {
-              anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
+              anchors {
+                fill: parent
+                leftMargin: Config.spacingLarge
+                rightMargin: Config.spacingLarge
+              }
               color: textColor
               font.family: Config.fontFamily
-              font.pixelSize: 18
+              font.pixelSize: Config.typeBodyLargeSize
+              font.letterSpacing: Config.typeBodyTracking
               text: root.lockInputText
               echoMode: TextInput.Password
               passwordCharacter: "\u25CF"
@@ -481,8 +494,11 @@ Item {
             text: root.lockError
             color: errorColor
             font.family: Config.fontFamily
-            font.pixelSize: 15
-            font.weight: Font.Bold
+            font.pixelSize: Config.typeBodyLargeSize
+            font.weight: Config.typeStrongWeight
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyLargeLineHeight
+            lineHeightMode: Text.FixedHeight
             opacity: root.flatLockMode && root.lockError.length === 0 ? 0 : 1
             visible: root.flatLockMode ? opacity > 0 : root.lockError.length > 0
 
@@ -499,20 +515,23 @@ Item {
             text: "or touch the fingerprint sensor"
             color: mutedText
             font.family: Config.fontFamily
-            font.pixelSize: 14
+            font.pixelSize: Config.typeLabelLargeSize
+            font.letterSpacing: Config.typeLabelTracking
+            lineHeight: Config.typeLabelLargeLineHeight
+            lineHeightMode: Text.FixedHeight
             opacity: 0.8
           }
 
           Row {
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 24
+            spacing: Config.spacingExtraLarge
 
             IconButton {
               size: 40
               iconSize: 20
               iconLabel: "power_settings_new"
               iconColor: mutedText
-              outlined: true
+              variant: "outlined"
               borderColor: Qt.rgba(1, 1, 1, 0.3)
               accessibleName: "Suspend computer"
               tooltipText: "Suspend computer"
@@ -524,7 +543,7 @@ Item {
               iconSize: 20
               iconLabel: "restart_alt"
               iconColor: mutedText
-              outlined: true
+              variant: "outlined"
               borderColor: Qt.rgba(1, 1, 1, 0.3)
               accessibleName: "Restart computer"
               tooltipText: "Restart computer"
@@ -536,7 +555,7 @@ Item {
               iconSize: 20
               iconLabel: "power_off"
               iconColor: mutedText
-              outlined: true
+              variant: "outlined"
               borderColor: Qt.rgba(1, 1, 1, 0.3)
               accessibleName: "Power off computer"
               tooltipText: "Power off computer"
@@ -615,7 +634,7 @@ Item {
 
       Column {
         anchors.centerIn: parent
-        spacing: 16
+        spacing: Config.spacingLarge
 
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
@@ -656,18 +675,22 @@ Item {
           }
           color: root.mutedText
           font.family: Config.fontFamily
-          font.pixelSize: 20
+          font.pixelSize: Config.typeHeadlineSmallSize
+          font.letterSpacing: Config.typeHeadlineTracking
+          lineHeight: Config.typeHeadlineSmallLineHeight
+          lineHeightMode: Text.FixedHeight
         }
 
         Row {
           anchors.horizontalCenter: parent.horizontalCenter
-          spacing: 8
+          spacing: Config.spacingSmall
           visible: Settings.lockShowMedia && root.lockMprisTitle !== ""
 
           Text {
             text: root.lockMprisStatus === "Playing" ? "pause" : "play_arrow"
             font.family: Config.iconFont
             font.pixelSize: 16
+            font.variableAxes: Config.iconVariableAxes(0, 16)
             color: root.mutedText
             anchors.verticalCenter: parent.verticalCenter
           }
@@ -676,14 +699,17 @@ Item {
             text: root.lockMprisTitle + (root.lockMprisArtist ? " - " + root.lockMprisArtist : "")
             color: root.mutedText
             font.family: Config.fontFamily
-            font.pixelSize: 14
+            font.pixelSize: Config.typeBodyMediumSize
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             elide: Text.ElideRight
             width: Math.min(implicitWidth, 320)
             anchors.verticalCenter: parent.verticalCenter
           }
         }
 
-        Item { height: 8 }
+        Item { height: Config.spacingSmall }
 
         Rectangle {
           anchors.horizontalCenter: parent.horizontalCenter
@@ -695,10 +721,15 @@ Item {
           border.color: root.inputBorder
 
           TextInput {
-            anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
+            anchors {
+              fill: parent
+              leftMargin: Config.spacingLarge
+              rightMargin: Config.spacingLarge
+            }
             color: root.textColor
             font.family: Config.fontFamily
-            font.pixelSize: 18
+            font.pixelSize: Config.typeBodyLargeSize
+            font.letterSpacing: Config.typeBodyTracking
             text: root.lockInputText
             echoMode: TextInput.Password
             passwordCharacter: "\u25CF"
@@ -733,8 +764,11 @@ Item {
           text: root.lockError
           color: Colors.destructive
           font.family: Config.fontFamily
-          font.pixelSize: 15
-          font.weight: Font.Bold
+          font.pixelSize: Config.typeBodyLargeSize
+          font.weight: Config.typeStrongWeight
+          font.letterSpacing: Config.typeBodyTracking
+          lineHeight: Config.typeBodyLargeLineHeight
+          lineHeightMode: Text.FixedHeight
           opacity: root.flatLockMode && root.lockError.length === 0 ? 0 : 1
           visible: root.flatLockMode ? opacity > 0 : root.lockError.length > 0
 
@@ -751,7 +785,10 @@ Item {
           text: "or touch the fingerprint sensor"
           color: root.mutedText
           font.family: Config.fontFamily
-          font.pixelSize: 14
+          font.pixelSize: Config.typeLabelLargeSize
+          font.letterSpacing: Config.typeLabelTracking
+          lineHeight: Config.typeLabelLargeLineHeight
+          lineHeightMode: Text.FixedHeight
           opacity: 0.8
         }
       }
