@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -eu
+
+if ! command -v wl-paste >/dev/null 2>&1 || ! command -v cliphist >/dev/null 2>&1; then
+  printf '%s\n' 'clipboard history requires wl-paste and cliphist' >&2
+  exit 127
+fi
+
+if [ -n "${CLIPHIST_DB_PATH:-}" ]; then
+  exec wl-paste --type text --watch cliphist -db-path "$CLIPHIST_DB_PATH" store
+fi
+
+exec wl-paste --type text --watch cliphist store

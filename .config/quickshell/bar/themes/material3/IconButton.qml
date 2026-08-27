@@ -11,13 +11,23 @@ Item {
   property string iconLabel: ""
   property int size: 32
   property int iconSize: 18
-  property color iconColor: theme.ink
+  property string variant: "standard"
+  property color iconColor: root.selected
+    ? Colors.fgPrimary
+    : (root.variant === "filled"
+      ? Colors.fgSurface
+      : (root.variant === "tonal" ? Colors.fgSecondaryContainer : Colors.fgSurfaceVariant))
   property color hoverColor: Qt.tint("transparent", Colors.hoverOverlay)
   property color pressColor: Qt.tint("transparent", Colors.pressOverlay)
-  property color backgroundColor: "transparent"
+  property color backgroundColor: root.selected
+    ? Colors.primary
+    : (root.variant === "filled"
+      ? Colors.surfaceContainerHighest
+      : (root.variant === "tonal" ? Colors.secondaryContainer : "transparent"))
   property color borderColor: theme.outline
-  property bool outlined: false
+  property bool outlined: root.variant === "outlined" && !root.selected
   property bool selected: false
+  property bool checkable: false
   property real radius: size / 2
   property string accessibleName: ""
   property string accessibleDescription: ""
@@ -34,7 +44,9 @@ Item {
   readonly property bool hovered: mouseArea.containsMouse
   readonly property bool pressed: mouseArea.pressed
 
-  Accessible.role: Accessible.Button
+  Accessible.role: root.checkable ? Accessible.CheckBox : Accessible.Button
+  Accessible.checkable: root.checkable
+  Accessible.checked: root.checkable && root.selected
   Accessible.name: root.accessibleName !== ""
     ? root.accessibleName
     : (root.tooltipText !== "" ? root.tooltipText : root.iconLabel)
@@ -67,6 +79,7 @@ Item {
     opacity: root.enabled ? 1.0 : 0.38
     font.family: Config.iconFont
     font.pixelSize: root.iconSize
+    font.variableAxes: Config.iconVariableAxes(root.selected ? 1 : 0, root.iconSize)
   }
 
   Keys.onPressed: function(event) {

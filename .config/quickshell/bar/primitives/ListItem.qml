@@ -18,13 +18,47 @@ Rectangle {
   property string title: ""
   property string subtitle: ""
   property bool selected: false
+  // Active data rows need a quieter state than selected navigation or expanded rows.
+  property bool statusActive: false
+  // Material 3 single-select navigation uses a filled container without an outline.
+  // Keep this opt-in so generic list rows retain their existing selection states.
+  property bool navigationItem: false
   property bool navigationFocused: false
-  property color leadingIconColor: root.selected
-    ? (Config.neoBrutalism || Config.ghostTheme
-      ? Colors.styleAccentText
-      : (Config.nothingEvolution
-        ? Colors.styleSelectedText
-        : (Config.nothingDesign ? Colors.styleInk : Colors.primary)))
+  property int trailingSpacing: Config.spacingCompact
+  readonly property bool material3Style: !Config.nothingDesign
+    && !Config.neoBrutalism
+    && !Config.ghostTheme
+  readonly property bool materialNavigationItem: root.navigationItem
+    && root.material3Style
+  readonly property bool materialStatusItem: root.statusActive
+    && !root.selected
+    && !root.navigationItem
+    && root.material3Style
+  readonly property bool stateHighlighted: root.selected || root.statusActive
+  readonly property color selectedContainerColor: root.materialNavigationItem
+    ? Colors.navigationContainer
+    : (root.materialStatusItem
+      ? Colors.surfaceContainerHighest
+      : (root.material3Style
+        ? Colors.secondaryContainer
+        : (Config.neoBrutalism || Config.ghostTheme
+          ? Colors.styleAccent
+          : (Config.nothingDesign
+            ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
+            : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)))))
+  readonly property color selectedContentColor: root.materialNavigationItem
+    ? Colors.navigationContent
+    : (root.materialStatusItem
+      ? Colors.fgSurface
+      : (root.material3Style
+        ? Colors.fgSecondaryContainer
+        : (Config.neoBrutalism || Config.ghostTheme
+          ? Colors.styleAccentText
+          : (Config.nothingEvolution
+            ? Colors.styleSelectedText
+            : (Config.nothingDesign ? Colors.styleInk : Colors.primary)))))
+  property color leadingIconColor: root.stateHighlighted
+    ? root.selectedContentColor
     : Colors.fgSurface
   property string accessibleName: ""
   property string accessibleDescription: ""
@@ -55,23 +89,25 @@ Rectangle {
     }
   }
   color: {
-    if (root.selected) {
-      return Config.neoBrutalism || Config.ghostTheme
-        ? Colors.styleAccent
-        : (Config.nothingDesign
-          ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
-          : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15))
+    if (root.stateHighlighted) {
+      return root.selectedContainerColor
     }
     if (root.navigationFocused) return Qt.tint("transparent", Colors.focusOverlay)
     if (itemMouse.containsMouse) return Qt.tint("transparent", Colors.hoverOverlay)
     return root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
   }
-  border.color: Config.neoBrutalism || Config.ghostTheme
-    ? Colors.styleOutlineStrong
-    : (Config.nothingDesign
-      ? (root.selected ? Colors.styleOutlineStrong : "transparent")
-      : (root.selected ? Colors.primary : "transparent"))
-  border.width: Config.themeBorderWidth
+  border.color: root.materialNavigationItem || root.materialStatusItem
+    ? "transparent"
+    : (root.material3Style && root.stateHighlighted
+      ? "transparent"
+      : (Config.neoBrutalism || Config.ghostTheme
+        ? Colors.styleOutlineStrong
+        : (Config.nothingDesign
+          ? (root.stateHighlighted ? Colors.styleOutlineStrong : "transparent")
+          : (root.stateHighlighted ? Colors.primary : "transparent"))))
+  border.width: root.materialNavigationItem || root.materialStatusItem
+    || (root.material3Style && root.stateHighlighted)
+    ? 0 : Config.themeBorderWidth
 
   Behavior on color {
     ColorAnimation { duration: Config.animationDuration }
@@ -93,17 +129,18 @@ Rectangle {
 
   RowLayout {
     anchors.fill: parent
-    anchors.leftMargin: 8
-    anchors.rightMargin: 8
+    anchors.leftMargin: Config.spacingSmall
+    anchors.rightMargin: Config.spacingSmall
     spacing: Config.spacingSmall
 
-        Text {
+    Text {
       visible: root.leadingIcon !== "" && root.leadingImageSource === ""
       text: root.leadingIcon
-      color: root.leadingIconColor
+      color: root.stateHighlighted ? root.selectedContentColor : root.leadingIconColor
       opacity: root.leadingIconOpacity
       font.family: Config.iconFont
       font.pixelSize: Config.iconSize + 6
+      font.variableAxes: Config.iconVariableAxes(root.stateHighlighted ? 1 : 0, Config.iconSize + 6)
     }
 
     Rectangle {
@@ -143,16 +180,15 @@ Rectangle {
       Text {
         Layout.fillWidth: true
         text: root.title
-        color: root.selected
-          ? (Config.neoBrutalism || Config.ghostTheme
-            ? Colors.styleAccentText
-            : (Config.nothingEvolution
-              ? Colors.styleSelectedText
-              : (Config.nothingDesign ? Colors.styleInk : Colors.primary)))
+        color: root.stateHighlighted
+          ? root.selectedContentColor
           : Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: (Config.fontPixelSize + 3)
-        font.weight: Font.Medium
+        font.pixelSize: Config.typeBodyLargeSize
+        font.weight: Config.typeMediumWeight
+        font.letterSpacing: Config.typeBodyTracking
+        lineHeight: Config.typeBodyLargeLineHeight
+        lineHeightMode: Text.FixedHeight
         elide: Text.ElideRight
       }
 
@@ -162,14 +198,17 @@ Rectangle {
         text: root.subtitle
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: Config.fontPixelSize
+        font.pixelSize: Config.typeLabelMediumSize
+        font.letterSpacing: Config.typeLabelTracking
+        lineHeight: Config.typeLabelMediumLineHeight
+        lineHeightMode: Text.FixedHeight
         elide: Text.ElideRight
       }
     }
 
     Row {
       id: trailingRow
-      spacing: Config.spacingCompact
+      spacing: root.trailingSpacing
       Layout.alignment: Qt.AlignVCenter
     }
   }

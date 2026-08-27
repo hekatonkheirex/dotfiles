@@ -11,6 +11,17 @@ FileView {
 
   path: Quickshell.env("HOME") + "/.config/quickshell/settings.json"
   watchChanges: true
+  preload: true
+
+  // FileView's preload flag only arms the asynchronous read. Explicitly
+  // request the initial snapshot so JsonAdapter-backed preferences are
+  // available before Colors and the settings UI resolve their bindings.
+  property var initialLoad: Timer {
+    interval: 1
+    running: true
+    repeat: false
+    onTriggered: root.reload()
+  }
 
   onLoadFailed: function(error) {
     if (error === FileViewError.FileNotFound) root.writeAdapter()
@@ -31,6 +42,8 @@ FileView {
   property alias ccShowTray: adapter.ccShowTray
   property alias ccShowWeather: adapter.ccShowWeather
   property alias ccShowWorkspaces: adapter.ccShowWorkspaces
+  property alias workspaceShape: adapter.workspaceShape
+  property alias workspaceCount: adapter.workspaceCount
   property alias clock24h: adapter.clock24h
   property alias clockShowSeconds: adapter.clockShowSeconds
   property alias clockFontSize: adapter.clockFontSize
@@ -60,6 +73,10 @@ FileView {
   property alias reduceMotion: adapter.reduceMotion
   property alias spacingScale: adapter.spacingScale
   property alias systemShowUptime: adapter.systemShowUptime
+  property alias colorSource: adapter.colorSource
+  property alias colorPalette: adapter.colorPalette
+  property alias colorVariant: adapter.colorVariant
+  property alias colorContrast: adapter.colorContrast
   property alias nothingVariant: adapter.nothingVariant
   property alias themeStyle: adapter.themeStyle
   property alias themePreference: adapter.themePreference
@@ -80,6 +97,12 @@ FileView {
     fullBar = false
     iconSize = 20
     spacingScale = 1.0
+    workspaceShape = "expressive"
+    workspaceCount = "active"
+    colorSource = "live"
+    colorPalette = "material3"
+    colorVariant = "auto"
+    colorContrast = "standard"
     themeStyle = "nothing"
     nothingVariant = "evolution"
     lockClockFace = "micrographics"
@@ -154,6 +177,8 @@ FileView {
     property bool ccShowTray: true
     property bool ccShowWeather: false
     property bool ccShowWorkspaces: true
+    property string workspaceShape: "expressive"
+    property string workspaceCount: "active"
     property bool clock24h: true
     property bool clockShowSeconds: false
     property int clockFontSize: 18
@@ -183,6 +208,12 @@ FileView {
     property bool reduceMotion: false
     property real spacingScale: 1.0
     property bool systemShowUptime: true
+    // Live reads the wallpaper-generated Matugen roles; fixed selects a
+    // curated semantic palette from PaletteCatalog.js.
+    property string colorSource: "live"
+    property string colorPalette: "material3"
+    property string colorVariant: "auto"
+    property string colorContrast: "standard"
     // UI style; Nothing Classic and Ghost select fixed Quickshell palettes,
     // while Nothing Evolution and the other styles can use Matugen roles.
     property string themeStyle: "nothing"

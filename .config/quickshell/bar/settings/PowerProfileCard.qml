@@ -8,6 +8,7 @@ import "../../config"
 
 StyledSurface {
   id: card
+  variant: "filled"
 
   property bool compactLayout: false
   property bool active: false
@@ -21,6 +22,7 @@ StyledSurface {
     : powerProfileAcDefault
   readonly property bool powerProfileAuto: powerProfileAutoSwitchEnabled && powerProfile !== ""
     && powerProfile === automaticPowerProfile
+  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
 
   Layout.fillWidth: true
   Layout.preferredHeight: powerProfileColumn.implicitHeight + Config.spacingMedium * 2
@@ -165,9 +167,9 @@ StyledSurface {
 
       Text {
         text: "Power Profiles"
-        color: Colors.fgSurface
+        color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: Config.textBodySize
+        font.pixelSize: Config.textCaptionSize
         font.weight: Font.Medium
         Layout.fillWidth: true
       }
@@ -186,17 +188,22 @@ StyledSurface {
     GridLayout {
       Layout.fillWidth: true
       columns: card.compactLayout ? 2 : 4
-      columnSpacing: Config.spacingCompact
-        + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
+      columnSpacing: card.material3Theme
+        ? 0
+        : Config.spacingCompact + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
       rowSpacing: Config.spacingCompact
         + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "sync"
+        contentSpacing: Config.spacingMedium
         labelText: "Auto"
         selected: card.powerProfileAuto
+        checkable: true
+        grouped: true
+        groupPosition: "first"
         enabled: card.powerProfileAutoSwitchEnabled && card.powerProfile !== ""
           && !powerProfileQueryProc.running && !powerProfileConfigProc.running && !powerProfileSetProc.running
         accessibleName: "Automatic power profile"
@@ -206,10 +213,14 @@ StyledSurface {
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "speed"
+        contentSpacing: Config.spacingMedium
         labelText: "Performance"
         selected: !card.powerProfileAuto && card.powerProfile === "performance"
+        checkable: true
+        grouped: true
+        groupPosition: card.compactLayout ? "last" : "middle"
         enabled: card.powerProfile !== ""
           && !powerProfileQueryProc.running && !powerProfileConfigProc.running && !powerProfileSetProc.running
         accessibleName: "Performance power profile"
@@ -219,10 +230,14 @@ StyledSurface {
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "balance"
+        contentSpacing: Config.spacingMedium
         labelText: "Balanced"
         selected: !card.powerProfileAuto && card.powerProfile === "balanced"
+        checkable: true
+        grouped: true
+        groupPosition: card.compactLayout ? "first" : "middle"
         enabled: card.powerProfile !== ""
           && !powerProfileQueryProc.running && !powerProfileConfigProc.running && !powerProfileSetProc.running
         accessibleName: "Balanced power profile"
@@ -232,10 +247,14 @@ StyledSurface {
 
       ActionButton {
         Layout.fillWidth: true
-        Layout.preferredHeight: 48
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "battery_saver"
+        contentSpacing: Config.spacingMedium
         labelText: "Saver"
         selected: !card.powerProfileAuto && card.powerProfile === "power-saver"
+        checkable: true
+        grouped: true
+        groupPosition: "last"
         enabled: card.powerProfile !== ""
           && !powerProfileQueryProc.running && !powerProfileConfigProc.running && !powerProfileSetProc.running
         accessibleName: "Power saver profile"

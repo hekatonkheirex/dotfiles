@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -14,6 +15,8 @@ Flickable {
   readonly property int neoShadowAllowance: Config.neoBrutalism
     ? Config.themeShadowOffset
     : 0
+  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property int segmentedButtonGap: notificationsTab.material3Theme ? 0 : Config.spacingSmall
   anchors.fill: parent
   visible: root.currentTab === 9
   clip: true
@@ -21,6 +24,7 @@ Flickable {
   contentHeight: mainColumn.implicitHeight + notificationsTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
+  ScrollBar.vertical: SettingsScrollBar { scrollTarget: notificationsTab }
 
   function formatMinutes(value) {
     var minutes = Math.max(0, Math.min(1439, Math.round(value)))
@@ -36,13 +40,19 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, notificationsTab.width - notificationsTab.neoShadowAllowance)
+    width: Math.max(0, notificationsTab.width - notificationsTab.neoShadowAllowance - Config.settingsScrollbarGutter)
     spacing: Config.spacingLarge + notificationsTab.neoShadowAllowance
+
+    SettingsPageHeader {
+      pageTitle: "Notifications"
+      subtitle: "Manage notification behavior, quiet hours, and history."
+    }
 
     // Behavior card
     StyledSurface {
+      variant: "filled"
       Layout.fillWidth: true
-      Layout.preferredHeight: behaviorCol.implicitHeight + 16
+      Layout.preferredHeight: behaviorCol.implicitHeight + Config.spacingSmall * 2
       radius: Config.shapeLarge
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
@@ -77,13 +87,16 @@ Flickable {
         RowLayout {
           Layout.fillWidth: true
           Layout.preferredHeight: 40
-          spacing: 8 + notificationsTab.neoShadowAllowance
+          spacing: Config.spacingSmall + notificationsTab.neoShadowAllowance
 
           Text {
             text: "Toast Duration"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
-          font.pixelSize: Config.textBodySize
+            font.pixelSize: Config.typeBodyMediumSize
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: notificationsTab.compactLayout ? 72 : 110
             Layout.leftMargin: Config.spacingSmall
           }
@@ -114,8 +127,11 @@ Flickable {
             text: (Settings.notificationToastDurationMs / 1000).toFixed(1) + "s"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.textBodySize
-            font.weight: Font.Medium
+            font.pixelSize: Config.typeBodyMediumSize
+            font.weight: Config.typeMediumWeight
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: 36
             Layout.rightMargin: Config.spacingSmall
           }
@@ -129,27 +145,46 @@ Flickable {
             text: "Toast position"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
-            font.pixelSize: Config.textBodySize
+            font.pixelSize: Config.typeBodyMediumSize
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: notificationsTab.compactLayout ? 82 : 110
             Layout.leftMargin: Config.spacingSmall
           }
 
-          ActionButton {
+          Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 36
-            labelText: "Top right"
-            selected: Settings.notificationToastPosition === "top-right"
-            accessibleName: "Top right notification toasts"
-            onActivated: { Settings.notificationToastPosition = "top-right"; Settings.save() }
-          }
 
-          ActionButton {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 36
-            labelText: "Bottom right"
-            selected: Settings.notificationToastPosition === "bottom-right"
-            accessibleName: "Bottom right notification toasts"
-            onActivated: { Settings.notificationToastPosition = "bottom-right"; Settings.save() }
+            Row {
+              anchors.fill: parent
+              spacing: notificationsTab.segmentedButtonGap
+
+              ActionButton {
+                width: (parent.width - notificationsTab.segmentedButtonGap) / 2
+                height: parent.height
+                labelText: "Top right"
+                selected: Settings.notificationToastPosition === "top-right"
+                checkable: true
+                grouped: true
+                groupPosition: "first"
+                accessibleName: "Top right notification toasts"
+                onActivated: { Settings.notificationToastPosition = "top-right"; Settings.save() }
+              }
+
+              ActionButton {
+                width: (parent.width - notificationsTab.segmentedButtonGap) / 2
+                height: parent.height
+                labelText: "Bottom right"
+                selected: Settings.notificationToastPosition === "bottom-right"
+                checkable: true
+                grouped: true
+                groupPosition: "last"
+                accessibleName: "Bottom right notification toasts"
+                onActivated: { Settings.notificationToastPosition = "bottom-right"; Settings.save() }
+              }
+            }
           }
         }
 
@@ -185,7 +220,10 @@ Flickable {
             text: "Starts"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
+            font.pixelSize: Config.typeBodyMediumSize
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: notificationsTab.compactLayout ? 48 : 64
             Layout.leftMargin: Config.spacingCompact
           }
@@ -213,8 +251,11 @@ Flickable {
             text: formatMinutes(Settings.notificationQuietHoursStart)
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
-            font.weight: Font.Medium
+            font.pixelSize: Config.typeBodyMediumSize
+            font.weight: Config.typeMediumWeight
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: 42
             Layout.rightMargin: Config.spacingCompact
           }
@@ -229,7 +270,10 @@ Flickable {
             text: "Ends"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
+            font.pixelSize: Config.typeBodyMediumSize
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: notificationsTab.compactLayout ? 48 : 64
             Layout.leftMargin: Config.spacingCompact
           }
@@ -257,8 +301,11 @@ Flickable {
             text: formatMinutes(Settings.notificationQuietHoursEnd)
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
-            font.weight: Font.Medium
+            font.pixelSize: Config.typeBodyMediumSize
+            font.weight: Config.typeMediumWeight
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: 42
             Layout.rightMargin: Config.spacingCompact
           }
@@ -293,7 +340,10 @@ Flickable {
             text: "History limit"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
+            font.pixelSize: Config.typeBodyMediumSize
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: notificationsTab.compactLayout ? 72 : 110
             Layout.leftMargin: Config.spacingCompact
           }
@@ -324,8 +374,11 @@ Flickable {
             text: Settings.notificationHistoryLimit
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
-            font.weight: Font.Medium
+            font.pixelSize: Config.typeBodyMediumSize
+            font.weight: Config.typeMediumWeight
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
             Layout.preferredWidth: 30
             Layout.rightMargin: Config.spacingCompact
           }
@@ -335,9 +388,11 @@ Flickable {
 
     ActionButton {
       Layout.fillWidth: true
-      Layout.preferredHeight: 56
+      Layout.preferredHeight: Config.themeLabeledActionButtonHeight
       iconLabel: "notifications_active"
+      contentSpacing: Config.spacingMedium
       labelText: "Send Test Notification"
+      variant: "elevated"
       accessibleName: "Send test notification"
       accessibleDescription: "Fires a sample notification; DND suppresses its toast and keeps it in history"
       onActivated: {
@@ -348,8 +403,9 @@ Flickable {
 
     ActionButton {
       Layout.fillWidth: true
-      Layout.preferredHeight: 48
+      Layout.preferredHeight: Config.themeLabeledActionButtonHeight
       iconLabel: "delete_sweep"
+      contentSpacing: Config.spacingMedium
       labelText: "Clear Notification History"
       variant: "outlined"
       enabled: notificationPopup !== null && notificationPopup.count > 0
@@ -360,11 +416,14 @@ Flickable {
 
     Text {
       Layout.fillWidth: true
-      Layout.leftMargin: 4
+      Layout.leftMargin: Config.spacingCompact
       text: "Quiet hours retain history. Critical alerts can bypass suppression. The bell popup also supports per-notification dismissal."
       color: Colors.fgSurfaceVariant
       font.family: Config.fontFamily
-      font.pixelSize: Config.textCaptionSize
+      font.pixelSize: Config.typeLabelSmallSize
+      font.letterSpacing: Config.typeLabelTracking
+      lineHeight: Config.typeLabelSmallLineHeight
+      lineHeightMode: Text.FixedHeight
       wrapMode: Text.WordWrap
     }
   }

@@ -10,13 +10,19 @@ Item {
 
   property string iconLabel: ""
   property bool selected: false
+  property bool checkable: false
+  property bool grouped: false
+  property string groupPosition: "single"
   property string labelText: ""
   property string variant: "tonal"
+  property bool horizontalContent: false
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""
+  property bool expressiveSelectedShape: false
   readonly property bool filled: root.selected || root.variant === "filled"
   property real iconSize: Config.iconSize + 4
+  property real contentSpacing: Config.spacingMedium
   property color iconColor: root.filled ? theme.accentText : theme.mutedInk
   property real radius: theme.controlRadius
   property color color: {
@@ -42,7 +48,11 @@ Item {
     ? Math.max(16, root.iconSize - 3)
     : root.iconSize
 
-  Accessible.role: Accessible.Button
+  Accessible.role: root.grouped && root.checkable
+    ? Accessible.RadioButton
+    : (root.checkable ? Accessible.CheckBox : Accessible.Button)
+  Accessible.checkable: root.checkable
+  Accessible.checked: root.checkable && root.selected
   Accessible.name: root.accessibleName !== ""
     ? root.accessibleName
     : (root.labelText !== "" ? root.labelText : (root.tooltipText !== "" ? root.tooltipText : root.iconLabel))
@@ -89,7 +99,7 @@ Item {
     anchors.horizontalCenter: surface.horizontalCenter
     anchors.verticalCenter: surface.verticalCenter
     anchors.verticalCenterOffset: theme.contentVerticalOffset
-    spacing: root.labelText !== "" ? Config.spacingCompact : 0
+    spacing: root.labelText !== "" ? root.contentSpacing : 0
 
     Text {
       anchors.horizontalCenter: parent.horizontalCenter
@@ -97,6 +107,7 @@ Item {
       color: root.iconColor
       font.family: Config.iconFont
       font.pixelSize: root.contentIconSize
+      font.variableAxes: Config.iconVariableAxes(root.filled ? 1 : 0, root.contentIconSize)
     }
 
     Text {
@@ -105,8 +116,11 @@ Item {
       text: root.labelText
       color: root.iconColor
       font.family: theme.fontFamily
-      font.pixelSize: Config.fontPixelSize
-      font.weight: Font.DemiBold
+      font.pixelSize: Config.typeLabelMediumSize
+      font.weight: Config.typeStrongWeight
+      font.letterSpacing: Config.typeLabelTracking
+      lineHeight: Config.typeLabelMediumLineHeight
+      lineHeightMode: Text.FixedHeight
     }
   }
 

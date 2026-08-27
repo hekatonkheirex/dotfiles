@@ -112,7 +112,7 @@ PanelWindow {
     } else {
       if (root.horizontal) {
         popupAnchorX = x + w / 2
-        popupAnchorY = root.height - 16 // sit exactly at the bottom of the barBg
+        popupAnchorY = root.height - Config.spacingLarge // sit exactly at the bottom of the barBg
       } else {
         popupAnchorY = y
       }
@@ -163,7 +163,7 @@ PanelWindow {
     ? Config.neoFullBarInset
     : 0
   readonly property int normalPanelExtent: root.fullBar
-    ? (Config.ghostTheme ? Config.barWidth : Config.barWidth + 16)
+    ? (Config.ghostTheme ? Config.barWidth : Config.barWidth + Config.spacingLarge)
     : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
   // The panel must include the Neo inset and hard shadow, otherwise the
   // shadow is clipped at the docked edge even though the surface is aligned.
@@ -257,7 +257,10 @@ PanelWindow {
           : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress)
       radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + Config.barRadius * root.expandProgress
       color: root.fullBar && !root.ghostCentralGap
-        ? ((Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme) ? Colors.styleSurface : Colors.bg)
+        // Keep the full bar on the same chrome surface as popups and Settings.
+        // Using Colors.bg here made every fixed palette produce a darker bar
+        // than its otherwise matching M3 surfaces.
+        ? Colors.styleSurface
         : "transparent"
       border.width: root.fullBar && Config.neoBrutalism ? Config.themeBorderWidth : 0
       border.color: Colors.styleOutline
@@ -447,7 +450,7 @@ PanelWindow {
           )
           Layout.preferredWidth: root.horizontal
             ? (hasWindowInfo
-              ? Math.min(320, Math.max(140, windowInfoTextWidth + 16)) * root.expandProgress
+              ? Math.min(320, Math.max(140, windowInfoTextWidth + Config.spacingLarge)) * root.expandProgress
               : 0) * (Settings.ccShowFocusedWindow ? 1 : 0)
             : (hasWindowInfo ? parent.width : 0) * (Settings.ccShowFocusedWindow ? 1 : 0)
           Layout.preferredHeight: (root.horizontal
@@ -482,14 +485,14 @@ PanelWindow {
               ? GridLayout.LeftToRight
               : GridLayout.TopToBottom
             width: root.horizontal
-              ? Math.max(0, parent.width - 16)
+              ? Math.max(0, parent.width - Config.spacingLarge)
               : Math.max(0, Math.min(
                   parent.height - focusedWindowWrapper.verticalInfoPadding,
                   focusedWindowWrapper.verticalInfoHeight
                     - focusedWindowWrapper.verticalInfoPadding
                 ))
             height: root.horizontal
-              ? Math.max(0, parent.height - 8)
+            ? Math.max(0, parent.height - Config.spacingSmall)
               : Config.labelSmallSize * 2
                 + (!root.horizontal && root.pillsBar
                   && focusedWindowWrapper.detailText !== ""
@@ -504,8 +507,11 @@ PanelWindow {
               text: focusedWindowWrapper.programText
               color: Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
               font.family: Config.fontFamily
-              font.pixelSize: Config.labelSmallSize
-              font.weight: Font.Bold
+              font.pixelSize: Config.typeLabelMediumSize
+              font.weight: Config.typeStrongWeight
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: Config.typeLabelMediumLineHeight
+              lineHeightMode: Text.FixedHeight
               elide: Text.ElideRight
               maximumLineCount: 1
               // In the vertical layout, left alignment becomes the top edge
@@ -521,7 +527,10 @@ PanelWindow {
               text: focusedWindowWrapper.detailText
               color: Colors.fgSurfaceVariant
               font.family: Config.fontFamily
-              font.pixelSize: Config.labelSmallSize
+              font.pixelSize: Config.typeLabelMediumSize
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: Config.typeLabelMediumLineHeight
+              lineHeightMode: Text.FixedHeight
               elide: Text.ElideRight
               maximumLineCount: 1
               horizontalAlignment: root.horizontal ? Text.AlignLeft : Text.AlignHCenter

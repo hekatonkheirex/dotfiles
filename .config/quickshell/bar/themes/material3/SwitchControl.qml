@@ -8,11 +8,11 @@ Item {
   ThemeTokens { id: theme }
 
   property bool checked: false
-  property color activeColor: theme.accent
-  property color activeContentColor: theme.accentText
+  property color activeColor: theme.primary
+  property color activeContentColor: Colors.fgPrimary
   property color checkmarkColor: activeColor
-  property color surfaceContainerHigh: theme.surfaceRaised
-  property color surfaceContainerHighest: theme.controlSurface
+  property color surfaceContainerHigh: theme.surfaceContainerHigh
+  property color surfaceContainerHighest: theme.surfaceContainerHighest
   property color outline: theme.outline
   property color focusColor: theme.focus
   property color hoverOverlay: Colors.hoverOverlay
@@ -59,10 +59,22 @@ Item {
   }
 
   Behavior on thumbSize {
-    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
+    enabled: Config.expressiveMotion && !root.reducedMotion
+    SpringAnimation {
+      spring: Config.motionSpatialSpring
+      damping: Config.motionSpatialDamping
+      mass: Config.motionSpatialMass
+      epsilon: Config.motionSpatialEpsilon
+    }
   }
   Behavior on thumbX {
-    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
+    enabled: Config.expressiveMotion && !root.reducedMotion
+    SpringAnimation {
+      spring: Config.motionSpatialSpring
+      damping: Config.motionSpatialDamping
+      mass: Config.motionSpatialMass
+      epsilon: Config.motionSpatialEpsilon
+    }
   }
 
   Component.onCompleted: {
@@ -120,8 +132,9 @@ Item {
     Text {
       anchors.centerIn: parent
       text: "check"
-      font.family: "Material Symbols Outlined"
+      font.family: Config.iconFont
       font.pixelSize: 16
+      font.variableAxes: Config.iconVariableAxes(1, 16)
       color: root.checked ? root.checkmarkColor : "transparent"
       visible: root.checked
       opacity: root.checked ? 1 : 0

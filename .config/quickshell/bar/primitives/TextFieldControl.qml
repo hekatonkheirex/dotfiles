@@ -19,6 +19,9 @@ Rectangle {
   property string leadingIcon: ""
   property color leadingIconColor: Colors.fgSurfaceVariant
   property real leadingIconSize: 22
+  readonly property bool material3Style: !Config.nothingDesign
+    && !Config.neoBrutalism
+    && !Config.ghostTheme
 
   default property alias trailingContent: trailingRow.data
 
@@ -31,17 +34,17 @@ Rectangle {
 
   height: 36
   radius: Config.shapeMedium
-  color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surface
-  border.color: input.activeFocus
-    ? (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Colors.styleOutlineStrong : Colors.primary)
+  color: root.material3Style ? Colors.surface : Colors.styleSurface
+  border.color: root.material3Style
+    ? (input.activeFocus ? Colors.primary : Colors.outline)
     : Colors.styleOutlineStrong
   border.width: input.activeFocus ? Config.themeFocusBorderWidth : Config.themeBorderWidth
 
   RowLayout {
     anchors {
       fill: parent
-      leftMargin: 10
-      rightMargin: 10
+      leftMargin: Config.spacingMedium
+      rightMargin: Config.spacingMedium
     }
     spacing: Config.spacingSmall
 
@@ -51,6 +54,7 @@ Rectangle {
       color: root.leadingIconColor
       font.family: Config.iconFont
       font.pixelSize: root.leadingIconSize
+      font.variableAxes: Config.iconVariableAxes(0, root.leadingIconSize)
       Layout.alignment: Qt.AlignVCenter
     }
 
@@ -61,7 +65,8 @@ Rectangle {
       verticalAlignment: TextInput.AlignVCenter
       color: Colors.fgSurface
       font.family: Config.fontFamily
-      font.pixelSize: Config.fontPixelSize + 2
+      font.pixelSize: Config.typeBodyLargeSize
+      font.letterSpacing: Config.typeBodyTracking
       echoMode: root.echoMode
       activeFocusOnTab: true
       Accessible.role: Accessible.EditableText

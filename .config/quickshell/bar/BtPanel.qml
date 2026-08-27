@@ -1,6 +1,7 @@
 // Bluetooth content for the Settings Bluetooth tab. Lifted out of the old
 // standalone Bluetooth popup.
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -192,11 +193,11 @@ Item {
   Column {
     id: contentColumn
     width: parent.width
-    spacing: 12
+    spacing: Config.spacingMedium
 
     RowLayout {
       width: parent.width
-      spacing: 12
+      spacing: Config.spacingMedium
 
       Item { Layout.fillWidth: true }
 
@@ -265,18 +266,17 @@ Item {
 
     ColumnLayout {
       width: parent.width
-      spacing: 8
+      spacing: Config.spacingSmall
       visible: !root.statusKnown
 
       Item { Layout.preferredHeight: 12 }
 
-      Text {
+      LoadingIndicator {
         Layout.alignment: Qt.AlignHCenter
-        text: "sync"
-        color: Colors.fgSurfaceVariant
-        font.family: Config.iconFont
-        font.pixelSize: 48
-        opacity: 0.25
+        size: 40
+        contained: true
+        running: statusQuery.running
+        accessibleName: "Checking Bluetooth status"
       }
 
       Text {
@@ -284,14 +284,17 @@ Item {
         text: "Checking Bluetooth status"
         color: Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: Config.fontPixelSize + 4
-        font.weight: Font.Bold
+        font.pixelSize: Config.typeTitleLargeSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeTitleTracking
+        lineHeight: Config.typeTitleLargeLineHeight
+        lineHeightMode: Text.FixedHeight
       }
     }
 
     ColumnLayout {
       width: parent.width
-      spacing: 8
+      spacing: Config.spacingSmall
       visible: root.unavailable
 
       Item { Layout.preferredHeight: 12 }
@@ -302,6 +305,7 @@ Item {
         color: Colors.error
         font.family: Config.iconFont
         font.pixelSize: 48
+        font.variableAxes: Config.iconVariableAxes(0, 48)
         opacity: 0.75
       }
 
@@ -311,8 +315,11 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         color: Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: Config.fontPixelSize + 4
-        font.weight: Font.Bold
+        font.pixelSize: Config.typeTitleLargeSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeTitleTracking
+        lineHeight: Config.typeTitleLargeLineHeight
+        lineHeightMode: Text.FixedHeight
       }
 
       Text {
@@ -322,14 +329,17 @@ Item {
         wrapMode: Text.WordWrap
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: Config.fontPixelSize + 1
+        font.pixelSize: Config.typeBodyMediumSize
+        font.letterSpacing: Config.typeBodyTracking
+        lineHeight: Config.typeBodyMediumLineHeight
+        lineHeightMode: Text.FixedHeight
       }
     }
 
     // Bluetooth is Off
     ColumnLayout {
       width: parent.width
-      spacing: 8
+      spacing: Config.spacingSmall
       visible: root.statusKnown && !root.unavailable && !root.btOn
 
       Item {
@@ -342,6 +352,7 @@ Item {
         color: Colors.fgSurfaceVariant
         font.family: Config.iconFont
         font.pixelSize: 48
+        font.variableAxes: Config.iconVariableAxes(0, 48)
         opacity: 0.25
       }
 
@@ -350,8 +361,11 @@ Item {
         text: "Bluetooth is turned off"
         color: Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: (Config.fontPixelSize + 4)
-        font.weight: Font.Bold
+        font.pixelSize: Config.typeTitleLargeSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeTitleTracking
+        lineHeight: Config.typeTitleLargeLineHeight
+        lineHeightMode: Text.FixedHeight
       }
 
       Text {
@@ -359,14 +373,17 @@ Item {
         text: "Enable Bluetooth to view connected devices."
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: (Config.fontPixelSize + 1)
+        font.pixelSize: Config.typeBodyMediumSize
+        font.letterSpacing: Config.typeBodyTracking
+        lineHeight: Config.typeBodyMediumLineHeight
+        lineHeightMode: Text.FixedHeight
       }
     }
 
     // Bluetooth is On
     ColumnLayout {
       width: parent.width
-      spacing: 8
+      spacing: Config.spacingSmall
       visible: root.statusKnown && !root.unavailable && root.btOn
 
       ListModel {
@@ -379,9 +396,10 @@ Item {
         Layout.preferredHeight: Math.min(300, contentHeight)
         model: btListModel
         clip: true
-        spacing: 4
+        spacing: 0
         delegate: btItemDelegate
         boundsBehavior: Flickable.StopAtBounds
+        ScrollBar.vertical: SettingsScrollBar { scrollTarget: listView }
       }
 
       Text {
@@ -391,7 +409,10 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: Config.fontPixelSize + 2
+        font.pixelSize: Config.typeTitleSmallSize
+        font.letterSpacing: Config.typeTitleTracking
+        lineHeight: Config.typeTitleSmallLineHeight
+        lineHeightMode: Text.FixedHeight
       }
     }
 
@@ -400,35 +421,71 @@ Item {
       spacing: Config.spacingSmall
       visible: root.statusKnown && !root.unavailable && root.btOn && (root.scanning || scanListModel.count > 0)
 
-      Text {
-        text: root.scanning ? "Scanning..." : "Nearby Devices"
-        color: Colors.fgSurfaceVariant
-        font.family: Config.fontFamily
-        font.pixelSize: Config.textCaptionSize
-        font.weight: Font.Medium
+      RowLayout {
+        Layout.fillWidth: true
+        spacing: Config.spacingSmall
+
+        Text {
+          Layout.fillWidth: true
+          text: root.scanning ? "Scanning..." : "Nearby Devices"
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.typeLabelSmallSize
+          font.weight: Config.typeMediumWeight
+          font.letterSpacing: Config.typeLabelTracking
+          lineHeight: Config.typeLabelSmallLineHeight
+          lineHeightMode: Text.FixedHeight
+        }
+
+        LoadingIndicator {
+          visible: root.scanning
+          size: 20
+          running: root.scanning
+          accessibleName: "Scanning for Bluetooth devices"
+          Layout.preferredWidth: root.scanning ? 20 : 0
+          Layout.preferredHeight: 20
+        }
       }
 
       ListView {
+        id: scanListView
         Layout.fillWidth: true
         Layout.preferredHeight: Math.min(240, contentHeight)
         model: scanListModel
         clip: true
-        spacing: Config.spacingCompact
+        spacing: 0
         boundsBehavior: Flickable.StopAtBounds
+        ScrollBar.vertical: SettingsScrollBar { scrollTarget: scanListView }
 
-        delegate: ListItem {
+        delegate: Item {
+          id: scanDelegate
           width: ListView.view.width
-          leadingIcon: "bluetooth"
-          title: model.name
-          subtitle: model.mac
-          accessibleName: "Pair with " + model.name
-          IconButton {
-            size: 28
-            iconSize: 18
-            iconLabel: "link"
+          height: scanRow.height + (hasDivider ? listDivider.height : 0)
+          readonly property bool hasDivider: index < ListView.view.count - 1
+
+          ListItem {
+            id: scanRow
+            width: parent.width
+            leadingIcon: "bluetooth"
+            title: model.name
+            subtitle: model.mac
             accessibleName: "Pair with " + model.name
-            tooltipText: "Pair device"
-            onClicked: root.pairDevice(model.mac)
+            IconButton {
+              size: 28
+              iconSize: 18
+              iconLabel: "link"
+              accessibleName: "Pair with " + model.name
+              tooltipText: "Pair device"
+              onClicked: root.pairDevice(model.mac)
+            }
+          }
+
+          ListDivider {
+            id: listDivider
+            anchors.bottom: parent.bottom
+            insetStart: 48
+            insetEnd: Config.spacingSmall
+            visible: scanDelegate.hasDivider
           }
         }
       }
@@ -462,7 +519,10 @@ Item {
       text: root.statusMessage
       color: Colors.primary
       font.family: Config.fontFamily
-      font.pixelSize: Config.fontPixelSize + 1
+      font.pixelSize: Config.typeBodyMediumSize
+      font.letterSpacing: Config.typeBodyTracking
+      lineHeight: Config.typeBodyMediumLineHeight
+      lineHeightMode: Text.FixedHeight
       wrapMode: Text.Wrap
       visible: root.statusMessage !== ""
     }
@@ -471,85 +531,104 @@ Item {
   Component {
     id: btItemDelegate
 
-    ListItem {
-      id: itemRow
-      width: listView.width
-      leadingIcon: "bluetooth"
-      leadingIconColor: Colors.primary
-      title: model.name
-      subtitle: model.mac
-      accessibleName: model.name + " Bluetooth device"
+    Item {
+      id: connectedDelegate
+      width: ListView.view.width
+      height: itemRow.height + (hasDivider ? listDivider.height : 0)
+      readonly property bool hasDivider: index < ListView.view.count - 1
 
-      Item {
-        id: deviceActionArea
-        width: 60
-        height: 32
-        anchors.verticalCenter: parent.verticalCenter
-        readonly property bool showActions: itemRow.hovered || disconnectButton.hovered || renameButton.hovered
+      ListItem {
+        id: itemRow
+        width: parent.width
+        leadingIcon: "bluetooth"
+        leadingIconColor: Colors.primary
+        title: model.name
+        subtitle: model.mac
+        accessibleName: model.name + " Bluetooth device"
 
-        Row {
-          spacing: 4
-          anchors.centerIn: parent
-          visible: model.battery !== "" && !deviceActionArea.showActions
+        Item {
+          id: deviceActionArea
+          width: 60
+          height: 32
+          anchors.verticalCenter: parent.verticalCenter
+          readonly property bool showActions: itemRow.hovered || disconnectButton.hovered || renameButton.hovered
 
-          Text {
-            text: model.battery + "%"
-            color: Colors.primary
-            font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 1
-            font.weight: Font.Bold
-            anchors.verticalCenter: parent.verticalCenter
-          }
+          Row {
+            spacing: Config.spacingCompact
+            anchors.centerIn: parent
+            visible: model.battery !== "" && !deviceActionArea.showActions
 
-          Text {
-            text: {
-              var b = parseInt(model.battery)
-              if (isNaN(b)) return "battery_unknown"
-              if (b <= 10) return "battery_alert"
-              if (b <= 20) return "battery_1_bar"
-              if (b <= 40) return "battery_2_bar"
-              if (b <= 60) return "battery_3_bar"
-              if (b <= 80) return "battery_4_bar"
-              if (b <= 95) return "battery_5_bar"
-              return "battery_full"
+            Text {
+              text: model.battery + "%"
+              color: Colors.primary
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyMediumSize
+              font.weight: Config.typeStrongWeight
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              anchors.verticalCenter: parent.verticalCenter
             }
-            color: Colors.primary
-            font.family: Config.iconFont
-            font.pixelSize: 18
-            anchors.verticalCenter: parent.verticalCenter
-          }
-        }
 
-        Row {
-          spacing: 4
-          anchors.centerIn: parent
-          visible: deviceActionArea.showActions
-
-          IconButton {
-            id: disconnectButton
-            size: 28
-            iconSize: 20
-            iconLabel: "link_off"
-            iconColor: Colors.error
-            accessibleName: "Disconnect " + model.name
-            tooltipText: accessibleName
-            onClicked: {
-              Quickshell.execDetached(["bluetoothctl", "disconnect", model.mac])
-              refreshTimer.start()
+            Text {
+              text: {
+                var b = parseInt(model.battery)
+                if (isNaN(b)) return "battery_unknown"
+                if (b <= 10) return "battery_alert"
+                if (b <= 20) return "battery_1_bar"
+                if (b <= 40) return "battery_2_bar"
+                if (b <= 60) return "battery_3_bar"
+                if (b <= 80) return "battery_4_bar"
+                if (b <= 95) return "battery_5_bar"
+                return "battery_full"
+              }
+              color: Colors.primary
+              font.family: Config.iconFont
+              font.pixelSize: 18
+              font.variableAxes: Config.iconVariableAxes(0, 18)
+              anchors.verticalCenter: parent.verticalCenter
             }
           }
 
-          IconButton {
-            id: renameButton
-            size: 28
-            iconSize: 20
-            iconLabel: "edit"
-            iconColor: Colors.primary
-            accessibleName: "Rename " + model.name
-            tooltipText: accessibleName
-            onClicked: root.startRename(model.mac, model.name)
+          Row {
+            spacing: Config.spacingCompact
+            anchors.centerIn: parent
+            visible: deviceActionArea.showActions
+
+            IconButton {
+              id: disconnectButton
+              size: 28
+              iconSize: 20
+              iconLabel: "link_off"
+              iconColor: Colors.error
+              accessibleName: "Disconnect " + model.name
+              tooltipText: accessibleName
+              onClicked: {
+                Quickshell.execDetached(["bluetoothctl", "disconnect", model.mac])
+                refreshTimer.start()
+              }
+            }
+
+            IconButton {
+              id: renameButton
+              size: 28
+              iconSize: 20
+              iconLabel: "edit"
+              iconColor: Colors.primary
+              accessibleName: "Rename " + model.name
+              tooltipText: accessibleName
+              onClicked: root.startRename(model.mac, model.name)
+            }
           }
         }
+      }
+
+      ListDivider {
+        id: listDivider
+        anchors.bottom: parent.bottom
+        insetStart: 48
+        insetEnd: Config.spacingSmall
+        visible: connectedDelegate.hasDivider
       }
     }
   }

@@ -10,13 +10,19 @@ Item {
 
   property string iconLabel: ""
   property bool selected: false
+  property bool checkable: false
+  property bool grouped: false
+  property string groupPosition: "single"
   property string labelText: ""
   property string variant: "tonal"
+  property bool horizontalContent: false
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""
+  property bool expressiveSelectedShape: false
   readonly property bool filled: root.selected || root.variant === "filled"
   property real iconSize: Config.iconSize + 4
+  property real contentSpacing: Config.spacingMedium
   property color iconColor: root.filled ? theme.accentText : theme.mutedInk
   property real radius: theme.controlRadius
   property color color: {
@@ -40,7 +46,11 @@ Item {
   readonly property bool pressed: mouseArea.pressed
   readonly property bool active: root.hovered || root.pressed || root.selected || root.activeFocus
 
-  Accessible.role: Accessible.Button
+  Accessible.role: root.grouped && root.checkable
+    ? Accessible.RadioButton
+    : (root.checkable ? Accessible.CheckBox : Accessible.Button)
+  Accessible.checkable: root.checkable
+  Accessible.checked: root.checkable && root.selected
   Accessible.name: root.accessibleName !== ""
     ? root.accessibleName
     : (root.labelText !== "" ? root.labelText : (root.tooltipText !== "" ? root.tooltipText : root.iconLabel))
@@ -95,7 +105,7 @@ Item {
 
   Column {
     anchors.centerIn: parent
-    spacing: root.labelText !== "" ? Config.spacingCompact : 0
+    spacing: root.labelText !== "" ? root.contentSpacing : 0
 
     Text {
       anchors.horizontalCenter: parent.horizontalCenter
@@ -103,6 +113,7 @@ Item {
       color: root.iconColor
       font.family: Config.iconFont
       font.pixelSize: root.iconSize
+      font.variableAxes: Config.iconVariableAxes(root.filled ? 1 : 0, root.iconSize)
     }
 
     Text {
@@ -113,9 +124,11 @@ Item {
       text: root.labelText
       color: root.iconColor
       font.family: theme.monoFontFamily
-      font.pixelSize: Math.max(8, Config.fontPixelSize - 1)
-      font.weight: Font.Medium
-      font.letterSpacing: 0.3
+      font.pixelSize: Config.typeLabelSmallSize
+      font.weight: Config.typeMediumWeight
+      font.letterSpacing: Config.typeMonoTracking
+      lineHeight: Config.typeLabelSmallLineHeight
+      lineHeightMode: Text.FixedHeight
       elide: Text.ElideRight
       maximumLineCount: 1
     }

@@ -7,7 +7,7 @@ import "../config"
 PopupBase {
   id: root
 
-  surfaceHeight: Math.min(contentColumn.implicitHeight + 32, 400)
+  surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 400)
 
   property real pct: 0
 
@@ -58,14 +58,17 @@ PopupBase {
       fill: parent
       margins: Config.popupPadding
     }
-    spacing: 16
+    spacing: Config.spacingLarge
 
     Text {
       text: "Brightness"
       color: Colors.fgSurface
       font.family: Config.fontFamily
-      font.pixelSize: (Config.fontPixelSize + 8)
-      font.weight: Font.Bold
+      font.pixelSize: Config.typeHeadlineSmallSize
+      font.weight: Config.typeStrongWeight
+      font.letterSpacing: Config.typeHeadlineTracking
+      lineHeight: Config.typeHeadlineSmallLineHeight
+      lineHeightMode: Text.FixedHeight
     }
 
     PopupDivider {}
@@ -74,7 +77,10 @@ PopupBase {
       text: Math.round(root.pct) + "%"
       color: Colors.fgSurfaceVariant
       font.family: Config.fontFamily
-      font.pixelSize: (Config.fontPixelSize + 4)
+      font.pixelSize: Config.typeTitleMediumSize
+      font.letterSpacing: Config.typeTitleTracking
+      lineHeight: Config.typeTitleMediumLineHeight
+      lineHeightMode: Text.FixedHeight
     }
 
     SliderControl {

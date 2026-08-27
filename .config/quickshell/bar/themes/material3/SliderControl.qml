@@ -9,9 +9,9 @@ Item {
 
   property real value: 0.5
   property bool muted: false
-  property color activeColor: theme.accent
-  property color surfaceContainerHigh: theme.surfaceRaised
-  property color surfaceContainerHighest: theme.controlSurface
+  property color activeColor: theme.primary
+  property color surfaceContainerHigh: theme.surfaceContainerHigh
+  property color surfaceContainerHighest: theme.surfaceContainerHighest
   property color outline: theme.outline
   property color focusColor: theme.focus
   property color hoverOverlay: Colors.hoverOverlay
@@ -68,13 +68,31 @@ Item {
   }
 
   Behavior on thumbWidth {
-    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
+    enabled: Config.expressiveMotion && !root.reducedMotion
+    SpringAnimation {
+      spring: Config.motionSpatialSpring
+      damping: Config.motionSpatialDamping
+      mass: Config.motionSpatialMass
+      epsilon: Config.motionSpatialEpsilon
+    }
   }
   Behavior on thumbHeight {
-    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
+    enabled: Config.expressiveMotion && !root.reducedMotion
+    SpringAnimation {
+      spring: Config.motionSpatialSpring
+      damping: Config.motionSpatialDamping
+      mass: Config.motionSpatialMass
+      epsilon: Config.motionSpatialEpsilon
+    }
   }
   Behavior on gap {
-    NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutBack }
+    enabled: Config.expressiveMotion && !root.reducedMotion
+    SpringAnimation {
+      spring: Config.motionSpatialSpring
+      damping: Config.motionSpatialDamping
+      mass: Config.motionSpatialMass
+      epsilon: Config.motionSpatialEpsilon
+    }
   }
 
   Component.onCompleted: {
@@ -152,7 +170,10 @@ Item {
     width: Math.max(0, parent.width - x)
     height: root.trackHeight
     radius: root.trackRadius
-    color: root.surfaceContainerHighest
+    // Keep the inactive track distinct from the filled surfaces that contain
+    // settings sliders. Surface variant is a semantic track fill, while the
+    // container-highest role can visually disappear against those cards.
+    color: theme.surfaceVariant
 
     Rectangle {
       anchors { top: parent.top; bottom: parent.bottom; left: parent.left }
@@ -162,7 +183,7 @@ Item {
     }
 
     Rectangle {
-      anchors { right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
+      anchors { right: parent.right; rightMargin: Config.spacingSmall; verticalCenter: parent.verticalCenter }
       width: 4
       height: 4
       radius: 2

@@ -16,6 +16,7 @@ ListItem {
   property string cliField: ""      // e.g. "touchpad-tap"
   property var extraArgs: []         // e.g. ["eDP-1"] for per-output fields
   property bool checked: false
+  property bool live: true
   property string statusMessage: ""
   signal writeFailed(string message)
 
@@ -63,12 +64,14 @@ ListItem {
   }
 
   function reload() {
+    if (!root.live) return
     readProc.command = ["python3", "-m", "scripts.niri_config", root.cliFile, "read", root.cliField].concat(root.extraArgs)
     readProc.running = false
     readProc.running = true
   }
 
   function setValue(value) {
+    if (!root.live) return
     root.checked = value
     writeProc.pendingValue = value
     writeProc.command = ["python3", "-m", "scripts.niri_config", root.cliFile, "write", root.cliField, value ? "true" : "false"].concat(root.extraArgs)
@@ -76,5 +79,6 @@ ListItem {
     writeProc.running = true
   }
 
-  Component.onCompleted: root.reload()
+  onLiveChanged: if (root.live) root.reload()
+  Component.onCompleted: if (root.live) root.reload()
 }

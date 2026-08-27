@@ -16,6 +16,8 @@ RowLayout {
   property string cliField: ""
   property var extraArgs: []
   property string label: ""
+  property string leadingIcon: ""
+  property bool live: true
   property real min: 0
   property real max: 100
   property real value: min
@@ -27,11 +29,25 @@ RowLayout {
   spacing: Config.spacingMedium
 
   Text {
+    visible: root.leadingIcon !== ""
+    text: root.leadingIcon
+    color: Colors.fgSurfaceVariant
+    font.family: Config.iconFont
+    font.pixelSize: Config.iconSize
+    font.variableAxes: Config.iconVariableAxes(0, Config.iconSize)
+    Layout.preferredWidth: 20
+  }
+
+  Text {
     text: root.label
     color: Colors.fgSurfaceVariant
     font.family: Config.fontFamily
-    font.pixelSize: Config.textBodySize
-    Layout.preferredWidth: 120
+    font.pixelSize: Config.typeBodyMediumSize
+    font.letterSpacing: Config.typeBodyTracking
+    lineHeight: Config.typeBodyMediumLineHeight
+    lineHeightMode: Text.FixedHeight
+    Layout.preferredWidth: Math.max(Config.settingsRowLabelWidth, implicitWidth)
+    Layout.minimumWidth: Math.max(Config.settingsRowLabelWidth, implicitWidth)
   }
 
   SliderControl {
@@ -60,7 +76,10 @@ RowLayout {
     text: root.decimals > 0 ? root.value.toFixed(root.decimals) + root.unit : Math.round(root.value) + root.unit
     color: Colors.fgSurface
     font.family: Config.fontFamily
-    font.pixelSize: 11
+    font.pixelSize: Config.typeLabelSmallSize
+    font.letterSpacing: Config.typeLabelTracking
+    lineHeight: Config.typeLabelSmallLineHeight
+    lineHeightMode: Text.FixedHeight
     Layout.preferredWidth: 50
   }
 
@@ -71,7 +90,7 @@ RowLayout {
     stdout: StdioCollector {
       onStreamFinished: {
         var v = parseFloat(text.trim())
-        if (!isNaN(v)) root.value = v
+        if (!isNaN(v)) root.value = Math.max(root.min, Math.min(root.max, v))
       }
     }
   }
@@ -91,17 +110,20 @@ RowLayout {
   }
 
   function reload() {
+    if (!root.live) return
     readProc.command = ["python3", "-m", "scripts.niri_config", root.cliFile, "read", root.cliField].concat(root.extraArgs)
     readProc.running = false
     readProc.running = true
   }
 
   function commit() {
+    if (!root.live) return
     var formatted = root.decimals > 0 ? root.value.toFixed(root.decimals) : String(Math.round(root.value))
     writeProc.command = ["python3", "-m", "scripts.niri_config", root.cliFile, "write", root.cliField, formatted].concat(root.extraArgs)
     writeProc.running = false
     writeProc.running = true
   }
 
-  Component.onCompleted: root.reload()
+  onLiveChanged: if (root.live) root.reload()
+  Component.onCompleted: if (root.live) root.reload()
 }

@@ -144,14 +144,14 @@ PanelWindow {
 
   implicitWidth: Config.popupWidth + neoShadowPadding
   visible: false
-  implicitHeight: Math.min(contentColumn.implicitHeight + 32, 500) + neoShadowPadding
+  implicitHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500) + neoShadowPadding
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-popup"
   WlrLayershell.layer: WlrLayer.Top
 
   anchors.left: true
-  margins.left: Config.barWidth + 4
+  margins.left: Config.barWidth + Config.spacingCompact
   property int screenH: Screen.desktopAvailableHeight
 
   anchors.top: true
@@ -240,7 +240,15 @@ PanelWindow {
     focusEventWatcherRetry.stop()
     focusDismissArmTimer.stop()
     if (visible) {
-      entryAnimation.start()
+      if (Config.reducedMotion) {
+        entryAnimation.stop()
+        scaleTransform.xScale = 1.0
+        scaleTransform.yScale = 1.0
+        transX.x = 0
+        bg.opacity = 1.0
+      } else {
+        entryAnimation.start()
+      }
       root.activePowerIndex = -1
       root.pendingPowerIndex = -1
       root.focusWindowId = ""
@@ -331,7 +339,9 @@ PanelWindow {
         : Colors.surfaceContainerHigh
       clip: true
       border.width: Config.themeBorderWidth
-      border.color: Colors.styleOutline
+      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+        ? Colors.styleOutline
+        : Colors.outlineVariant
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -340,21 +350,25 @@ PanelWindow {
 
       ParallelAnimation {
         id: entryAnimation
-        NumberAnimation {
+        SpringAnimation {
           target: scaleTransform
           properties: "xScale,yScale"
           from: 0.85
           to: 1.0
-          duration: Config.motionLong
-          easing.type: Config.themeMotionEasing
+          spring: Config.motionSurfaceSpring
+          damping: Config.motionSurfaceDamping
+          mass: Config.motionSpatialMass
+          epsilon: Config.motionSpatialEpsilon
         }
-        NumberAnimation {
+        SpringAnimation {
           target: transX
           property: "x"
           from: -30
           to: 0
-          duration: Config.motionLong
-          easing.type: Config.themeMotionEasing
+          spring: Config.motionSurfaceSpring
+          damping: Config.motionSurfaceDamping
+          mass: Config.motionSpatialMass
+          epsilon: Config.motionSpatialEpsilon
         }
         NumberAnimation {
           target: bg
@@ -372,14 +386,17 @@ PanelWindow {
           fill: parent
           margins: Config.popupPadding
         }
-        spacing: 14
+        spacing: Config.spacingMedium
 
         Text {
           text: Config.nothingEvolution ? "Quick Settings" : "Power Options"
           color: Colors.fgSurface
           font.family: Config.fontFamily
-          font.pixelSize: (Config.fontPixelSize + 8)
-          font.weight: Font.Bold
+          font.pixelSize: Config.typeHeadlineSmallSize
+          font.weight: Config.typeStrongWeight
+          font.letterSpacing: Config.typeHeadlineTracking
+          lineHeight: Config.typeHeadlineSmallLineHeight
+          lineHeightMode: Text.FixedHeight
         }
 
         Rectangle {
@@ -389,49 +406,65 @@ PanelWindow {
         }
 
       Row {
-        spacing: 8
+        spacing: Config.spacingSmall
         width: parent.width
         layoutDirection: Qt.RightToLeft
 
         ActionButton {
-          width: (parent.width - 4 * 8) / 5
+          width: (parent.width - 4 * Config.spacingSmall) / 5
           height: width
           iconLabel: "coffee"
-          labelText: "Caffeine"
+          labelText: ""
+          tooltipText: "Caffeine mode"
           selected: root.caffeineOn
+          checkable: true
+          expressiveSelectedShape: true
+          horizontalContent: false
           accessibleName: "Caffeine mode"
           accessibleDescription: root.caffeineOn ? "Enabled" : "Disabled"
           onActivated: root.toggleCaffeine()
         }
 
         ActionButton {
-          width: (parent.width - 4 * 8) / 5
+          width: (parent.width - 4 * Config.spacingSmall) / 5
           height: width
           iconLabel: root.airplaneOn ? "airplanemode_active" : "airplanemode_inactive"
-          labelText: "Airplane"
+          labelText: ""
+          tooltipText: "Airplane mode"
           selected: root.airplaneOn
+          checkable: true
+          expressiveSelectedShape: true
+          horizontalContent: false
           accessibleName: "Airplane mode"
           accessibleDescription: root.airplaneOn ? "Enabled" : "Disabled"
           onActivated: root.toggleAirplane()
         }
 
         ActionButton {
-          width: (parent.width - 4 * 8) / 5
+          width: (parent.width - 4 * Config.spacingSmall) / 5
           height: width
           iconLabel: root.bluetoothOn ? "bluetooth_connected" : "bluetooth_disabled"
-          labelText: "Bluetooth"
+          labelText: ""
+          tooltipText: "Bluetooth"
           selected: root.bluetoothOn
+          checkable: true
+          expressiveSelectedShape: true
+          horizontalContent: false
           accessibleName: "Bluetooth"
           accessibleDescription: root.bluetoothOn ? "Enabled" : "Disabled"
           onActivated: root.toggleBluetooth()
         }
 
         ActionButton {
-          width: (parent.width - 4 * 8) / 5
+          width: (parent.width - 4 * Config.spacingSmall) / 5
           height: width
           iconLabel: "do_not_disturb_on"
-          labelText: "DND"
+          labelText: ""
+          tooltipText: "Do Not Disturb"
           selected: Settings.doNotDisturb
+          checkable: true
+          expressiveSelectedShape: true
+          horizontalContent: false
           accessibleName: "Do Not Disturb"
           accessibleDescription: Settings.doNotDisturb
             ? "Enabled; toast popups suppressed and history retained"
@@ -440,10 +473,12 @@ PanelWindow {
         }
 
         ActionButton {
-          width: (parent.width - 4 * 8) / 5
+          width: (parent.width - 4 * Config.spacingSmall) / 5
           height: width
           iconLabel: "lock"
-          labelText: "Lock"
+          labelText: ""
+          tooltipText: "Lock screen"
+          horizontalContent: false
           accessibleName: "Lock screen"
           accessibleDescription: "Locks the session"
           onActivated: {
@@ -460,7 +495,7 @@ PanelWindow {
         }
 
       Row {
-        spacing: 8
+        spacing: Config.spacingSmall
         width: parent.width
         layoutDirection: Qt.RightToLeft
 
@@ -472,11 +507,13 @@ PanelWindow {
             required property var modelData
             required property int index
 
-            width: (parent.width - 3 * 8) / 4
+            width: (parent.width - 3 * Config.spacingSmall) / 4
             height: width
             iconLabel: root.powerIcon(modelData.label)
             labelText: modelData.label
             selected: index === root.activePowerIndex
+            expressiveSelectedShape: true
+            horizontalContent: false
             accessibleName: modelData.label
             accessibleDescription: "Power action"
             onActiveFocusChanged: {
