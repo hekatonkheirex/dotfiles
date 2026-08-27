@@ -152,8 +152,9 @@ Item {
     Text {
       anchors.centerIn: parent
       text: "check"
-      font.family: "Material Symbols Outlined"
+      font.family: Config.iconFont
       font.pixelSize: 16
+      font.variableAxes: Config.iconVariableAxes(1, 16)
       color: root.checked ? root.checkmarkColor : "transparent"
       visible: root.checked
       opacity: root.checked ? 1 : 0

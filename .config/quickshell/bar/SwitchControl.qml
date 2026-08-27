@@ -12,13 +12,14 @@ Item {
   id: root
 
   property bool checked: false
+  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
   property color activeColor: Colors.primary
-  property color activeContentColor: Colors.styleAccentText
+  property color activeContentColor: root.material3Theme ? Colors.fgPrimary : Colors.styleAccentText
   property color checkmarkColor: activeColor
   property color surfaceContainerHigh: Colors.surfaceContainerHigh
   property color surfaceContainerHighest: Colors.surfaceContainerHighest
-  property color outline: Colors.styleOutlineStrong
-  property color focusColor: activeColor
+  property color outline: root.material3Theme ? Colors.outline : Colors.styleOutlineStrong
+  property color focusColor: root.material3Theme ? Colors.primary : activeColor
   property color hoverOverlay: Colors.hoverOverlay
   property color pressOverlay: Colors.pressOverlay
   property int motionDuration: 150

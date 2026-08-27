@@ -14,6 +14,7 @@ Item {
   property bool inlineContent: false
   property bool integrated: false
   property bool active: false
+  property bool loading: false
   property string iconLabel: ""
   property real iconOpacity: 1.0
   property string labelText: ""
@@ -75,9 +76,11 @@ Item {
   Accessible.name: root.accessibleName !== ""
     ? root.accessibleName
     : (root.labelText !== "" ? root.labelText : (root.tooltipText !== "" ? root.tooltipText : "Status indicator"))
-  Accessible.description: root.accessibleDescription !== ""
-    ? root.accessibleDescription
-    : (root.active ? "Active" : "")
+  Accessible.description: root.loading
+    ? "Loading"
+    : (root.accessibleDescription !== ""
+      ? root.accessibleDescription
+      : (root.active ? "Active" : ""))
   Accessible.focusable: root.activeFocusOnTab
   Accessible.focused: root.activeFocus
 
@@ -97,6 +100,18 @@ Item {
     if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
       root.clicked(null)
       event.accepted = true
+    }
+  }
+
+  Component {
+    id: loadingComponent
+
+    LoadingIndicator {
+      size: Config.iconSize
+      indicatorColor: root.iconColor
+      accessibleName: root.accessibleName !== ""
+        ? root.accessibleName + " loading"
+        : "Loading"
     }
   }
 
@@ -158,13 +173,25 @@ Item {
       : 0
     rowSpacing: !root.inlineContent ? root.stackedContentSpacing : 0
 
+    Loader {
+      id: loadingLoader
+      active: root.loading
+      visible: root.loading
+      sourceComponent: loadingComponent
+      Layout.preferredWidth: Config.iconSize
+      Layout.preferredHeight: Config.iconSize
+      Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+    }
+
     Text {
       id: iconText
+      visible: !root.loading
       text: root.iconLabel
       opacity: root.iconOpacity
       color: root.iconColor
       font.family: Config.iconFont
       font.pixelSize: Config.iconSize
+      font.variableAxes: Config.iconVariableAxes(root.active ? 1 : 0, Config.iconSize)
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       Layout.preferredWidth: Config.iconSize
@@ -181,9 +208,11 @@ Item {
       font.family: Config.nothingDesign
         ? (root.numericLabel ? Config.dotFontFamily : Config.monoFontFamily)
         : Config.fontFamily
-      font.pixelSize: Config.labelSmallSize
+      font.pixelSize: Config.typeLabelMediumSize
       font.weight: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.themeFontWeight : Font.Medium
-      font.letterSpacing: Config.nothingDesign ? 0.3 : 0
+      font.letterSpacing: Config.nothingDesign ? 0.3 : Config.typeLabelTracking
+      lineHeight: Config.typeLabelMediumLineHeight
+      lineHeightMode: Text.FixedHeight
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
       Layout.preferredWidth: implicitWidth
@@ -202,8 +231,8 @@ Item {
     Rectangle {
       anchors.right: parent.right
       anchors.top: parent.top
-      anchors.rightMargin: 4
-      anchors.topMargin: 4
+      anchors.rightMargin: Config.spacingCompact
+      anchors.topMargin: Config.spacingCompact
       width: badgeLabel.implicitWidth + 6
       height: 14
       radius: 7

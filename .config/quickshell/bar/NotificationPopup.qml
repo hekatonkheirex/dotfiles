@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import "primitives"
@@ -7,7 +8,7 @@ import "../config"
 PopupBase {
   id: root
 
-  surfaceHeight: Math.min(contentColumn.implicitHeight + 32, 500)
+  surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500)
 
   property var notifications: []
   property int count: 0
@@ -72,7 +73,7 @@ PopupBase {
       fill: parent
       margins: Config.popupPadding
     }
-    spacing: 12
+    spacing: Config.spacingMedium
 
         RowLayout {
           width: parent.width
@@ -81,8 +82,11 @@ PopupBase {
             text: "Notifications"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: (Config.fontPixelSize + 8)
-            font.weight: Font.Bold
+            font.pixelSize: Config.typeHeadlineSmallSize
+            font.weight: Config.typeStrongWeight
+            font.letterSpacing: Config.typeHeadlineTracking
+            lineHeight: Config.typeHeadlineSmallLineHeight
+            lineHeightMode: Text.FixedHeight
           }
 
           Item { Layout.fillWidth: true }
@@ -91,7 +95,10 @@ PopupBase {
             text: count === 0 ? "None" : count.toString()
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
-            font.pixelSize: (Config.fontPixelSize + 4)
+            font.pixelSize: Config.typeTitleLargeSize
+            font.letterSpacing: Config.typeTitleTracking
+            lineHeight: Config.typeTitleLargeLineHeight
+            lineHeightMode: Text.FixedHeight
           }
 
           IconButton {
@@ -116,20 +123,21 @@ PopupBase {
           height: Math.min(400, contentHeight)
           model: root.notifications
           visible: count > 0
-          spacing: 8
+          spacing: Config.spacingSmall
           clip: true
+          ScrollBar.vertical: SettingsScrollBar { scrollTarget: notifList }
 
             delegate: Item {
               id: notifDelegate
               width: parent.width
-              height: mainContainer.implicitHeight + 8
+              height: mainContainer.implicitHeight + Config.spacingSmall
 
               readonly property QtObject notif: modelData
 
               Rectangle {
                 id: mainContainer
                 width: parent.width
-                implicitHeight: cardLayout.implicitHeight + 24
+                implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge
                 radius: Config.shapeLarge
                 color: Qt.tint(Colors.surfaceContainer, notifMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
                 border.width: Config.themeBorderWidth
@@ -151,15 +159,15 @@ PopupBase {
                     left: parent.left
                     right: parent.right
                     top: parent.top
-                    leftMargin: 16
-                    rightMargin: 16
-                    topMargin: 12
+                    leftMargin: Config.spacingLarge
+                    rightMargin: Config.spacingLarge
+                    topMargin: Config.spacingMedium
                   }
-                  spacing: 8
+                  spacing: Config.spacingSmall
 
                   RowLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: Config.spacingSmall
 
                     Rectangle {
                       width: 20
@@ -175,8 +183,9 @@ PopupBase {
                         }
                         color: Colors.fgPrimaryContainer
                         font.family: Config.fontFamily
-                        font.pixelSize: 10
-                        font.weight: Font.Bold
+                        font.pixelSize: Config.typeLabelSmallSize
+                        font.weight: Config.typeStrongWeight
+                        font.letterSpacing: Config.typeLabelTracking
                       }
                     }
 
@@ -184,8 +193,9 @@ PopupBase {
                       text: notif ? (notif.appName || "Notification") : "Notification"
                       color: Colors.fgSurfaceVariant
                       font.family: Config.fontFamily
-                      font.pixelSize: 11
-                      font.weight: Font.Medium
+                      font.pixelSize: Config.typeLabelSmallSize
+                      font.weight: Config.typeMediumWeight
+                      font.letterSpacing: Config.typeLabelTracking
                       Layout.fillWidth: true
                       elide: Text.ElideRight
                     }
@@ -213,15 +223,18 @@ PopupBase {
 
                   ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 4
+                    spacing: Config.spacingCompact
 
                     Text {
                       Layout.fillWidth: true
                       text: notif ? (notif.summary || "") : ""
                       color: Colors.fgSurface
                       font.family: Config.fontFamily
-                      font.pixelSize: 14
-                      font.weight: Font.Bold
+                      font.pixelSize: Config.typeTitleSmallSize
+                      font.weight: Config.typeStrongWeight
+                      font.letterSpacing: Config.typeTitleTracking
+                      lineHeight: Config.typeTitleSmallLineHeight
+                      lineHeightMode: Text.FixedHeight
                       elide: Text.ElideRight
                       visible: text !== ""
                     }
@@ -231,7 +244,10 @@ PopupBase {
                       text: notif ? (notif.body || "") : ""
                       color: Colors.fgSurfaceVariant
                       font.family: Config.fontFamily
-                      font.pixelSize: 12
+                      font.pixelSize: Config.typeBodySmallSize
+                      font.letterSpacing: Config.typeBodyTracking
+                      lineHeight: Config.typeBodySmallLineHeight
+                      lineHeightMode: Text.FixedHeight
                       wrapMode: Text.WordWrap
                       maximumLineCount: 3
                       elide: Text.ElideRight
@@ -247,7 +263,8 @@ PopupBase {
           text: "No new notifications"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: (Config.fontPixelSize + 2)
+          font.pixelSize: Config.typeTitleSmallSize
+          font.letterSpacing: Config.typeTitleTracking
           visible: count === 0
           anchors.horizontalCenter: parent.horizontalCenter
         }

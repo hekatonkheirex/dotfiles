@@ -51,7 +51,15 @@ PanelWindow {
 
   onVisibleChanged: {
     if (visible) {
-      entryAnimation.start()
+      if (Config.reducedMotion) {
+        entryAnimation.stop()
+        scaleTransform.xScale = 1.0
+        scaleTransform.yScale = 1.0
+        transX.x = 0
+        bg.opacity = 1.0
+      } else {
+        entryAnimation.start()
+      }
       shown()
     }
   }
@@ -101,7 +109,9 @@ PanelWindow {
         : Colors.surfaceContainerHigh
       clip: true
       border.width: Config.themeBorderWidth
-      border.color: Colors.styleOutline
+      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+        ? Colors.styleOutline
+        : Colors.outlineVariant
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -110,21 +120,25 @@ PanelWindow {
 
       ParallelAnimation {
         id: entryAnimation
-        NumberAnimation {
+        SpringAnimation {
           target: scaleTransform
           properties: "xScale,yScale"
           from: 0.85
           to: 1.0
-          duration: Config.motionLong
-          easing.type: Config.themeMotionEasing
+          spring: Config.motionSurfaceSpring
+          damping: Config.motionSurfaceDamping
+          mass: Config.motionSpatialMass
+          epsilon: Config.motionSpatialEpsilon
         }
-        NumberAnimation {
+        SpringAnimation {
           target: transX
           property: "x"
           from: -30
           to: 0
-          duration: Config.motionLong
-          easing.type: Config.themeMotionEasing
+          spring: Config.motionSurfaceSpring
+          damping: Config.motionSurfaceDamping
+          mass: Config.motionSpatialMass
+          epsilon: Config.motionSpatialEpsilon
         }
         NumberAnimation {
           target: bg

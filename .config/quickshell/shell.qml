@@ -148,6 +148,23 @@ ShellRoot {
 
   // Re-apply the persisted mode whenever the shell starts. This keeps the
   // GTK, Qt, terminal, and Niri outputs aligned with Settings after restart.
+  // Select the source-owned palette cache first so a previous Fixed session
+  // cannot leak into Live mode (or vice versa).
+  Process {
+    id: activatePaletteOnStartup
+    command: [
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-active-palette.sh",
+      "--source",
+      "auto",
+      "--activate-only"
+    ]
+    running: true
+    onExited: {
+      Colors.reloadMatugenPalette()
+      syncThemeOnStartup.running = true
+    }
+  }
+
   Process {
     id: syncThemeOnStartup
     command: [
@@ -156,7 +173,7 @@ ShellRoot {
       "--quiet",
       Settings.themeStyle
     ]
-    running: true
+    running: false
   }
 
   Connections {

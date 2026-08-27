@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -18,9 +19,10 @@ Flickable {
   visible: root.currentTab === 3
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.height + wallpaperTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight + wallpaperTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
+  ScrollBar.vertical: SettingsScrollBar { scrollTarget: wallpaperTab }
 
   property var wallpapersList: []
   property string currentWallpaper: ""
@@ -98,7 +100,7 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, wallpaperTab.width - wallpaperTab.neoShadowAllowance)
+    width: Math.max(0, wallpaperTab.width - wallpaperTab.neoShadowAllowance - Config.settingsScrollbarGutter)
     height: Math.max(wallpaperTab.height, implicitHeight)
     spacing: Config.spacingLarge + wallpaperTab.neoShadowAllowance
 
@@ -106,22 +108,40 @@ Flickable {
       Layout.fillWidth: true
       spacing: Config.spacingMedium
 
-      Text {
-        text: "Wallpaper (" + wallpaperTab.wallpapersList.length + " found) • Active: " + (wallpaperTab.currentWallpaper || "None")
-        color: Colors.fgSurfaceVariant
-        font.family: Config.fontFamily
-        font.pixelSize: Config.textBodySize
-        font.weight: Font.Medium
-        elide: Text.ElideRight
+      ColumnLayout {
         Layout.fillWidth: true
+        Layout.alignment: Qt.AlignVCenter
+        spacing: Config.spacingCompact
+
+        Text {
+          text: "Wallpaper"
+          color: Colors.fgSurface
+          font.family: Config.displayFontFamily
+          font.pixelSize: Config.textHeadlineSize
+          font.weight: Config.themeFontWeight
+        }
+
+        Text {
+          Layout.fillWidth: true
+          text: wallpaperTab.wallpapersList.length + " wallpapers • Active: "
+            + (wallpaperTab.currentWallpaper || "None")
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.textBodySize
+          font.weight: Font.Medium
+          elide: Text.ElideRight
+        }
       }
 
       ActionButton {
-        Layout.preferredWidth: 80
-        Layout.preferredHeight: Config.neoBrutalism ? 52 : (Config.nothingDesign ? 44 : 40)
+        Layout.alignment: Qt.AlignVCenter
+        Layout.preferredWidth: 128
+        Layout.minimumHeight: Config.themeLabeledActionButtonHeight
+        Layout.preferredHeight: Config.themeLabeledActionButtonHeight
         iconLabel: "shuffle"
         iconSize: Config.iconSizeSmall
         labelText: "Randomize"
+        variant: "elevated"
         accessibleName: "Randomize wallpaper"
         tooltipText: "Pick a random wallpaper"
         onActivated: wallpaperTab.randomizeWallpaper()
@@ -130,6 +150,7 @@ Flickable {
 
     StyledSurface {
       id: wallpaperSurface
+      variant: "filled"
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumHeight: 340
@@ -142,12 +163,12 @@ Flickable {
       outlineWidth: Config.themeBorderWidth
       clipContent: true
 
-        GridView {
+      GridView {
         id: wallpaperGrid
         anchors.fill: parent
-        anchors.margins: 16
+        anchors.margins: Config.spacingLarge
         cellWidth: wallpaperTab.compactLayout
-          ? Math.max(120, wallpaperTab.width - 32)
+          ? Math.max(120, wallpaperTab.width - Config.spacingLarge * 2)
           : Math.max(160, Math.floor(width / 3))
         cellHeight: wallpaperTab.compactLayout
           ? Math.round(cellWidth * 0.68)
@@ -156,6 +177,13 @@ Flickable {
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         activeFocusOnTab: true
+        ScrollBar.vertical: SettingsScrollBar {
+          scrollTarget: wallpaperGrid
+          parent: wallpaperSurface
+          x: wallpaperSurface.width - width - Config.spacingSmall
+          y: Config.spacingSmall
+          height: Math.max(0, wallpaperSurface.height - Config.spacingSmall * 2)
+        }
 
         Keys.onPressed: function(event) {
           if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
@@ -166,8 +194,8 @@ Flickable {
 
         delegate: Item {
           id: wallDelegate
-          width: wallpaperGrid.cellWidth - 8 - wallpaperTab.neoShadowAllowance
-          height: wallpaperGrid.cellHeight - 8 - wallpaperTab.neoShadowAllowance
+          width: wallpaperGrid.cellWidth - Config.spacingSmall - wallpaperTab.neoShadowAllowance
+          height: wallpaperGrid.cellHeight - Config.spacingSmall - wallpaperTab.neoShadowAllowance
           property real cornerRadius: Config.shapeMedium
           readonly property bool isKeyboardSelected: GridView.isCurrentItem && wallpaperGrid.activeFocus
 
@@ -267,7 +295,7 @@ Flickable {
                 text: "check"
                 font.family: Config.iconFont
                 font.pixelSize: Config.iconSizeSmall
-                font.weight: Font.Bold
+                font.variableAxes: Config.iconVariableAxes(1, Config.iconSizeSmall)
                 color: Colors.fgPrimary
               }
             }
@@ -285,8 +313,8 @@ Flickable {
             }
           }
         }
-
       }
+
     }
   }
 }

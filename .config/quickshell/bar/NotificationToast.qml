@@ -20,7 +20,7 @@ PanelWindow {
   readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
 
   implicitWidth: 280 + neoShadowPadding
-  implicitHeight: cardLayout.implicitHeight + 24 + neoShadowPadding
+  implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge + neoShadowPadding
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: "quickshell-toast"
@@ -28,11 +28,11 @@ PanelWindow {
   anchors.right: true
   anchors.top: Settings.notificationToastPosition !== "bottom-right"
   anchors.bottom: Settings.notificationToastPosition === "bottom-right"
-  margins.right: root.barPosition === "right" ? Config.barWidth + 4 : 16
+  margins.right: root.barPosition === "right" ? Config.barWidth + Config.spacingCompact : Config.spacingLarge
   margins.top: Settings.notificationToastPosition === "bottom-right" ? 0
-    : (root.barPosition === "top" ? Config.barWidth + 4 : 16)
+    : (root.barPosition === "top" ? Config.barWidth + Config.spacingCompact : Config.spacingLarge)
   margins.bottom: Settings.notificationToastPosition === "bottom-right"
-    ? (root.barPosition === "bottom" ? Config.barWidth + 4 : 16)
+    ? (root.barPosition === "bottom" ? Config.barWidth + Config.spacingCompact : Config.spacingLarge)
     : 0
   visible: notif !== null
 
@@ -52,7 +52,15 @@ PanelWindow {
     notif = n
     if (!isPersistent(n))
       dismissTimer.restart()
-    entryAnimation.start()
+    if (Config.reducedMotion) {
+      entryAnimation.stop()
+      scaleTransform.xScale = 1.0
+      scaleTransform.yScale = 1.0
+      transX.x = 0
+      bg.opacity = 1.0
+    } else {
+      entryAnimation.start()
+    }
   }
 
   // DND hides the toast surface without dismissing the notification itself;
@@ -138,7 +146,9 @@ PanelWindow {
       ? Colors.styleSurface
       : Colors.surfaceContainerHigh
     border.width: Config.themeBorderWidth
-    border.color: Colors.styleOutline
+    border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+      ? Colors.styleOutline
+      : Colors.outlineVariant
 
     Accessible.role: Accessible.Button
     Accessible.name: notif ? ((notif.appName || "Notification") + ": " + (notif.summary || "Dismiss notification")) : "Notification"
@@ -158,21 +168,25 @@ PanelWindow {
 
     ParallelAnimation {
       id: entryAnimation
-      NumberAnimation {
+      SpringAnimation {
         target: scaleTransform
         properties: "xScale,yScale"
         from: 0.8
         to: 1.0
-        duration: Config.motionLong
-        easing.type: Config.themeMotionEasing
+        spring: Config.motionSurfaceSpring
+        damping: Config.motionSurfaceDamping
+        mass: Config.motionSpatialMass
+        epsilon: Config.motionSpatialEpsilon
       }
-      NumberAnimation {
+      SpringAnimation {
         target: transX
         property: "x"
         from: 50
         to: 0
-        duration: Config.motionLong
-        easing.type: Config.themeMotionEasing
+        spring: Config.motionSurfaceSpring
+        damping: Config.motionSurfaceDamping
+        mass: Config.motionSpatialMass
+        epsilon: Config.motionSpatialEpsilon
       }
       NumberAnimation {
         target: bg
@@ -188,16 +202,16 @@ PanelWindow {
       id: cardLayout
       anchors {
         fill: parent
-        leftMargin: 16
-        rightMargin: 16
-        topMargin: 12
-        bottomMargin: 12
+        leftMargin: Config.spacingLarge
+        rightMargin: Config.spacingLarge
+        topMargin: Config.spacingMedium
+        bottomMargin: Config.spacingMedium
       }
-      spacing: 8
+      spacing: Config.spacingSmall
 
       RowLayout {
         Layout.fillWidth: true
-        spacing: 8
+        spacing: Config.spacingSmall
 
         Rectangle {
           width: 20
@@ -210,8 +224,8 @@ PanelWindow {
             text: notif ? (notif.appName.length > 0 ? notif.appName.charAt(0).toUpperCase() : "?") : "?"
             color: Colors.fgPrimaryContainer
             font.family: Config.fontFamily
-            font.pixelSize: 10
-            font.weight: Font.Bold
+            font.pixelSize: Config.typeLabelSmallSize
+            font.weight: Config.typeStrongWeight
           }
         }
 
@@ -219,8 +233,9 @@ PanelWindow {
           text: notif ? (notif.appName || "Notification") : "Notification"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: 11
-          font.weight: Font.Medium
+          font.pixelSize: Config.typeLabelSmallSize
+          font.weight: Config.typeMediumWeight
+          font.letterSpacing: Config.typeLabelTracking
           Layout.fillWidth: true
           elide: Text.ElideRight
         }
@@ -229,7 +244,8 @@ PanelWindow {
           text: "now"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: 10
+          font.pixelSize: Config.typeLabelSmallSize
+          font.letterSpacing: Config.typeLabelTracking
           opacity: 0.7
         }
       }
@@ -242,15 +258,18 @@ PanelWindow {
 
       ColumnLayout {
         Layout.fillWidth: true
-        spacing: 4
+        spacing: Config.spacingCompact
 
         Text {
           Layout.fillWidth: true
           text: notif ? (notif.summary || "") : ""
           color: Colors.fgSurface
           font.family: Config.fontFamily
-          font.pixelSize: 14
-          font.weight: Font.Bold
+          font.pixelSize: Config.typeTitleSmallSize
+          font.weight: Config.typeStrongWeight
+          font.letterSpacing: Config.typeTitleTracking
+          lineHeight: Config.typeTitleSmallLineHeight
+          lineHeightMode: Text.FixedHeight
           elide: Text.ElideRight
           visible: text !== ""
         }
@@ -260,7 +279,10 @@ PanelWindow {
           text: notif ? (notif.body || "") : ""
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: 12
+          font.pixelSize: Config.typeBodySmallSize
+          font.letterSpacing: Config.typeBodyTracking
+          lineHeight: Config.typeBodySmallLineHeight
+          lineHeightMode: Text.FixedHeight
           elide: Text.ElideRight
           maximumLineCount: 3
           wrapMode: Text.WordWrap

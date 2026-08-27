@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import "../config"
 
 FocusScope {
@@ -10,18 +11,26 @@ FocusScope {
   property string actionDescription: ""
   property string actionIcon: ""
 
-  property color scrimColor: Qt.rgba(0, 0, 0, 0.24)
+  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  property color scrimColor: Qt.rgba(Colors.scrim.r, Colors.scrim.g, Colors.scrim.b,
+    root.material3Theme ? 0.32 : 0.24)
   property color dialogColor: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
     ? Colors.styleSurface
     : Colors.surfaceContainerHigh
   property color dialogTextColor: Colors.fgSurface
   property color dialogSecondaryTextColor: Colors.fgSurfaceVariant
-  property color dialogBorderColor: Colors.styleOutline
-  property color cancelColor: Colors.surfaceContainer
-  property color cancelTextColor: Colors.fgSurface
+  property color dialogBorderColor: root.material3Theme ? Colors.outlineVariant : Colors.styleOutline
+  property color cancelColor: root.material3Theme ? "transparent" : Colors.surfaceContainer
+  property color cancelTextColor: root.material3Theme ? Colors.primary : Colors.fgSurface
   property color confirmColor: Colors.error
   property color confirmTextColor: Colors.fgError
   property int focusedButton: 0
+  readonly property int dialogPadding: root.material3Theme ? 24 : 16
+  readonly property int dialogSpacing: root.material3Theme ? 16 : 12
+  readonly property int dialogRadius: root.material3Theme
+    ? Config.shapeLarge + Config.spacingSmall
+    : Config.shapeLarge
+  readonly property int dialogButtonHeight: root.material3Theme ? 40 : 38
 
   signal confirmed()
   signal cancelled()
@@ -108,31 +117,36 @@ FocusScope {
 
   Rectangle {
     id: dialogShadow
-    x: dialog.x + Config.themeShadowOffset
-    y: dialog.y + Config.themeShadowOffset
+    x: dialog.x + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
+    y: dialog.y + (Config.neoBrutalism ? Config.themeShadowOffset : 2)
     width: dialog.width
     height: dialog.height
     radius: dialog.radius
-    color: Colors.styleShadow
-    visible: Config.neoBrutalism
-    z: -1
+    color: root.material3Theme
+      ? Qt.rgba(Colors.shadow.r, Colors.shadow.g, Colors.shadow.b, 0.18)
+      : Colors.styleShadow
+    visible: root.material3Theme || Config.neoBrutalism
+    z: 1
   }
 
   Rectangle {
     id: dialog
     anchors.centerIn: parent
-    width: Math.min(300, Math.max(220, root.width - 32))
-    height: dialogContent.implicitHeight + 32
-    radius: Config.shapeLarge
+    width: Math.min(root.material3Theme ? 360 : 300,
+      Math.max(root.material3Theme ? 280 : 220,
+        root.width - (root.material3Theme ? 48 : 32)))
+    height: dialogContent.implicitHeight + root.dialogPadding * 2
+    radius: root.dialogRadius
     color: root.dialogColor
     border.width: Config.themeBorderWidth
     border.color: root.dialogBorderColor
+    z: 2
 
     Column {
       id: dialogContent
       anchors.fill: parent
-      anchors.margins: 16
-      spacing: 12
+      anchors.margins: root.dialogPadding
+      spacing: root.dialogSpacing
 
       Row {
         width: parent.width
@@ -146,6 +160,7 @@ FocusScope {
           color: root.confirmColor
           font.family: Config.iconFont
           font.pixelSize: 24
+          font.variableAxes: Config.iconVariableAxes(0, 24)
           verticalAlignment: Text.AlignVCenter
           horizontalAlignment: Text.AlignHCenter
         }
@@ -155,8 +170,11 @@ FocusScope {
           text: root.actionLabel !== "" ? "Confirm " + root.actionLabel + "?" : "Confirm power action"
           color: root.dialogTextColor
           font.family: Config.fontFamily
-          font.pixelSize: Config.fontPixelSize + 6
-          font.weight: Font.Bold
+          font.pixelSize: Config.typeTitleLargeSize
+          font.weight: root.material3Theme ? Config.typeMediumWeight : Config.typeStrongWeight
+          font.letterSpacing: Config.typeTitleTracking
+          lineHeight: Config.typeTitleLargeLineHeight
+          lineHeightMode: Text.FixedHeight
           wrapMode: Text.WordWrap
         }
       }
@@ -168,29 +186,49 @@ FocusScope {
           : "This action will take effect immediately."
         color: root.dialogSecondaryTextColor
         font.family: Config.fontFamily
-        font.pixelSize: Config.fontPixelSize + 2
+        font.pixelSize: Config.typeBodyLargeSize
+        font.letterSpacing: Config.typeBodyTracking
+        lineHeight: Config.typeBodyLargeLineHeight
+        lineHeightMode: Text.FixedHeight
         wrapMode: Text.WordWrap
       }
 
-      Row {
+      RowLayout {
         id: actionRow
         width: parent.width
-        spacing: 8
+        spacing: Config.spacingSmall
+
+        Item {
+          visible: root.material3Theme
+          Layout.fillWidth: true
+          Layout.minimumWidth: 0
+          Layout.preferredWidth: 0
+          Layout.preferredHeight: 1
+        }
 
         Rectangle {
           id: cancelButton
-          width: (actionRow.width - actionRow.spacing) / 2
-          height: 38
-          radius: Config.shapeMedium
+          Layout.fillWidth: !root.material3Theme
+          Layout.minimumWidth: 0
+          Layout.preferredWidth: root.material3Theme
+            ? Math.max(80, cancelLabel.implicitWidth + Config.spacingPage)
+            : 1
+          implicitHeight: root.dialogButtonHeight
+          height: root.dialogButtonHeight
+          radius: root.material3Theme ? height / 2 : Config.shapeMedium
           activeFocusOnTab: true
           color: {
             var overlay = cancelMouse.pressed ? Colors.pressOverlay
               : (cancelMouse.containsMouse ? Colors.hoverOverlay
                 : Qt.rgba(0, 0, 0, 0))
-            return Qt.tint(root.cancelColor, overlay)
+            return Qt.tint(root.material3Theme ? "transparent" : root.cancelColor, overlay)
           }
-          border.width: root.focusedButton === 0 ? Config.themeFocusBorderWidth : Config.themeBorderWidth
-          border.color: root.focusedButton === 0 ? Colors.tertiary : root.dialogBorderColor
+          border.width: root.material3Theme
+            ? (root.focusedButton === 0 ? Config.themeFocusBorderWidth : 0)
+            : (root.focusedButton === 0 ? Config.themeFocusBorderWidth : Config.themeBorderWidth)
+          border.color: root.material3Theme
+            ? Colors.primary
+            : (root.focusedButton === 0 ? Colors.tertiary : root.dialogBorderColor)
 
           Accessible.role: Accessible.Button
           Accessible.name: "Cancel"
@@ -204,12 +242,15 @@ FocusScope {
           }
 
           Text {
+            id: cancelLabel
             anchors.centerIn: parent
             text: "Cancel"
             color: root.cancelTextColor
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 2
-            font.weight: root.focusedButton === 0 ? Font.Bold : Font.Medium
+            font.pixelSize: Config.typeLabelLargeSize
+            font.weight: root.material3Theme ? Config.typeMediumWeight
+              : (root.focusedButton === 0 ? Config.typeStrongWeight : Config.typeMediumWeight)
+            font.letterSpacing: Config.typeLabelTracking
           }
 
           MouseArea {
@@ -226,18 +267,27 @@ FocusScope {
 
         Rectangle {
           id: confirmButton
-          width: (actionRow.width - actionRow.spacing) / 2
-          height: 38
-          radius: Config.shapeMedium
+          Layout.fillWidth: !root.material3Theme
+          Layout.minimumWidth: 0
+          Layout.preferredWidth: root.material3Theme
+            ? Math.max(88, confirmLabel.implicitWidth + Config.spacingPage)
+            : 1
+          implicitHeight: root.dialogButtonHeight
+          height: root.dialogButtonHeight
+          radius: root.material3Theme ? height / 2 : Config.shapeMedium
           activeFocusOnTab: true
           color: {
             var overlay = confirmMouse.pressed ? Colors.pressOverlay
               : (confirmMouse.containsMouse ? Colors.hoverOverlay
                 : Qt.rgba(0, 0, 0, 0))
-            return Qt.tint(root.confirmColor, overlay)
+            return Qt.tint(root.material3Theme ? Colors.errorContainer : root.confirmColor, overlay)
           }
-          border.width: root.focusedButton === 1 ? Config.themeFocusBorderWidth : Config.themeBorderWidth
-          border.color: root.focusedButton === 1 ? Colors.tertiary : root.confirmColor
+          border.width: root.material3Theme
+            ? (root.focusedButton === 1 ? Config.themeFocusBorderWidth : 0)
+            : (root.focusedButton === 1 ? Config.themeFocusBorderWidth : Config.themeBorderWidth)
+          border.color: root.material3Theme
+            ? Colors.primary
+            : (root.focusedButton === 1 ? Colors.tertiary : root.confirmColor)
 
           Accessible.role: Accessible.Button
           Accessible.name: root.actionLabel !== "" ? root.actionLabel : "Confirm"
@@ -251,12 +301,15 @@ FocusScope {
           }
 
           Text {
+            id: confirmLabel
             anchors.centerIn: parent
             text: root.actionLabel !== "" ? root.actionLabel : "Confirm"
-            color: root.confirmTextColor
+            color: root.material3Theme ? Colors.fgErrorContainer : root.confirmTextColor
             font.family: Config.fontFamily
-            font.pixelSize: Config.fontPixelSize + 2
-            font.weight: root.focusedButton === 1 ? Font.Bold : Font.Medium
+            font.pixelSize: Config.typeLabelLargeSize
+            font.weight: root.material3Theme ? Config.typeMediumWeight
+              : (root.focusedButton === 1 ? Config.typeStrongWeight : Config.typeMediumWeight)
+            font.letterSpacing: Config.typeLabelTracking
             elide: Text.ElideRight
             width: parent.width - 12
             horizontalAlignment: Text.AlignHCenter

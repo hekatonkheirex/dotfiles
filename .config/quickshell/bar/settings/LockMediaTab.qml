@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import "../"
@@ -12,6 +13,14 @@ Flickable {
   readonly property int neoShadowAllowance: Config.neoBrutalism
     ? Config.themeShadowOffset
     : 0
+  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property int segmentedButtonGap: lockMediaTab.material3Theme ? 0 : Config.spacingCompact
+  // Keep trailing idle sliders the same length as the shared settings rows.
+  // The compact minimum preserves a usable control at the panel's minimum width.
+  readonly property int standardizedSliderWidth: Math.max(
+    lockMediaTab.compactLayout ? 104 : 170,
+    mainColumn.width - Config.settingsRowLabelWidth - 70 - Config.spacingMedium * 5
+  )
   readonly property var lockTimeoutOptions: [0, 60, 120, 180, 300, 600, 900, 1800, 3600]
   readonly property var suspendTimeoutOptions: [0, 300, 600, 900, 1200, 1800, 3600, 7200]
   anchors.fill: parent
@@ -21,6 +30,7 @@ Flickable {
   contentHeight: mainColumn.implicitHeight + lockMediaTab.neoShadowAllowance
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
+  ScrollBar.vertical: SettingsScrollBar { scrollTarget: lockMediaTab }
 
   function timeoutIndex(options, seconds) {
     var closestIndex = 0
@@ -58,13 +68,19 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, lockMediaTab.width - lockMediaTab.neoShadowAllowance)
+    width: Math.max(0, lockMediaTab.width - lockMediaTab.neoShadowAllowance - Config.settingsScrollbarGutter)
     spacing: Config.spacingLarge + lockMediaTab.neoShadowAllowance
+
+    SettingsPageHeader {
+      pageTitle: "Lock & Power"
+      subtitle: "Configure the lock screen, idle behavior, and power profiles."
+    }
 
     // Lock Screen card
     StyledSurface {
+      variant: "filled"
       Layout.fillWidth: true
-      Layout.preferredHeight: lockCol.implicitHeight + 16
+      Layout.preferredHeight: lockCol.implicitHeight + Config.spacingSmall * 2
       radius: Config.shapeLarge
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
@@ -82,8 +98,8 @@ Flickable {
           font.family: Config.fontFamily
           font.pixelSize: Config.textCaptionSize
           font.weight: Font.Medium
-          Layout.leftMargin: 8
-          Layout.topMargin: 4
+          Layout.leftMargin: Config.spacingSmall
+          Layout.topMargin: Config.spacingCompact
         }
 
         ListItem {
@@ -141,7 +157,7 @@ Flickable {
 
             Row {
               anchors.fill: parent
-              spacing: Config.spacingCompact
+              spacing: lockMediaTab.segmentedButtonGap
 
               Repeater {
                 model: [
@@ -151,12 +167,18 @@ Flickable {
 
                 delegate: ActionButton {
                   required property var modelData
-                  width: (parent.width - Config.spacingCompact) / 2
+                  required property int index
+                  width: (parent.width - lockMediaTab.segmentedButtonGap) / 2
                   height: parent.height
                   labelText: modelData.label
                   iconLabel: modelData.value === "gooey" ? "bubble_chart" : "data_object"
                   iconSize: 15
+                  contentSpacing: Config.spacingCompact
+                  horizontalContent: false
                   selected: Settings.lockClockFace === modelData.value
+                  checkable: true
+                  grouped: true
+                  groupPosition: index === 0 ? "first" : "last"
                   accessibleName: modelData.label + " clock face"
                   onActivated: {
                     Settings.lockClockFace = modelData.value
@@ -179,7 +201,7 @@ Flickable {
             font.family: Config.fontFamily
             font.pixelSize: Config.textBodySize
             Layout.preferredWidth: lockMediaTab.compactLayout ? 64 : 90
-            Layout.leftMargin: 8
+            Layout.leftMargin: Config.spacingSmall
           }
 
           SliderControl {
@@ -217,8 +239,9 @@ Flickable {
 
     // Idle & Power card
     StyledSurface {
+      variant: "filled"
       Layout.fillWidth: true
-      Layout.preferredHeight: idleCol.implicitHeight + 16
+      Layout.preferredHeight: idleCol.implicitHeight + Config.spacingSmall * 2
       radius: Config.shapeLarge
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
@@ -236,8 +259,8 @@ Flickable {
           font.family: Config.fontFamily
           font.pixelSize: Config.textCaptionSize
           font.weight: Font.Medium
-          Layout.leftMargin: 8
-          Layout.topMargin: 4
+          Layout.leftMargin: Config.spacingSmall
+          Layout.topMargin: Config.spacingCompact
         }
 
         ListItem {
@@ -249,7 +272,7 @@ Flickable {
           accessibleDescription: "Choose when the session locks while idle"
 
           SliderControl {
-            width: lockMediaTab.compactLayout ? 104 : 170
+            width: lockMediaTab.standardizedSliderWidth
             value: lockMediaTab.timeoutIndex(
               lockMediaTab.lockTimeoutOptions,
               Settings.idleLockTimeoutSeconds
@@ -284,7 +307,7 @@ Flickable {
           accessibleDescription: "Choose when the computer suspends while idle"
 
           SliderControl {
-            width: lockMediaTab.compactLayout ? 104 : 170
+            width: lockMediaTab.standardizedSliderWidth
             value: lockMediaTab.timeoutIndex(
               lockMediaTab.suspendTimeoutOptions,
               Settings.idleSuspendTimeoutSeconds
@@ -312,8 +335,8 @@ Flickable {
 
         Text {
           Layout.fillWidth: true
-          Layout.leftMargin: 8
-          Layout.rightMargin: 8
+          Layout.leftMargin: Config.spacingSmall
+          Layout.rightMargin: Config.spacingSmall
           text: "Dim after 2.5 min • display off after 10 min • suspend always locks first"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
@@ -323,11 +346,13 @@ Flickable {
 
         ActionButton {
           Layout.fillWidth: true
-          Layout.preferredHeight: 48
+          Layout.preferredHeight: Config.themeLabeledActionButtonHeight
           iconLabel: "coffee"
           iconSize: 24
+          contentSpacing: Config.spacingMedium
           labelText: "Caffeine"
           selected: root.caffeineOn
+          checkable: true
           accessibleName: "Caffeine mode"
           accessibleDescription: root.caffeineOn
             ? "Enabled; idle lock, display off, and suspend are paused"

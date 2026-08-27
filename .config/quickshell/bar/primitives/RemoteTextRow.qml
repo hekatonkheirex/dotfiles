@@ -14,6 +14,8 @@ RowLayout {
   property string cliField: ""
   property var extraArgs: []
   property string label: ""
+  property string leadingIcon: ""
+  property bool live: true
   property string value: ""
   signal writeFailed(string message)
 
@@ -21,11 +23,25 @@ RowLayout {
   spacing: Config.spacingMedium
 
   Text {
+    visible: root.leadingIcon !== ""
+    text: root.leadingIcon
+    color: Colors.fgSurfaceVariant
+    font.family: Config.iconFont
+    font.pixelSize: Config.iconSize
+    font.variableAxes: Config.iconVariableAxes(0, Config.iconSize)
+    Layout.preferredWidth: 20
+  }
+
+  Text {
     text: root.label
     color: Colors.fgSurfaceVariant
     font.family: Config.fontFamily
-    font.pixelSize: Config.textBodySize
-    Layout.preferredWidth: 120
+    font.pixelSize: Config.typeBodyMediumSize
+    font.letterSpacing: Config.typeBodyTracking
+    lineHeight: Config.typeBodyMediumLineHeight
+    lineHeightMode: Text.FixedHeight
+    Layout.preferredWidth: Math.max(Config.settingsRowLabelWidth, implicitWidth)
+    Layout.minimumWidth: Math.max(Config.settingsRowLabelWidth, implicitWidth)
   }
 
   TextFieldControl {
@@ -68,12 +84,14 @@ RowLayout {
   }
 
   function reload() {
+    if (!root.live) return
     readProc.command = ["python3", "-m", "scripts.niri_config", root.cliFile, "read", root.cliField].concat(root.extraArgs)
     readProc.running = false
     readProc.running = true
   }
 
   function commit(newValue) {
+    if (!root.live) return
     if (newValue === root.value) return
     writeProc.pendingValue = root.value
     root.value = newValue
@@ -82,5 +100,6 @@ RowLayout {
     writeProc.running = true
   }
 
-  Component.onCompleted: root.reload()
+  onLiveChanged: if (root.live) root.reload()
+  Component.onCompleted: if (root.live) root.reload()
 }

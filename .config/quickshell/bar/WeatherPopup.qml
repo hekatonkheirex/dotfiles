@@ -9,7 +9,7 @@ PopupBase {
   id: root
 
   surfaceWidth: 620
-  surfaceHeight: Math.min(contentColumn.implicitHeight + 32, 520)
+  surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 520)
 
   property string city: ""
   property string temp: "--°"
@@ -83,7 +83,7 @@ PopupBase {
       fill: parent
       margins: Config.popupPadding
     }
-    spacing: 12
+    spacing: Config.spacingMedium
 
     RowLayout {
       Layout.fillWidth: true
@@ -92,8 +92,11 @@ PopupBase {
         text: "Weather"
         color: Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: (Config.fontPixelSize + 8)
-        font.weight: Font.Bold
+        font.pixelSize: Config.typeHeadlineSmallSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeHeadlineTracking
+        lineHeight: Config.typeHeadlineSmallLineHeight
+        lineHeightMode: Text.FixedHeight
       }
 
       Item { Layout.fillWidth: true }
@@ -102,7 +105,8 @@ PopupBase {
         text: root.updatedAt !== "" ? "Updated " + root.updatedAt.replace("T", " ") : ""
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
-        font.pixelSize: Math.max(8, Config.fontPixelSize - 1)
+        font.pixelSize: Config.typeLabelSmallSize
+        font.letterSpacing: Config.typeLabelTracking
         elide: Text.ElideLeft
       }
 
@@ -127,15 +131,29 @@ PopupBase {
 
       RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 12
-        spacing: 8
+        anchors.leftMargin: Config.spacingMedium
+        anchors.rightMargin: Config.spacingMedium
+        spacing: Config.spacingSmall
+
+        LoadingIndicator {
+          size: 32
+          contained: true
+          visible: root.status === "loading"
+          running: weatherProc.running
+          indicatorColor: Colors.primary
+          accessibleName: "Loading weather"
+          Layout.preferredWidth: 32
+          Layout.preferredHeight: 32
+          Layout.alignment: Qt.AlignVCenter
+        }
 
         Text {
-          text: root.status === "loading" ? "progress_activity" : "cloud_off"
+          visible: root.status !== "loading"
+          text: "cloud_off"
           color: root.status === "offline" ? Colors.fgErrorContainer : Colors.fgSurfaceVariant
           font.family: Config.iconFont
           font.pixelSize: 22
+          font.variableAxes: Config.iconVariableAxes(0, 22)
           Layout.alignment: Qt.AlignVCenter
         }
 
@@ -144,7 +162,10 @@ PopupBase {
           text: root.statusMessage
           color: root.status === "offline" ? Colors.fgErrorContainer : Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: Config.fontPixelSize + 1
+          font.pixelSize: Config.typeBodyMediumSize
+          font.letterSpacing: Config.typeBodyTracking
+          lineHeight: Config.typeBodyMediumLineHeight
+          lineHeightMode: Text.FixedHeight
           wrapMode: Text.WordWrap
           verticalAlignment: Text.AlignVCenter
         }
@@ -155,7 +176,7 @@ PopupBase {
     RowLayout {
       Layout.fillWidth: true
       Layout.preferredHeight: 115
-      spacing: 12
+      spacing: Config.spacingMedium
 
       Rectangle {
         Layout.preferredWidth: 220
@@ -167,18 +188,19 @@ PopupBase {
 
         RowLayout {
           anchors.centerIn: parent
-          spacing: 16
+          spacing: Config.spacingLarge
 
           Text {
             text: Colors.weatherIcon(root.desc)
             font.family: Config.iconFont
             font.pixelSize: 64
+            font.variableAxes: Config.iconVariableAxes(0, 64)
             color: Colors.weatherColor(root.desc)
             Layout.alignment: Qt.AlignVCenter
           }
 
           ColumnLayout {
-            spacing: 1
+            spacing: Config.spacingCompact
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
 
@@ -186,16 +208,18 @@ PopupBase {
               text: root.temp
               color: Colors.fgSurface
               font.family: Config.fontFamily
-              font.pixelSize: 28
-              font.weight: Font.Bold
+              font.pixelSize: Config.typeHeadlineLargeSize
+              font.weight: Config.typeStrongWeight
+              font.letterSpacing: Config.typeHeadlineTracking
             }
 
             Text {
               text: root.desc
               color: Colors.fgSurfaceVariant
               font.family: Config.fontFamily
-              font.pixelSize: 13
-              font.weight: Font.Medium
+              font.pixelSize: Config.typeBodyMediumSize
+              font.weight: Config.typeMediumWeight
+              font.letterSpacing: Config.typeBodyTracking
               elide: Text.ElideRight
             }
 
@@ -203,7 +227,8 @@ PopupBase {
               text: root.city || (root.status === "unavailable" ? "Location not configured" : "Location unavailable")
               color: Qt.rgba(Colors.fgSurfaceVariant.r, Colors.fgSurfaceVariant.g, Colors.fgSurfaceVariant.b, 0.5)
               font.family: Config.fontFamily
-              font.pixelSize: 10
+              font.pixelSize: Config.typeLabelSmallSize
+              font.letterSpacing: Config.typeLabelTracking
             }
           }
         }
@@ -222,27 +247,29 @@ PopupBase {
           text: root.status === "loading" ? "Loading hourly forecast..." : "Forecast unavailable"
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: 11
+          font.pixelSize: Config.typeLabelSmallSize
+          font.letterSpacing: Config.typeLabelTracking
           visible: !root.hourly || root.hourly.length === 0
         }
 
         ColumnLayout {
           anchors.fill: parent
-          anchors.margins: 10
-          spacing: 4
+          anchors.margins: Config.spacingSmall
+          spacing: Config.spacingCompact
           visible: root.hourly && root.hourly.length > 0
 
           Text {
             text: "Hourly Forecast"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
-            font.pixelSize: 10
-            font.weight: Font.Medium
+            font.pixelSize: Config.typeLabelSmallSize
+            font.weight: Config.typeMediumWeight
+            font.letterSpacing: Config.typeLabelTracking
           }
 
           RowLayout {
             Layout.fillWidth: true
-            spacing: 4
+            spacing: Config.spacingCompact
 
             Repeater {
               model: root.hourly
@@ -254,14 +281,15 @@ PopupBase {
 
                 ColumnLayout {
                   anchors.centerIn: parent
-                  spacing: 2
+                  spacing: Config.spacingCompact
 
                   Text {
                     text: modelData.time
                     color: Colors.fgSurfaceVariant
                     font.family: Config.fontFamily
-                    font.pixelSize: 10
-                    font.weight: Font.Medium
+                    font.pixelSize: Config.typeLabelSmallSize
+                    font.weight: Config.typeMediumWeight
+                    font.letterSpacing: Config.typeLabelTracking
                     Layout.alignment: Qt.AlignHCenter
                   }
 
@@ -269,6 +297,7 @@ PopupBase {
                     text: Colors.weatherIcon(modelData.desc)
                     font.family: Config.iconFont
                     font.pixelSize: 28
+                    font.variableAxes: Config.iconVariableAxes(0, 28)
                     color: Colors.weatherColor(modelData.desc)
                     Layout.alignment: Qt.AlignHCenter
                   }
@@ -277,8 +306,8 @@ PopupBase {
                     text: modelData.temp
                     color: Colors.fgSurface
                     font.family: Config.fontFamily
-                    font.pixelSize: 11
-                    font.weight: Font.Bold
+                    font.pixelSize: Config.typeLabelMediumSize
+                    font.weight: Config.typeStrongWeight
                     Layout.alignment: Qt.AlignHCenter
                   }
                 }
@@ -293,8 +322,8 @@ PopupBase {
     GridLayout {
       columns: 3
       Layout.fillWidth: true
-      columnSpacing: 8
-      rowSpacing: 8
+      columnSpacing: Config.spacingSmall
+      rowSpacing: Config.spacingSmall
 
       Repeater {
         model: [
@@ -317,12 +346,13 @@ PopupBase {
 
           RowLayout {
             anchors.centerIn: parent
-            spacing: 8
+            spacing: Config.spacingSmall
 
             Text {
               text: modelData.icon
               font.family: Config.iconFont
               font.pixelSize: 20
+              font.variableAxes: Config.iconVariableAxes(0, 20)
               color: modelData.color
               Layout.alignment: Qt.AlignVCenter
             }
@@ -335,16 +365,17 @@ PopupBase {
                 text: modelData.label
                 color: Colors.fgSurfaceVariant
                 font.family: Config.fontFamily
-                font.pixelSize: 8
-                font.weight: Font.Medium
+                font.pixelSize: Config.typeLabelSmallSize
+                font.weight: Config.typeMediumWeight
+                font.letterSpacing: Config.typeLabelTracking
               }
 
               Text {
                 text: modelData.value
                 color: Colors.fgSurface
                 font.family: Config.fontFamily
-                font.pixelSize: 11
-                font.weight: Font.Bold
+                font.pixelSize: Config.typeLabelMediumSize
+                font.weight: Config.typeStrongWeight
               }
             }
           }
@@ -355,7 +386,7 @@ PopupBase {
     // 5-Day Forecast
     RowLayout {
       Layout.fillWidth: true
-      spacing: 8
+      spacing: Config.spacingSmall
 
       Repeater {
         model: root.forecast
@@ -372,7 +403,7 @@ PopupBase {
 
           ColumnLayout {
             anchors.centerIn: parent
-            spacing: 3
+            spacing: Config.spacingCompact
 
             Text {
               text: {
@@ -382,8 +413,8 @@ PopupBase {
               }
               color: Colors.fgSurface
               font.family: Config.fontFamily
-              font.pixelSize: 10
-              font.weight: Font.Bold
+              font.pixelSize: Config.typeLabelSmallSize
+              font.weight: Config.typeStrongWeight
               Layout.alignment: Qt.AlignHCenter
             }
 
@@ -391,6 +422,7 @@ PopupBase {
               text: Colors.weatherIcon(modelData.desc)
               font.family: Config.iconFont
               font.pixelSize: 32
+              font.variableAxes: Config.iconVariableAxes(0, 32)
               color: Colors.weatherColor(modelData.desc)
               Layout.alignment: Qt.AlignHCenter
             }
@@ -399,7 +431,10 @@ PopupBase {
               text: modelData.max_temp + " / " + modelData.min_temp
               color: Colors.fgSurface
               font.family: Config.fontFamily
-              font.pixelSize: 9
+              font.pixelSize: Config.typeLabelSmallSize
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: Config.typeLabelSmallLineHeight
+              lineHeightMode: Text.FixedHeight
               Layout.alignment: Qt.AlignHCenter
             }
           }
