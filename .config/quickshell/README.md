@@ -179,6 +179,12 @@ spawn-sh-at-startup "dbus-update-activation-environment --systemd --all && syste
 
 Quickshell auto-discovers `~/.config/quickshell/shell.qml` as the default config when run without arguments.
 
+### GPU Hang Watchdog
+
+The Intel i915 driver has hung Quickshell's render thread twice in production (`GPU HANG: ecode 9:1:85dffffb`, preemption timeout on `rcs0`). Qt's QRhiGles2 backend doesn't recover from the resulting context loss — the process stays alive but never renders again, so `Restart=on-failure` on `quickshell.service` never fires.
+
+`quickshell-gpu-watchdog.service` (unit at `~/.config/systemd/user/quickshell-gpu-watchdog.service`, script at `scripts/gpu-hang-watchdog.sh`) tails the `quickshell.service` journal for the `Context is lost` / `Graphics device lost` signature and force-restarts `quickshell.service` when it appears. Enabled alongside `quickshell.service` via `graphical-session.target`.
+
 When `Settings.themeStyle` is `ghost`, `ui/WelcomeScreen.qml` starts automatically after the shell is ready. It can also be replayed with `quickshell ipc call shell welcome`; other styles leave the overlay disabled.
 
 ### Lid Switch
