@@ -47,6 +47,7 @@ RowLayout {
   TextFieldControl {
     id: field
     Layout.fillWidth: true
+    enabled: !writeProc.running
     text: root.value
     accessibleName: root.label
     onAccepted: root.commit(text)
@@ -62,8 +63,13 @@ RowLayout {
     stdout: StdioCollector {
       onStreamFinished: {
         var v = text.trim()
-        if (v !== "") { root.value = v; field.text = v }
+        root.value = v === "unset" ? "" : v
+        field.text = root.value
       }
+    }
+    stderr: StdioCollector { id: readError }
+    onExited: (exitCode, exitStatus) => {
+      if (exitCode !== 0) root.writeFailed(root.processError(readError.text, exitCode))
     }
   }
 
@@ -72,15 +78,19 @@ RowLayout {
     running: false
     workingDirectory: Quickshell.env("HOME") + "/.config/quickshell"
     property string pendingValue: ""
-    stderr: StdioCollector {
-      onStreamFinished: {
-        if (text.trim() !== "") {
-          root.value = writeProc.pendingValue
-          field.text = writeProc.pendingValue
-          root.writeFailed(text.trim())
-        }
+    stderr: StdioCollector { id: writeError }
+    onExited: (exitCode, exitStatus) => {
+      if (exitCode !== 0) {
+        root.value = writeProc.pendingValue
+        field.text = writeProc.pendingValue
+        root.writeFailed(root.processError(writeError.text, exitCode))
       }
     }
+  }
+
+  function processError(raw, exitCode) {
+    var message = (raw || "").trim()
+    return message !== "" ? message : "Niri config command failed (exit " + exitCode + ")"
   }
 
   function reload() {
@@ -91,8 +101,9 @@ RowLayout {
   }
 
   function commit(newValue) {
-    if (!root.live) return
+    if (!root.live || writeProc.running) return
     if (newValue === root.value) return
+    readProc.running = false
     writeProc.pendingValue = root.value
     root.value = newValue
     writeProc.command = ["python3", "-m", "scripts.niri_config", root.cliFile, "write", root.cliField, newValue].concat(root.extraArgs)

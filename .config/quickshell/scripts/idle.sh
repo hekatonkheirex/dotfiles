@@ -47,8 +47,8 @@ else
 fi
 
 set -- /usr/bin/swayidle \
-  timeout 150 '/usr/bin/sh -c "brightnessctl g > /tmp/qs-prev-brightness && brightnessctl set 10%"' \
-  resume '/usr/bin/sh -c "brightnessctl set $(cat /tmp/qs-prev-brightness 2>/dev/null || echo 100%)"'
+  timeout 150 "$HOME/.config/quickshell/scripts/idle-brightness-off" \
+  resume "$HOME/.config/quickshell/scripts/idle-brightness-restore"
 
 if [ "$lock_timeout" -gt 0 ]; then
   set -- "$@" timeout "$lock_timeout" "$HOME/.config/quickshell/scripts/lock"

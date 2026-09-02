@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, os, sys, re
+import json, os, re, shlex, sys, tempfile
 from pathlib import Path
 
 XDG_DATA_HOME = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
@@ -10,7 +10,11 @@ APP_DIRS = [
     *(Path(d) / "applications" for d in XDG_DATA_DIRS),
 ]
 
-CACHE_PATH = Path("/tmp") / f"qs-app-cache-{os.getuid()}.json"
+if os.environ.get("XDG_RUNTIME_DIR"):
+    CACHE_DIR = Path(os.environ["XDG_RUNTIME_DIR"]) / "quickshell"
+else:
+    CACHE_DIR = Path.home() / ".cache" / "quickshell" / "runtime"
+CACHE_PATH = CACHE_DIR / "app-cache.json"
 
 ICON_DIRS = []
 for d in [XDG_DATA_HOME, *(Path(p) for p in XDG_DATA_DIRS)]:
@@ -78,7 +82,20 @@ def get_apps_mtime_sum():
             total += d.stat().st_mtime
     return total
 
-CACHE_VERSION = 2
+CACHE_VERSION = 3
+
+FIELD_CODE_RE = re.compile(r"%[fFuUdDnNickvm]")
+
+
+def parse_exec(exec_cmd):
+    """Parse a desktop Exec value without invoking a shell."""
+    cleaned = FIELD_CODE_RE.sub("", exec_cmd).strip()
+    if not cleaned:
+        return []
+    try:
+        return [token for token in shlex.split(cleaned, comments=False, posix=True) if token]
+    except ValueError:
+        return []
 
 def load_cache(mtime_sum):
     if CACHE_PATH.exists():
@@ -92,11 +109,24 @@ def load_cache(mtime_sum):
     return None
 
 def save_cache(mtime_sum, apps):
+    temporary_path = None
     try:
-        with open(CACHE_PATH, "w", encoding="utf-8") as f:
+        CACHE_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if CACHE_DIR.stat().st_mode & 0o777 != 0o700:
+            os.chmod(CACHE_DIR, 0o700)
+        fd, temporary_path = tempfile.mkstemp(prefix="app-cache.", dir=CACHE_DIR)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump({"mtime_sum": mtime_sum, "version": CACHE_VERSION, "apps": apps}, f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.chmod(temporary_path, 0o600)
+        os.replace(temporary_path, CACHE_PATH)
     except Exception:
-        pass
+        if temporary_path:
+            try:
+                os.unlink(temporary_path)
+            except OSError:
+                pass
 
 def main():
     mtime_sum = get_apps_mtime_sum()
@@ -123,7 +153,10 @@ def main():
             exec_cmd = entry.get("Exec", "")
             if not exec_cmd:
                 continue
-            key = (name, exec_cmd)
+            argv = parse_exec(exec_cmd)
+            if not argv:
+                continue
+            key = (name, tuple(argv))
             if key in seen:
                 continue
             seen.add(key)
@@ -131,6 +164,7 @@ def main():
             apps.append({
                 "name": name,
                 "exec": exec_cmd,
+                "argv": argv,
                 "icon": resolve_icon(icon_name),
                 "comment": entry.get("Comment", ""),
                 "generic_name": entry.get("GenericName", ""),

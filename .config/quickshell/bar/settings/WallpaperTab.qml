@@ -28,17 +28,23 @@ Flickable {
   property string currentWallpaper: ""
   property bool discoveryStarted: false
 
-  onVisibleChanged: {
-    if (visible && !discoveryStarted) {
+  function refreshWallpaperState() {
+    if (!visible) return
+
+    if (!discoveryStarted) {
       discoveryStarted = true
       listWallpapersProc.running = true
       genWallpapersThumbsProc.running = true
     }
-    if (visible) {
-      getWallpaperProc.running = false
-      getWallpaperProc.running = true
-    }
+
+    getWallpaperProc.running = false
+    getWallpaperProc.running = true
   }
+
+  // A Loader can create this tab already visible. In that case the initial
+  // visible value is never changed, so onVisibleChanged is not emitted.
+  Component.onCompleted: refreshWallpaperState()
+  onVisibleChanged: refreshWallpaperState()
 
   Process {
     id: listWallpapersProc

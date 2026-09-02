@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=theme-sync-lock.sh
+source "$script_dir/theme-sync-lock.sh"
+
 # Activate the selected semantic Matugen cache through the same pipeline used
 # by wallpaper changes. Live and Fixed own separate inputs so changing source
 # never destroys the wallpaper-generated palette.

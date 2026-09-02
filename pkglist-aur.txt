@@ -1,6 +1,8 @@
 android-sdk-cmdline-tools-latest
 brave-origin-bin
+chatgpt-desktop
 claude-code
+cursor-bin
 google-chrome
 herdr-bin
 libgnome-keyring

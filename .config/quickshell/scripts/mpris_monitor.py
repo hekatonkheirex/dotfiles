@@ -1,9 +1,21 @@
 #!/usr/bin/env python3
-import sys
+import atexit
 import json
+import os
+import stat
+import sys
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
+
+# Keep the runtime FIFO private to this user. The monitor only accepts a
+# fixed command vocabulary, so the FIFO is an internal nudge channel.
+os.umask(0o077)
+if os.environ.get("XDG_RUNTIME_DIR"):
+    RUNTIME_DIR = os.path.join(os.environ["XDG_RUNTIME_DIR"], "quickshell")
+else:
+    RUNTIME_DIR = os.path.expanduser("~/.cache/quickshell/runtime")
+FIFO = os.path.join(RUNTIME_DIR, "qsmpris-fifo")
 
 # We'll run the DBus main loop
 DBusGMainLoop(set_as_default=True)
@@ -183,14 +195,19 @@ def handle_cmd(cmd):
             update_and_print()
 
 def read_fifo():
-    import os
-    FIFO = '/tmp/qsmpris-fifo'
     try:
-        if os.path.exists(FIFO):
+        os.makedirs(RUNTIME_DIR, mode=0o700, exist_ok=True)
+        if stat.S_IMODE(os.stat(RUNTIME_DIR).st_mode) != 0o700:
+            os.chmod(RUNTIME_DIR, 0o700)
+        if os.path.lexists(FIFO):
+            if not stat.S_ISFIFO(os.lstat(FIFO).st_mode):
+                raise RuntimeError(f"Refusing non-FIFO MPRIS path: {FIFO}")
             os.remove(FIFO)
-        os.mkfifo(FIFO)
-    except OSError:
-        pass
+        os.mkfifo(FIFO, 0o600)
+    except Exception as exc:
+        sys.stderr.write(f"Could not create MPRIS FIFO: {exc}\n")
+        sys.stderr.flush()
+        return
         
     while True:
         try:
@@ -201,6 +218,17 @@ def read_fifo():
                         handle_cmd(cmd)
         except Exception:
             pass
+
+
+def cleanup_fifo():
+    try:
+        if os.path.lexists(FIFO) and stat.S_ISFIFO(os.lstat(FIFO).st_mode):
+            os.remove(FIFO)
+    except OSError:
+        pass
+
+
+atexit.register(cleanup_fifo)
 
 import threading
 t = threading.Thread(target=read_fifo, daemon=True)

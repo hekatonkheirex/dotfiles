@@ -42,6 +42,40 @@ def test_apply_aborts_on_invalid_kdl(working_copy):
     assert working_copy.read_text() == original_text  # untouched
 
 
+def test_apply_does_not_reload_fixture_by_default(working_copy, monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        "scripts.niri_config.config_file.subprocess.run",
+        lambda *args, **kwargs: calls.append(args[0]) or type("Result", (), {"returncode": 0, "stderr": "", "stdout": ""})(),
+    )
+    cfg = NiriConfigFile(str(working_copy))
+    assert cfg.apply(lambda text: text.replace("scale 1", "scale 2")).ok
+    assert calls == [["niri", "validate", "-c", calls[0][-1]]]
+
+
+def test_apply_reloads_and_restores_when_live_reload_fails(working_copy, monkeypatch):
+    original_text = working_copy.read_text()
+    calls = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        if command[:3] == ["niri", "validate", "-c"]:
+            return type("Result", (), {"returncode": 0, "stderr": "", "stdout": ""})()
+        return type("Result", (), {"returncode": 1, "stderr": "reload failed", "stdout": ""})()
+
+    monkeypatch.setattr("scripts.niri_config.config_file.subprocess.run", fake_run)
+    cfg = NiriConfigFile(str(working_copy), reload_live=True)
+    result = cfg.apply(lambda text: text.replace("scale 1", "scale 2"))
+
+    assert not result.ok
+    assert "restored" in result.error
+    assert working_copy.read_text() == original_text
+    assert [command[:3] for command in calls] == [
+        ["niri", "validate", "-c"],
+        ["niri", "msg", "action"],
+    ]
+
+
 def test_apply_creates_backup_on_success(working_copy):
     cfg = NiriConfigFile(str(working_copy))
     original_text = working_copy.read_text()

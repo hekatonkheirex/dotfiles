@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-rm -f /tmp/qssettings-trigger && touch /tmp/qssettings-trigger
+exec "$(dirname -- "$0")/emit-trigger" qssettings-trigger

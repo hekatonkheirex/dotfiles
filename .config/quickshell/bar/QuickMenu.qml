@@ -350,25 +350,21 @@ PanelWindow {
 
       ParallelAnimation {
         id: entryAnimation
-        SpringAnimation {
+        NumberAnimation {
           target: scaleTransform
           properties: "xScale,yScale"
           from: 0.85
           to: 1.0
-          spring: Config.motionSurfaceSpring
-          damping: Config.motionSurfaceDamping
-          mass: Config.motionSpatialMass
-          epsilon: Config.motionSpatialEpsilon
+          duration: Config.motionLong
+          easing.type: Config.themeMotionEasing
         }
-        SpringAnimation {
+        NumberAnimation {
           target: transX
           property: "x"
           from: -30
           to: 0
-          spring: Config.motionSurfaceSpring
-          damping: Config.motionSurfaceDamping
-          mass: Config.motionSpatialMass
-          epsilon: Config.motionSpatialEpsilon
+          duration: Config.motionLong
+          easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
           target: bg
@@ -510,7 +506,7 @@ PanelWindow {
             width: (parent.width - 3 * Config.spacingSmall) / 4
             height: width
             iconLabel: root.powerIcon(modelData.label)
-            labelText: modelData.label
+            labelText: ""
             selected: index === root.activePowerIndex
             expressiveSelectedShape: true
             horizontalContent: false

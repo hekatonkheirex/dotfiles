@@ -28,6 +28,14 @@ def test_read_output_scale(outputs_copy):
     assert result.stdout.strip() == "1"
 
 
+def test_read_missing_optional_field_reports_unset(tmp_path):
+    target = tmp_path / "inputs.kdl"
+    shutil.copy2(FIXTURES / "inputs.kdl", target)
+    result = run_cli("inputs", "read", "mouse-accel-speed", path=target)
+    assert result.returncode == 0
+    assert result.stdout.strip() == "unset"
+
+
 def test_write_output_scale(outputs_copy):
     result = run_cli("outputs", "write", "scale", "1.5", "eDP-1", path=outputs_copy)
     assert result.returncode == 0

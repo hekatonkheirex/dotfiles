@@ -80,6 +80,7 @@ ShellRoot {
   readonly property bool isHorizontal: shell.barPosition === "top"
     || shell.barPosition === "bottom"
   property bool fullBar: Settings.fullBar
+  property bool paletteActivationComplete: false
 
   function normalizeBarPosition(value) {
     var pref = String(value || "").trim()
@@ -109,7 +110,7 @@ ShellRoot {
 
   function syncThemeMode() {
     Quickshell.execDetached([
-      Quickshell.env("HOME") + "/.local/bin/sync-theme-mode.sh",
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-theme-mode-locked.sh",
       shell.themeModeName(Settings.themePreference),
       "",
       Settings.themeStyle,
@@ -119,12 +120,19 @@ ShellRoot {
 
   function syncUiStyle() {
     Quickshell.execDetached([
-      Quickshell.env("HOME") + "/.local/bin/sync-theme-mode.sh",
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-theme-mode-locked.sh",
       shell.themeModeName(Settings.themePreference),
       "--quiet",
       Settings.themeStyle,
       "--sync-sddm"
     ])
+  }
+
+  function startInitialThemeSync() {
+    if (!shell.paletteActivationComplete
+        || !Settings.initialLoadComplete
+        || syncThemeOnStartup.running) return
+    syncThemeOnStartup.running = true
   }
 
   function quietHoursActive() {
@@ -161,14 +169,15 @@ ShellRoot {
     running: true
     onExited: {
       Colors.reloadMatugenPalette()
-      syncThemeOnStartup.running = true
+      shell.paletteActivationComplete = true
+      shell.startInitialThemeSync()
     }
   }
 
   Process {
     id: syncThemeOnStartup
     command: [
-      Quickshell.env("HOME") + "/.local/bin/sync-theme-mode.sh",
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-theme-mode-locked.sh",
       shell.themeModeName(Settings.themePreference),
       "--quiet",
       Settings.themeStyle
@@ -178,8 +187,15 @@ ShellRoot {
 
   Connections {
     target: Settings
-    function onThemePreferenceChanged() { shell.syncThemeMode() }
-    function onThemeStyleChanged() { shell.syncUiStyle() }
+    function onInitialLoadCompleteChanged() { shell.startInitialThemeSync() }
+    function onThemePreferenceChanged() {
+      if (!Settings.initialLoadComplete) return
+      shell.syncThemeMode()
+    }
+    function onThemeStyleChanged() {
+      if (!Settings.initialLoadComplete) return
+      shell.syncUiStyle()
+    }
   }
 
   Process {
