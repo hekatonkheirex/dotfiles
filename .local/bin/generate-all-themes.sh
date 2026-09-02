@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+source "$HOME/.config/quickshell/scripts/theme-sync-lock.sh"
+
 echo "Regenerating all Material 3 Expressive themes from current matugen palette..."
 
 notify-send -a "Theme Generator" "Initializing theme reloading..." "Regenerating from matugen palette"

@@ -20,10 +20,10 @@ binds {
   // The allow-when-locked=true property makes them work even when the session is locked.
   // Using spawn-sh allows to pass multiple arguments together with the command.
   // "-l 1.0" limits the volume to 100%.
-  XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0 && touch /tmp/qsosd-vol"; }
-  XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1- && touch /tmp/qsosd-vol"; }
-  XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && touch /tmp/qsosd-vol"; }
-  XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle && touch /tmp/qsosd-mic"; }
+  XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0 && ~/.config/quickshell/scripts/emit-trigger qsosd-vol"; }
+  XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1- && ~/.config/quickshell/scripts/emit-trigger qsosd-vol"; }
+  XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && ~/.config/quickshell/scripts/emit-trigger qsosd-vol"; }
+  XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle && ~/.config/quickshell/scripts/emit-trigger qsosd-mic"; }
 
   // Example media keys mapping using playerctl.
   // This will work with any MPRIS-enabled media player.
@@ -35,16 +35,16 @@ binds {
   // Example brightness key mappings for brightnessctl.
   // You can use regular spawn with multiple arguments too (to avoid going through "sh"),
   // but you need to manually put each argument in separate "" quotes.
-  XF86MonBrightnessUp allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set +10% && touch /tmp/qsosd-bright"; }
-  XF86MonBrightnessDown allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set 10%- && touch /tmp/qsosd-bright"; }
+  XF86MonBrightnessUp allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set +10% && ~/.config/quickshell/scripts/emit-trigger qsosd-bright"; }
+  XF86MonBrightnessDown allow-when-locked=true { spawn-sh "brightnessctl --class=backlight set 10%- && ~/.config/quickshell/scripts/emit-trigger qsosd-bright"; }
 
-  XF86WLAN allow-when-locked=true { spawn-sh "if nmcli radio wifi | grep -q 'enabled'; then nmcli radio wifi off; while nmcli radio wifi | grep -q 'enabled'; do sleep 0.05; done; bluetoothctl power off; while bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-airplane; else nmcli radio wifi on; while ! nmcli radio wifi | grep -q 'enabled'; do sleep 0.05; done; bluetoothctl power on; while ! bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-airplane; fi"; }
-  Mod+F8 allow-when-locked=true { spawn-sh "if nmcli radio wifi | grep -q 'enabled'; then nmcli radio wifi off; while nmcli radio wifi | grep -q 'enabled'; do sleep 0.05; done; bluetoothctl power off; while bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-airplane; else nmcli radio wifi on; while ! nmcli radio wifi | grep -q 'enabled'; do sleep 0.05; done; bluetoothctl power on; while ! bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-airplane; fi"; }
-  F8 allow-when-locked=true { spawn-sh "if nmcli radio wifi | grep -q 'enabled'; then nmcli radio wifi off; while nmcli radio wifi | grep -q 'enabled'; do sleep 0.05; done; bluetoothctl power off; while bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-airplane; else nmcli radio wifi on; while ! nmcli radio wifi | grep -q 'enabled'; do sleep 0.05; done; bluetoothctl power on; while ! bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-airplane; fi"; }
+  XF86WLAN allow-when-locked=true { spawn-sh "~/.config/quickshell/scripts/toggle-airplane.sh"; }
+  Mod+F8 allow-when-locked=true { spawn-sh "~/.config/quickshell/scripts/toggle-airplane.sh"; }
+  F8 allow-when-locked=true { spawn-sh "~/.config/quickshell/scripts/toggle-airplane.sh"; }
 
-  XF86Bluetooth allow-when-locked=true { spawn-sh "if bluetoothctl show | grep -q 'Powered: yes'; then bluetoothctl power off; while bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-bluetooth; else bluetoothctl power on; while ! bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-bluetooth; fi"; }
-  Mod+F10 allow-when-locked=true { spawn-sh "if bluetoothctl show | grep -q 'Powered: yes'; then bluetoothctl power off; while bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-bluetooth; else bluetoothctl power on; while ! bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-bluetooth; fi"; }
-  F10 allow-when-locked=true { spawn-sh "if bluetoothctl show | grep -q 'Powered: yes'; then bluetoothctl power off; while bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-bluetooth; else bluetoothctl power on; while ! bluetoothctl show | grep -q 'Powered: yes'; do sleep 0.05; done; touch /tmp/qsosd-bluetooth; fi"; }
+  XF86Bluetooth allow-when-locked=true { spawn-sh "~/.config/quickshell/scripts/toggle-bluetooth.sh"; }
+  Mod+F10 allow-when-locked=true { spawn-sh "~/.config/quickshell/scripts/toggle-bluetooth.sh"; }
+  F10 allow-when-locked=true { spawn-sh "~/.config/quickshell/scripts/toggle-bluetooth.sh"; }
 
   XF86Display    { spawn "wdisplays"; }
   XF86Tools      { spawn-sh "~/.config/quickshell/scripts/commandcenter"; }

@@ -1,4 +1,8 @@
 #!/bin/bash
+set -euo pipefail
+
+source "$HOME/.config/quickshell/scripts/theme-sync-lock.sh"
+
 IMG_PATH="$1"
 
 # Capture JSON palette to cache so generators get fresh colors. Fidelity keeps

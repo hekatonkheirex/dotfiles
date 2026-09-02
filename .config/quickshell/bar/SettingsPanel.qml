@@ -538,25 +538,21 @@ PanelWindow {
 
       ParallelAnimation {
         id: entryAnimation
-        SpringAnimation {
+        NumberAnimation {
           target: scaleTransform
           properties: "xScale,yScale"
           from: 0.85
           to: 1.0
-          spring: Config.motionSurfaceSpring
-          damping: Config.motionSurfaceDamping
-          mass: Config.motionSpatialMass
-          epsilon: Config.motionSpatialEpsilon
+          duration: Config.motionLong
+          easing.type: Config.themeMotionEasing
         }
-        SpringAnimation {
+        NumberAnimation {
           target: transX
           property: "x"
           from: -30
           to: 0
-          spring: Config.motionSurfaceSpring
-          damping: Config.motionSurfaceDamping
-          mass: Config.motionSpatialMass
-          epsilon: Config.motionSpatialEpsilon
+          duration: Config.motionLong
+          easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
           target: bg
@@ -919,57 +915,95 @@ PanelWindow {
         // Tab Content Area Container
         Item {
           id: tabContainer
+          property QtObject panelRoot: root
           Layout.fillWidth: true
           Layout.fillHeight: true
           clip: true
 
-          AccountTab {
-            root: root
+          Loader {
+            id: tabLoader
+            anchors.fill: parent
+            active: root.visible
+            sourceComponent: {
+              switch (root.currentTab) {
+                case 0: return accountTabComponent
+                case 1: return generalTabComponent
+                case 2: return appearanceTabComponent
+                case 3: return wallpaperTabComponent
+                case 4: return displayInputTabComponent
+                case 5: return networkTabComponent
+                case 6: return bluetoothTabComponent
+                case 7: return mediaTabComponent
+                case 8: return lockMediaTabComponent
+                case 9: return notificationsTabComponent
+                case 10: return systemTabComponent
+                case 11: return shortcutsTabComponent
+                default: return generalTabComponent
+              }
+            }
           }
 
-          AppearanceTab {
-            root: root
+          Component {
+            id: accountTabComponent
+            AccountTab { root: tabContainer.panelRoot }
           }
 
-          WallpaperTab {
-            root: root
+          Component {
+            id: generalTabComponent
+            GeneralTab { root: tabContainer.panelRoot }
           }
 
-          GeneralTab {
-            root: root
+          Component {
+            id: appearanceTabComponent
+            AppearanceTab { root: tabContainer.panelRoot }
           }
 
-          LockMediaTab {
-            root: root
+          Component {
+            id: wallpaperTabComponent
+            WallpaperTab { root: tabContainer.panelRoot }
           }
 
-          MediaTab {
-            root: root
+          Component {
+            id: displayInputTabComponent
+            DisplayInputTab { root: tabContainer.panelRoot }
           }
 
-          NetworkTab {
-            root: root
+          Component {
+            id: networkTabComponent
+            NetworkTab { root: tabContainer.panelRoot }
           }
 
-          BluetoothTab {
-            root: root
+          Component {
+            id: bluetoothTabComponent
+            BluetoothTab { root: tabContainer.panelRoot }
           }
 
-          NotificationsTab {
-            root: root
-            notificationPopup: root.notificationPopup
+          Component {
+            id: mediaTabComponent
+            MediaTab { root: tabContainer.panelRoot }
           }
 
-          ShortcutsTab {
-            root: root
+          Component {
+            id: lockMediaTabComponent
+            LockMediaTab { root: tabContainer.panelRoot }
           }
 
-          SystemTab {
-            root: root
+          Component {
+            id: notificationsTabComponent
+            NotificationsTab {
+              root: tabContainer.panelRoot
+              notificationPopup: tabContainer.panelRoot.notificationPopup
+            }
           }
 
-          DisplayInputTab {
-            root: root
+          Component {
+            id: shortcutsTabComponent
+            ShortcutsTab { root: tabContainer.panelRoot }
+          }
+
+          Component {
+            id: systemTabComponent
+            SystemTab { root: tabContainer.panelRoot }
           }
       }
     }

@@ -194,20 +194,15 @@ QtObject {
   readonly property int motionLong: reducedMotion ? 0 : 250
   readonly property int motionExtraLong: reducedMotion ? 0 : 450
   readonly property int animationDuration: motionMedium
-  // Spatial motion uses the same spring model across interactive controls and
-  // transient surfaces. Material 3 keeps a restrained expressive settle;
-  // authored styles use the same physics without overshoot.
+  // Interactive controls and workspace indicators still use the shared
+  // spatial spring model; transient surfaces use the timed entrance below.
   readonly property bool expressiveMotion: !nothingDesign && !neoBrutalism && !ghostTheme
   readonly property real motionSpatialSpring: 2.0
   readonly property real motionSpatialDamping: expressiveMotion ? 0.78 : 1.0
   readonly property real motionSpatialMass: 1.0
   readonly property real motionSpatialEpsilon: 0.01
-  // Transient surfaces should settle promptly while retaining a small amount
-  // of expressive movement. Keep this separate from interactive controls so
-  // popup and Settings entrances do not feel sluggish.
-  readonly property real motionSurfaceSpring: 4.5
-  readonly property real motionSurfaceDamping: expressiveMotion ? 0.90 : 1.0
-  // Remaining effect transitions use theme-specific easing.
+  // Surface entrances use the same concise, theme-aware easing as before;
+  // interactive controls keep their own shorter motion tokens.
   readonly property int themeMotionEasing: (nothingDesign || ghostTheme) ? Easing.OutCubic : Easing.OutBack
   readonly property real evolutionSurfaceAlpha: 0.86
   readonly property real evolutionRaisedAlpha: 0.92

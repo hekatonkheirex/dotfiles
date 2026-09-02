@@ -2,9 +2,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Watches /tmp for a set of trigger files. `triggers` maps file basename to a
-// name emitted via triggered(name). One inotifywait process covers all files
-// instead of one per file.
+// Watches the user's Quickshell runtime directory for trigger files.
+// `triggers` maps file basename to a name emitted via triggered(name). One
+// inotifywait process covers all files instead of one per file.
 Item {
   id: root
 
@@ -12,9 +12,15 @@ Item {
   signal triggered(string name)
 
   readonly property var fileNames: Object.keys(triggers)
+  readonly property string runtimeDirectory: {
+    var xdgRuntime = Quickshell.env("XDG_RUNTIME_DIR")
+    return xdgRuntime
+      ? xdgRuntime + "/quickshell"
+      : Quickshell.env("HOME") + "/.cache/quickshell/runtime"
+  }
 
   function fire(fileName) {
-    Quickshell.execDetached(["rm", "-f", "/tmp/" + fileName]);
+    Quickshell.execDetached(["rm", "-f", root.runtimeDirectory + "/" + fileName]);
     root.triggered(root.triggers[fileName]);
   }
 
@@ -23,7 +29,11 @@ Item {
   // resulting in zero CPU consumption when idle.
   Process {
     id: proc
-    command: ["inotifywait", "-m", "-e", "create", "--format", "%f", "/tmp/"]
+    command: [
+      "sh", "-c",
+      "mkdir -p -- \"$1\" && (chmod 700 -- \"$1\" 2>/dev/null || [ \"$(stat -c %a -- \"$1\" 2>/dev/null)\" = 700 ]) && exec inotifywait -m -e create --format %f \"$1\"",
+      "sh", root.runtimeDirectory
+    ]
     running: root.fileNames.length > 0
 
     stdout: SplitParser {
@@ -68,7 +78,11 @@ Item {
 
   Process {
     id: checkProc
-    command: ["sh", "-c", "cd /tmp && ls -1 " + root.fileNames.join(" ") + " 2>/dev/null; true"]
+    command: [
+      "sh", "-c",
+      "runtime_dir=\"$1\"; shift; for name do if [ -e \"$runtime_dir/$name\" ]; then printf '%s\\n' \"$name\"; fi; done",
+      "sh", root.runtimeDirectory
+    ].concat(root.fileNames)
     running: false
     stdout: StdioCollector {
       onStreamFinished: {

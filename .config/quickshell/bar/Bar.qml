@@ -479,6 +479,12 @@ PanelWindow {
           GridLayout {
             id: focusedWindowContent
             anchors.centerIn: parent
+            // Keep the rotated window info slightly inside the screen edge.
+            anchors.horizontalCenterOffset: root.horizontal
+              ? 0
+              : (root.dockedLeft
+                ? Config.spacingCompact
+                : (root.dockedRight ? -Config.spacingCompact : 0))
             columns: root.horizontalInlineContent ? 2 : 1
             rows: root.horizontalInlineContent ? 1 : 2
             flow: root.horizontalInlineContent

@@ -71,16 +71,10 @@ StatusIndicator {
     return "volume_up"
   }
   labelText: root.muted ? "Muted" : Math.round(root.volume * 100) + "%"
-  iconColor: root.muted && !root.active
-    ? Colors.error
-    : (Config.nothingEvolution
-      ? (root.active ? Colors.styleAccent : Colors.fgSurface)
-      : (Config.nothingDesign ? Colors.fgSurface : (root.active ? Colors.fgPrimary : Colors.primary)))
-  labelColor: root.muted && !root.active
-    ? Colors.error
-    : (Config.nothingEvolution
-      ? (root.active ? Colors.styleAccent : Colors.fgSurface)
-      : (Config.nothingDesign ? Colors.fgSurface : (root.active ? Colors.fgPrimary : Colors.primary)))
+  // Match the other status indicators: opening the popup does not recolor
+  // the audio indicator. Muted audio still uses the error color.
+  iconColor: root.muted ? Colors.error : root.accentColor
+  labelColor: root.muted ? Colors.error : root.accentColor
 
   onWheel: function(wheel) {
     var delta = wheel.angleDelta.y > 0 ? Config.volumeStep / 100 : -Config.volumeStep / 100

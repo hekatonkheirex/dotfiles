@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-rm -f /tmp/qslauncher-trigger && touch /tmp/qslauncher-trigger
+exec "$(dirname -- "$0")/emit-trigger" qslauncher-trigger

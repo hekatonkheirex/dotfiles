@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 from . import outputs as o
 from . import inputs as i
@@ -101,7 +102,8 @@ def main(argv=None) -> int:
             print(f"ERROR: {exc}", file=sys.stderr)
             return 1
         if value is None:
-            return 1
+            print("unset")
+            return 0
         print(_format_value(value))
         return 0
 
@@ -116,7 +118,9 @@ def main(argv=None) -> int:
         print(f"ERROR: invalid value {raw_value!r} for field {args.field!r}", file=sys.stderr)
         return 1
 
-    cfg = NiriConfigFile(path)
+    niri_config_dir = (Path.home() / ".config" / "niri").resolve()
+    reload_live = Path(path).resolve().parent == niri_config_dir
+    cfg = NiriConfigFile(path, reload_live=reload_live)
     try:
         result = cfg.apply(lambda text: write_fn(text, *extra, value))
     except Exception as exc:

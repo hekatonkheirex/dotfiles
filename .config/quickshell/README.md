@@ -95,7 +95,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── PopupDivider.qml        # Reusable popup section divider
 │   ├── PowerConfirmation.qml   # Confirmation surface for destructive power actions
 │   ├── FocusDismiss.qml        # Popup dismissal on app focus loss
-│   ├── FileTrigger.qml         # Generic /tmp trigger-file watcher (single inotifywait for all triggers)
+│   ├── FileTrigger.qml         # Private runtime trigger-file watcher (single inotifywait for all triggers)
 │   ├── SliderControl.qml       # Theme-selected slider facade (volume/brightness/etc.)
 │   ├── SwitchControl.qml       # Theme-selected switch/toggle facade
 │   ├── WaveProgressBar.qml     # Reusable wavy progress bar canvas (progress, lineWidth, dotRadius, trackLineWidth)
@@ -115,11 +115,14 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │       ├── nothing/             # Nothing controls, Evolution clock face, and ThemeTokens.qml
 │       └── ghost/               # Ghost (GITS) controls and ThemeTokens.qml
 ├── scripts/
-│   ├── launcher                # Launcher trigger (touches /tmp/qslauncher-trigger)
-│   ├── quickmenu                # Quick menu trigger (touches /tmp/qsquickmenu-trigger)
-│   ├── settings                 # Settings trigger (touches /tmp/qssettings-trigger)
+│   ├── launcher                # Launcher trigger (private runtime trigger)
+│   ├── quickmenu                # Quick menu trigger (private runtime trigger)
+│   ├── settings                 # Settings trigger (private runtime trigger)
 │   ├── commandcenter            # Legacy alias for settings
-│   ├── lock                     # Lock trigger (touches /tmp/qslock-trigger)
+│   ├── lock                     # Lock trigger (private runtime trigger)
+│   ├── emit-trigger             # Validated private runtime trigger writer
+│   ├── toggle-airplane.sh       # Bounded Wi-Fi/Bluetooth airplane-mode toggle
+│   ├── toggle-bluetooth.sh      # Bounded Bluetooth power toggle
 │   ├── apply-wallpaper.sh       # Wallpaper selection + Matugen/theme refresh
 │   ├── capture-screen.sh         # Full-screen/region capture, save, and clipboard copy
 │   ├── sync-active-palette.sh   # Renders the active cache and refreshes every theme consumer
@@ -132,9 +135,12 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── install-sddm-integration.sh # Installs the root SDDM bridge and polkit policy
 │   ├── verify-sddm-integration.sh  # Verifies the bridge and all supported SDDM theme assets
 │   ├── idle.sh                  # swayidle: dim, lock, display off, suspend
+│   ├── idle-brightness-off      # Saves and dims brightness in the runtime directory
+│   ├── idle-brightness-restore  # Validates and restores saved brightness
+│   ├── sync-theme-mode-locked.sh # Serialized wrapper for the external theme synchronizer
 │   ├── lid.sh                   # Lid close: lock
 │   ├── safe-logout.sh           # Clean Niri quit, falls back to a session kill
-│   ├── mpris_monitor.py         # Active MPRIS state broadcaster (DBus + /tmp/qsmpris-fifo listener)
+│   ├── mpris_monitor.py         # Active MPRIS state broadcaster (DBus + private FIFO listener)
 │   ├── mpris_control.py         # MPRIS play/pause/next/prev control for the active player
 │   ├── weather.py               # Open-Meteo weather fetcher script
 │   └── voice-search.py          # Local speech transcription via python-vosk (downloads its model to ~/.local/share/vosk-model on first use)
@@ -201,35 +207,41 @@ switch-events {
 
 ## Keybindings
 
-Keybindings live in Niri's `~/.config/niri/keybinds.kdl` and spawn Quickshell's trigger scripts or `wpctl`/`brightnessctl`/`nmcli`/`bluetoothctl` directly:
+Keybindings live in Niri's `~/.config/niri/keybinds.kdl` and spawn Quickshell's trigger scripts or the bounded `wpctl`/`brightnessctl`/radio helpers:
 
 | Key | Action | Mechanism |
 |---|---|---|
-| `Mod+D` | Toggle app launcher popup | `scripts/launcher` → `touch /tmp/qslauncher-trigger` |
-| `Mod+Escape` | Toggle quick settings menu | `scripts/quickmenu` → `touch /tmp/qsquickmenu-trigger` |
-| `XF86Tools` | Toggle Settings popup | `scripts/settings` → `touch /tmp/qssettings-trigger` |
-| `Mod+Alt+L` | Lock screen | `scripts/lock` → `touch /tmp/qslock-trigger` |
-| `XF86AudioRaiseVolume` / `LowerVolume` / `Mute` | Volume up/down/mute | `wpctl` + `touch /tmp/qsosd-vol` |
-| `XF86AudioMicMute` | Mic mute toggle | `wpctl` + `touch /tmp/qsosd-mic` |
+| `Mod+D` | Toggle app launcher popup | `scripts/launcher` → private runtime trigger |
+| `Mod+Escape` | Toggle quick settings menu | `scripts/quickmenu` → private runtime trigger |
+| `XF86Tools` | Toggle Settings popup | `scripts/settings` → private runtime trigger |
+| `Mod+Alt+L` | Lock screen | `scripts/lock` → private runtime trigger |
+| `XF86AudioRaiseVolume` / `LowerVolume` / `Mute` | Volume up/down/mute | `wpctl` + private runtime trigger |
+| `XF86AudioMicMute` | Mic mute toggle | `wpctl` + private runtime trigger |
 | `XF86AudioPlay/Stop/Prev/Next` | Media transport controls | `playerctl` |
-| `XF86MonBrightnessUp/Down` | Brightness up/down | `brightnessctl` + `touch /tmp/qsosd-bright` |
-| `XF86WLAN` / `Mod+F8` / `F8` | Toggle airplane mode (wifi + bluetooth) | `nmcli`/`bluetoothctl` + `touch /tmp/qsosd-airplane` |
-| `XF86Bluetooth` / `Mod+F10` / `F10` | Toggle bluetooth power | `bluetoothctl` + `touch /tmp/qsosd-bluetooth` |
+| `XF86MonBrightnessUp/Down` | Brightness up/down | `brightnessctl` + private runtime trigger |
+| `XF86WLAN` / `Mod+F8` / `F8` | Toggle airplane mode (wifi + bluetooth) | bounded `toggle-airplane.sh` helper |
+| `XF86Bluetooth` / `Mod+F10` / `F10` | Toggle bluetooth power | bounded `toggle-bluetooth.sh` helper |
 
 Keyboard backlight brightness is controlled by the ThinkPad EC firmware directly (`Fn+Space`), not by a Niri bind — `OsdOverlay.qml` polls the sysfs LED brightness file to show its OSD.
 
+`playerctl` is only needed when a keyboard exposes the optional XF86 media-key bindings. It is not required by the Quickshell MPRIS popup or its on-screen controls.
+
 ### External Triggers
 
-Any script or keybinding can trigger Quickshell actions by creating these files under `/tmp`:
+Any script or keybinding can trigger Quickshell actions by creating these files under `$XDG_RUNTIME_DIR/quickshell`:
 
-- `/tmp/qslauncher-trigger` — toggles the launcher popup
-- `/tmp/qsquickmenu-trigger` — toggles the quick settings menu
-- `/tmp/qssettings-trigger` — toggles the Settings popup
-- `/tmp/qscommandcenter-trigger` — legacy alias for the Settings popup
-- `/tmp/qslock-trigger` — activates the lock screen
-- `/tmp/qsosd-vol` / `qsosd-bright` / `qsosd-mic` / `qsosd-airplane` / `qsosd-bluetooth` — show the corresponding OSD
+- `$XDG_RUNTIME_DIR/quickshell/qslauncher-trigger` — toggles the launcher popup
+- `$XDG_RUNTIME_DIR/quickshell/qsquickmenu-trigger` — toggles the quick settings menu
+- `$XDG_RUNTIME_DIR/quickshell/qssettings-trigger` — toggles the Settings popup
+- `$XDG_RUNTIME_DIR/quickshell/qscommandcenter-trigger` — legacy alias for the Settings popup
+- `$XDG_RUNTIME_DIR/quickshell/qslock-trigger` — activates the lock screen
+- `$XDG_RUNTIME_DIR/quickshell/qsosd-vol` / `qsosd-bright` / `qsosd-mic` / `qsosd-airplane` / `qsosd-bluetooth` — show the corresponding OSD
 
-`bar/FileTrigger.qml` watches `/tmp` with a single persistent `inotifywait` process (zero CPU while idle, one watcher for every registered trigger) and dispatches to the matching `IpcHandler` method or `OsdOverlay.show()` call. Any trigger file already present on startup fires immediately. Triggers can also be invoked directly via `quickshell ipc call shell <name>`.
+When `XDG_RUNTIME_DIR` is unavailable, Quickshell uses
+`~/.cache/quickshell/runtime` instead. The directory is created with mode
+`0700`.
+
+`bar/FileTrigger.qml` watches the private runtime directory with a single persistent `inotifywait` process (zero CPU while idle, one watcher for every registered trigger) and dispatches to the matching `IpcHandler` method or `OsdOverlay.show()` call. Any trigger file already present on startup fires immediately. Triggers can also be invoked directly via `quickshell ipc call shell <name>`.
 
 ## IPC
 
@@ -264,7 +276,7 @@ Clipboard previews are shown only after opening the provider. The enabled `clipb
 - Profile image (`~/Pictures/profile.jpg`), live clock, suspend/reboot/poweroff buttons
 - **Lock & Power settings** configure automatic lock and suspend timeouts plus TLP power profiles; the existing dim/display-off stages remain fixed, and suspend locks first
 - Animated background (`AnimatedBackground.qml`) for Material 3; Nothing Classic uses a static neutral fallback, while Nothing Evolution uses its selectable Gooey or Micrographics clock face and adaptive accent
-- Controlled via `IpcHandler.lock()`, `scripts/lock`, or directly via `touch /tmp/qslock-trigger`
+- Controlled via `IpcHandler.lock()`, `scripts/lock`, or directly via the private runtime trigger
 
 ## Popup System
 
@@ -338,7 +350,7 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 - **Wallpaper tab**: Lists images from `~/Pictures/Walls`; `scripts/generate-thumbnails.sh` produces and caches 200×130 center-cropped thumbnails under `~/.cache/quickshell/wallpaper-thumbs`, regenerating only when the source is newer than the cached thumbnail. The tab tracks the active wallpaper, supports keyboard selection, and exposes randomize/apply actions.
 - **Lock & Power tab**: Owns lock-screen options, idle lock/suspend timeouts, Caffeine, TLP power-profile selection with automatic AC/battery restore, and the Evolution-only Gooey/Micrographics clock-face selector.
 - **Media tab**: Owns media artwork, progress, and always-visible-control preferences for the media popup.
-- **Media / MPRIS**: `scripts/mpris_monitor.py` broadcasts the active player's state as newline-delimited JSON over stdout (consumed via `SplitParser`), and also listens on a `/tmp/qsmpris-fifo` named pipe for out-of-band pokes. `scripts/mpris_control.py` sends play/pause/next/prev to whichever player is currently active (preferring a "Playing" one); the visualizer is available in the Settings media controls.
+- **Media / MPRIS**: `scripts/mpris_monitor.py` broadcasts the active player's state as newline-delimited JSON over stdout (consumed via `SplitParser`), and also listens on a private runtime named pipe for out-of-band pokes. `scripts/mpris_control.py` sends play/pause/next/prev to whichever player is currently active (preferring a "Playing" one); the visualizer is available in the Settings media controls.
 - **OSD**: A separate always-on-top `PanelWindow` (`bar/OsdOverlay.qml`), not part of the popup/`openPopup` system. Auto-hides after 1.5s. Polls sysfs directly for the ThinkPad keyboard backlight since the EC never emits a Wayland key event for `Fn+Space`.
 - **Lock Screen Security**: Employs imperative start/stop handlers in `onLockedChanged` for `fprintdProcess` to prevent QML declarative property binding breaks.
 

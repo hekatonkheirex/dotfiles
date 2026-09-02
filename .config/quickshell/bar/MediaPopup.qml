@@ -20,6 +20,12 @@ PopupBase {
   property string mprisLengthStr: "0:00"
   property int elapsedSeconds: 0
   property var cavaBarValues: []
+  readonly property string runtimeDirectory: {
+    var xdgRuntime = Quickshell.env("XDG_RUNTIME_DIR")
+    return xdgRuntime
+      ? xdgRuntime + "/quickshell"
+      : Quickshell.env("HOME") + "/.cache/quickshell/runtime"
+  }
 
   onMprisTitleChanged: root.elapsedSeconds = 0
 
@@ -316,7 +322,10 @@ PopupBase {
         variant: "outlined"
         accessibleName: "Switch active player"
         tooltipText: "Switch active player"
-        onClicked: Quickshell.execDetached(["sh", "-c", "echo shift > /tmp/qsmpris-fifo"])
+        onClicked: Quickshell.execDetached([
+          "sh", "-c", "printf '%s\\n' shift > \"$1\"", "sh",
+          root.runtimeDirectory + "/qsmpris-fifo"
+        ])
       }
     }
   }
