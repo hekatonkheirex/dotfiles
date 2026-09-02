@@ -65,6 +65,7 @@ RowLayout {
         Layout.fillWidth: true
         Layout.minimumWidth: 0
         Layout.preferredHeight: 44
+        enabled: !writeProc.running
         leadingIcon: root.value === modelData.value
           ? "radio_button_checked"
           : "radio_button_unchecked"
@@ -90,8 +91,12 @@ RowLayout {
     stdout: StdioCollector {
       onStreamFinished: {
         var v = text.trim()
-        if (v !== "") root.value = v
+        root.value = v === "unset" ? "" : v
       }
+    }
+    stderr: StdioCollector { id: readError }
+    onExited: (exitCode, exitStatus) => {
+      if (exitCode !== 0) root.writeFailed(root.processError(readError.text, exitCode))
     }
   }
 
@@ -100,15 +105,18 @@ RowLayout {
     running: false
     workingDirectory: Quickshell.env("HOME") + "/.config/quickshell"
     property string pendingValue: ""
-    stderr: StdioCollector {
-      onStreamFinished: {
-        var error = text.trim()
-        if (error !== "") {
-          root.value = writeProc.pendingValue
-          root.writeFailed(error)
-        }
+    stderr: StdioCollector { id: writeError }
+    onExited: (exitCode, exitStatus) => {
+      if (exitCode !== 0) {
+        root.value = writeProc.pendingValue
+        root.writeFailed(root.processError(writeError.text, exitCode))
       }
     }
+  }
+
+  function processError(raw, exitCode) {
+    var message = (raw || "").trim()
+    return message !== "" ? message : "Niri config command failed (exit " + exitCode + ")"
   }
 
   function reload() {
@@ -120,7 +128,8 @@ RowLayout {
   }
 
   function commit(newValue) {
-    if (!root.live || newValue === root.value) return
+    if (!root.live || writeProc.running || newValue === root.value) return
+    readProc.running = false
     writeProc.pendingValue = root.value
     root.value = newValue
     writeProc.command = ["python3", "-m", "scripts.niri_config", root.cliFile, "write", root.cliField, newValue]

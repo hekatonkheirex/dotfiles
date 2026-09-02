@@ -1,4 +1,15 @@
 #!/bin/bash
+set -euo pipefail
+
+# Keep direct invocations serialized with Quickshell's palette pipeline. When
+# this script is called from an already locked refresh, the sourced helper
+# reuses that lock instead of deadlocking nested generator calls.
+source "$HOME/.config/quickshell/scripts/theme-sync-lock.sh"
+
+theme_state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell"
+umask 077
+mkdir -p -- "$theme_state_dir"
+
 MODE="${1:-auto}"
 NOTIFY_MODE="${2:-}"
 UI_STYLE="${3:-}"
@@ -200,4 +211,4 @@ esac
   fi
   
   echo "=== $(date) DONE ==="
-} >> /tmp/sync-theme-mode.log 2>&1
+} >>"$theme_state_dir/sync-theme-mode.log" 2>&1

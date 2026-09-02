@@ -13,6 +13,11 @@ FileView {
   watchChanges: true
   preload: true
 
+  // Consumers use this to distinguish the initial persisted snapshot from a
+  // later user edit. JsonAdapter starts with its defaults before the file is
+  // loaded, so its first value changes are not user-initiated.
+  property bool initialLoadComplete: false
+
   // FileView's preload flag only arms the asynchronous read. Explicitly
   // request the initial snapshot so JsonAdapter-backed preferences are
   // available before Colors and the settings UI resolve their bindings.
@@ -25,6 +30,11 @@ FileView {
 
   onLoadFailed: function(error) {
     if (error === FileViewError.FileNotFound) root.writeAdapter()
+    initialLoadComplete = true
+  }
+
+  onAdapterUpdated: {
+    initialLoadComplete = true
   }
 
   // Keep persisted aliases paired with active consumers. Remove obsolete fields

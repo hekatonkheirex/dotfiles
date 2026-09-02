@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=theme-sync-lock.sh
+source "$script_dir/theme-sync-lock.sh"
+
 if [[ $# -ne 1 ]]; then
   printf 'Usage: %s <wallpaper filename>\n' "$0" >&2
   exit 2

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import sys
 import os
+import pathlib
+import tempfile
 import urllib.request
 import zipfile
 import wave
@@ -15,20 +17,48 @@ if not os.path.exists(model_dir):
     import subprocess
     print("Vosk model not found. Downloading (approx. 40MB)...", file=sys.stderr)
     subprocess.run(["notify-send", "-a", "Voice Search Launcher", "Vosk model not found", "Downloading offline recognition model (~40MB)..."])
-    os.makedirs(os.path.dirname(model_dir), exist_ok=True)
+    model_parent = os.path.dirname(model_dir)
+    os.makedirs(model_parent, mode=0o700, exist_ok=True)
+    os.chmod(model_parent, 0o700)
     url = "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+    temporary_zip = None
+    temporary_extract_dir = None
     try:
-        urllib.request.urlretrieve(url, model_zip)
-        with zipfile.ZipFile(model_zip, 'r') as zip_ref:
-            zip_ref.extractall(os.path.dirname(model_dir))
-        # Rename the extracted folder to vosk-model
-        extracted_name = os.path.join(os.path.dirname(model_dir), "vosk-model-small-en-us-0.15")
-        os.rename(extracted_name, model_dir)
-        if os.path.exists(model_zip):
-            os.remove(model_zip)
+        fd, temporary_zip = tempfile.mkstemp(prefix="vosk-model.", suffix=".zip", dir=model_parent)
+        os.close(fd)
+        with urllib.request.urlopen(url, timeout=60) as response, open(temporary_zip, "wb") as output:
+            while True:
+                chunk = response.read(1024 * 1024)
+                if not chunk:
+                    break
+                output.write(chunk)
+
+        temporary_extract_dir = tempfile.mkdtemp(prefix=".vosk-extract-", dir=model_parent)
+        extract_root = pathlib.Path(temporary_extract_dir).resolve()
+        expected_root = extract_root / "vosk-model-small-en-us-0.15"
+        with zipfile.ZipFile(temporary_zip, "r") as zip_ref:
+            for member in zip_ref.infolist():
+                member_path = pathlib.PurePosixPath(member.filename)
+                if member_path.is_absolute() or ".." in member_path.parts:
+                    raise ValueError(f"Unsafe model archive member: {member.filename}")
+                target = (extract_root / pathlib.Path(*member_path.parts)).resolve()
+                if target != extract_root and extract_root not in target.parents:
+                    raise ValueError(f"Unsafe model archive member: {member.filename}")
+            zip_ref.extractall(extract_root)
+
+        if not expected_root.is_dir():
+            raise ValueError("Model archive did not contain the expected directory")
+        os.chmod(temporary_extract_dir, 0o700)
+        os.replace(expected_root, model_dir)
     except Exception as e:
         print(f"Error downloading model: {e}", file=sys.stderr)
         sys.exit(1)
+    finally:
+        if temporary_zip and os.path.exists(temporary_zip):
+            os.remove(temporary_zip)
+        if temporary_extract_dir and os.path.exists(temporary_extract_dir):
+            import shutil
+            shutil.rmtree(temporary_extract_dir, ignore_errors=True)
 
 # Check audio file
 if len(sys.argv) < 2:

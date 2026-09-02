@@ -15,6 +15,14 @@ PanelWindow {
 
   property int anchorY: 0
 
+  readonly property string runtimeDirectory: {
+    var xdgRuntime = Quickshell.env("XDG_RUNTIME_DIR")
+    return xdgRuntime
+      ? xdgRuntime + "/quickshell"
+      : Quickshell.env("HOME") + "/.cache/quickshell/runtime"
+  }
+  readonly property string voiceFilePath: root.runtimeDirectory + "/voice-search.wav"
+
   signal dismissed()
 
   readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
@@ -71,6 +79,10 @@ PanelWindow {
       path: ""
       exec: ""
       terminal: false
+      // ListModel roles are type-stable. QML converts arrays retrieved through
+      // ListModel.get() to QObject values, so keep the transport form as JSON
+      // text and decode it only at the process-launch boundary.
+      argv: ""
       clipboardLine: ""
       clipboardPreview: ""
       clipboardMime: ""
@@ -230,6 +242,10 @@ PanelWindow {
           try {
             var json = JSON.parse(txt)
             for (var i = 0; i < json.length; i++) {
+              // Arrays become nested QQmlListModel objects when stored in a
+              // ListModel. Serialize before insertion so ListModel.get()
+              // returns a stable string that can be decoded at launch time.
+              json[i].argv = root.serializeArgv(json[i].argv)
               appModel.append(json[i])
             }
             if (visible) filterApps()
@@ -305,13 +321,17 @@ PanelWindow {
 
   Process {
     id: recorderProc
-    command: ["pw-record", "--rate", "16000", "--channels", "1", "--format", "s16", "/tmp/qs-voice.wav"]
+    command: [
+      "sh", "-c",
+      "mkdir -p -- \"$1\" && (chmod 700 -- \"$1\" 2>/dev/null || [ \"$(stat -c %a -- \"$1\" 2>/dev/null)\" = 700 ]) && exec pw-record --rate 16000 --channels 1 --format s16 \"$2\"",
+      "sh", root.runtimeDirectory, root.voiceFilePath
+    ]
     running: false
   }
 
   Process {
     id: transcriberProc
-    command: ["python3", Quickshell.env("HOME") + "/.config/quickshell/scripts/voice-search.py", "/tmp/qs-voice.wav"]
+    command: ["python3", Quickshell.env("HOME") + "/.config/quickshell/scripts/voice-search.py", root.voiceFilePath]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
@@ -323,6 +343,7 @@ PanelWindow {
           root.selectedIndex = 0
           filterApps()
         }
+        searchInputControl.input.forceActiveFocus()
       }
     }
   }
@@ -335,24 +356,43 @@ PanelWindow {
     })
   }
 
-  function sanitizeExec(cmd) {
-    return cmd.replace(/%[fFuUdDnNickvm]/g, "").trim()
+  function launchApp(argv, terminal) {
+    var args = root.normalizeArgv(argv)
+    if (args.length === 0) {
+      root.dismissed()
+      return
+    }
+    var command = terminal ? ["kitty", "-e"].concat(args) : args
+    Quickshell.execDetached(command)
+    dismissed()
   }
 
-  function launchApp(execCmd, terminal) {
-    var cmd = sanitizeExec(execCmd)
-    if (terminal) {
-      Quickshell.execDetached(["sh", "-c", "kitty -e " + cmd])
-    } else {
-      Quickshell.execDetached(["sh", "-c", cmd + " &"])
+  function normalizeArgv(value) {
+    var args = value
+    if (typeof args === "string") {
+      try {
+        args = JSON.parse(args)
+      } catch (e) {
+        return []
+      }
     }
-    dismissed()
+    if (!Array.isArray(args)) return []
+
+    var normalized = []
+    for (var i = 0; i < args.length; i++) {
+      if (typeof args[i] === "string") normalized.push(args[i])
+    }
+    return normalized
+  }
+
+  function serializeArgv(value) {
+    return JSON.stringify(root.normalizeArgv(value))
   }
 
   function toggleVoiceSearch() {
     if (!root.voiceRecording && !root.voiceTranscribing) {
       root.voiceRecording = true
-      Quickshell.execDetached(["rm", "-f", "/tmp/qs-voice.wav"])
+      Quickshell.execDetached(["rm", "-f", root.voiceFilePath])
       recorderProc.running = true
     } else if (root.voiceRecording) {
       root.voiceRecording = false
@@ -384,6 +424,7 @@ PanelWindow {
       path: item.path || "",
       exec: item.exec || "",
       terminal: item.terminal === true,
+      argv: root.serializeArgv(item.argv),
       clipboardLine: item.clipboardLine || "",
       clipboardPreview: item.clipboardPreview || "",
       clipboardMime: item.clipboardMime || ""
@@ -743,7 +784,9 @@ PanelWindow {
     running: visible
     repeat: true
     onTriggered: {
-      if (!searchInputControl.input.activeFocus) {
+      if (!searchInputControl.input.activeFocus
+          && !root.voiceRecording
+          && !root.voiceTranscribing) {
         stop()
         dismissed()
       }
@@ -848,25 +891,21 @@ PanelWindow {
 
     ParallelAnimation {
       id: entryAnimation
-      SpringAnimation {
+      NumberAnimation {
         target: scaleTransform
         properties: "xScale,yScale"
         from: 0.85
         to: 1.0
-        spring: Config.motionSurfaceSpring
-        damping: Config.motionSurfaceDamping
-        mass: Config.motionSpatialMass
-        epsilon: Config.motionSpatialEpsilon
+        duration: Config.motionLong
+        easing.type: Config.themeMotionEasing
       }
-      SpringAnimation {
+      NumberAnimation {
         target: transX
         property: "x"
         from: -30
         to: 0
-        spring: Config.motionSurfaceSpring
-        damping: Config.motionSurfaceDamping
-        mass: Config.motionSpatialMass
-        epsilon: Config.motionSpatialEpsilon
+        duration: Config.motionLong
+        easing.type: Config.themeMotionEasing
       }
       NumberAnimation {
         target: bg
@@ -909,7 +948,7 @@ PanelWindow {
             else if (result.kind === "wallpaper") root.applyWallpaper(result.path)
             else if (result.kind === "clipboard") root.restoreClipboardEntry(result.clipboardLine)
             else if (result.kind === "clipboard-action") root.runAction(result.actionId)
-            else root.launchApp(result.exec, result.terminal)
+            else root.launchApp(result.argv, result.terminal)
           }
         }
         onEscapePressed: root.dismissed()
@@ -999,7 +1038,7 @@ PanelWindow {
             else if (model.kind === "wallpaper") root.applyWallpaper(model.path)
             else if (model.kind === "clipboard") root.restoreClipboardEntry(model.clipboardLine)
             else if (model.kind === "clipboard-action") root.runAction(model.actionId)
-            else root.launchApp(model.exec, model.terminal)
+            else root.launchApp(model.argv, model.terminal)
           }
 
           IconButton {

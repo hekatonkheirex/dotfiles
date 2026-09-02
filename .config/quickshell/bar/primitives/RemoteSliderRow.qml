@@ -21,6 +21,7 @@ RowLayout {
   property real min: 0
   property real max: 100
   property real value: min
+  property bool hasValue: false
   property string unit: ""
   property int decimals: 0
   signal writeFailed(string message)
@@ -66,14 +67,18 @@ RowLayout {
     motionDuration: Config.motionMedium
     reducedMotion: Config.reducedMotion
     accessibleName: root.label
+    enabled: !writeProc.running
     onChanged: function(val) {
+      root.hasValue = true
       root.value = root.min + val * (root.max - root.min)
     }
     onInteractionFinished: root.commit()
   }
 
   Text {
-    text: root.decimals > 0 ? root.value.toFixed(root.decimals) + root.unit : Math.round(root.value) + root.unit
+    text: !root.hasValue
+      ? "Default"
+      : (root.decimals > 0 ? root.value.toFixed(root.decimals) + root.unit : Math.round(root.value) + root.unit)
     color: Colors.fgSurface
     font.family: Config.fontFamily
     font.pixelSize: Config.typeLabelSmallSize
@@ -89,9 +94,21 @@ RowLayout {
     workingDirectory: Quickshell.env("HOME") + "/.config/quickshell"
     stdout: StdioCollector {
       onStreamFinished: {
-        var v = parseFloat(text.trim())
-        if (!isNaN(v)) root.value = Math.max(root.min, Math.min(root.max, v))
+        var raw = text.trim()
+        if (raw === "unset") {
+          root.hasValue = false
+          return
+        }
+        var v = parseFloat(raw)
+        if (!isNaN(v)) {
+          root.hasValue = true
+          root.value = Math.max(root.min, Math.min(root.max, v))
+        }
       }
+    }
+    stderr: StdioCollector { id: readError }
+    onExited: (exitCode, exitStatus) => {
+      if (exitCode !== 0) root.writeFailed(root.processError(readError.text, exitCode))
     }
   }
 
@@ -99,14 +116,18 @@ RowLayout {
     id: writeProc
     running: false
     workingDirectory: Quickshell.env("HOME") + "/.config/quickshell"
-    stderr: StdioCollector {
-      onStreamFinished: {
-        if (text.trim() !== "") {
-          root.reload()
-          root.writeFailed(text.trim())
-        }
+    stderr: StdioCollector { id: writeError }
+    onExited: (exitCode, exitStatus) => {
+      if (exitCode !== 0) {
+        root.reload()
+        root.writeFailed(root.processError(writeError.text, exitCode))
       }
     }
+  }
+
+  function processError(raw, exitCode) {
+    var message = (raw || "").trim()
+    return message !== "" ? message : "Niri config command failed (exit " + exitCode + ")"
   }
 
   function reload() {
@@ -117,7 +138,8 @@ RowLayout {
   }
 
   function commit() {
-    if (!root.live) return
+    if (!root.live || writeProc.running) return
+    readProc.running = false
     var formatted = root.decimals > 0 ? root.value.toFixed(root.decimals) : String(Math.round(root.value))
     writeProc.command = ["python3", "-m", "scripts.niri_config", root.cliFile, "write", root.cliField, formatted].concat(root.extraArgs)
     writeProc.running = false

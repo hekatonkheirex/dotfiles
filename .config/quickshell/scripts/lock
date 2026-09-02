@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-rm -f /tmp/qslock-trigger && touch /tmp/qslock-trigger
+exec "$(dirname -- "$0")/emit-trigger" qslock-trigger

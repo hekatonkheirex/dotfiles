@@ -25,7 +25,7 @@
     "iconSize": 20,
     "idleLockTimeoutSeconds": 300,
     "idleSuspendTimeoutSeconds": 900,
-    "lastSettingsTab": 0,
+    "lastSettingsTab": 2,
     "lockClockFace": "micrographics",
     "lockClockSize": 72,
     "lockShowMedia": true,
@@ -33,7 +33,7 @@
     "mediaControlsAlwaysVisible": false,
     "mediaShowAlbumArt": true,
     "mediaShowProgressBar": true,
-    "nothingVariant": "evolution",
+    "nothingVariant": "classic",
     "notificationCriticalBypass": true,
     "notificationHistoryLimit": 50,
     "notificationQuietHoursEnabled": false,
@@ -55,5 +55,5 @@
     "weatherRefreshIntervalMinutes": 15,
     "weatherUnits": "metric",
     "workspaceCount": "active",
-    "workspaceShape": "expressive"
+    "workspaceShape": "pill"
 }

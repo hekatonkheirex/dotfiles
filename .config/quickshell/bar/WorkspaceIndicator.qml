@@ -131,6 +131,15 @@ Item {
   }
 
   Timer {
+    id: workspaceRefreshDebounce
+    interval: 80
+    repeat: false
+    onTriggered: {
+      if (!refresher.running) refresher.running = true
+    }
+  }
+
+  Timer {
     id: focusedWindowRefreshDebounce
     interval: 80
     repeat: false
@@ -146,7 +155,7 @@ Item {
 
     stdout: SplitParser {
       onRead: function(data) {
-        if (!refresher.running) refresher.running = true
+        workspaceRefreshDebounce.restart()
         focusedWindowRefreshDebounce.restart()
       }
     }
@@ -173,7 +182,7 @@ Item {
   onVisibleChanged: {
     if (visible) {
       if (root.wmType === "niri") {
-        refresher.running = true
+        workspaceRefreshDebounce.restart()
         focusedWindowQuery.running = true
       }
     }
@@ -182,7 +191,7 @@ Item {
   Component.onCompleted: {
     if (root.visible) {
       if (root.wmType === "niri") {
-        refresher.running = true
+        workspaceRefreshDebounce.restart()
         focusedWindowQuery.running = true
       }
     }

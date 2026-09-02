@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-rm -f /tmp/qsquickmenu-trigger && touch /tmp/qsquickmenu-trigger
+exec "$(dirname -- "$0")/emit-trigger" qsquickmenu-trigger

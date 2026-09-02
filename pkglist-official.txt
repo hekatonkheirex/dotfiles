@@ -35,7 +35,6 @@ fzf
 gammastep
 git
 github-cli
-glib2
 gnome-epub-thumbnailer
 gnome-keyring
 grim
@@ -64,8 +63,6 @@ kvantum
 lazygit
 libid3tag
 libva-intel-driver
-libxml2
-librsvg
 linux-firmware
 linux-zen
 linux-zen-headers
@@ -88,7 +85,7 @@ ntfsprogs
 nwg-look
 obs-studio
 obs-studio-plugin-browser
-openai-codex
+opencode
 pacman-contrib
 pacutils
 papers
@@ -101,12 +98,13 @@ polkit-gnome
 powertop
 python-pillow
 python-pipx
+python-pytest
+python-qrcode
 python-uv
 python-vosk
 qbittorrent
 qt5-wayland
 qt6-5compat
-qt6-declarative
 qt6ct
 quickshell
 reflector
@@ -153,6 +151,7 @@ wf-recorder
 wget
 wireplumber
 wlopm
+wtype
 xdg-desktop-portal
 xdg-desktop-portal-gnome
 xdg-desktop-portal-gtk
