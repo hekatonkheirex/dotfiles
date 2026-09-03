@@ -1,4 +1,5 @@
 android-sdk-cmdline-tools-latest
+antigravity-cli
 brave-origin-bin
 chatgpt-desktop
 claude-code

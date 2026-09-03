@@ -1,3 +1,0 @@
-import "primitives"
-
-ListDivider {}
