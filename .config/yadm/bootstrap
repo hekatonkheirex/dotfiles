@@ -52,11 +52,6 @@ if [ ! -d "$THINKPAD_DIR" ]; then
     THINKPAD_DIR="$HOME/.config/thinkpad"
 fi
 
-UI_SUITE_INSTALLER="$REPO_ROOT/.config/quickshell/scripts/install-ui-suite.sh"
-if [ ! -f "$UI_SUITE_INSTALLER" ]; then
-    UI_SUITE_INSTALLER="$HOME/.config/quickshell/scripts/install-ui-suite.sh"
-fi
-
 # Helper to ask yes/no questions
 confirm() {
     local prompt="$1"
@@ -164,7 +159,7 @@ echo
 # ----------------------------------------------------
 # Step 4: System Configurations (Sudo/Laptop configs)
 # ----------------------------------------------------
-echo -e "${BLUE}${BOLD}[Step 4/5] Laptop / Thinkpad Specific Configurations...${NC}"
+echo -e "${BLUE}${BOLD}[Step 4/4] Laptop / Thinkpad Specific Configurations...${NC}"
 
 # Function to back up and copy system files safely
 copy_system_file() {
@@ -271,23 +266,6 @@ if [ -d "$THINKPAD_DIR" ]; then
     fi
 else
     echo -e "${RED}! Laptop configurations directory not found at $THINKPAD_DIR. Skipping.${NC}"
-fi
-echo
-
-# ----------------------------------------------------
-# Step 5: UI Theme Suite
-# ----------------------------------------------------
-echo -e "${BLUE}${BOLD}[Step 5/5] UI Theme Suite Installation...${NC}"
-
-if [ -f "$UI_SUITE_INSTALLER" ]; then
-    if confirm "Clone and install the Material 3, Neo, Nothing, and Ghost theme suite?" "Y"; then
-        bash "$UI_SUITE_INSTALLER"
-        echo -e "${GREEN}✓ UI theme suite installed and synchronized.${NC}"
-    else
-        echo -e "${YELLOW}Skipped UI theme suite installation.${NC}"
-    fi
-else
-    echo -e "${RED}! UI suite installer not found at $UI_SUITE_INSTALLER. Skipping.${NC}"
 fi
 echo
 

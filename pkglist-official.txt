@@ -1,8 +1,8 @@
 acpi
 acpid
+adw-gtk-theme
 android-tools
 avahi
-awww
 base
 base-devel
 bat
@@ -17,6 +17,7 @@ cava
 cliphist
 cmake
 cups
+ddcutil
 dialog
 efibootmgr
 eza
@@ -35,6 +36,7 @@ fzf
 gammastep
 git
 github-cli
+glaze
 gnome-epub-thumbnailer
 gnome-keyring
 grim
@@ -50,6 +52,8 @@ gvfs-mtp
 gvfs-smb
 gvfs-wsdd
 hplip
+hyprland
+hyprland-protocols
 imagemagick
 inotify-tools
 intel-gpu-tools
@@ -66,7 +70,6 @@ libva-intel-driver
 linux-firmware
 linux-zen
 linux-zen-headers
-matugen
 mold
 most
 mpv
@@ -76,7 +79,7 @@ nautilus-share
 neovim
 network-manager-applet
 networkmanager
-niri
+noctalia
 noto-fonts
 noto-fonts-cjk
 noto-fonts-emoji
@@ -106,7 +109,6 @@ qbittorrent
 qt5-wayland
 qt6-5compat
 qt6ct
-quickshell
 reflector
 ripgrep
 rsync
@@ -155,6 +157,7 @@ wtype
 xdg-desktop-portal
 xdg-desktop-portal-gnome
 xdg-desktop-portal-gtk
+xdg-desktop-portal-hyprland
 xdg-desktop-portal-wlr
 xdg-user-dirs
 xdg-utils
