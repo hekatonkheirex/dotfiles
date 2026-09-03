@@ -18,3 +18,5 @@
 @define-color warning_color #E9873A;
 @define-color error_color #ED5F5D;
 @define-color success_color #79B757;
+
+@import url("noctalia.css");
