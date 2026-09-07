@@ -52,6 +52,7 @@ gvfs-mtp
 gvfs-smb
 gvfs-wsdd
 hplip
+hypridle
 hyprland
 hyprland-protocols
 imagemagick
@@ -79,7 +80,6 @@ nautilus-share
 neovim
 network-manager-applet
 networkmanager
-noctalia
 noto-fonts
 noto-fonts-cjk
 noto-fonts-emoji
@@ -92,12 +92,12 @@ opencode
 pacman-contrib
 pacutils
 papers
+papirus-icon-theme
 pavucontrol
 pipewire
 pipewire-jack
 pipewire-pulse
 plymouth
-polkit-gnome
 powertop
 python-pillow
 python-pipx
@@ -121,7 +121,6 @@ sof-firmware
 speech-dispatcher
 starship
 sushi
-swayidle
 tailscale
 timeshift
 tlp

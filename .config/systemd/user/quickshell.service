@@ -1,0 +1,13 @@
+[Unit]
+Description=Quickshell desktop shell
+Wants=awww-daemon.service
+PartOf=graphical-session.target
+After=graphical-session.target
+After=awww-daemon.service
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/quickshell --no-duplicate --path %h/.config/quickshell
+Restart=on-failure
+RestartSec=2
