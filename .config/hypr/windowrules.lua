@@ -23,10 +23,10 @@ hl.window_rule({
 
 -- Persistent Workspaces
 hl.workspace_rule({ workspace = "1", monitor = "eDP-1", persistent = true, default_name = "web" })
-hl.workspace_rule({ workspace = "2", monitor = "eDP-1", persistent = true, default_name = "code" })
+hl.workspace_rule({ workspace = "2", monitor = "eDP-1", persistent = true, default_name = "term" })
 hl.workspace_rule({ workspace = "3", monitor = "eDP-1", persistent = true, default_name = "file" })
-hl.workspace_rule({ workspace = "4", monitor = "eDP-1", persistent = true, default_name = "chat" })
-hl.workspace_rule({ workspace = "5", monitor = "eDP-1", persistent = true, default_name = "record" })
+hl.workspace_rule({ workspace = "4", monitor = "eDP-1", persistent = true, default_name = "code" })
+hl.workspace_rule({ workspace = "5", monitor = "eDP-1", persistent = true, default_name = "rec" })
 
 -- Smart Gaps
 -- hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
@@ -55,20 +55,15 @@ hl.window_rule({
   workspace = 3
 })
 
--- Noctalia Settings
-hl.window_rule({
-  match = { class = "dev.noctalia.Noctalia" },
-  float = true,
-  size = { 1080, 920 },
+-- Quickshell popup motion is handled by PopupMotion.qml.
+hl.layer_rule({
+  name = "quickshell-popup",
+  match = { namespace = "^quickshell-hyprland-popup-.+$" },
+  no_anim = true,
 })
 
 hl.layer_rule({
-  name = "noctalia",
-  match = {
-    namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd|window-switcher)$",
-  },
+  name = "quickshell-settings",
+  match = { namespace = "^quickshell-hyprland-settings$" },
   no_anim = true,
-  ignore_alpha = 0.5,
-  blur = true,
-  blur_popups = true,
 })

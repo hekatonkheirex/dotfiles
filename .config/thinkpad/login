@@ -1,10 +1,26 @@
 #%PAM-1.0
+# Quickshell's lockscreen uses the "login" PAM service. Keep this stack
+# password-only so pam_fprintd cannot block password fallback after suspend.
+# Fingerprint authentication remains available in other PAM services.
 
-auth       sufficient   pam_fprintd.so
-auth       requisite    pam_nologin.so
-auth       include      system-local-login
-auth       optional     pam_gnome_keyring.so
-account    include      system-local-login
-session    include      system-local-login
-session    optional     pam_gnome_keyring.so auto_start
-password   include      system-local-login
+auth        required                    pam_shells.so
+auth        requisite                   pam_nologin.so
+auth        required                    pam_faillock.so      preauth
+-auth       [success=2 default=ignore]  pam_systemd_home.so
+auth        [success=1 default=bad]     pam_unix.so          try_first_pass nullok
+auth        [default=die]               pam_faillock.so      authfail
+auth        optional                    pam_permit.so
+auth        required                    pam_env.so
+auth        required                    pam_faillock.so      authsucc
+auth        optional                    pam_gnome_keyring.so
+-auth       optional                    pam_kwallet5.so
+
+account     include     system-login
+
+password    include     system-login
+-password   optional    pam_gnome_keyring.so    use_authtok
+
+session     optional    pam_keyinit.so          force revoke
+session     include     system-login
+session     optional    pam_gnome_keyring.so    auto_start
+-session    optional    pam_kwallet5.so         auto_start

@@ -1,0 +1,5 @@
+import "."
+
+MaterialSwitch {
+    id: root
+}
