@@ -1,6 +1,6 @@
 # Arch Linux Rice & Custom Desktop Environment 🐧✨
 
-This repository contains my personal configurations, customized scripts, and system optimization rules for a modern, fluid Wayland-based desktop environment built on top of the **Niri** window manager and a custom **Quickshell** shell.
+This repository contains my personal configurations, customized scripts, and system optimization rules for a modern, fluid Wayland-based desktop environment built on top of the **Hyprland** compositor and a custom **Quickshell** shell.
 
 ---
 
@@ -15,7 +15,7 @@ This repository contains my personal configurations, customized scripts, and sys
 
 ## 🎨 System Overview
 
-- **Window Manager** • Main: [Niri](https://niri-wm.github.io/niri/) (Scroll-stacking Wayland compositor)
+- **Window Manager** • Main: [Hyprland](https://hyprland.org/) (Lua-configured Wayland compositor)
 - **Desktop Shell & Panels** • Custom [Quickshell](https://quickshell.outfoxxed.me/) (QML-based status bar, widgets, volume/brightness popups, notifications, and desktop dashboard)
 - **Theme Suite** • Four selectable Quickshell UI styles: Material 3, Neo Brutalism, Nothing, and Ghost, with shared desktop synchronization
 - **Terminal** • [Kitty](https://sw.kovidgoyal.net/kitty/) configured with expressive dynamic themes
@@ -26,12 +26,12 @@ This repository contains my personal configurations, customized scripts, and sys
 
 Quickshell is a single QML shell rooted at [`shell.qml`](.config/quickshell/shell.qml). It owns the bar, launcher, Quick Menu, Command Center, popups, notifications, OSD, lock screen, and shared desktop state. The bar supports top, bottom, left, and right placement, plus continuous full-bar and floating-pills layouts.
 
-The current tracked state is `layout=left`, `fullBar=true`, automatic color mode (`themePreference=0`), Material 3 UI style (`themeStyle=material3`), and `colorscheme=matugen` for terminal/Niri synchronization. These values are persisted in [`settings.json`](.config/quickshell/settings.json), [`layout`](.config/quickshell/layout), and [`colorscheme`](.config/quickshell/colorscheme); the supported values remain configurable from the Appearance panel.
+The current tracked state is `layout=left`, `fullBar=true`, automatic color mode (`themePreference=0`), Material 3 UI style (`themeStyle=material3`), and `colorscheme=matugen` for terminal and compositor synchronization. These values are persisted in [`settings.json`](.config/quickshell/settings.json), [`layout`](.config/quickshell/layout), and [`colorscheme`](.config/quickshell/colorscheme); the supported values remain configurable from the Appearance panel.
 
 The two Quickshell UI styles share the same semantic palette and controls:
 
 - **Material 3**: Roboto Flex typography, tonal surface elevation, expressive corner radii, and soft focus/elevation treatment.
-- **Neo Brutalism**: JetBrains Mono typography, high-contrast semantic ink, heavier borders, compact radii, and hard offset shadows. Its Niri gaps, focus ring, window radius, and shadow are synchronized by the existing theme scripts.
+- **Neo Brutalism**: JetBrains Mono typography, high-contrast semantic ink, heavier borders, compact radii, and hard offset shadows. Its Hyprland gaps, focus ring, window radius, and shadow are synchronized by the existing theme scripts.
 
 The style changes geometry and ink treatment only. It does not replace the Matugen palette. The shell-specific file map is documented in [`~/.config/quickshell/README.md`](.config/quickshell/README.md).
 
@@ -49,14 +49,8 @@ To glue the desktop environment together, several custom scripts handle system t
   - *What it does*: It uses the `python-vosk` library and a local offline speech-to-text Vosk model (automatically downloaded on first run, ~40MB) to transcribe recorded voice input and output search queries in plain text.
 - **[`desktop-parser.py`](.config/quickshell/bin/desktop-parser.py)**: An efficient desktop application parser.
   - *What it does*: It scans standard XDG applications paths (`/usr/share/applications`, `~/.local/share/applications`), extracts details from `.desktop` files, resolves application icons from your current icon themes, caches the results to `/tmp/qs-app-cache-<uid>.json` (with cache invalidation matched to the directories' modified timestamps), and outputs JSON data to feed the launcher panel.
-- **[`idle.sh`](.config/quickshell/scripts/idle.sh)**: Swayidle wrapper.
-  - *What it does*: Handles multi-level inactivity timeouts:
-    - **150 seconds**: Dims screen brightness to 10% (saving previous level).
-    - **300 seconds by default**: Invokes the screen locker (configurable through `idleLockTimeoutSeconds`).
-    - **600 seconds**: Shuts off monitor displays (using `niri` monitor controls or `wlopm`).
-    - **900 seconds by default**: Puts the machine to sleep (`systemctl suspend`, configurable through `idleSuspendTimeoutSeconds`).
-- **[`safe-logout.sh`](.config/quickshell/scripts/safe-logout.sh)**: A clean session terminate utility.
-  - *What it does*: First attempts composer-specific clean exits (e.g. `niri msg action quit`). If the desktop environment remains active after a half-second grace period, it sends a direct `SIGKILL` to the active systemd session using `loginctl kill-session`.
+- **[`hypridle.conf`](.config/hypr/hypridle.conf)**: Hyprland idle policy.
+  - *What it does*: Locks through Quickshell after 10 minutes, powers off Wayland outputs after 11 minutes, and suspends after 15 minutes. The reusable [`display-power.sh`](.config/quickshell/scripts/display-power.sh) helper restores output power after activity or resume.
 - **Trigger Scripts (`launcher`, `quickmenu`, `commandcenter`, `lock`)**:
   - *What they do*: Simple wrappers that touch `/tmp/` trigger files (e.g., `/tmp/qslauncher-trigger`, `/tmp/qslock-trigger`, `/tmp/qsquickmenu-trigger`). The main Quickshell QML shell watches these files to toggle overlays and UI dashboards instantly.
 
@@ -66,9 +60,9 @@ Quickshell's semantic colors are wallpaper-derived through **matugen**. The auth
 
 - **[`matugen-and-cache.sh`](.local/bin/matugen-and-cache.sh)**: Runs `matugen --type scheme-fidelity --prefer saturation`, caches both light and dark semantic roles in `~/.cache/matugen/current_palette.json` under `scheme-expressive`, and regenerates the Quickshell `Colors.qml` template.
 - **[`generate-all-themes.sh`](.local/bin/generate-all-themes.sh)**: Regenerates the dynamic Material 3 and Neo GTK, icon, SDDM, and Kvantum outputs from the cached palette. The fixed Nothing and Ghost assets are installed by the UI suite installer.
-- **[`sync-theme-mode.sh`](.local/bin/sync-theme-mode.sh)**: Applies `light`, `dark`, or `auto` mode across GNOME settings, GTK 3/4, Libadwaita CSS links, Kvantum, Qt6ct, icons, Kitty, and Niri.
+- **[`sync-theme-mode.sh`](.local/bin/sync-theme-mode.sh)**: Applies `light`, `dark`, or `auto` mode across GNOME settings, GTK 3/4, Libadwaita CSS links, Kvantum, Qt6ct, icons, and Kitty.
 - **[`auto-detect-theme.sh`](.local/bin/auto-detect-theme.sh)**: Reads the current wallpaper from the awww cache, measures its mean brightness with ImageMagick, and returns `light` or `dark` for automatic mode.
-- **[`sync-terminal-theme.sh`](.local/bin/sync-terminal-theme.sh)**: Synchronizes Kitty, Starship/fzf, btop, Neovim state, and generated Niri decoration colors. It accepts the `matugen` or `claude` terminal palette selector and the Quickshell `material3`, `neo-brutalism`, `nothing`, or `ghost` UI style.
+- **[`sync-terminal-theme.sh`](.local/bin/sync-terminal-theme.sh)**: Synchronizes Kitty, Starship/fzf, btop, Neovim state, and generated Hyprland decoration colors. It accepts the `matugen` or `claude` terminal palette selector and the Quickshell `material3`, `neo-brutalism`, `nothing`, or `ghost` UI style.
 
 The theming flow:
 1. [`apply-wallpaper.sh`](.config/quickshell/scripts/apply-wallpaper.sh) applies the selected wallpaper with `awww` first.
@@ -77,7 +71,7 @@ The theming flow:
 4. `sync-theme-mode.sh auto` detects the wallpaper brightness and applies the matching desktop mode.
 5. Quickshell restarts so `Colors.qml` loads the fresh palette.
 
-The tracked [`colorscheme`](.config/quickshell/colorscheme) is currently `matugen`. `claude` is available as a fixed alternate palette for Kitty and Niri synchronization; Quickshell itself continues to consume the Matugen role cache. [`apply-accent-color.sh`](.config/quickshell/scripts/apply-accent-color.sh) remains only as a compatibility entry point and does not provide runtime accent editing.
+The tracked [`colorscheme`](.config/quickshell/colorscheme) is currently `matugen`. `claude` is available as a fixed alternate palette for Kitty and compositor synchronization; Quickshell itself continues to consume the Matugen role cache. [`apply-accent-color.sh`](.config/quickshell/scripts/apply-accent-color.sh) remains only as a compatibility entry point and does not provide runtime accent editing.
 
 Theme changes are runtime settings now; switching between Material 3, Neo Brutalism, Nothing, or Ghost, or between light, dark, and automatic mode, does not require a yadm branch checkout.
 
@@ -97,7 +91,7 @@ System-level rules located in `.config/thinkpad` automate power management, secu
 
 ## 🚀 Installation & Bootstrapping
 
-We provide an interactive installer that checks package dependencies, configures an AUR helper, installs standard/AUR packages, copies system configurations, and can clone/build/install the four UI style families without storing generated theme assets in yadm.
+We provide an interactive installer that checks package dependencies, configures an AUR helper, installs official/AUR packages, copies system configurations, and can clone/build/install the four UI style families without storing generated theme assets in yadm.
 
 ### Method A: YADM (Recommended)
 

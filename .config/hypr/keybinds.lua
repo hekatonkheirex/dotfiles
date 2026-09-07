@@ -1,7 +1,7 @@
 local terminal    = "kitty"
 local fileManager = "nautilus"
 local browser     = "brave-origin"
-local ipc         = "noctalia msg "
+local quickshellIpc = "quickshell ipc --path \"$HOME/.config/quickshell\" call "
 
 local mainMod     = "SUPER"
 
@@ -18,23 +18,28 @@ hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ action = "toggle", mode = "maximized" }))
 hl.bind(mainMod .. " + SHIFT + F", hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
 
--- Noctalia binds
-hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(ipc .. "panel-toggle launcher"))
-hl.bind("XF86Tools", hl.dsp.exec_cmd(ipc .. "panel-toggle control-center"))
-hl.bind("XF86Favorites", hl.dsp.exec_cmd(ipc .. "settings-toggle"))
+-- Quickshell binds
+hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(quickshellIpc .. "bar toggleLauncher"))
+hl.bind(mainMod .. " + ALT + L", hl.dsp.exec_cmd(quickshellIpc .. "session lock"))
+-- The former control-center and settings keys share the Quickshell settings surface.
+hl.bind("XF86Tools", hl.dsp.exec_cmd(quickshellIpc .. "bar toggleSettings"))
+hl.bind("XF86Favorites", hl.dsp.exec_cmd(quickshellIpc .. "bar toggleSettings"))
 
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(ipc .. "volume-up"))
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(ipc .. "volume-down"))
-hl.bind("XF86AudioMute", hl.dsp.exec_cmd(ipc .. "volume-mute"))
-hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd(ipc .. "brightness-up"))
-hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(ipc .. "brightness-down"))
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(quickshellIpc .. "bar volumeUp"))
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(quickshellIpc .. "bar volumeDown"))
+hl.bind("XF86AudioMute", hl.dsp.exec_cmd(quickshellIpc .. "bar toggleMute"))
+hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd(quickshellIpc .. "bar brightnessUp"))
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(quickshellIpc .. "bar brightnessDown"))
+hl.bind("XF86KbdBrightnessUp", hl.dsp.exec_cmd(quickshellIpc .. "bar keyboardBrightnessUp"))
+hl.bind("XF86KbdBrightnessDown", hl.dsp.exec_cmd(quickshellIpc .. "bar keyboardBrightnessDown"))
+hl.bind("XF86KbdLightOnOff", hl.dsp.exec_cmd(quickshellIpc .. "bar keyboardBrightnessToggle"))
 
--- Screenshot (Noctalia)
-hl.bind("Print", hl.dsp.exec_cmd(ipc .. "screenshot-region"))
-hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd(ipc .. "screenshot-fullscreen"))
+-- Screenshots (Quickshell + grim/slurp)
+hl.bind("Print", hl.dsp.exec_cmd(quickshellIpc .. "bar screenshotRegion"))
+hl.bind("CTRL + Print", hl.dsp.exec_cmd(quickshellIpc .. "bar screenshotFullscreen"))
 
--- Alt tab
-hl.bind("ALT + Tab", hl.dsp.exec_cmd(ipc .. "window-switcher"))
+-- Alt tab (Hyprland owns window focus)
+hl.bind("ALT + Tab", hl.dsp.exec_cmd("hyprctl dispatch focuscurrentorlast"))
 
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + left", hl.dsp.focus({ direction = "left" }))
@@ -44,8 +49,8 @@ hl.bind(mainMod .. " + down", hl.dsp.focus({ direction = "down" }))
 
 hl.bind(mainMod .. " + H", hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + L", hl.dsp.focus({ direction = "right" }))
-hl.bind(mainMod .. " + J", hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + K", hl.dsp.focus({ direction = "down" }))
+hl.bind(mainMod .. " + K", hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + J", hl.dsp.focus({ direction = "down" }))
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
