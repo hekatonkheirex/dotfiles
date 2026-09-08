@@ -1,0 +1,91 @@
+# Material 3 Expressive Starship prompt — generated from the active Matugen palette
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_state\
+$git_status\
+$fill\
+$cmd_duration\
+$line_break\
+$python\
+$lua\
+$c\
+$rust\
+$perl\
+$php\
+$ruby\
+$character"""
+
+[fill]
+symbol = ' '
+
+[directory]
+read_only = " 󰌾"
+style = "#eae1d8"
+
+[character]
+success_symbol = "[❯](#d9e4ff)"
+error_symbol = "[❯](#ffb4ab)"
+vimcmd_symbol = "[❮](#dbc39d)"
+
+[git_branch]
+format = "[$branch]($style)"
+style = "#dbc39d"
+
+[git_status]
+format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)"
+style = "#eae1d8"
+conflicted = "​"
+untracked = "​"
+modified = "​"
+staged = "​"
+renamed = "​"
+deleted = "​"
+stashed = "≡"
+
+[git_state]
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+style = "#ffdfad"
+
+[cmd_duration]
+format = " [$duration]($style) "
+style = "#ffdfad"
+
+[time]
+disabled = false
+time_format = "%T"
+format = '$time'
+
+[c]
+symbol = '󰙱 '
+style = "#ffdfad"
+
+[lua]
+symbol = "󰢱 "
+style = "#ffdfad"
+
+[nodejs]
+symbol = "⬢ "
+style = "#ffdfad"
+
+[perl]
+symbol = " "
+style = "#ffdfad"
+
+[php]
+symbol = " "
+style = "#ffdfad"
+
+[python]
+symbol = " "
+style = "#ffdfad"
+
+[ruby]
+symbol = " "
+style = "#ffdfad"
+
+[rust]
+symbol = " "
+style = "#ffdfad"

@@ -1,0 +1,20 @@
+// Generated dynamically by sync-terminal-theme.sh
+layout {
+    
+    focus-ring {
+        width 2
+        active-color "#ffdfad"
+        inactive-color "#9b8f7f"
+    }
+    border {
+        off
+        width 2
+        active-color "#ffdfad"
+        inactive-color "#9b8f7f"
+        urgent-color "#ffdfad"
+    }
+}
+window-rule {
+    geometry-corner-radius 16
+    clip-to-geometry true
+}
