@@ -1,241 +1,582 @@
+//@ pragma UseQApplication
 import QtQuick
-
+import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
+import Quickshell.Wayland._WlrLayerShell
+import Quickshell.Services.Notifications
+import Quickshell.Services.UPower
 import Quickshell.Io
-
-import "."
+import "config"
+import "bar"
+import "ui" as Ui
 
 ShellRoot {
-    id: root
+  id: shell
 
-    property int keyboardBrightnessPercent: -1
-    property bool keyboardBrightnessKnown: false
+  // Battery low alert — Warning at 20%, Alert at 10%. Persists until manually
+  // dismissed or the charger is plugged in (see checkLevel + notifServer capture below).
+  QtObject {
+    id: batteryAlert
+    readonly property string appName: "Battery Monitor"
+    property string state: "none" // "none" | "warning" | "alert"
+    property var warningNotif: null
+    property var alertNotif: null
+    property var device: {
+      for (var i = 0; i < UPower.devices.count; i++) {
+        var d = UPower.devices.get(i)
+        if (d.ready && d.isLaptopBattery) return d
+      }
+      return UPower.displayDevice && UPower.displayDevice.ready ? UPower.displayDevice : null
+    }
+    property real pct: device ? device.percentage * 100 : 100
+    // UPower's own aggregate "running off AC" flag, not the battery's own
+    // charge state. This laptop uses a charge threshold/conservation mode
+    // that lets the battery sit in "Discharging" down to a floor and then
+    // briefly flip to "Charging" to top back up — all while the adapter
+    // stays physically connected. Inferring "plugged in" from battery.state
+    // followed that sawtooth and dismissed the alert with no user action.
+    property bool pluggedIn: !UPower.onBattery
 
-    SettingsStore {
-        id: settingsStore
+    function dismissWarning() {
+      if (warningNotif) { warningNotif.dismiss(); warningNotif = null }
+    }
+    function dismissAlert() {
+      if (alertNotif) { alertNotif.dismiss(); alertNotif = null }
     }
 
-    Component.onCompleted: {
-        Theme.settings = settingsStore;
-        keyboardBrightnessReader.exec(["brightnessctl", "-m", "-d", "tpacpi::kbd_backlight"]);
+    function checkLevel() {
+      if (pluggedIn) {
+        dismissWarning()
+        dismissAlert()
+        state = "none"
+        return
+      }
+      if (pct <= 10) {
+        if (state !== "alert") {
+          dismissWarning()
+          state = "alert"
+          Quickshell.execDetached(["notify-send", "-a", appName, "-u", "critical", "-i", "battery-caution", "-t", "0", "Battery Alert", Math.round(pct) + "% remaining — plug in now"])
+        }
+      } else if (pct <= 20) {
+        if (state === "none") {
+          state = "warning"
+          Quickshell.execDetached(["notify-send", "-a", appName, "-u", "critical", "-i", "battery-caution", "-t", "0", "Battery Warning", Math.round(pct) + "% remaining"])
+        }
+      }
+      // No auto-reset on pct climbing back above 20 while unplugged: UPower's
+      // percentage reading wobbles under load. Only plugging in (above) or a
+      // manual dismiss clears the notification.
     }
 
-    NotificationService {
-        id: sharedNotificationService
-        settings: settingsStore
+    onPluggedInChanged: checkLevel()
+    onPctChanged: checkLevel()
+    Component.onCompleted: checkLevel()
+  }
+
+  property string barPosition: "top"
+  // Horizontal placements are rendered as one left-to-right row by Bar.qml.
+  // Keep Ghost's selected edge intact instead of forcing every Ghost bar to top.
+  readonly property bool isHorizontal: shell.barPosition === "top"
+    || shell.barPosition === "bottom"
+  property bool fullBar: Settings.fullBar
+  property bool paletteActivationComplete: false
+  property bool startupThemeRefreshComplete: false
+
+  function normalizeBarPosition(value) {
+    var pref = String(value || "").trim()
+    if (pref === "top" || pref === "horizontal") return "top"
+    if (pref === "bottom" || pref === "left" || pref === "right") return pref
+    if (pref === "vertical") return "left"
+    return "top"
+  }
+
+  function setBarPosition(value) {
+    var next = shell.normalizeBarPosition(value)
+    if (shell.barPosition === next) return
+
+    shell.barPosition = next
+    Quickshell.execDetached([
+      "sh", "-c",
+      "printf '%s\\n' \"$1\" > \"$2\"",
+      "sh", next,
+      Quickshell.env("HOME") + "/.config/quickshell/layout"
+    ])
+  }
+
+  function themeModeName(preference) {
+    var modes = ["auto", "light", "dark"]
+    return modes[preference] || "auto"
+  }
+
+  function syncThemeMode() {
+    Quickshell.execDetached([
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-theme-mode-locked.sh",
+      shell.themeModeName(Settings.themePreference),
+      "",
+      Settings.themeStyle,
+      "--sync-sddm"
+    ])
+  }
+
+  function syncUiStyle() {
+    Quickshell.execDetached([
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-theme-mode-locked.sh",
+      shell.themeModeName(Settings.themePreference),
+      "--quiet",
+      Settings.themeStyle,
+      "--sync-sddm"
+    ])
+  }
+
+  function startInitialThemeSync() {
+    if (!shell.paletteActivationComplete
+        || shell.startupThemeRefreshComplete
+        || !Settings.initialLoadComplete
+        || syncThemeOnStartup.running) return
+    syncThemeOnStartup.running = true
+  }
+
+  function quietHoursActive() {
+    if (!Settings.notificationQuietHoursEnabled) return false
+
+    var now = new Date()
+    var minutes = now.getHours() * 60 + now.getMinutes()
+    var start = Math.max(0, Math.min(1439, Settings.notificationQuietHoursStart))
+    var end = Math.max(0, Math.min(1439, Settings.notificationQuietHoursEnd))
+    if (start === end) return true
+    return start > end
+      ? minutes >= start || minutes < end
+      : minutes >= start && minutes < end
+  }
+
+  function notificationSuppressed(notif) {
+    var critical = notif && notif.urgency === NotificationUrgency.Critical
+    if (critical && Settings.notificationCriticalBypass) return false
+    return Settings.doNotDisturb || shell.quietHoursActive()
+  }
+
+  // Restore the persisted palette from its source-owned cache whenever the
+  // shell starts. Expensive Matugen/theme generation belongs to an explicit
+  // palette or wallpaper change, not every Quickshell restart.
+  Process {
+    id: activatePaletteOnStartup
+    command: [
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-active-palette.sh",
+      "--source",
+      "auto",
+      "--activate-only"
+    ]
+    running: true
+    onExited: (exitCode) => {
+      Colors.reloadMatugenPalette()
+      shell.paletteActivationComplete = true
+      shell.startupThemeRefreshComplete = false
+      shell.startInitialThemeSync()
+    }
+  }
+
+  Process {
+    id: syncThemeOnStartup
+    command: [
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-theme-mode-locked.sh",
+      shell.themeModeName(Settings.themePreference),
+      "--quiet",
+      Settings.themeStyle
+    ]
+    running: false
+    onExited: (exitCode) => {
+      shell.startupThemeRefreshComplete = exitCode === 0
+    }
+  }
+
+  Connections {
+    target: Settings
+    function onInitialLoadCompleteChanged() { shell.startInitialThemeSync() }
+    function onThemePreferenceChanged() {
+      if (!Settings.initialLoadComplete) return
+      shell.syncThemeMode()
+    }
+    function onThemeStyleChanged() {
+      if (!Settings.initialLoadComplete) return
+      shell.syncUiStyle()
+    }
+  }
+
+  Process {
+    id: readLayoutPref
+    command: ["sh", "-c", "cat " + Quickshell.env("HOME") + "/.config/quickshell/layout 2>/dev/null || echo horizontal"]
+    running: true
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var pref = text.trim()
+        shell.barPosition = shell.normalizeBarPosition(pref)
+      }
+    }
+  }
+
+  // Shared popup anchoring: centered along the bar, then offset past the
+  // selected edge. Callers pass their own implicit size and Screen bound so
+  // bindings stay reactive.
+  function popupBarInset() {
+    return bar.verticalPillPanelWidth + Config.spacingMedium
+      + (bar.fullBar && Config.neoBrutalism
+        ? Config.themeShadowOffset + 2
+        : 0)
+  }
+
+  function popupMarginLeft(w, screenW) {
+    if (bar.horizontal) {
+      return Math.max(0, Math.min(bar.popupAnchorX - w / 2, screenW - w))
+    }
+    return bar.dockedRight
+      ? Math.max(0, screenW - w - popupBarInset())
+      : popupBarInset()
+  }
+
+  function popupMarginTop(h, screenH) {
+    if (bar.horizontal) {
+      return bar.dockedBottom
+        ? Math.max(0, screenH - h - popupBarInset())
+        : popupBarInset()
+    }
+    return Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h))
+  }
+
+  function toggleLayout() {
+    var next = shell.isHorizontal
+      ? (shell.barPosition === "bottom" ? "right" : "left")
+      : (shell.barPosition === "right" ? "bottom" : "top")
+    shell.setBarPosition(next)
+  }
+
+  function toggleFullBar() {
+    Settings.fullBar = !Settings.fullBar
+    Settings.save()
+  }
+
+  function resetAppearanceToDefaults() {
+    Settings.resetAppearanceToDefaults()
+    shell.setBarPosition("top")
+  }
+
+  function resetAllSettingsToDefaults() {
+    Settings.resetToDefaults()
+    shell.setBarPosition("top")
+  }
+
+  LockScreen {
+    id: lockScreen
+  }
+
+  Ui.WelcomeScreen {
+    id: welcomeScreen
+    colors_: Colors
+    config: Config
+  }
+
+  IpcHandler {
+    id: ipc
+    target: "shell"
+
+    function launcher() {
+      if (bar.horizontal) {
+        bar.popupAnchorX = bar.getLauncherX()
+      } else {
+        bar.popupAnchorY = 0
+      }
+      bar.openPopup = bar.openPopup === "launcher" ? "" : "launcher"
     }
 
-    SettingsWindow {
-        id: sharedSettingsWindow
-        settings: settingsStore
-        notificationService: sharedNotificationService
-        targetScreen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
+    function lock() {
+      lockScreen.lockScreen()
     }
 
-    NotificationToast {
-        notificationService: sharedNotificationService
-        targetScreen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
+    function welcome() {
+      welcomeScreen.show()
     }
 
-    LockScreen {
-        id: lockScreen
+    function quickmenu() {
+      if (bar.horizontal) {
+        bar.popupAnchorX = bar.getMenuIndicatorX()
+      } else {
+        bar.popupAnchorY = bar.getMenuIndicatorY()
+      }
+      bar.openPopup = bar.openPopup === "quickmenu" ? "" : "quickmenu"
     }
 
-    ScreenshotService {
-        id: screenshotService
+    function settings() {
+      if (bar.horizontal) {
+        bar.popupAnchorX = bar.getSettingsX()
+      } else {
+        bar.popupAnchorY = bar.getSettingsY()
+      }
+      bar.openPopup = bar.openPopup === "settings" ? "" : "settings"
     }
 
-    StatusOsd {
-        id: statusOsd
-        targetScreen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
+    // Compatibility alias for existing scripts and external IPC callers.
+    function commandcenter() {
+      settings()
     }
 
-    Variants {
-        id: bars
-        model: Quickshell.screens
-
-        delegate: Component {
-            BarWindow {
-                settingsWindow: sharedSettingsWindow
-                notificationService: sharedNotificationService
-            }
-        }
+    function layout() {
+      shell.toggleLayout()
     }
 
-    IpcHandler {
-        target: "bar"
-
-        function toggleLauncher() {
-            for (var index = 0; index < bars.instances.length; index++) {
-                bars.instances[index].toggleLauncher();
-            }
-        }
-
-        function toggleNotifications() {
-            for (var index = 0; index < bars.instances.length; index++) {
-                bars.instances[index].toggleNotifications();
-            }
-        }
-
-        function clearNotifications() {
-            sharedNotificationService.clearAll();
-        }
-
-        function toggleSettings() {
-            sharedSettingsWindow.toggle();
-        }
-
-        function volumeUp() {
-            Quickshell.execDetached([
-                "wpctl", "set-volume", "--limit", "1.0", "@DEFAULT_AUDIO_SINK@", "5%+"
-            ]);
-            volumeOsdRefresh.restart();
-        }
-
-        function volumeDown() {
-            Quickshell.execDetached([
-                "wpctl", "set-volume", "--limit", "1.0", "@DEFAULT_AUDIO_SINK@", "5%-"
-            ]);
-            volumeOsdRefresh.restart();
-        }
-
-        function toggleMute() {
-            Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]);
-            volumeOsdRefresh.restart();
-        }
-
-        function brightnessUp() {
-            brightnessControl.exec(["brightnessctl", "set", "5%+"]);
-        }
-
-        function brightnessDown() {
-            brightnessControl.exec(["brightnessctl", "set", "5%-"]);
-        }
-
-        function keyboardBrightnessUp() {
-            keyboardBrightnessControl.exec(["brightnessctl", "-d", "tpacpi::kbd_backlight", "set", "+1"]);
-        }
-
-        function keyboardBrightnessDown() {
-            keyboardBrightnessControl.exec(["brightnessctl", "-d", "tpacpi::kbd_backlight", "set", "1-"]);
-        }
-
-        function keyboardBrightnessToggle() {
-            var target = root.keyboardBrightnessPercent > 0 ? "0%" : "100%";
-            keyboardBrightnessControl.exec(["brightnessctl", "-d", "tpacpi::kbd_backlight", "set", target]);
-        }
-
-        function screenshotRegion() {
-            screenshotService.captureRegion();
-        }
-
-        function screenshotFullscreen() {
-            screenshotService.captureFullscreen();
-        }
-
+    function reloadPalette() {
+      Colors.reloadMatugenPalette()
     }
 
-    function refreshBarBrightness() {
-        for (var index = 0; index < bars.instances.length; index++) {
-            bars.instances[index].refreshBrightness();
-        }
+  }
+
+  FileTrigger {
+    triggers: ({
+      "qslauncher-trigger": "launcher",
+      "qsquickmenu-trigger": "quickmenu",
+      "qssettings-trigger": "settings",
+      "qscommandcenter-trigger": "settings",
+      "qslock-trigger": "lock",
+      "qsosd-vol": "osd-volume",
+      "qsosd-bright": "osd-brightness",
+      "qsosd-mic": "osd-mic",
+      "qsosd-airplane": "osd-airplane",
+      "qsosd-bluetooth": "osd-bluetooth"
+    })
+    onTriggered: function(name) {
+      switch (name) {
+        case "launcher": ipc.launcher(); break
+        case "quickmenu": ipc.quickmenu(); break
+        case "settings": ipc.settings(); break
+        case "lock": ipc.lock(); break
+        case "osd-volume": osd.show("volume"); break
+        case "osd-brightness": osd.show("brightness"); break
+        case "osd-mic": osd.show("mic"); break
+        case "osd-airplane": osd.show("airplane"); break
+        case "osd-bluetooth": osd.show("bluetooth"); break
+      }
+    }
+  }
+
+  NotificationServer {
+    id: notifServer
+    bodyMarkupSupported: true
+    actionsSupported: true
+    onNotification: function(notif) {
+      notif.tracked = true
+      if (notif.appName === batteryAlert.appName) {
+        if (notif.summary === "Battery Alert") batteryAlert.alertNotif = notif
+        else if (notif.summary === "Battery Warning") batteryAlert.warningNotif = notif
+        notif.closed.connect(function() {
+          if (batteryAlert.warningNotif === notif) batteryAlert.warningNotif = null
+          if (batteryAlert.alertNotif === notif) batteryAlert.alertNotif = null
+        })
+      }
+      if (!shell.notificationSuppressed(notif)) notificationToast.show(notif)
+      notificationPopup.onNotificationReceived(notif)
+    }
+  }
+
+  NotificationToast {
+    id: notificationToast
+    notificationServer: notifServer
+    barPosition: shell.barPosition
+  }
+
+  Connections {
+    target: Settings
+
+    function onDoNotDisturbChanged() {
+      if (Settings.doNotDisturb || shell.quietHoursActive()) notificationToast.suppress()
     }
 
-    function updateVolumeOsd(raw) {
-        var match = raw.match(/Volume:\s+([0-9.]+)/);
-        if (!match) {
-            return;
-        }
-
-        statusOsd.showVolume(
-            parseFloat(match[1]) * 100,
-            raw.indexOf("[MUTED]") !== -1
-        );
+    function onNotificationQuietHoursEnabledChanged() {
+      if (Settings.notificationQuietHoursEnabled && shell.quietHoursActive()) notificationToast.suppress()
     }
 
-    function updateBrightnessOsd(raw) {
-        var fields = raw.trim().split(",");
-        var value = parseInt((fields[3] || "").replace("%", ""), 10);
-        if (!isNaN(value)) {
-            statusOsd.showBrightness(value);
-            root.refreshBarBrightness();
-        }
+    function onNotificationQuietHoursStartChanged() {
+      if (shell.quietHoursActive()) notificationToast.suppress()
     }
 
-    function updateKeyboardBrightnessOsd(raw) {
-        var fields = raw.trim().split(",");
-        var value = parseInt((fields[3] || "").replace("%", ""), 10);
-        if (!isNaN(value)) {
-            var changed = root.keyboardBrightnessKnown && root.keyboardBrightnessPercent !== value;
-            root.keyboardBrightnessPercent = value;
-            root.keyboardBrightnessKnown = true;
-            if (changed)
-                statusOsd.showKeyboardBrightness(value);
-
-        }
-
+    function onNotificationQuietHoursEndChanged() {
+      if (shell.quietHoursActive()) notificationToast.suppress()
     }
+  }
 
-    Timer {
-        id: volumeOsdRefresh
-        interval: 120
-        repeat: false
-        onTriggered: volumeReader.exec(["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"])
+  PopupShield {
+    id: shield
+    visible: bar.openPopup !== "" && !lockScreen.locked
+    onShieldClicked: bar.openPopup = ""
+  }
+
+  Bar {
+    id: bar
+    barPosition: shell.barPosition
+    notificationServer: notifServer
+    fullBar: shell.fullBar
+    visible: !lockScreen.locked
+  }
+
+  AudioPopup {
+    id: audioPopup
+    visible: bar.openPopup === "audio" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
+
+  BrightnessPopup {
+    id: brightnessPopup
+    visible: bar.openPopup === "brightness" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
+
+  MediaPopup {
+    id: mediaPopup
+    visible: bar.openPopup === "media" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
+
+  WeatherPopup {
+    id: weatherPopup
+    visible: bar.openPopup === "weather" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
+
+  BatteryPopup {
+    id: batteryPopup
+    visible: bar.openPopup === "battery" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
+
+  CalendarPopup {
+    id: calendarPopup
+    visible: bar.openPopup === "calendar" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
+
+  NotificationPopup {
+    id: notificationPopup
+    visible: bar.openPopup === "notification" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
+
+  QuickMenu {
+    id: quickMenu
+    visible: bar.openPopup === "quickmenu" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
+    onLockRequested: lockScreen.lockScreen()
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
+
+  PanelWindow {
+    id: powerConfirmationWindow
+    visible: quickMenu.pendingPowerIndex >= 0 && !lockScreen.locked
+    color: "transparent"
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.namespace: "quickshell-confirmation"
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.focusable: powerConfirmationWindow.visible
+
+    anchors.left: true
+    anchors.right: true
+    anchors.top: true
+    anchors.bottom: true
+
+    PowerConfirmation {
+      anchors.fill: parent
+      opened: powerConfirmationWindow.visible
+      actionLabel: quickMenu.pendingPowerIndex >= 0
+        ? quickMenu.powerOptions[quickMenu.pendingPowerIndex].label
+        : ""
+      actionDescription: quickMenu.pendingPowerIndex >= 0
+        ? quickMenu.powerDescription(quickMenu.powerOptions[quickMenu.pendingPowerIndex].label)
+        : ""
+      actionIcon: quickMenu.pendingPowerIndex >= 0
+        ? quickMenu.powerIcon(quickMenu.powerOptions[quickMenu.pendingPowerIndex].label)
+        : ""
+      onConfirmed: quickMenu.confirmPower()
+      onCancelled: quickMenu.cancelPower()
     }
+  }
 
-    // Firmware-handled Fn keys can change the LED without producing a
-    // compositor key event. Poll the device so those changes still get an OSD.
-    Timer {
-        id: keyboardBrightnessPoll
-        interval: 500
-        repeat: true
-        running: true
-        onTriggered: keyboardBrightnessPoller.exec(["brightnessctl", "-m", "-d", "tpacpi::kbd_backlight"])
-    }
+  SettingsPanel {
+    id: settingsPanel
+    visible: bar.openPopup === "settings" && !lockScreen.locked
+    onDismissed: bar.openPopup = ""
+    onLockRequested: lockScreen.lockScreen()
+    isHorizontal: shell.isHorizontal
+    barPosition: shell.barPosition
+    onToggleHorizontal: shell.toggleLayout()
+    onSetBarPosition: function(position) { shell.setBarPosition(position) }
+    onResetAppearance: shell.resetAppearanceToDefaults()
+    onResetAllSettings: shell.resetAllSettingsToDefaults()
+    fullBar: shell.fullBar
+    notificationPopup: notificationPopup
+    onToggleFullBar: shell.toggleFullBar()
+  }
 
-    Process {
-        id: volumeReader
-        stdout: StdioCollector {
-            onStreamFinished: root.updateVolumeOsd(this.text)
-        }
-    }
+  OsdOverlay {
+    id: osd
+  }
 
-    Process {
-        id: brightnessControl
-        onExited: brightnessReader.exec(["brightnessctl", "-m"])
-    }
+  LauncherPopup {
+    id: launcherPopup
+    visible: bar.openPopup === "launcher" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    onDismissed: bar.openPopup = ""
 
-    Process {
-        id: brightnessReader
-        stdout: StdioCollector {
-            onStreamFinished: root.updateBrightnessOsd(this.text)
-        }
-    }
-
-    Process {
-        id: keyboardBrightnessControl
-        onExited: keyboardBrightnessReader.exec(["brightnessctl", "-m", "-d", "tpacpi::kbd_backlight"])
-    }
-
-    Process {
-        id: keyboardBrightnessReader
-        stdout: StdioCollector {
-            onStreamFinished: root.updateKeyboardBrightnessOsd(this.text)
-        }
-    }
-
-    Process {
-        id: keyboardBrightnessPoller
-        stdout: StdioCollector {
-            onStreamFinished: root.updateKeyboardBrightnessOsd(this.text)
-        }
-    }
-
-    IpcHandler {
-        target: "session"
-
-        function lock() {
-            lockScreen.lock();
-        }
-    }
+    anchors.left: true
+    margins.left: launcherPopup.wallpaperMode
+      ? Math.max(0, (Screen.desktopAvailableWidth - launcherPopup.implicitWidth) / 2)
+      : shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    anchors.top: true
+    margins.top: launcherPopup.wallpaperMode
+      ? Math.max(0, (Screen.desktopAvailableHeight - launcherPopup.implicitHeight) / 2)
+      : shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+  }
 }
