@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+trigger="${1:-}"
+case "$trigger" in
+  qslauncher-trigger|qsquickmenu-trigger|qssettings-trigger|qscommandcenter-trigger|qslock-trigger|\
+  qsosd-vol|qsosd-bright|qsosd-mic|qsosd-airplane|qsosd-bluetooth)
+    ;;
+  *)
+    printf 'Unknown Quickshell trigger: %s\n' "$trigger" >&2
+    exit 2
+    ;;
+esac
+
+if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
+  runtime_dir="$XDG_RUNTIME_DIR/quickshell"
+else
+  runtime_dir="$HOME/.cache/quickshell/runtime"
+fi
+
+umask 077
+mkdir -p -- "$runtime_dir"
+if [[ "$(stat -c '%a' -- "$runtime_dir" 2>/dev/null || true)" != "700" ]]; then
+  chmod 700 -- "$runtime_dir"
+fi
+trigger_path="$runtime_dir/$trigger"
+rm -f -- "$trigger_path"
+: >"$trigger_path"

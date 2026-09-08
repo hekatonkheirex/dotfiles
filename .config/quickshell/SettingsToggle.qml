@@ -1,5 +1,0 @@
-import "."
-
-MaterialSwitch {
-    id: root
-}
