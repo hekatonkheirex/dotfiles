@@ -1,6 +1,6 @@
 # Quickshell Desktop Shell
 
-A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/), running on **Niri**.
+A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/), running on **Niri or Mango**.
 
 ## Overview
 
@@ -27,7 +27,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
   - **Lock & Power**: Lock-screen media/clock and wallpaper options, idle lock/suspend timeouts, Caffeine, and TLP power profiles
   - **Notifications**: Do Not Disturb, quiet hours, critical bypass, toast position/duration, history retention, clear-history, and test-notification controls
   - **System**: CPU, memory, disk, swap, thermal, fan, battery health/cycles, diagnostics copy, reload, and confirmed reset actions
-  - **Shortcuts**: Curated Niri keybind reference with source open and copy actions
+  - **Shortcuts**: Curated active-compositor keybind reference with source open and copy actions
 - **Persisted user settings** (`settings.json`, `config/Settings.qml`) separate from build-time layout/typography tokens (`config/Config.qml`).
 
 ## Project Structure
@@ -139,9 +139,9 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── idle-brightness-restore  # Validates and restores saved brightness
 │   ├── sync-theme-mode-locked.sh # Serialized wrapper for the external theme synchronizer
 │   ├── lid.sh                   # Lid close: lock
-│   ├── safe-logout.sh           # Clean Niri quit, falls back to a session kill
+│   ├── safe-logout.sh           # Clean Niri/Mango quit, falls back to a session kill
 │   ├── mpris_monitor.py         # Active MPRIS state broadcaster (DBus + private FIFO listener)
-│   ├── mpris_control.py         # MPRIS play/pause/next/prev control for the active player
+│   ├── mpris_control.py         # MPRIS play/pause/stop/next/prev control for the active player
 │   ├── weather.py               # Open-Meteo weather fetcher script
 │   └── voice-search.py          # Local speech transcription via python-vosk (downloads its model to ~/.local/share/vosk-model on first use)
 └── bin/
@@ -150,9 +150,9 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 
 ## WM Integration
 
-Quickshell runs as a Wayland layer surface (panel) on top of the compositor. It integrates with **Niri** using the Niri socket.
+Quickshell runs as a Wayland layer surface (panel) on top of the compositor. It integrates with **Niri** through the Niri socket and with **Mango** through mmsg IPC.
 
-### Niri Startup
+### Compositor Startup
 
 Quickshell is managed via a systemd user service to ensure rate-limiting and session-binding (prevents infinite coredump storms in case of Wayland crashes/logouts).
 
@@ -182,6 +182,11 @@ In `~/.config/niri/startup.kdl`:
 spawn-sh-at-startup "~/.config/quickshell/scripts/idle.sh"
 spawn-sh-at-startup "dbus-update-activation-environment --systemd --all && systemctl --user start quickshell.service"
 ```
+
+Mango starts the same helper set from ~/.config/mango/autostart.conf,
+including the idle watcher and quickshell.service. Its mmsg environment is
+carried through the user manager, so the service does not hardcode a
+compositor name.
 
 Quickshell auto-discovers `~/.config/quickshell/shell.qml` as the default config when run without arguments.
 
@@ -334,6 +339,7 @@ Handles popup dismissal on app focus loss with target null checks. The `activeFo
 
 - **Bar.qml**: Single component for all four placements and both display styles (continuous full bar / floating pills bar), driven by `barPosition`, `horizontal`, `pillsBar`, and `fullBar` properties. In pills mode, every visible widget receives its own floating surface while the transparent panel still provides the input region for gaps and outside-click dismissal. Surface geometry follows the selected UI style.
 - **WorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri (`niri msg event-stream`) using `SplitParser`. Runs only when visible. Anchored directly in the workspace zone so it stays stationary in both display styles and orientations.
+- **Mango layout indicator**: Reads the active tag's layout from the shared `mmsg watch all-monitors` stream and displays its readable name between the workspace and focused-window indicators. Visibility is controlled from General > Bar Contents.
 - **AudioIndicator / BrightnessIndicator / MediaIndicator / WeatherIndicator**: Event-driven watchers and polling loops are bound to their active/visible state, so they are suspended when their parent bar is hidden, saving CPU wakeups and RAM.
 - **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
 - **WifiPanel / BtPanel**: Network and Bluetooth controls live in Settings tabs, including saved Wi-Fi profiles, Bluetooth discovery/pairing, and connected-device actions. They are intentionally not rendered as compact bar indicators.

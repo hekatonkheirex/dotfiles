@@ -41,6 +41,8 @@ def main():
         player_iface = dbus.Interface(player_obj, 'org.mpris.MediaPlayer2.Player')
         if action == 'play':
             player_iface.PlayPause()
+        elif action == 'stop':
+            player_iface.Stop()
         elif action == 'next':
             player_iface.Next()
         elif action == 'prev':

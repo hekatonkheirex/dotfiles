@@ -6,9 +6,7 @@ import "../"
 import "../primitives"
 import "../../config"
 
-// Curated subset of ~/.config/niri/keybinds.kdl: the shell-integration and
-// most-used binds. Not exhaustive — press Mod+Shift+Slash for niri's own
-// full hotkey overlay.
+// Curated subset of the active compositor's keybind file.
 Flickable {
   id: shortcutsTab
   property QtObject root: null
@@ -24,16 +22,20 @@ Flickable {
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: shortcutsTab }
   property string actionStatus: ""
+  readonly property string keybindsPath: Config.isNiri
+    ? Quickshell.env("HOME") + "/.config/niri/keybinds.kdl"
+    : Quickshell.env("HOME") + "/.config/mango/keybinds.conf"
+  readonly property string compositorName: Config.isNiri ? "Niri" : "Mango"
 
   function openKeybinds() {
-    Quickshell.execDetached(["xdg-open", Quickshell.env("HOME") + "/.config/niri/keybinds.kdl"])
-    shortcutsTab.actionStatus = "Opened the full Niri keybind configuration"
+    Quickshell.execDetached(["xdg-open", shortcutsTab.keybindsPath])
+    shortcutsTab.actionStatus = "Opened the full " + shortcutsTab.compositorName + " keybind configuration"
   }
 
   function copyKeybinds() {
     Quickshell.execDetached(["sh", "-c",
-      "if command -v wl-copy >/dev/null 2>&1 && [ -r \"$HOME/.config/niri/keybinds.kdl\" ]; then cat \"$HOME/.config/niri/keybinds.kdl\" | wl-copy; fi"])
-    shortcutsTab.actionStatus = "Copied the full Niri keybind configuration"
+      "if command -v wl-copy >/dev/null 2>&1 && [ -r \"" + shortcutsTab.keybindsPath + "\" ]; then cat \"" + shortcutsTab.keybindsPath + "\" | wl-copy; fi"])
+    shortcutsTab.actionStatus = "Copied the full " + shortcutsTab.compositorName + " keybind configuration"
   }
 
   component KeyChip: Rectangle {
@@ -118,7 +120,7 @@ Flickable {
 
     SettingsPageHeader {
       pageTitle: "Shortcuts"
-      subtitle: "Curated common bindings. The source of truth is ~/.config/niri/keybinds.kdl."
+      subtitle: "Curated common bindings. The source of truth is " + shortcutsTab.keybindsPath + "."
     }
 
     RowLayout {
@@ -188,10 +190,13 @@ Flickable {
 
     GroupCard {
       title: "System"
-      ShortcutRow { action: "Show all niri shortcuts"; keys: "Mod + Shift + /" }
+      ShortcutRow {
+        action: Config.isNiri ? "Show all Niri shortcuts" : "Reload Mango configuration"
+        keys: Config.isNiri ? "Mod + Shift + /" : "Mod + Shift + Alt + R"
+      }
       ShortcutRow { action: "Screenshot"; keys: "Print" }
       ShortcutRow { action: "Power off monitors"; keys: "Mod + Shift + P" }
-      ShortcutRow { action: "Quit niri"; keys: "Mod + Shift + E" }
+      ShortcutRow { action: "Quit " + shortcutsTab.compositorName; keys: "Mod + Shift + E" }
     }
   }
 }

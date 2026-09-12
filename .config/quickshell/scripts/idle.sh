@@ -38,13 +38,17 @@ fi
 lock_timeout=$(read_timeout idleLockTimeoutSeconds 300 86400)
 suspend_timeout=$(read_timeout idleSuspendTimeoutSeconds 900 86400)
 
-if [ -n "$NIRI_SOCKET" ]; then
+desktop_name="$(printenv XDG_CURRENT_DESKTOP 2>/dev/null || true)"
+case "$desktop_name" in
+Niri|niri)
   dpms_off="niri msg action power-off-monitors"
   dpms_on="niri msg action power-on-monitors"
-else
+  ;;
+*)
   dpms_off="/usr/bin/wlopm --off"
   dpms_on="/usr/bin/wlopm --on"
-fi
+  ;;
+esac
 
 set -- /usr/bin/swayidle \
   timeout 150 "$HOME/.config/quickshell/scripts/idle-brightness-off" \

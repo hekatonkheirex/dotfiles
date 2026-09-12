@@ -11,8 +11,44 @@ PopupBase {
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500)
 
   property var notifications: []
+  property var notificationTimestamps: ({})
   property int count: 0
   readonly property int historyLimit: Math.max(1, Settings.notificationHistoryLimit)
+
+  function rememberNotification(n) {
+    if (!n || n.id === undefined || root.notificationTimestamps[n.id] !== undefined) return
+    var timestamps = Object.assign({}, root.notificationTimestamps)
+    timestamps[n.id] = Date.now()
+    root.notificationTimestamps = timestamps
+  }
+
+  function forgetNotification(n) {
+    if (!n || n.id === undefined || root.notificationTimestamps[n.id] === undefined) return
+    var timestamps = Object.assign({}, root.notificationTimestamps)
+    delete timestamps[n.id]
+    root.notificationTimestamps = timestamps
+  }
+
+  function notificationTimestamp(n) {
+    if (!n || n.id === undefined) return 0
+    return root.notificationTimestamps[n.id] || 0
+  }
+
+  function twoDigits(value) {
+    return value < 10 ? "0" + value : value.toString()
+  }
+
+  function formatNotificationTimestamp(timestamp) {
+    if (!timestamp) return ""
+    var date = new Date(timestamp)
+    var hours = date.getHours()
+    var minutes = twoDigits(date.getMinutes())
+    if (Settings.clock24h) return twoDigits(hours) + ":" + minutes
+    var suffix = hours >= 12 ? "PM" : "AM"
+    var displayHours = hours % 12
+    if (displayHours === 0) displayHours = 12
+    return displayHours + ":" + minutes + " " + suffix
+  }
 
   function trimHistory() {
     var copy = notifications.slice()
@@ -21,11 +57,15 @@ PopupBase {
     notifications = copy
     count = notifications.length
     for (var i = 0; i < removed.length; i++) {
-      if (removed[i]) removed[i].tracked = false
+      if (removed[i]) {
+        removed[i].tracked = false
+        root.forgetNotification(removed[i])
+      }
     }
   }
 
   function addNotification(n) {
+    root.rememberNotification(n)
     var copy = notifications.slice()
     copy.push(n)
     notifications = copy
@@ -40,6 +80,7 @@ PopupBase {
         copy.splice(i, 1)
         notifications = copy
         count = notifications.length
+        root.forgetNotification(n)
         return
       }
     }
@@ -49,6 +90,7 @@ PopupBase {
     var copy = notifications.slice()
     notifications = []
     count = 0
+    notificationTimestamps = ({})
     for (var i = 0; i < copy.length; i++) {
       // The bar reads NotificationServer.trackedNotifications. Explicitly
       // untrack so clearing history also clears its bell. Setting tracked to
@@ -202,6 +244,16 @@ PopupBase {
                       font.letterSpacing: Config.typeLabelTracking
                       Layout.fillWidth: true
                       elide: Text.ElideRight
+                    }
+
+                    Text {
+                      text: root.formatNotificationTimestamp(root.notificationTimestamp(notif))
+                      color: Colors.fgSurfaceVariant
+                      font.family: Config.fontFamily
+                      font.pixelSize: Config.typeLabelSmallSize
+                      font.letterSpacing: Config.typeLabelTracking
+                      opacity: 0.72
+                      Layout.alignment: Qt.AlignVCenter
                     }
 
                     IconButton {
