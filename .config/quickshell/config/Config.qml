@@ -4,8 +4,17 @@ import QtQuick
 import Quickshell
 
 QtObject {
-  readonly property string wmType: "niri"
+  // Keep Niri as the compatibility default, but detect Mango when the shell
+  // is started from the Mango session or its user service environment.
+  readonly property string wmType: {
+    var desktop = String(Quickshell.env("XDG_CURRENT_DESKTOP") || "").toLowerCase()
+    var sessionDesktop = String(Quickshell.env("XDG_SESSION_DESKTOP") || "").toLowerCase()
+    return desktop.indexOf("mango") === 0 || sessionDesktop.indexOf("mango") === 0
+      ? "mango"
+      : "niri"
+  }
   readonly property bool isNiri: wmType === "niri"
+  readonly property bool isMango: wmType === "mango"
   // UI style is separate from Matugen's external desktop palette. Material 3
   // and Neo Brutalism consume its generated roles; classic Nothing and Ghost
   // use authored roles while Nothing Evolution consumes the adaptive cache.

@@ -158,7 +158,8 @@ Flickable {
     command: ["sh", "-c",
       "if ! command -v wl-copy >/dev/null 2>&1; then exit 2; fi; " +
       "{ printf 'Quickshell diagnostics\\n'; uname -a 2>/dev/null; " +
-      "printf '\\nVersions\\n'; quickshell --version 2>/dev/null || true; niri --version 2>/dev/null || true; " +
+      "printf '\\nVersions\\n'; quickshell --version 2>/dev/null || true; " +
+      (Config.isMango ? "mango --version 2>/dev/null" : "niri --version 2>/dev/null") + " || true; " +
       "printf '\\nServices\\n'; systemctl --user --no-pager --plain status quickshell.service 2>/dev/null | sed -n '1,12p'; " +
       "printf '\\nConnectivity\\n'; nmcli general status 2>/dev/null || true; bluetoothctl show 2>/dev/null | sed -n '1,8p'; } | wl-copy"]
     running: false

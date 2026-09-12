@@ -11,7 +11,7 @@ StartLimitBurst=5
 ExecStart=/usr/bin/quickshell
 Restart=on-failure
 RestartSec=2s
-Environment=QT_QPA_PLATFORMTHEME=qt6ct QT_QPA_PLATFORM=wayland XDG_CURRENT_DESKTOP=Niri
+Environment=QT_QPA_PLATFORMTHEME=qt6ct QT_QPA_PLATFORM=wayland
 
 [Install]
 WantedBy=graphical-session.target

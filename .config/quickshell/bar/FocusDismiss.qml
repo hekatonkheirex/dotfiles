@@ -7,7 +7,7 @@ Item {
   signal dismissed()
 
   Component.onCompleted: {
-    if (focusDismiss.parent && Config.isNiri) {
+    if (focusDismiss.parent && (Config.isNiri || Config.isMango)) {
       focusDismiss.parent.activeFocusChanged.connect(function() {
         if (!focusDismiss.parent.activeFocus && focusDismiss.target && focusDismiss.target.visible) focusDismiss.dismissed()
       })

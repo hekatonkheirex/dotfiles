@@ -287,6 +287,7 @@ Flickable {
             model: [
               { key: "ccShowLauncher", icon: "apps", title: "Launcher" },
               { key: "ccShowWorkspaces", icon: "workspaces", title: "Workspaces" },
+              { key: "ccShowLayout", icon: "view_quilt", title: "Layout indicator" },
               { key: "ccShowFocusedWindow", icon: "select_window", title: "Focused window" },
               { key: "ccShowClock", icon: "schedule", title: "Clock" },
               { key: "ccShowNotifications", icon: "notifications", title: "Notifications" },

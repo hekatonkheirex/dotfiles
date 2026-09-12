@@ -8,14 +8,15 @@ Item {
   property bool fitContent: false
   property real contentWidth: 0
   property real contentHeight: 0
+  property real verticalInset: 6
 
   anchors {
     fill: root.fitContent ? null : parent
     centerIn: root.fitContent ? parent : null
     leftMargin: root.fitContent ? 0 : (root.horizontal ? 0 : 6)
     rightMargin: root.fitContent ? 0 : (root.horizontal ? 0 : 6)
-    topMargin: root.fitContent ? 0 : (root.horizontal ? 6 : 0)
-    bottomMargin: root.fitContent ? 0 : (root.horizontal ? 6 : 0)
+    topMargin: root.fitContent ? 0 : (root.horizontal ? root.verticalInset : 0)
+    bottomMargin: root.fitContent ? 0 : (root.horizontal ? root.verticalInset : 0)
   }
 
   width: root.fitContent

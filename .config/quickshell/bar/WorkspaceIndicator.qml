@@ -15,8 +15,12 @@ Item {
   signal clicked(var mouse)
 
   property var workspaces: []
+  property bool workspaceRefreshPending: false
+  property bool focusedWindowRefreshPending: false
   property string focusedWindowTitle: ""
   property string focusedWindowAppId: ""
+  property string mangoLayoutSymbol: ""
+  readonly property string mangoLayoutName: layoutNameForMangoToken(mangoLayoutSymbol)
   readonly property string focusedWindowInfo: focusedWindowTitle !== "" ? focusedWindowTitle : focusedWindowAppId
   readonly property string focusedWindowProgram: formatProgramName(focusedWindowAppId)
   readonly property color workspaceGroupColor: Settings.themeStyle === "material3"
@@ -26,6 +30,7 @@ Item {
     : Colors.surfaceContainerHighest
 
   readonly property string wmType: Config.wmType
+  readonly property bool compositorIntegration: Config.isNiri || Config.isMango
   // Keep the existing shape values as stable preference tokens while also
   // accepting the marker styles exposed by Ryoku's workspace control.
   readonly property var workspaceStyleValues: [
@@ -91,16 +96,12 @@ Item {
   }
 
   function numberedWorkspaceFill(item) {
-    if (!root.horizontal)
-      return root.workspaceMarkerFill(item)
     if (item.isFocused)
       return Colors.styleAccent
     return "transparent"
   }
 
   function numberedWorkspaceTextColor(item) {
-    if (!root.horizontal)
-      return root.workspaceMarkerTextColor(item)
     if (item.isFocused)
       return Colors.styleAccentText
     return Colors.fgSurfaceVariant
@@ -110,27 +111,53 @@ Item {
     return item.isFocused || item.isOccupied ? 40 : 34
   }
 
+  function numberedWorkspaceHeight(item) {
+    var available = Math.max(22, Config.widgetSize - Config.spacingSmall)
+    return item.isFocused || item.isOccupied
+      ? Math.min(34, available)
+      : Math.min(28, available)
+  }
+
+  readonly property int numberedVerticalWidth: Math.max(
+    22,
+    Math.min(30, Config.widgetSize - Config.spacingSmall - Config.spacingCompact)
+  )
+
   implicitWidth: horizontal ? grid.implicitWidth + 12 : (Config.widgetSize)
   implicitHeight: horizontal ? (Config.widgetSize) : grid.implicitHeight + 12
 
   Process {
     id: refresher
-    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j workspaces"]
+    command: root.wmType === "mango"
+      ? ["mmsg", "get", "all-monitors"]
+      : ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j workspaces"]
     running: false
 
     stdout: StdioCollector {
       onStreamFinished: {
         try {
-          var list = parseWorkspaces(text.trim())
+          var data = JSON.parse(text.trim())
+          var list = root.wmType === "mango"
+            ? root.parseMangoMonitorList(data)
+            : root.parseWorkspaceList(data)
           root.workspaces = list
+          if (root.wmType === "mango") root.applyMangoMonitorSnapshot(data)
         } catch (e) { print("WorkspaceIndicator parse error:", e) }
+      }
+    }
+
+    onRunningChanged: {
+      if (!running && root.workspaceRefreshPending && root.visible) {
+        workspaceRefreshDebounce.restart()
       }
     }
   }
 
   Process {
     id: focusedWindowQuery
-    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j focused-window"]
+    command: root.wmType === "mango"
+      ? ["mmsg", "get", "focusing-client"]
+      : ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j focused-window"]
     running: false
 
     stdout: StdioCollector {
@@ -146,11 +173,19 @@ Item {
           var data = JSON.parse(raw)
           var title = data && typeof data.title === "string" ? data.title : ""
           root.focusedWindowTitle = title.replace(/\s+/g, " ").trim()
-          root.focusedWindowAppId = data && typeof data.app_id === "string" ? data.app_id : ""
+          root.focusedWindowAppId = data && typeof data.app_id === "string"
+            ? data.app_id
+            : (data && typeof data.appid === "string" ? data.appid : "")
         } catch (e) {
           root.focusedWindowTitle = ""
           root.focusedWindowAppId = ""
         }
+      }
+    }
+
+    onRunningChanged: {
+      if (!running && root.focusedWindowRefreshPending && root.visible) {
+        focusedWindowRefreshDebounce.restart()
       }
     }
   }
@@ -160,7 +195,13 @@ Item {
     interval: 80
     repeat: false
     onTriggered: {
-      if (!refresher.running) refresher.running = true
+      if (!root.visible || !root.compositorIntegration) {
+        root.workspaceRefreshPending = false
+        return
+      }
+      if (refresher.running) return
+      root.workspaceRefreshPending = false
+      refresher.running = true
     }
   }
 
@@ -169,24 +210,113 @@ Item {
     interval: 80
     repeat: false
     onTriggered: {
-      if (!focusedWindowQuery.running) focusedWindowQuery.running = true
+      if (!root.visible || !root.compositorIntegration) {
+        root.focusedWindowRefreshPending = false
+        return
+      }
+      if (focusedWindowQuery.running) return
+      root.focusedWindowRefreshPending = false
+      focusedWindowQuery.running = true
     }
+  }
+
+  function requestWorkspaceRefresh() {
+    if (!root.visible || !root.compositorIntegration) return
+    root.workspaceRefreshPending = true
+    workspaceRefreshDebounce.restart()
+  }
+
+  function requestFocusedWindowRefresh() {
+    if (!root.visible || !root.compositorIntegration) return
+    root.focusedWindowRefreshPending = true
+    focusedWindowRefreshDebounce.restart()
+  }
+
+  function applyFocusedWindow(data) {
+    if (!data || data.is_focused !== true) return false
+
+    var title = typeof data.title === "string" ? data.title : ""
+    root.focusedWindowTitle = title.replace(/\s+/g, " ").trim()
+    root.focusedWindowAppId = typeof data.app_id === "string"
+      ? data.app_id
+      : (typeof data.appid === "string" ? data.appid : "")
+    return true
   }
 
   Process {
     id: niriWatcher
-    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg event-stream"]
-    running: root.visible && root.wmType === "niri"
+    command: root.wmType === "mango"
+      ? ["mmsg", "watch", "all-monitors"]
+      : ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j event-stream"]
+    running: root.visible && root.compositorIntegration
 
     stdout: SplitParser {
       onRead: function(data) {
-        workspaceRefreshDebounce.restart()
-        focusedWindowRefreshDebounce.restart()
+        var raw = String(data).trim()
+        if (!raw) return
+
+        try {
+          var event = JSON.parse(raw)
+          if (root.wmType === "mango") {
+            if (event && Array.isArray(event.monitors)) {
+              root.workspaces = root.parseMangoMonitorList(event)
+              root.applyMangoMonitorSnapshot(event)
+              root.workspaceRefreshPending = false
+              root.focusedWindowRefreshPending = false
+              workspaceRefreshDebounce.stop()
+              focusedWindowRefreshDebounce.stop()
+            } else {
+              root.requestWorkspaceRefresh()
+              root.requestFocusedWindowRefresh()
+            }
+            return
+          }
+
+          var workspaceEvent = event && event.WorkspacesChanged
+          var windowEvent = event && event.WindowOpenedOrChanged
+          var changedWindow = windowEvent && windowEvent.window
+          // Niri reports focus moves through these narrower events instead of
+          // always sending a complete WorkspacesChanged snapshot.
+          var workspaceStateChanged = event && (
+            event.WorkspacesChanged
+            || event.WorkspaceActivated
+            || event.WorkspaceActiveWindowChanged
+            || event.WindowFocusChanged
+            || event.WindowsChanged
+            || event.WindowClosed
+          )
+          var focusedWindowStateChanged = event && (
+            event.WindowFocusChanged
+            || event.WindowFocusTimestampChanged
+            || event.WindowsChanged
+            || event.WindowClosed
+          )
+          if (workspaceEvent && Array.isArray(workspaceEvent.workspaces)) {
+            root.workspaces = root.parseWorkspaceList(workspaceEvent.workspaces)
+            root.workspaceRefreshPending = false
+            workspaceRefreshDebounce.stop()
+          } else if (workspaceStateChanged) {
+            root.requestWorkspaceRefresh()
+          }
+
+          // Niri includes the complete window object in this event, including
+          // title changes emitted by terminals such as Kitty. Apply it
+          // directly so animated titles do not wait for a stale snapshot.
+          if (root.applyFocusedWindow(changedWindow)) {
+            root.focusedWindowRefreshPending = false
+            focusedWindowRefreshDebounce.stop()
+          } else if (workspaceStateChanged || focusedWindowStateChanged) {
+            root.requestFocusedWindowRefresh()
+          }
+        } catch (e) {
+          root.requestWorkspaceRefresh()
+          root.requestFocusedWindowRefresh()
+        }
       }
     }
 
     onRunningChanged: {
-      if (!running && root.wmType === "niri" && root.visible) {
+      if (!running && root.compositorIntegration && root.visible) {
         niriWatcherRetry.start()
       }
     }
@@ -196,46 +326,163 @@ Item {
     id: niriWatcherRetry
     interval: 1000
     onTriggered: {
-      if (root.wmType === "niri" && root.visible) {
+      if (root.compositorIntegration && root.visible) {
         niriWatcher.running = true
       }
     }
+  }
+
+  onHorizontalChanged: {
+    requestWorkspaceRefresh()
+    requestFocusedWindowRefresh()
   }
 
 
 
   onVisibleChanged: {
     if (visible) {
-      if (root.wmType === "niri") {
-        workspaceRefreshDebounce.restart()
-        focusedWindowQuery.running = true
+      if (root.compositorIntegration) {
+        requestWorkspaceRefresh()
+        requestFocusedWindowRefresh()
       }
     }
   }
 
   Component.onCompleted: {
     if (root.visible) {
-      if (root.wmType === "niri") {
-        workspaceRefreshDebounce.restart()
-        focusedWindowQuery.running = true
+      if (root.compositorIntegration) {
+        requestWorkspaceRefresh()
+        requestFocusedWindowRefresh()
       }
     }
   }
 
-  function parseWorkspaces(text) {
-    var data = JSON.parse(text)
+  function parseWorkspaceList(data) {
     var list = []
+    if (!Array.isArray(data)) return list
 
     for (var i = 0; i < data.length; i++) {
       list.push({
         idx: data[i].idx,
-        isFocused: data[i].is_focused,
+        isFocused: data[i].is_focused === true,
         isOccupied: data[i].active_window_id != null
       })
     }
 
     list.sort(function(a, b) { return a.idx - b.idx })
     return list
+  }
+
+  function parseMangoMonitorList(data) {
+    var byIndex = ({})
+    if (!data || !Array.isArray(data.monitors)) return []
+
+    for (var monitorIndex = 0; monitorIndex < data.monitors.length; monitorIndex++) {
+      var monitor = data.monitors[monitorIndex]
+      if (!monitor || !Array.isArray(monitor.tags)) continue
+      for (var tagIndex = 0; tagIndex < monitor.tags.length; tagIndex++) {
+        var tag = monitor.tags[tagIndex]
+        var idx = Number(tag && tag.index)
+        if (!isFinite(idx) || idx < 1) continue
+
+        if (!byIndex[idx]) {
+          byIndex[idx] = { idx: idx, isFocused: false, isOccupied: false }
+        }
+        byIndex[idx].isFocused = byIndex[idx].isFocused || tag.is_active === true
+        byIndex[idx].isOccupied = byIndex[idx].isOccupied
+          || Number(tag.client_count || 0) > 0
+      }
+    }
+
+    var list = []
+    for (var key in byIndex) list.push(byIndex[key])
+    list.sort(function(a, b) { return a.idx - b.idx })
+    return list
+  }
+
+  function applyMangoMonitorSnapshot(data) {
+    var monitor = null
+    if (data && Array.isArray(data.monitors)) {
+      for (var i = 0; i < data.monitors.length; i++) {
+        if (data.monitors[i] && data.monitors[i].active === true) {
+          monitor = data.monitors[i]
+          break
+        }
+      }
+      if (!monitor && data.monitors.length > 0) monitor = data.monitors[0]
+    }
+
+    var activeTag = null
+    if (monitor && Array.isArray(monitor.tags)) {
+      for (var tagIndex = 0; tagIndex < monitor.tags.length; tagIndex++) {
+        if (monitor.tags[tagIndex] && monitor.tags[tagIndex].is_active === true) {
+          activeTag = monitor.tags[tagIndex]
+          break
+        }
+      }
+    }
+    root.mangoLayoutSymbol = activeTag && typeof activeTag.layout === "string"
+      ? activeTag.layout.trim()
+      : ""
+
+    var client = monitor && monitor.active_client
+    if (client && client.id !== undefined && client.id !== null) {
+      var title = typeof client.title === "string" ? client.title : ""
+      root.focusedWindowTitle = title.replace(/\s+/g, " ").trim()
+      root.focusedWindowAppId = typeof client.appid === "string" ? client.appid : ""
+    } else {
+      root.focusedWindowTitle = ""
+      root.focusedWindowAppId = ""
+    }
+  }
+
+  function layoutNameForMangoToken(token) {
+    var value = String(token || "").trim()
+    if (!value) return ""
+
+    var names = ({
+      "T": "Tile",
+      "TILE": "Tile",
+      "S": "Scroller",
+      "SCROLLER": "Scroller",
+      "G": "Grid",
+      "GRID": "Grid",
+      "K": "Deck",
+      "D": "Deck",
+      "DECK": "Deck",
+      "M": "Monocle",
+      "MONOCLE": "Monocle",
+      "CT": "Center Tile",
+      "CENTER_TILE": "Center Tile",
+      "RT": "Right Tile",
+      "RIGHT_TILE": "Right Tile",
+      "VT": "Vertical Tile",
+      "VERTICAL_TILE": "Vertical Tile",
+      "VS": "Vertical Scroller",
+      "VERTICAL_SCROLLER": "Vertical Scroller",
+      "VG": "Vertical Grid",
+      "VERTICAL_GRID": "Vertical Grid",
+      "VK": "Vertical Deck",
+      "VERTICAL_DECK": "Vertical Deck",
+      "TG": "TGMix",
+      "TGMIX": "TGMix"
+    })
+    if (names[value.toUpperCase()]) return names[value.toUpperCase()]
+
+    var words = value.replace(/[_-]+/g, " ").split(/\s+/)
+    for (var i = 0; i < words.length; i++) {
+      if (words[i].length > 0) {
+        words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase()
+      }
+    }
+    return words.join(" ")
+  }
+
+  function parseWorkspaces(text) {
+    var data = JSON.parse(text)
+    return root.wmType === "mango"
+      ? root.parseMangoMonitorList(data)
+      : root.parseWorkspaceList(data)
   }
 
   function formatProgramName(appId) {
@@ -262,24 +509,42 @@ Item {
   }
 
   function focusWorkspace(idx) {
-    Quickshell.execDetached(["sh", "-c", "niri msg action focus-workspace " + idx])
+    if (root.wmType === "mango")
+      Quickshell.execDetached(["mmsg", "dispatch", "view," + idx])
+    else
+      Quickshell.execDetached(["sh", "-c", "niri msg action focus-workspace " + idx])
   }
 
   function scrollWorkspace(deltaY) {
-    if (deltaY > 0)
+    if (root.wmType === "mango") {
+      Quickshell.execDetached([
+        "mmsg",
+        "dispatch",
+        deltaY > 0 ? "viewtoleft_have_client,0" : "viewtoright_have_client,0"
+      ])
+    } else if (deltaY > 0) {
       Quickshell.execDetached(["niri", "msg", "action", "focus-workspace-up"])
-    else
+    } else {
       Quickshell.execDetached(["niri", "msg", "action", "focus-workspace-down"])
+    }
   }
 
   Rectangle {
     id: workspaceGroup
 
-    visible: root.horizontal && root.integrated && root.visibleWorkspaces.length > 0
+    visible: root.integrated && root.visibleWorkspaces.length > 0
     anchors.centerIn: parent
-    width: parent.width
-    height: Math.min(34, Math.max(0, parent.height - Config.spacingSmall))
-    radius: Math.min(Config.shapeLarge, height / 2)
+    // Keep the same 34px track thickness as the horizontal control. In the
+    // vertical layout the track is rotated by the layout itself, so its
+    // length follows the workspace stack while the surface stays inset from
+    // the 42px bar edge.
+    width: root.horizontal
+      ? parent.width
+      : Math.min(34, Math.max(0, parent.width - Config.spacingSmall))
+    height: root.horizontal
+      ? Math.min(34, Math.max(0, parent.height - Config.spacingSmall))
+      : Math.min(parent.height, Math.max(0, grid.implicitHeight + Config.spacingSmall * 2))
+    radius: Math.min(Config.shapeLarge, width / 2, height / 2)
     color: root.workspaceGroupColor
     border.width: Config.themeBorderWidth
     border.color: Colors.outlineVariant
@@ -299,9 +564,11 @@ Item {
     height: root.horizontal
       ? Math.max(0, Math.min(28, parent.height - Config.spacingSmall * 2))
       : implicitHeight
-    // Horizontal workspaces form one connected segmented control; the
-    // vertical indicator keeps the compact breathing room used by its stack.
-    spacing: root.horizontal ? 0 : Config.spacingCompact
+    // The numbers style is one connected segmented control in either
+    // orientation. Other marker styles keep their compact vertical spacing.
+    spacing: root.workspaceStyle === "numbers"
+      ? 0
+      : (root.horizontal ? 0 : Config.spacingCompact)
     z: 1
 
     Repeater {
@@ -329,7 +596,9 @@ Item {
           : grid.width
         height: root.horizontal
           ? grid.height
-          : (compactMarker ? markerMinimumSize : (active ? 40 : (root.workspaceStyle === "dots" ? 16 : 12)))
+          : (root.workspaceStyle === "numbers"
+            ? root.numberedWorkspaceHeight(modelData)
+            : (compactMarker ? markerMinimumSize : (active ? 40 : (root.workspaceStyle === "dots" ? 16 : 12))))
         Behavior on width {
           enabled: !Config.reducedMotion
           SpringAnimation {
@@ -461,19 +730,23 @@ Item {
             : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.34)
         }
 
-        // Numbers: the horizontal treatment is a connected navigation track;
-        // the active workspace becomes the raised pill shown in the bar.
+        // Numbers: a connected navigation track in both orientations; the
+        // active workspace becomes the raised pill shown in the bar.
         Rectangle {
           id: numberedWorkspaceShadow
           visible: root.workspaceStyle === "numbers"
-            && root.horizontal
             && modelData.isFocused
             && !Config.ghostTheme
           anchors.centerIn: parent
-          anchors.verticalCenterOffset: Config.neoBrutalism ? Config.themeShadowOffset : 2
-          width: root.horizontal ? root.numberedWorkspaceWidth(modelData) : 0
-          height: root.horizontal ? grid.height : 0
-          radius: Config.ghostTheme ? 0 : height / 2
+          anchors.verticalCenterOffset: root.horizontal
+            ? (Config.neoBrutalism ? Config.themeShadowOffset : 2)
+            : 0
+          anchors.horizontalCenterOffset: !root.horizontal && Config.neoBrutalism
+            ? Config.themeShadowOffset
+            : 0
+          width: root.horizontal ? root.numberedWorkspaceWidth(modelData) : root.numberedVerticalWidth
+          height: root.horizontal ? grid.height : root.numberedWorkspaceHeight(modelData)
+          radius: Config.ghostTheme ? 0 : Math.min(width, height) / 2
           color: Config.neoBrutalism
             ? Colors.styleShadow
             : Qt.rgba(Colors.shadow.r, Colors.shadow.g, Colors.shadow.b, 0.14)
@@ -486,22 +759,19 @@ Item {
           anchors.centerIn: parent
           width: root.horizontal
             ? root.numberedWorkspaceWidth(modelData)
-            : 22
-          height: root.horizontal ? grid.height : 22
-          radius: root.horizontal
-            ? (Config.ghostTheme ? 0 : height / 2)
-            : Config.shapeCompact
+            : root.numberedVerticalWidth
+          height: root.horizontal ? grid.height : root.numberedWorkspaceHeight(modelData)
+          radius: Config.ghostTheme ? 0 : Math.min(width, height) / 2
           color: root.numberedWorkspaceFill(modelData)
-          border.width: root.horizontal
-            ? (wsMouse.containsMouse && !modelData.isFocused ? Config.themeBorderWidth : 0)
-            : (modelData.isFocused || wsMouse.containsMouse ? Config.themeBorderWidth : 0)
-          border.color: root.horizontal ? Colors.styleOutline : Colors.styleAccent
+          border.width: wsMouse.containsMouse && !modelData.isFocused ? Config.themeBorderWidth : 0
+          border.color: Colors.styleOutline
           z: 1
 
           Row {
+            visible: root.horizontal
             anchors.centerIn: parent
-            anchors.verticalCenterOffset: root.horizontal ? 1 : 0
-            spacing: root.horizontal && modelData.isOccupied && !modelData.isFocused ? 4 : 0
+            anchors.verticalCenterOffset: 1
+            spacing: modelData.isOccupied && !modelData.isFocused ? 4 : 0
 
             Text {
               text: String(modelData.idx)
@@ -515,7 +785,7 @@ Item {
             }
 
             Rectangle {
-              visible: root.horizontal && modelData.isOccupied && !modelData.isFocused
+              visible: modelData.isOccupied && !modelData.isFocused
               width: 6
               height: 6
               radius: 3
@@ -523,6 +793,35 @@ Item {
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: -1
             }
+          }
+
+          Text {
+            id: verticalWorkspaceLabel
+            visible: !root.horizontal
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenterOffset: modelData.isFocused
+              ? 1
+              : (modelData.isOccupied ? 4 : 0)
+            text: String(modelData.idx)
+            color: root.numberedWorkspaceTextColor(modelData)
+            font.family: Config.monoFontFamily
+            font.pixelSize: modelData.isFocused ? Config.typeLabelMediumSize : Config.typeLabelSmallSize
+            font.weight: modelData.isFocused ? Config.typeStrongWeight : Config.typeRegularWeight
+            font.letterSpacing: Config.typeMonoTracking
+            lineHeight: Config.typeLabelMediumLineHeight
+            lineHeightMode: Text.FixedHeight
+          }
+
+          Rectangle {
+            visible: !root.horizontal && modelData.isOccupied && !modelData.isFocused
+            width: 6
+            height: 6
+            radius: 3
+            color: Colors.tertiary
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: verticalWorkspaceLabel.top
+            anchors.bottomMargin: 1
           }
         }
 

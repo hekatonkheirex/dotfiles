@@ -54,7 +54,7 @@ Flickable {
   Process {
     id: listOutputsProc
     command: ["niri", "msg", "-j", "outputs"]
-    running: displayInputTab.visible && displayInputTab.root && displayInputTab.root.visible
+    running: displayInputTab.visible && displayInputTab.root && displayInputTab.root.visible && Config.isNiri
     stdout: StdioCollector {
       onStreamFinished: {
         try {
@@ -83,6 +83,7 @@ Flickable {
 
     StyledSurface {
       id: outputsSurface
+      visible: Config.isNiri
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: outputsColumn.implicitHeight + Config.spacingMedium * 2
@@ -207,6 +208,31 @@ Flickable {
     }
 
     StyledSurface {
+      visible: Config.isMango
+      Layout.fillWidth: true
+      Layout.preferredHeight: mangoNoteText.implicitHeight + Config.spacingMedium * 2
+      radius: Config.shapeLarge
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
+
+      Text {
+        id: mangoNoteText
+        anchors.fill: parent
+        anchors.margins: Config.spacingMedium
+        text: "Mango display and input settings are managed in ~/.config/mango/*.conf. Edit the focused configuration there, then use Mod + Shift + Alt + R to reload Mango."
+        color: Colors.fgSurfaceVariant
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeBodySmallSize
+        font.letterSpacing: Config.typeBodyTracking
+        lineHeight: Config.typeBodySmallLineHeight
+        lineHeightMode: Text.FixedHeight
+        wrapMode: Text.WordWrap
+      }
+    }
+
+    StyledSurface {
+      visible: Config.isNiri
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: inputColumn.implicitHeight + Config.spacingMedium * 2

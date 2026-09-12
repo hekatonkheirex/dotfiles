@@ -34,7 +34,7 @@ PanelWindow {
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
-  // Neo's floating full bar extends past the normal 44px layer reservation:
+  // Neo's floating full bar extends past the normal bar-sized layer reservation:
   // reserve its inset surface and hard shadow so Niri can keep the window
   // layout gap unchanged while still clearing the complete visual footprint.
   readonly property int niriExclusiveZone: root.fullBar && Config.neoBrutalism
@@ -424,6 +424,58 @@ PanelWindow {
           PillSurface {
             horizontal: root.horizontal
             visible: root.pillsBar
+          }
+        }
+
+        Item {
+          id: layoutWrapper
+          readonly property bool layoutAvailable: Config.isMango
+            && Settings.ccShowLayout
+            && wsIndicator.mangoLayoutSymbol !== ""
+          Layout.preferredWidth: root.horizontal
+            ? (layoutAvailable
+              ? Math.max(root.horizontalPillLength, layoutIndicator.horizontalContentWidth)
+              : 0) * root.expandProgress
+            : (layoutAvailable ? parent.width : 0)
+          Layout.preferredHeight: root.horizontal
+            ? (layoutAvailable ? parent.height : 0)
+            : (layoutAvailable
+              ? Math.max(
+                  root.pillsBar ? root.verticalPillLength : 0,
+                  layoutIndicator.verticalLayoutHeight
+                ) * root.expandProgress
+              : 0)
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
+          opacity: root.expandProgress
+          visible: root.expandProgress > 0 && layoutAvailable
+          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+
+          PillSurface {
+            horizontal: root.horizontal
+            visible: root.pillsBar
+          }
+
+          StatusIndicator {
+            id: layoutIndicator
+            anchors.fill: parent
+            horizontal: root.horizontal
+            inlineContent: root.horizontalInlineContent
+            integrated: root.fullBar
+            iconLabel: "view_quilt"
+            labelText: wsIndicator.mangoLayoutName !== ""
+              ? wsIndicator.mangoLayoutName
+              : wsIndicator.mangoLayoutSymbol
+            accentColor: Config.nothingEvolution
+              ? Colors.styleAccent
+              : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
+            accessibleName: "Layout"
+            accessibleDescription: labelText !== ""
+              ? labelText + " layout"
+              : "Mango layout"
+            tooltipText: labelText !== ""
+              ? labelText + " layout"
+              : "Mango layout"
           }
         }
 
@@ -955,6 +1007,9 @@ PanelWindow {
         PillSurface {
           horizontal: root.horizontal
           visible: root.pillsBar
+          verticalInset: root.horizontal
+            ? Math.max(2, Math.min(6, Math.floor((parent.height - clockContent.implicitHeight - Config.spacingCompact) / 2)))
+            : 6
         }
 
         Item {

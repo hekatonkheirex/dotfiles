@@ -31,7 +31,7 @@ Flickable {
   property string cpuModel: ""
   property string gpuModel: ""
   property string shellName: ""
-  property string niriVersion: ""
+  property string wmVersion: ""
   property string quickshellVersion: ""
   property string localIp: ""
   property string localIface: ""
@@ -47,7 +47,7 @@ Flickable {
       "(lscpu 2>/dev/null | grep 'Model name' | sed 's/Model name:[[:space:]]*//' | head -1) || echo Unavailable; " +
       "if command -v lspci >/dev/null 2>&1; then (lspci | grep -i vga | sed 's/^[0-9a-f:.]* VGA compatible controller: //' | head -1) || echo Unavailable; else echo Unavailable; fi; " +
       "basename \"${SHELL:-}\" 2>/dev/null || echo Unavailable; " +
-      "niri --version 2>/dev/null || echo Unavailable; " +
+      (Config.isMango ? "mango --version 2>/dev/null" : "niri --version 2>/dev/null") + " || echo Unavailable; " +
       "quickshell --version 2>/dev/null || echo Unavailable; " +
       "(ip -o -4 addr show scope global 2>/dev/null | head -1 | awk '{print $2\" \"$4}') || echo Unavailable"]
     running: false
@@ -61,7 +61,7 @@ Flickable {
         accountTab.cpuModel = lines[4] || "";
         accountTab.gpuModel = lines[5] || "";
         accountTab.shellName = lines[6] || "";
-        accountTab.niriVersion = (lines[7] || "").replace("niri ", "");
+        accountTab.wmVersion = (lines[7] || "").replace(/^(niri|mango) /i, "");
         accountTab.quickshellVersion = (lines[8] || "").replace("Quickshell ", "").split(" (revision")[0];
         var netParts = (lines[9] || "").split(" ");
         accountTab.localIface = netParts[0] || "";
@@ -246,7 +246,7 @@ Flickable {
               color: Colors.primary
             }
             Text {
-              text: "on niri"
+              text: "on " + Config.wmType
               color: Colors.fgSurfaceVariant
               font.family: Config.fontFamily
               font.pixelSize: accountTab.compactLayout
@@ -330,7 +330,7 @@ Flickable {
         InfoRow { icon: "memory"; label: "CPU"; value: accountTab.cpuModel }
         InfoRow { icon: "sports_esports"; label: "GPU"; value: accountTab.gpuModel }
         InfoRow { icon: "code"; label: "Shell"; value: accountTab.shellName }
-        InfoRow { icon: "grid_view"; label: "Niri"; value: accountTab.niriVersion }
+        InfoRow { icon: "grid_view"; label: Config.isMango ? "Mango" : "Niri"; value: accountTab.wmVersion }
         InfoRow { icon: "dashboard"; label: "Quickshell"; value: accountTab.quickshellVersion }
         InfoRow {
           icon: "lan"

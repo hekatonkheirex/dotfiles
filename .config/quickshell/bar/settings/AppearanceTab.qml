@@ -1396,6 +1396,7 @@ Flickable {
     }
 
     ColumnLayout {
+      visible: Config.isNiri
       Layout.fillWidth: true
       spacing: Config.spacingCompact
 
@@ -1423,8 +1424,34 @@ Flickable {
       }
     }
 
+    StyledSurface {
+      visible: Config.isMango
+      variant: "filled"
+      Layout.fillWidth: true
+      Layout.preferredHeight: mangoWmNoteText.implicitHeight + Config.spacingMedium * 2
+      radius: Config.shapeLarge
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.styleOutline
+      outlineWidth: Config.themeBorderWidth
+
+      Text {
+        id: mangoWmNoteText
+        anchors.fill: parent
+        anchors.margins: Config.spacingMedium
+        text: "Mango decoration and animation settings are managed in ~/.config/mango/*.conf. Mod + Shift + Alt + R reloads the compositor after an edit."
+        color: Colors.fgSurfaceVariant
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeBodySmallSize
+        font.letterSpacing: Config.typeBodyTracking
+        lineHeight: Config.typeBodySmallLineHeight
+        lineHeightMode: Text.FixedHeight
+        wrapMode: Text.WordWrap
+      }
+    }
+
     // Niri window manager (gaps, animations, blur, cursor)
     StyledSurface {
+      visible: Config.isNiri
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: wmColumn.implicitHeight + Config.spacingMedium * 2

@@ -159,7 +159,9 @@ PanelWindow {
 
   Process {
     id: focusedWindowQuery
-    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j focused-window"]
+    command: Config.isMango
+      ? ["mmsg", "get", "focusing-client"]
+      : ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg -j focused-window"]
     running: false
 
     stdout: StdioCollector {
@@ -192,7 +194,7 @@ PanelWindow {
     interval: 80
     repeat: false
     onTriggered: {
-      if (root.visible && Config.isNiri && !focusedWindowQuery.running) {
+      if (root.visible && (Config.isNiri || Config.isMango) && !focusedWindowQuery.running) {
         focusedWindowQuery.running = true
       }
     }
@@ -203,7 +205,7 @@ PanelWindow {
     interval: 300
     repeat: false
     onTriggered: {
-      if (!root.visible || !Config.isNiri) return
+      if (!root.visible || (!Config.isNiri && !Config.isMango)) return
       root.focusDismissArmed = true
       root.focusWindowBaselineReady = false
       if (!focusedWindowQuery.running) focusedWindowQuery.running = true
@@ -212,8 +214,10 @@ PanelWindow {
 
   Process {
     id: focusEventWatcher
-    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg event-stream"]
-    running: root.visible && Config.isNiri
+    command: Config.isMango
+      ? ["mmsg", "watch", "focusing-client"]
+      : ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg event-stream"]
+    running: root.visible && (Config.isNiri || Config.isMango)
 
     stdout: SplitParser {
       onRead: function(data) {
@@ -222,7 +226,7 @@ PanelWindow {
     }
 
     onRunningChanged: {
-      if (!running && root.visible && Config.isNiri) focusEventWatcherRetry.start()
+      if (!running && root.visible && (Config.isNiri || Config.isMango)) focusEventWatcherRetry.start()
     }
   }
 
@@ -231,7 +235,7 @@ PanelWindow {
     interval: 1000
     repeat: false
     onTriggered: {
-      if (root.visible && Config.isNiri) focusEventWatcher.running = true
+      if (root.visible && (Config.isNiri || Config.isMango)) focusEventWatcher.running = true
     }
   }
 
@@ -259,7 +263,7 @@ PanelWindow {
       idleCheck.running = true
       airplaneCheck.running = true
       bluetoothCheck.running = true
-      if (Config.isNiri) {
+      if (Config.isNiri || Config.isMango) {
         focusedWindowQuery.running = true
         focusDismissArmTimer.restart()
       }
@@ -412,7 +416,6 @@ PanelWindow {
           tooltipText: "Caffeine mode"
           selected: root.caffeineOn
           checkable: true
-          expressiveSelectedShape: true
           horizontalContent: false
           accessibleName: "Caffeine mode"
           accessibleDescription: root.caffeineOn ? "Enabled" : "Disabled"
@@ -427,7 +430,6 @@ PanelWindow {
           tooltipText: "Airplane mode"
           selected: root.airplaneOn
           checkable: true
-          expressiveSelectedShape: true
           horizontalContent: false
           accessibleName: "Airplane mode"
           accessibleDescription: root.airplaneOn ? "Enabled" : "Disabled"
@@ -442,7 +444,6 @@ PanelWindow {
           tooltipText: "Bluetooth"
           selected: root.bluetoothOn
           checkable: true
-          expressiveSelectedShape: true
           horizontalContent: false
           accessibleName: "Bluetooth"
           accessibleDescription: root.bluetoothOn ? "Enabled" : "Disabled"
@@ -457,7 +458,6 @@ PanelWindow {
           tooltipText: "Do Not Disturb"
           selected: Settings.doNotDisturb
           checkable: true
-          expressiveSelectedShape: true
           horizontalContent: false
           accessibleName: "Do Not Disturb"
           accessibleDescription: Settings.doNotDisturb
@@ -506,7 +506,6 @@ PanelWindow {
             iconLabel: root.powerIcon(modelData.label)
             labelText: ""
             selected: index === root.activePowerIndex
-            expressiveSelectedShape: true
             horizontalContent: false
             accessibleName: modelData.label
             accessibleDescription: "Power action"
