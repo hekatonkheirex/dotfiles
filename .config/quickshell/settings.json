@@ -1,11 +1,12 @@
 {
-    "barSize": 44,
+    "barSize": 42,
     "calendarWeekStartsMonday": false,
     "ccShowAudio": true,
     "ccShowBattery": true,
     "ccShowClock": true,
     "ccShowDisplay": true,
     "ccShowFocusedWindow": true,
+    "ccShowLayout": true,
     "ccShowLauncher": true,
     "ccShowMedia": false,
     "ccShowNotifications": true,
@@ -13,7 +14,7 @@
     "ccShowWeather": false,
     "ccShowWorkspaces": true,
     "clock24h": true,
-    "clockFontSize": 18,
+    "clockFontSize": 14,
     "clockShowSeconds": false,
     "colorContrast": "standard",
     "colorPalette": "tokyonight",
@@ -25,7 +26,7 @@
     "iconSize": 20,
     "idleLockTimeoutSeconds": 300,
     "idleSuspendTimeoutSeconds": 900,
-    "lastSettingsTab": 2,
+    "lastSettingsTab": 3,
     "lockClockFace": "micrographics",
     "lockClockSize": 72,
     "lockShowMedia": true,
@@ -47,7 +48,7 @@
     "settingsPanelWidth": 1100,
     "spacingScale": 1,
     "systemShowUptime": true,
-    "themePreference": 2,
+    "themePreference": 0,
     "themeStyle": "material3",
     "timezone": "",
     "weatherAllowIpGeolocation": false,
@@ -55,5 +56,5 @@
     "weatherRefreshIntervalMinutes": 15,
     "weatherUnits": "metric",
     "workspaceCount": "active",
-    "workspaceShape": "numbers"
+    "workspaceShape": "dots"
 }

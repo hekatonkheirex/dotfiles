@@ -45,6 +45,7 @@ FileView {
   property alias ccShowBattery: adapter.ccShowBattery
   property alias ccShowDisplay: adapter.ccShowDisplay
   property alias ccShowFocusedWindow: adapter.ccShowFocusedWindow
+  property alias ccShowLayout: adapter.ccShowLayout
   property alias ccShowLauncher: adapter.ccShowLauncher
   property alias ccShowMedia: adapter.ccShowMedia
   property alias ccShowNotifications: adapter.ccShowNotifications
@@ -101,8 +102,8 @@ FileView {
   }
 
   function resetAppearanceDefaults() {
-    barSize = 44
-    clockFontSize = 18
+    barSize = 42
+    clockFontSize = 14
     fontPixelSize = 12
     fullBar = false
     iconSize = 20
@@ -131,6 +132,7 @@ FileView {
     ccShowBattery = true
     ccShowDisplay = true
     ccShowFocusedWindow = true
+    ccShowLayout = true
     ccShowLauncher = true
     ccShowMedia = false
     ccShowNotifications = true
@@ -174,12 +176,13 @@ FileView {
     // Persisted format marker. Increment before a breaking key rename/removal
     // and migrate the stored data before writing the new schema.
     property int schemaVersion: 1
-    property int barSize: 44
+    property int barSize: 42
     property bool calendarWeekStartsMonday: false
     property bool ccShowAudio: true
     property bool ccShowBattery: true
     property bool ccShowDisplay: true
     property bool ccShowFocusedWindow: true
+    property bool ccShowLayout: true
     property bool ccShowLauncher: true
     property bool ccShowMedia: false
     property bool ccShowNotifications: true
@@ -191,7 +194,7 @@ FileView {
     property string workspaceCount: "active"
     property bool clock24h: true
     property bool clockShowSeconds: false
-    property int clockFontSize: 18
+    property int clockFontSize: 14
     property bool doNotDisturb: false
     property int fontPixelSize: 12
     property bool fullBar: false
