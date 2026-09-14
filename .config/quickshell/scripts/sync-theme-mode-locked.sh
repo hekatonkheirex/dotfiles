@@ -17,6 +17,12 @@ if [[ -z "$ui_style" ]] && command -v jq >/dev/null 2>&1; then
   ui_style=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || printf 'material3')
 fi
 
+fixed_terminal_assets="$script_dir/ensure-style-terminal-assets.sh"
+if [[ -f "$fixed_terminal_assets" ]] &&
+   ! bash "$fixed_terminal_assets"; then
+  printf 'Fixed style terminal assets could not be prepared; keeping existing assets.\n' >&2
+fi
+
 if [[ "$ui_style" == "liquid-glass" ]]; then
   resolved_mode="$mode"
   if [[ "$resolved_mode" == "auto" ]]; then

@@ -185,6 +185,11 @@ if (( ! skip_cursors )); then
   run_step 'Ghost cursor install' "$projects_dir/ghost-cursors" bash install.sh
 fi
 
+# The external style repositories do not provide the fixed Starship/btop
+# companions or the Neo Matugen terminal pair. Fill those local integration
+# assets before the active-style synchronization and final verification.
+run_step 'Style terminal companion assets' "$script_dir" bash "$script_dir/ensure-style-terminal-assets.sh"
+
 if (( ! skip_sddm )); then
   run_step 'Material 3 SDDM themes' "$projects_dir/material3-expressive-sddm" python3 generate.py
   install_sddm_dist material3-expressive-sddm
