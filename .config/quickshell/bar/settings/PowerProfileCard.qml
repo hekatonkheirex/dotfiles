@@ -22,7 +22,7 @@ StyledSurface {
     : powerProfileAcDefault
   readonly property bool powerProfileAuto: powerProfileAutoSwitchEnabled && powerProfile !== ""
     && powerProfile === automaticPowerProfile
-  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property bool material3Theme: Config.material3Theme
 
   Layout.fillWidth: true
   Layout.preferredHeight: powerProfileColumn.implicitHeight + Config.spacingMedium * 2

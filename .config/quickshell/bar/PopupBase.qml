@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import "../config"
+import "primitives"
 
 // Shared chrome for bar-anchored popups: layer-shell window setup, edge
 // anchoring, escape/focus-loss dismissal, and the shared entry transform/fade.
@@ -33,7 +34,7 @@ PanelWindow {
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: "quickshell-popup"
+  WlrLayershell.namespace: Config.layerNamespace("popup")
   WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.focusable: true
 
@@ -103,13 +104,18 @@ PanelWindow {
         rightMargin: root.neoShadowPadding
         bottomMargin: root.neoShadowPadding
       }
-      radius: Config.borderRadius
+      radius: Config.popupRadius
       color: Colors.chromeSurface
       clip: true
       border.width: Config.themeBorderWidth
-      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Colors.styleOutline
         : Colors.outlineVariant
+
+      GlassSheen {
+        anchors.fill: parent
+        radius: parent.radius
+      }
 
       transform: [
         Translate { id: transX; x: 0 },

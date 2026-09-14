@@ -15,13 +15,27 @@ QtObject {
   }
   readonly property bool isNiri: wmType === "niri"
   readonly property bool isMango: wmType === "mango"
-  // UI style is separate from Matugen's external desktop palette. Material 3
-  // and Neo Brutalism consume its generated roles; classic Nothing and Ghost
-  // use authored roles while Nothing Evolution consumes the adaptive cache.
+  // UI style is separate from Matugen's external desktop palette. Material 3,
+  // Neo Brutalism, and Liquid Glass consume its generated roles; classic
+  // Nothing and Ghost use authored roles while Nothing Evolution consumes the
+  // adaptive cache.
   readonly property bool nothingDesign: Settings.themeStyle === "nothing"
   readonly property bool nothingEvolution: nothingDesign && Settings.nothingVariant === "evolution"
   readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
   readonly property bool ghostTheme: Settings.themeStyle === "ghost"
+  readonly property bool liquidGlassTheme: Settings.themeStyle === "liquid-glass"
+  readonly property bool material3Theme: !nothingDesign && !neoBrutalism
+    && !ghostTheme && !liquidGlassTheme
+
+  // Niri's layer rule already enables background effects for unknown
+  // quickshell namespaces when the user has compositor blur enabled. Liquid
+  // Glass uses that path while the regular namespaces retain their existing
+  // behavior for the other UI styles.
+  function layerNamespace(kind) {
+    return liquidGlassTheme
+      ? "quickshell-liquid-glass-" + kind
+      : "quickshell-" + kind
+  }
 
   // Compact X390 geometry and shared spacing used by active surfaces.
   // Live-adjustable via the Appearance settings tab's Bar Size slider.
@@ -161,15 +175,20 @@ QtObject {
     + spacingMedium * 2
 
   // Nothing uses a soft, pill-leaning radius scale (Control Center toggles,
-  // widget cards). Neo Brutalism keeps its existing hard-edged geometry;
-  // Material 3 retains its expressive shapes.
+  // widget cards). Liquid Glass uses a restrained macOS-like scale: small
+  // hover targets, medium popovers, and larger but controlled window corners.
+  // Neo Brutalism keeps its existing hard-edged geometry; Material 3 retains
+  // its expressive shapes.
   // Ghost carries the recovered GITS theme's frameRadius: 0 — every surface
   // is a hard, square HUD panel, no rounding at any scale.
-  readonly property int shapeCompact: ghostTheme ? 0 : (nothingEvolution ? 10 : (nothingDesign ? 8 : (neoBrutalism ? 4 : 8)))
-  readonly property int shapeMedium: ghostTheme ? 0 : (nothingEvolution ? 18 : (nothingDesign ? 14 : (neoBrutalism ? 6 : 12)))
-  readonly property int shapeLarge: ghostTheme ? 0 : (nothingEvolution ? 24 : (nothingDesign ? 20 : (neoBrutalism ? 10 : 16)))
+  readonly property int shapeCompact: ghostTheme ? 0 : (liquidGlassTheme ? 6 : (nothingEvolution ? 10 : (nothingDesign ? 8 : (neoBrutalism ? 4 : 8))))
+  readonly property int shapeMedium: ghostTheme ? 0 : (liquidGlassTheme ? 10 : (nothingEvolution ? 18 : (nothingDesign ? 14 : (neoBrutalism ? 6 : 12))))
+  readonly property int shapeLarge: ghostTheme ? 0 : (liquidGlassTheme ? 16 : (nothingEvolution ? 24 : (nothingDesign ? 20 : (neoBrutalism ? 10 : 16))))
   readonly property int borderRadius: shapeLarge
-  readonly property int barRadius: nothingEvolution ? shapeMedium : ((nothingDesign || ghostTheme) ? 0 : borderRadius)
+  readonly property int popupRadius: liquidGlassTheme ? 10 : borderRadius
+  readonly property int barRadius: liquidGlassTheme
+    ? shapeLarge
+    : (nothingEvolution ? shapeMedium : ((nothingDesign || ghostTheme) ? 0 : borderRadius))
   readonly property int themeBorderWidth: neoBrutalism ? 3 : 1
   readonly property int themeFocusBorderWidth: neoBrutalism ? 4 : 2
   readonly property int themeShadowOffset: neoBrutalism ? 6 : 0
@@ -190,29 +209,31 @@ QtObject {
   // choices so their outlines and labels do not visually merge.
   readonly property int themeOptionGap: neoBrutalism
     ? themeShadowOffset
-    : (nothingEvolution ? spacingSmall : spacingCompact)
+    : (nothingEvolution || liquidGlassTheme ? spacingSmall : spacingCompact)
   readonly property int themeFontWeight: neoBrutalism
     ? Font.DemiBold
-    : (nothingEvolution ? Font.Medium : (nothingDesign ? Font.Medium : Font.Normal))
+    : (nothingEvolution || liquidGlassTheme ? Font.Medium : (nothingDesign ? Font.Medium : Font.Normal))
 
   // Motion is centralized here. reducedMotion mirrors the persisted Settings
   // singleton directly; compatibility consumers continue using animationDuration.
   property bool reducedMotion: Settings.reduceMotion
-  readonly property int motionShort: reducedMotion ? 0 : 100
-  readonly property int motionMedium: reducedMotion ? 0 : 150
-  readonly property int motionLong: reducedMotion ? 0 : 250
-  readonly property int motionExtraLong: reducedMotion ? 0 : 450
+  readonly property int motionShort: reducedMotion ? 0 : 60
+  readonly property int motionMedium: reducedMotion ? 0 : 90
+  readonly property int motionLong: reducedMotion ? 0 : 140
+  readonly property int motionExtraLong: reducedMotion ? 0 : 220
   readonly property int animationDuration: motionMedium
   // Interactive controls and workspace indicators still use the shared
   // spatial spring model; transient surfaces use the timed entrance below.
   readonly property bool expressiveMotion: !nothingDesign && !neoBrutalism && !ghostTheme
-  readonly property real motionSpatialSpring: 2.0
-  readonly property real motionSpatialDamping: expressiveMotion ? 0.78 : 1.0
+  readonly property real motionSpatialSpring: 12.0
+  readonly property real motionSpatialDamping: 1.0
   readonly property real motionSpatialMass: 1.0
   readonly property real motionSpatialEpsilon: 0.01
   // Surface entrances use the same concise, theme-aware easing as before;
   // interactive controls keep their own shorter motion tokens.
-  readonly property int themeMotionEasing: (nothingDesign || ghostTheme) ? Easing.OutCubic : Easing.OutBack
+  readonly property int themeMotionEasing: (nothingDesign || ghostTheme || liquidGlassTheme)
+    ? Easing.OutCubic
+    : Easing.OutBack
   readonly property real evolutionSurfaceAlpha: 0.86
   readonly property real evolutionRaisedAlpha: 0.92
   readonly property real evolutionControlAlpha: 0.74

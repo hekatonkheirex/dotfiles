@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import "../../../config"
 import "."
+import "../../primitives"
 
 Item {
   id: root
@@ -70,6 +71,11 @@ Item {
     Behavior on color {
       ColorAnimation { duration: Config.animationDuration }
     }
+  }
+
+  GlassSheen {
+    anchors.fill: parent
+    radius: root.radius
   }
 
   Text {

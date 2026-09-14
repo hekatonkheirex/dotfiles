@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 import "../config"
+import "primitives"
 
 Item {
   id: systemTrayAreaRoot
@@ -13,6 +14,7 @@ Item {
   property bool integrated: false
 
   property int visibleCount: 0
+  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassHighContrast
   readonly property real preferredLength: visibleCount * (Config.widgetSize)
 
   Layout.preferredWidth: horizontal ? preferredLength : (Config.widgetSize)
@@ -32,6 +34,7 @@ Item {
   }
 
   Rectangle {
+    id: traySurface
     anchors {
       fill: parent
       leftMargin: horizontal ? 0 : 6
@@ -43,13 +46,30 @@ Item {
     clip: true
     color: systemTrayAreaRoot.integrated
       ? "transparent"
-      : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surfaceContainerHigh)
-    border.color: Config.neoBrutalism || Config.ghostTheme
-      ? Colors.styleOutline
+      : (systemTrayAreaRoot.flatLiquidChrome
+        ? "transparent"
+        : (Config.liquidGlassTheme
+          ? Colors.liquidGlassClear
+        : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+          ? Colors.styleSurface
+          : Colors.surfaceContainerHigh)))
+    border.color: systemTrayAreaRoot.flatLiquidChrome
+      ? "transparent"
+      : (Config.neoBrutalism || Config.ghostTheme || Config.liquidGlassTheme
+        ? Colors.styleOutline
       : (Config.nothingDesign
         ? "transparent"
-        : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15))
-    border.width: systemTrayAreaRoot.integrated || Config.nothingDesign ? 0 : Config.themeBorderWidth
+        : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)))
+    border.width: systemTrayAreaRoot.integrated || Config.nothingDesign || systemTrayAreaRoot.flatLiquidChrome
+      ? 0
+      : Config.themeBorderWidth
+
+    GlassSheen {
+      anchors.fill: parent
+      radius: parent.radius
+      visible: !systemTrayAreaRoot.integrated
+      glassEnabled: !systemTrayAreaRoot.flatLiquidChrome
+    }
   }
 
   GridLayout {
@@ -138,7 +158,9 @@ Item {
           radius: Config.shapeMedium
           color: "transparent"
           border.width: trayIconDelegate.activeFocus ? Config.themeFocusBorderWidth : 0
-          border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Colors.styleOutline : Colors.primary
+          border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+            ? Colors.styleOutline
+            : Colors.primary
         }
 
         QsMenuAnchor {

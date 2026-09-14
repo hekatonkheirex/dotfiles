@@ -518,7 +518,7 @@ ShellRoot {
     visible: quickMenu.pendingPowerIndex >= 0 && !lockScreen.locked
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.namespace: "quickshell-confirmation"
+    WlrLayershell.namespace: Config.layerNamespace("confirmation")
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.focusable: powerConfirmationWindow.visible
 

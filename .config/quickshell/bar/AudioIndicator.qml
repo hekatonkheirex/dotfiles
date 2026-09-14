@@ -73,8 +73,12 @@ StatusIndicator {
   labelText: root.muted ? "Muted" : Math.round(root.volume * 100) + "%"
   // Match the other status indicators: opening the popup does not recolor
   // the audio indicator. Muted audio still uses the error color.
-  iconColor: root.muted ? Colors.error : root.accentColor
-  labelColor: root.muted ? Colors.error : root.accentColor
+  iconColor: root.muted
+    ? Colors.error
+    : (Config.liquidGlassTheme ? Colors.barForeground : root.accentColor)
+  labelColor: root.muted
+    ? Colors.error
+    : (Config.liquidGlassTheme ? Colors.barForeground : root.accentColor)
 
   onWheel: function(wheel) {
     var delta = wheel.angleDelta.y > 0 ? Config.volumeStep / 100 : -Config.volumeStep / 100

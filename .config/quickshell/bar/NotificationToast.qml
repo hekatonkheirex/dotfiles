@@ -7,6 +7,7 @@ import Quickshell.Services.Notifications
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import "../config"
+import "primitives"
 
 PanelWindow {
   id: root
@@ -23,7 +24,7 @@ PanelWindow {
   implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge + neoShadowPadding
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: "quickshell-toast"
+  WlrLayershell.namespace: Config.layerNamespace("toast")
   WlrLayershell.layer: WlrLayer.Top
   anchors.right: true
   anchors.top: Settings.notificationToastPosition !== "bottom-right"
@@ -140,13 +141,18 @@ PanelWindow {
       rightMargin: root.neoShadowPadding
       bottomMargin: root.neoShadowPadding
     }
-    radius: Config.borderRadius
+    radius: Config.popupRadius
     activeFocusOnTab: true
     color: Colors.chromeSurface
     border.width: Config.themeBorderWidth
-    border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+    border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
       ? Colors.styleOutline
       : Colors.outlineVariant
+
+    GlassSheen {
+      anchors.fill: parent
+      radius: parent.radius
+    }
 
     Accessible.role: Accessible.Button
     Accessible.name: notif ? ((notif.appName || "Notification") + ": " + (notif.summary || "Dismiss notification")) : "Notification"

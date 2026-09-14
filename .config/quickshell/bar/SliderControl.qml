@@ -1,5 +1,6 @@
 // Theme facade. Concrete Material 3, Neo Brutalism, Nothing, and Ghost sliders
-// live in separate folders while this interface remains stable for callers.
+// live in separate implementations; Liquid Glass reuses the Material 3 slider
+// logic with a dedicated macOS-style linear treatment.
 import QtQml
 import QtQuick
 import "../config"
@@ -13,10 +14,10 @@ Item {
 
   property real value: 0.5
   property bool muted: false
-  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property bool material3Theme: Config.material3Theme
   property color activeColor: Colors.primary
-  property color surfaceContainerHigh: Colors.surfaceContainerHigh
-  property color surfaceContainerHighest: Colors.surfaceContainerHighest
+  property color surfaceContainerHigh: Config.liquidGlassTheme ? Colors.liquidGlassRaised : Colors.surfaceContainerHigh
+  property color surfaceContainerHighest: Config.liquidGlassTheme ? Colors.liquidGlassControl : Colors.surfaceContainerHighest
   property color outline: root.material3Theme ? Colors.outline : Colors.styleOutlineStrong
   property color focusColor: root.material3Theme ? Colors.primary : activeColor
   property color hoverOverlay: Colors.hoverOverlay
@@ -44,16 +45,23 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.ghostTheme
-      ? ghostImplementation
-      : (Config.nothingDesign
-        ? nothingImplementation
-        : (Config.neoBrutalism ? neoImplementation : materialImplementation))
+    sourceComponent: Config.liquidGlassTheme
+      ? liquidImplementation
+      : (Config.ghostTheme
+        ? ghostImplementation
+        : (Config.nothingDesign
+          ? nothingImplementation
+          : (Config.neoBrutalism ? neoImplementation : materialImplementation)))
   }
 
   Component {
     id: materialImplementation
     Material3.SliderControl {}
+  }
+
+  Component {
+    id: liquidImplementation
+    Material3.SliderControl { liquidGlass: true }
   }
 
   Component {

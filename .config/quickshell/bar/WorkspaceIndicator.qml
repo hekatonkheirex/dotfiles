@@ -23,11 +23,16 @@ Item {
   readonly property string mangoLayoutName: layoutNameForMangoToken(mangoLayoutSymbol)
   readonly property string focusedWindowInfo: focusedWindowTitle !== "" ? focusedWindowTitle : focusedWindowAppId
   readonly property string focusedWindowProgram: formatProgramName(focusedWindowAppId)
-  readonly property color workspaceGroupColor: Settings.themeStyle === "material3"
-    && Colors.fixedPaletteActive
-    && Settings.colorPalette === "tokyonight"
-    ? Colors.surfaceContainer
-    : Colors.surfaceContainerHighest
+  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassHighContrast
+  readonly property color workspaceGroupColor: root.flatLiquidChrome
+    ? "transparent"
+    : (Config.liquidGlassTheme
+      ? Colors.liquidGlassClear
+    : (Settings.themeStyle === "material3"
+      && Colors.fixedPaletteActive
+      && Settings.colorPalette === "tokyonight"
+      ? Colors.surfaceContainer
+      : Colors.surfaceContainerHighest))
 
   readonly property string wmType: Config.wmType
   readonly property bool compositorIntegration: Config.isNiri || Config.isMango
@@ -84,12 +89,16 @@ Item {
   }
 
   function workspaceMarkerColor(item) {
+    if (Config.liquidGlassTheme && !item.isFocused && !item.isOccupied)
+      return Colors.barForegroundMuted
     return item.isFocused || item.isOccupied
       ? Colors.styleAccent
       : Colors.styleOutlineStrong
   }
 
   function workspaceMarkerTextColor(item) {
+    if (Config.liquidGlassTheme && !item.isFocused)
+      return item.isOccupied ? Colors.barForeground : Colors.barForegroundMuted
     if (item.isFocused) return Colors.styleAccentText
     if (item.isOccupied) return Colors.fgSurface
     return Qt.rgba(Colors.fgSurfaceVariant.r, Colors.fgSurfaceVariant.g, Colors.fgSurfaceVariant.b, 0.68)
@@ -546,8 +555,17 @@ Item {
       : Math.min(parent.height, Math.max(0, grid.implicitHeight + Config.spacingSmall * 2))
     radius: Math.min(Config.shapeLarge, width / 2, height / 2)
     color: root.workspaceGroupColor
-    border.width: Config.themeBorderWidth
-    border.color: Colors.outlineVariant
+    border.width: root.flatLiquidChrome ? 0 : Config.themeBorderWidth
+    border.color: root.flatLiquidChrome
+      ? "transparent"
+      : (Config.liquidGlassTheme ? Colors.styleOutline : Colors.outlineVariant)
+    clip: true
+
+    GlassSheen {
+      anchors.fill: parent
+      radius: parent.radius
+      glassEnabled: !root.flatLiquidChrome
+    }
   }
 
   Grid {
@@ -642,17 +660,21 @@ Item {
               : Math.min(width, height) / 2)
 
           color: {
-            if (modelData.isFocused) return Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.styleAccent)
+            if (modelData.isFocused) return Config.nothingEvolution
+              ? Colors.styleAccent
+              : (Config.nothingDesign
+                ? Colors.fgSurface
+                : (Config.liquidGlassTheme ? Colors.barForeground : Colors.styleAccent))
             var base = modelData.isOccupied
               ? (Config.nothingEvolution
                 ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.72)
-                : Colors.surfaceContainerHighest)
+                : (Config.liquidGlassTheme ? Colors.liquidGlassControl : Colors.surfaceContainerHighest))
               : (Config.nothingEvolution
                 ? Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.45)
                 : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.2))
             return Qt.tint(base, wsMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
           }
-          border.width: root.integrated
+          border.width: root.integrated || root.flatLiquidChrome
             ? 0
             : (Config.nothingEvolution
               ? ((modelData.isFocused || wsMouse.containsMouse) ? Config.themeBorderWidth : 0)
@@ -662,6 +684,8 @@ Item {
                   ? Config.themeBorderWidth
                   : (modelData.isFocused ? 0 : Config.themeBorderWidth))))
           border.color: {
+            if (root.flatLiquidChrome) return "transparent"
+            if (Config.liquidGlassTheme) return Colors.barForeground
             if (Config.neoBrutalism || Config.ghostTheme) return Colors.styleOutline
             if (Config.nothingEvolution) return Colors.styleOutline
             if (Config.nothingDesign) return "transparent"

@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import "../config"
+import "primitives"
 
 PanelWindow {
   id: root
@@ -17,7 +18,7 @@ PanelWindow {
   implicitHeight: 120 + neoShadowPadding
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
-  WlrLayershell.namespace: "quickshell-osd"
+  WlrLayershell.namespace: Config.layerNamespace("osd")
   anchors.bottom: true
   margins.bottom: 80
 
@@ -205,11 +206,17 @@ PanelWindow {
     radius: Config.shapeLarge
     opacity: root.osdOpacity
     color: {
+      if (Config.liquidGlassTheme) return Colors.liquidGlassRegular
       var c = Colors.chromeSurface
       return Qt.rgba(c.r, c.g, c.b, 0.92)
     }
     border.width: Config.themeBorderWidth
     border.color: Colors.styleOutline
+
+    GlassSheen {
+      anchors.fill: parent
+      radius: parent.radius
+    }
 
     Column {
       anchors.centerIn: parent

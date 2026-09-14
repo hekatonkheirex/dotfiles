@@ -147,7 +147,7 @@ PanelWindow {
   implicitHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500) + neoShadowPadding
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: "quickshell-popup"
+  WlrLayershell.namespace: Config.layerNamespace("popup")
   WlrLayershell.layer: WlrLayer.Top
 
   anchors.left: true
@@ -337,13 +337,18 @@ PanelWindow {
         rightMargin: root.neoShadowPadding
         bottomMargin: root.neoShadowPadding
       }
-      radius: Config.borderRadius
+      radius: Config.popupRadius
       color: Colors.chromeSurface
       clip: true
       border.width: Config.themeBorderWidth
-      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Colors.styleOutline
         : Colors.outlineVariant
+
+      GlassSheen {
+        anchors.fill: parent
+        radius: parent.radius
+      }
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -387,7 +392,7 @@ PanelWindow {
         spacing: Config.spacingMedium
 
         Text {
-          text: Config.nothingEvolution ? "Quick Settings" : "Power Options"
+          text: Config.nothingEvolution || Config.liquidGlassTheme ? "Quick Settings" : "Power Options"
           color: Colors.fgSurface
           font.family: Config.fontFamily
           font.pixelSize: Config.typeHeadlineSmallSize

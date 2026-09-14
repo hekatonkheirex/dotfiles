@@ -41,7 +41,7 @@ PanelWindow {
     ? Config.barWidth + root.fullBarInset + Config.themeShadowOffset
     : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
   exclusiveZone: root.niriExclusiveZone
-  WlrLayershell.namespace: "quickshell-panel"
+  WlrLayershell.namespace: Config.layerNamespace("panel")
   WlrLayershell.layer: WlrLayer.Top
 
   property date now: new Date()
@@ -261,11 +261,26 @@ PanelWindow {
           ? parent.height - root.fullBarInset * 2
           : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress)
       radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + Config.barRadius * root.expandProgress
-      color: root.fullBar && !root.ghostCentralGap
+      // Liquid Glass keeps the menu-bar layer visually open; material is
+      // reserved for transient/interactive states below it.
+      color: root.fullBar
+        && !root.ghostCentralGap
+        && (!Config.liquidGlassTheme || Colors.liquidGlassHighContrast)
         ? root.barPanelColor
         : "transparent"
-      border.width: root.fullBar && Config.neoBrutalism ? Config.themeBorderWidth : 0
+      // Normal Liquid Glass relies on material contrast rather than a
+      // continuous rule; retain an outline only for Neo or high contrast.
+      border.width: root.fullBar
+        && (Config.neoBrutalism || (Config.liquidGlassTheme && Colors.liquidGlassHighContrast))
+        ? Config.themeBorderWidth
+        : 0
       border.color: Colors.styleOutline
+
+      GlassSheen {
+        anchors.fill: parent
+        radius: barBg.radius
+        glassEnabled: !Config.liquidGlassTheme || Colors.liquidGlassHighContrast
+      }
 
       // Historical Ghost chrome: the panel edges step into the transparent
       // center instead of ending on a straight, synthetic cut line.
@@ -565,7 +580,9 @@ PanelWindow {
             Text {
               id: focusedWindowProgramText
               text: focusedWindowWrapper.programText
-              color: Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
+              color: Config.liquidGlassTheme
+                ? Colors.barForeground
+                : (Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary))
               font.family: Config.fontFamily
               font.pixelSize: Config.typeLabelMediumSize
               font.weight: Config.typeStrongWeight
@@ -586,7 +603,7 @@ PanelWindow {
             Text {
               id: focusedWindowDetailText
               text: focusedWindowWrapper.detailText
-              color: Colors.fgSurfaceVariant
+              color: Config.liquidGlassTheme ? Colors.barForegroundMuted : Colors.fgSurfaceVariant
               font.family: Config.fontFamily
               font.pixelSize: Config.typeLabelMediumSize
               font.letterSpacing: Config.typeLabelTracking
@@ -1055,7 +1072,9 @@ PanelWindow {
               text: root.horizontal
                 ? root.displayNow().toLocaleString(Qt.locale(), root.clockFormat())
                 : root.displayNow().toLocaleString(Qt.locale(), Settings.clock24h ? "HH" : "h")
-              color: Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
+              color: Config.liquidGlassTheme
+                ? Colors.barForeground
+                : (Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary))
               font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
               font.pixelSize: Config.clockPrimarySize
               font.weight: Config.nothingEvolution ? Font.Medium : (Config.nothingDesign ? Font.Normal : Font.Bold)
@@ -1067,7 +1086,7 @@ PanelWindow {
               text: root.horizontal
                 ? root.displayNow().toLocaleDateString(Qt.locale(), "ddd, d MMM")
                 : root.displayNow().toLocaleString(Qt.locale(), "mm")
-              color: Colors.fgSurfaceVariant
+              color: Config.liquidGlassTheme ? Colors.barForegroundMuted : Colors.fgSurfaceVariant
               font.family: Config.nothingDesign
                 ? (root.horizontal ? Config.monoFontFamily : Config.dotFontFamily)
                 : Config.fontFamily
@@ -1084,9 +1103,11 @@ PanelWindow {
             radius: Config.shapeMedium
             color: "transparent"
             border.width: clockWidget.activeFocus ? Config.themeFocusBorderWidth : 0
-            border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
-              ? Colors.styleOutline
-              : Colors.primary
+            border.color: Config.liquidGlassTheme
+              ? Colors.barForeground
+              : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+                ? Colors.styleOutline
+                : Colors.primary)
           }
 
           MouseArea {

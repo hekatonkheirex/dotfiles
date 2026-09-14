@@ -228,7 +228,8 @@ FileView {
     property string colorVariant: "auto"
     property string colorContrast: "standard"
     // UI style; Nothing Classic and Ghost select fixed Quickshell palettes,
-    // while Nothing Evolution and the other styles can use Matugen roles.
+    // while Nothing Evolution, Material 3, Neo, and Liquid Glass can use
+    // Matugen roles.
     property string themeStyle: "nothing"
     // Classic Nothing remains available as a fallback while Evolution uses
     // the wallpaper-aware Nothing OS 5 visual language.

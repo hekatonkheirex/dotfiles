@@ -8,9 +8,7 @@ Item {
 
   property int insetStart: 0
   property int insetEnd: 0
-  readonly property bool material3Style: !Config.nothingDesign
-    && !Config.neoBrutalism
-    && !Config.ghostTheme
+  readonly property bool material3Style: Config.material3Theme
   property color dividerColor: root.material3Style
     ? Colors.outlineVariant
     : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g,

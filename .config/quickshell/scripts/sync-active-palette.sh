@@ -80,7 +80,10 @@ live_cache_file="$cache_dir/live_palette.json"
 fixed_cache_file="$cache_dir/fixed_palette.json"
 matugen_bin="${MATUGEN_BIN:-/usr/bin/matugen}"
 theme_generator="$HOME/.local/bin/generate-all-themes.sh"
-theme_sync="$HOME/.local/bin/sync-theme-mode.sh"
+# Route palette-triggered mode changes through the tracked wrapper so Liquid
+# Glass can pair its Quickshell surfaces with the installed MacTahoe
+# GTK/icons/Kvantum/cursor assets.
+theme_sync="$HOME/.config/quickshell/scripts/sync-theme-mode-locked.sh"
 
 mkdir -p "$cache_dir"
 
@@ -210,8 +213,10 @@ render_matugen_cache() {
 # Keep the existing Matugen Kitty, Starship, and btop paths in sync with the
 # active cache. These are generated in place so Kitty's existing include and
 # btop's existing color_theme setting continue to work without introducing a
-# second set of variant files. Neo Brutalism has its own Kitty/Starship
-# generator, but still uses the shared btop path.
+# second set of variant files. Liquid Glass intentionally keeps these same
+# Matugen consumers; only Quickshell's own surfaces and the GTK/icon/Qt
+# companion change. Neo Brutalism has its own Kitty/Starship generator, but
+# still uses the shared btop path.
 refresh_matugen_terminal_assets() {
   local scheme ui_style
   scheme=$(cat "$HOME/.config/quickshell/colorscheme" 2>/dev/null || printf 'matugen')
@@ -219,7 +224,7 @@ refresh_matugen_terminal_assets() {
 
   [[ "$scheme" == "matugen" ]] || return 0
   case "$ui_style" in
-    material3|neo-brutalism) ;;
+    material3|neo-brutalism|liquid-glass) ;;
     *) return 0 ;;
   esac
 
@@ -498,7 +503,7 @@ EOF
   fi
   [[ "$active_mode" == "light" || "$active_mode" == "dark" ]] || active_mode=dark
 
-  if [[ "$ui_style" == "material3" ]]; then
+  if [[ "$ui_style" == "material3" || "$ui_style" == "liquid-glass" ]]; then
     write_kitty_theme light
     write_kitty_theme dark
     write_starship_theme light

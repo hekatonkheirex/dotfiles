@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../config"
+import "primitives"
 
 FocusScope {
   id: root
@@ -11,14 +12,16 @@ FocusScope {
   property string actionDescription: ""
   property string actionIcon: ""
 
-  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property bool material3Theme: Config.material3Theme
   property color scrimColor: Qt.rgba(Colors.scrim.r, Colors.scrim.g, Colors.scrim.b,
     root.material3Theme ? 0.32 : 0.24)
   property color dialogColor: Colors.chromeSurface
   property color dialogTextColor: Colors.fgSurface
   property color dialogSecondaryTextColor: Colors.fgSurfaceVariant
   property color dialogBorderColor: root.material3Theme ? Colors.outlineVariant : Colors.styleOutline
-  property color cancelColor: root.material3Theme ? "transparent" : Colors.surfaceContainer
+  property color cancelColor: root.material3Theme
+    ? "transparent"
+    : (Config.liquidGlassTheme ? Colors.liquidGlassClear : Colors.surfaceContainer)
   property color cancelTextColor: root.material3Theme ? Colors.primary : Colors.fgSurface
   property color confirmColor: Colors.error
   property color confirmTextColor: Colors.fgError
@@ -123,7 +126,7 @@ FocusScope {
     color: root.material3Theme
       ? Qt.rgba(Colors.shadow.r, Colors.shadow.g, Colors.shadow.b, 0.18)
       : Colors.styleShadow
-    visible: root.material3Theme || Config.neoBrutalism
+    visible: root.material3Theme || Config.neoBrutalism || Config.liquidGlassTheme
     z: 1
   }
 
@@ -139,6 +142,11 @@ FocusScope {
     border.width: Config.themeBorderWidth
     border.color: root.dialogBorderColor
     z: 2
+
+    GlassSheen {
+      anchors.fill: parent
+      radius: parent.radius
+    }
 
     Column {
       id: dialogContent

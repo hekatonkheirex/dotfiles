@@ -9,6 +9,7 @@ Item {
   property real contentWidth: 0
   property real contentHeight: 0
   property real verticalInset: 6
+  readonly property bool flatLiquidSurface: Config.liquidGlassTheme && !Colors.liquidGlassHighContrast
 
   anchors {
     fill: root.fitContent ? null : parent
@@ -45,18 +46,32 @@ Item {
       : (Config.neoBrutalism
         ? Config.shapeMedium
         : (root.horizontal ? height / 2 : width / 2))
-    color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
-      ? Colors.styleSurface
-      : Colors.surfaceContainerHigh
-    border.color: Config.neoBrutalism || Config.ghostTheme
-      ? Colors.styleOutline
+    color: root.flatLiquidSurface
+      ? "transparent"
+      : (Config.liquidGlassTheme
+        ? Colors.liquidGlassClear
+      : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+        ? Colors.styleSurface
+        : Colors.surfaceContainerHigh))
+    border.color: root.flatLiquidSurface
+      ? "transparent"
+      : (Config.liquidGlassTheme || Config.neoBrutalism || Config.ghostTheme
+        ? Colors.styleOutline
       : (Config.nothingEvolution
         ? Colors.styleOutline
         : (Config.nothingDesign
           ? "transparent"
-          : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.18)))
-    border.width: Config.neoBrutalism
-      ? Config.themeBorderWidth
-      : (Config.nothingEvolution ? Config.themeBorderWidth : (Config.nothingDesign ? 0 : 1))
+          : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.18))))
+    border.width: root.flatLiquidSurface
+      ? 0
+      : (Config.neoBrutalism
+        ? Config.themeBorderWidth
+        : (Config.nothingEvolution ? Config.themeBorderWidth : (Config.nothingDesign ? 0 : 1)))
+  }
+
+  GlassSheen {
+    anchors.fill: surface
+    radius: surface.radius
+    glassEnabled: !root.flatLiquidSurface
   }
 }
