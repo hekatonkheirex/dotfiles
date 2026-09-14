@@ -18,14 +18,14 @@ Flickable {
   readonly property int neoControlAllowance: Config.neoBrutalism
     ? Config.themeShadowOffset * 2
     : 0
-  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property bool material3Theme: Config.material3Theme
   readonly property int optionButtonGap: Config.themeOptionGap
   readonly property int segmentedButtonGap: appearanceTab.material3Theme ? 0 : appearanceTab.optionButtonGap
   // Stacked icon + label choices need a 48px hit area to keep both glyphs
   // comfortably inside the button outline at the global font scale.
   readonly property int optionButtonHeight: Config.neoBrutalism ? 52 : 48
   readonly property int uiStyleColumns: compactLayout ? 2 : 3
-  readonly property int uiStyleRows: Math.ceil(5 / uiStyleColumns)
+  readonly property int uiStyleRows: Math.ceil(6 / uiStyleColumns)
   readonly property var workspaceCountOptions: [
     { value: "active", icon: "dynamic_feed", label: "Active", description: "Show the workspaces currently known to Niri" },
     { value: "5", icon: "looks_5", label: "1–5", description: "Show workspaces one through five" },
@@ -320,7 +320,8 @@ Flickable {
                   { value: "neo-brutalism", variant: "", icon: "square", label: "Neo" },
                   { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Nothing" },
                   { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost" },
-                  { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution" }
+                  { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution" },
+                  { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid" }
                 ]
 
                 delegate: ActionButton {
@@ -359,7 +360,9 @@ Flickable {
                   ? "Neutral surfaces, rounded controls, and signal accents"
                 : (Settings.themeStyle === "ghost"
                   ? "Void panels, cyan hairlines, and a Section 9 HUD"
-                  : "Rounded surfaces, tonal elevation, and expressive motion")))
+                  : (Settings.themeStyle === "liquid-glass"
+                    ? "Translucent functional surfaces, clear controls, and adaptive contrast"
+                    : "Rounded surfaces, tonal elevation, and expressive motion"))))
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
             font.pixelSize: Config.typeLabelSmallSize

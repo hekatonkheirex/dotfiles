@@ -118,6 +118,12 @@ Item {
     border.width: root.segmented ? 0 : root.borderWidth
   }
 
+  GlassSheen {
+    anchors.fill: parent
+    radius: root.radius
+    glassEnabled: !root.textVariant
+  }
+
   // Segmented buttons share one rounded outline. The first segment draws the
   // rounded leading edge, middle/last segments draw one leading divider, and
   // the last segment draws the rounded trailing edge.

@@ -1,11 +1,13 @@
-// Material 3 semantic palette with fixed Nothing/Ghost and adaptive
-// Nothing Evolution roles.
+// Material 3 semantic palette with fixed Nothing/Ghost, adaptive Nothing
+// Evolution, and translucent Liquid Glass roles.
 //
 // Material 3 and Neo Brutalism read the active two-mode Matugen cache. Live
 // palettes come from the wallpaper; fixed palettes are exported here before
 // Matugen renders the external outputs. Classic Nothing and Ghost intentionally
 // use authored light/dark palettes. Nothing Evolution consumes the active cache
-// and layers translucent semantic surfaces on top.
+// and layers translucent semantic surfaces on top. Liquid Glass keeps its
+// regular/clear material roles here so every functional surface shares the
+// same light/dark and contrast behavior.
 pragma Singleton
 import QtQml
 import QtQuick
@@ -74,7 +76,6 @@ QtObject {
   property var lightPalette: ({})
   property var darkPalette: ({})
   readonly property bool dynamicPaletteLoaded: Object.keys(lightPalette).length > 0 && Object.keys(darkPalette).length > 0
-
   // 0 = auto, 1 = light, 2 = dark. Settings is the persisted owner; this
   // compatibility property keeps existing color bindings stable.
   property int themePreference: Settings.themePreference
@@ -85,8 +86,52 @@ QtObject {
   readonly property bool nothingEvolution: nothingDesign && Settings.nothingVariant === "evolution"
   readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
   readonly property bool ghostTheme: Settings.themeStyle === "ghost"
+  readonly property bool liquidGlassTheme: Settings.themeStyle === "liquid-glass"
   readonly property bool paletteSourceSelectable: !nothingDesign && !ghostTheme
   readonly property bool fixedPaletteActive: Settings.colorSource === "fixed" && paletteSourceSelectable
+
+  // Liquid Glass keeps the selected Matugen accent and status colors, but its
+  // functional surfaces use a neutral macOS-like scale. Wallpaper-derived
+  // surface roles can become strongly warm or chromatic on a sunset image;
+  // the backdrop remains visible through these neutral translucent materials.
+  readonly property var liquidGlassLightSurfacePalette: ({
+    background: "#f5f5f7",
+    surface: "#ffffff",
+    surface_dim: "#dedee3",
+    surface_bright: "#ffffff",
+    surface_container_lowest: "#ffffff",
+    surface_container_low: "#f2f2f7",
+    surface_container: "#e5e5ea",
+    surface_container_high: "#dcdce1",
+    surface_container_highest: "#d1d1d6",
+    surface_variant: "#e5e5ea",
+    on_background: "#1d1d1f",
+    on_surface: "#1d1d1f",
+    on_surface_variant: "#6e6e73",
+    outline: "#8e8e93",
+    outline_variant: "#c7c7cc",
+    inverse_surface: "#1d1d1f",
+    inverse_on_surface: "#f5f5f7"
+  })
+  readonly property var liquidGlassDarkSurfacePalette: ({
+    background: "#1c1c1e",
+    surface: "#1c1c1e",
+    surface_dim: "#101012",
+    surface_bright: "#3a3a3c",
+    surface_container_lowest: "#101012",
+    surface_container_low: "#232326",
+    surface_container: "#2c2c2e",
+    surface_container_high: "#3a3a3c",
+    surface_container_highest: "#48484a",
+    surface_variant: "#3a3a3c",
+    on_background: "#f5f5f7",
+    on_surface: "#f5f5f7",
+    on_surface_variant: "#a1a1a6",
+    outline: "#8e8e93",
+    outline_variant: "#48484a",
+    inverse_surface: "#f5f5f7",
+    inverse_on_surface: "#1c1c1e"
+  })
   readonly property string resolvedPaletteVariant: PaletteCatalog.resolveVariant(
     Settings.colorPalette,
     Settings.colorVariant,
@@ -463,8 +508,17 @@ QtObject {
     return value !== undefined && value !== null && value !== "" ? value : fallback
   }
 
+  function liquidGlassRole(mode, key, fallback) {
+    if (!liquidGlassTheme) return fallback
+    var palette = mode === "dark"
+      ? liquidGlassDarkSurfacePalette
+      : liquidGlassLightSurfacePalette
+    var value = palette ? palette[key] : null
+    return value !== undefined && value !== null && value !== "" ? value : fallback
+  }
+
   function surfaceRole(mode, key, fallback, alpha) {
-    var value = paletteRole(mode, key, fallback)
+    var value = liquidGlassRole(mode, key, paletteRole(mode, key, fallback))
     return nothingEvolution
       ? Qt.rgba(value.r, value.g, value.b, alpha)
       : value
@@ -597,7 +651,7 @@ QtObject {
   // Resolved surface and content roles. Nothing and Ghost select their fixed
   // palettes through paletteRole(); other styles use Matugen with authored
   // fallbacks.
-  property color background:                 paletteRole(darkMode ? "dark" : "light", "background", darkMode ? d_background : l_background)
+  property color background:                 liquidGlassRole(darkMode ? "dark" : "light", "background", paletteRole(darkMode ? "dark" : "light", "background", darkMode ? d_background : l_background))
   property color bg:                         background
   property color surface:                   surfaceRole(darkMode ? "dark" : "light", "surface", darkMode ? d_surface : l_surface, 0.84)
   property color surfaceDim:                surfaceRole(darkMode ? "dark" : "light", "surface_dim", darkMode ? d_surfaceDim : l_surfaceDim, 0.76)
@@ -624,13 +678,13 @@ QtObject {
   property color fgError:                  paletteRole(darkMode ? "dark" : "light", "on_error", darkMode ? d_onError : l_onError)
   property color errorContainer:           paletteRole(darkMode ? "dark" : "light", "error_container", darkMode ? d_errorContainer : l_errorContainer)
   property color fgErrorContainer:         paletteRole(darkMode ? "dark" : "light", "on_error_container", darkMode ? d_onErrorContainer : l_onErrorContainer)
-  property color fgBackground:             paletteRole(darkMode ? "dark" : "light", "on_background", darkMode ? d_onSurface : l_onSurface)
-  property color fgSurface:                paletteRole(darkMode ? "dark" : "light", "on_surface", darkMode ? d_onSurface : l_onSurface)
-  property color fgSurfaceVariant:         paletteRole(darkMode ? "dark" : "light", "on_surface_variant", darkMode ? d_onSurfaceVariant : l_onSurfaceVariant)
-  property color outline:                 paletteRole(darkMode ? "dark" : "light", "outline", darkMode ? d_outline : l_outline)
-  property color outlineVariant:          paletteRole(darkMode ? "dark" : "light", "outline_variant", darkMode ? d_outlineVariant : l_outlineVariant)
-  property color inverseSurface:           paletteRole(darkMode ? "dark" : "light", "inverse_surface", darkMode ? d_inverseSurface : l_inverseSurface)
-  property color inverseOnSurface:         paletteRole(darkMode ? "dark" : "light", "inverse_on_surface", darkMode ? d_inverseOnSurface : l_inverseOnSurface)
+  property color fgBackground:             liquidGlassRole(darkMode ? "dark" : "light", "on_background", paletteRole(darkMode ? "dark" : "light", "on_background", darkMode ? d_onSurface : l_onSurface))
+  property color fgSurface:                liquidGlassRole(darkMode ? "dark" : "light", "on_surface", paletteRole(darkMode ? "dark" : "light", "on_surface", darkMode ? d_onSurface : l_onSurface))
+  property color fgSurfaceVariant:         liquidGlassRole(darkMode ? "dark" : "light", "on_surface_variant", paletteRole(darkMode ? "dark" : "light", "on_surface_variant", darkMode ? d_onSurfaceVariant : l_onSurfaceVariant))
+  property color outline:                 liquidGlassRole(darkMode ? "dark" : "light", "outline", paletteRole(darkMode ? "dark" : "light", "outline", darkMode ? d_outline : l_outline))
+  property color outlineVariant:          liquidGlassRole(darkMode ? "dark" : "light", "outline_variant", paletteRole(darkMode ? "dark" : "light", "outline_variant", darkMode ? d_outlineVariant : l_outlineVariant))
+  property color inverseSurface:           liquidGlassRole(darkMode ? "dark" : "light", "inverse_surface", paletteRole(darkMode ? "dark" : "light", "inverse_surface", darkMode ? d_inverseSurface : l_inverseSurface))
+  property color inverseOnSurface:         liquidGlassRole(darkMode ? "dark" : "light", "inverse_on_surface", paletteRole(darkMode ? "dark" : "light", "inverse_on_surface", darkMode ? d_inverseOnSurface : l_inverseOnSurface))
   property color inversePrimary:           paletteRole(darkMode ? "dark" : "light", "inverse_primary", darkMode ? d_inversePrimary : l_inversePrimary)
   property color primaryFixed:              paletteRole(darkMode ? "dark" : "light", "primary_fixed", primary)
   property color primaryFixedDim:           paletteRole(darkMode ? "dark" : "light", "primary_fixed_dim", primaryContainer)
@@ -648,6 +702,51 @@ QtObject {
   property color shadow:                  paletteRole(darkMode ? "dark" : "light", "shadow", darkMode ? d_shadow : l_shadow)
   property color scrim:                   paletteRole(darkMode ? "dark" : "light", "scrim", darkMode ? d_scrim : l_scrim)
 
+  // Liquid Glass materials. Regular is used by large functional surfaces,
+  // while clear is reserved for compact controls where the background should
+  // remain visible. High contrast intentionally removes translucency so the
+  // material remains legible when the user asks for stronger separation.
+  readonly property bool liquidGlassHighContrast: liquidGlassTheme && Settings.colorContrast === "high"
+  // macOS menu-bar foregrounds stay monochrome over the desktop. Keep these
+  // roles separate from the palette so Liquid Glass bar text is pure white in
+  // dark mode and pure black in light mode without recoloring popups/content.
+  readonly property color barForeground: darkMode ? "#ffffff" : "#000000"
+  readonly property color barForegroundMuted: Qt.rgba(
+    darkMode ? 1 : 0,
+    darkMode ? 1 : 0,
+    darkMode ? 1 : 0,
+    darkMode ? 0.72 : 0.68
+  )
+  readonly property color liquidGlassRegular: liquidGlassHighContrast
+    ? surfaceContainer
+    : Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b,
+        darkMode ? 0.88 : 0.84)
+  readonly property color liquidGlassClear: liquidGlassHighContrast
+    ? surfaceContainerHigh
+    : Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b,
+        darkMode ? 0.62 : 0.56)
+  readonly property color liquidGlassRaised: liquidGlassHighContrast
+    ? surfaceContainerHigh
+    : Qt.rgba(surfaceContainer.r, surfaceContainer.g, surfaceContainer.b,
+        darkMode ? 0.90 : 0.84)
+  readonly property color liquidGlassControl: liquidGlassHighContrast
+    ? surfaceContainerHighest
+    : Qt.rgba(surfaceContainerHigh.r, surfaceContainerHigh.g, surfaceContainerHigh.b,
+        darkMode ? 0.74 : 0.66)
+  readonly property color liquidGlassHighlight: liquidGlassHighContrast
+    ? Qt.rgba(1, 1, 1, 0)
+    : Qt.rgba(1, 1, 1, darkMode ? 0.14 : 0.34)
+  readonly property color liquidGlassShade: liquidGlassHighContrast
+    ? Qt.rgba(0, 0, 0, 0)
+    : Qt.rgba(0, 0, 0, darkMode ? 0.16 : 0.05)
+  readonly property color liquidGlassEdge: liquidGlassHighContrast
+    ? outline
+    : Qt.rgba(1, 1, 1, darkMode ? 0.18 : 0.30)
+  readonly property color liquidGlassEdgeStrong: liquidGlassHighContrast
+    ? fgSurface
+    : Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, darkMode ? 0.30 : 0.22)
+  readonly property color liquidGlassShadow: Qt.rgba(0, 0, 0, darkMode ? 0.34 : 0.18)
+
   // UI-style accents. These select how components use the active local roles;
   // they do not replace or regenerate Matugen's external color outputs.
   // Neo and Nothing use the palette's on-surface role as their high-contrast
@@ -655,66 +754,84 @@ QtObject {
   // in both light and dark modes.
   readonly property color styleInk: ghostTheme
     ? ghostText
-    : ((neoBrutalism || nothingDesign) ? fgSurface : outline)
+    : (liquidGlassTheme ? fgSurface : ((neoBrutalism || nothingDesign) ? fgSurface : outline))
   readonly property color styleOutline: ghostTheme
     ? ghostHairline
-    : (neoBrutalism
+    : (liquidGlassTheme
+      ? liquidGlassEdge
+      : (neoBrutalism
       ? styleInk
       : (nothingEvolution
         ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.30)
         : (nothingDesign
           ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.38)
-          : outlineVariant)))
+          : outlineVariant))))
   readonly property color styleOutlineStrong: ghostTheme
     ? ghostHairlineStrong
-    : (neoBrutalism
+    : (liquidGlassTheme
+      ? liquidGlassEdgeStrong
+      : (neoBrutalism
       ? styleInk
       : (nothingEvolution
         ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.58)
         : (nothingDesign
           ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.72)
-          : outline)))
+          : outline))))
   readonly property color styleShadow: ghostTheme
     ? "transparent"
-    : (neoBrutalism ? (darkMode ? fgSurface : shadow) : "transparent")
+    : (liquidGlassTheme
+      ? liquidGlassShadow
+      : (neoBrutalism ? (darkMode ? fgSurface : shadow) : "transparent"))
   readonly property color styleSurface: ghostTheme
     ? ghostPanel
-    : (neoBrutalism
+    : (liquidGlassTheme
+      ? surfaceContainer
+      : (neoBrutalism
       ? surfaceContainerLow
       : (nothingEvolution
         ? Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b, Config.evolutionSurfaceAlpha)
-        : (nothingDesign ? surfaceContainerLow : surfaceContainerHigh)))
+        : (nothingDesign ? surfaceContainerLow : surfaceContainerHigh))))
   // Keep Tokyo Night's Material 3 chrome on the same near-black surface as
   // the bar. Other palettes and UI styles retain their existing surfaces.
-  readonly property color chromeSurface: Settings.themeStyle === "material3"
-    && fixedPaletteActive
-    && Settings.colorPalette === "tokyonight"
-    ? surfaceContainerLowest
-    : styleSurface
+  readonly property color chromeSurface: liquidGlassTheme
+    ? liquidGlassRegular
+    : (Settings.themeStyle === "material3"
+      && fixedPaletteActive
+      && Settings.colorPalette === "tokyonight"
+      ? surfaceContainerLowest
+      : styleSurface)
   readonly property color styleSurfaceRaised: ghostTheme
     ? ghostPanelRaised
-    : (neoBrutalism
+    : (liquidGlassTheme
+      ? liquidGlassRaised
+      : (neoBrutalism
       ? surfaceContainer
       : (nothingEvolution
         ? Qt.rgba(surfaceContainer.r, surfaceContainer.g, surfaceContainer.b, Config.evolutionRaisedAlpha)
-        : (nothingDesign ? surfaceContainer : surfaceContainerHigh)))
+        : (nothingDesign ? surfaceContainer : surfaceContainerHigh))))
   readonly property color styleControl: ghostTheme
     ? ghostPanelHighest
-    : (neoBrutalism
+    : (liquidGlassTheme
+      ? liquidGlassControl
+      : (neoBrutalism
       ? surfaceContainerHighest
       : (nothingEvolution
         ? Qt.rgba(surfaceContainerHigh.r, surfaceContainerHigh.g, surfaceContainerHigh.b, Config.evolutionControlAlpha)
-        : surfaceContainerHigh))
+        : surfaceContainerHigh)))
   readonly property color styleAccent: ghostTheme
     ? ghostCyan
-    : (neoBrutalism
+    : (liquidGlassTheme
+      ? primary
+      : (neoBrutalism
       ? (darkMode ? primary : primaryContainer)
-      : (nothingEvolution ? primary : (nothingDesign ? error : primary)))
+      : (nothingEvolution ? primary : (nothingDesign ? error : primary))))
   readonly property color styleAccentText: ghostTheme
     ? ghostAccentText
-    : (neoBrutalism
+    : (liquidGlassTheme
+      ? fgPrimary
+      : (neoBrutalism
       ? (darkMode ? fgPrimary : fgPrimaryContainer)
-      : (nothingEvolution ? fgPrimary : (nothingDesign ? fgError : fgPrimary)))
+      : (nothingEvolution ? fgPrimary : (nothingDesign ? fgError : fgPrimary))))
   // Fixed palette families intentionally reuse their source palette's surface
   // tones for M3 containers. Some families therefore have the same value for
   // secondaryContainer and the surrounding settings surface. Keep navigation
@@ -805,9 +922,15 @@ QtObject {
 
   // M3 state layers. These are intentionally expressed from the active
   // semantic colors so light/dark behavior stays coherent.
-  property color hoverOverlay:             Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, darkMode ? 0.08 : 0.08)
-  property color pressOverlay:             Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, darkMode ? 0.12 : 0.12)
-  property color focusOverlay:             Qt.rgba(primary.r, primary.g, primary.b, 0.12)
+  property color hoverOverlay:             liquidGlassTheme
+    ? Qt.rgba(1, 1, 1, darkMode ? 0.10 : 0.18)
+    : Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, darkMode ? 0.08 : 0.08)
+  property color pressOverlay:             liquidGlassTheme
+    ? Qt.rgba(1, 1, 1, darkMode ? 0.16 : 0.24)
+    : Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, darkMode ? 0.12 : 0.12)
+  property color focusOverlay:             liquidGlassTheme
+    ? Qt.rgba(primary.r, primary.g, primary.b, 0.20)
+    : Qt.rgba(primary.r, primary.g, primary.b, 0.12)
   property color disabledContainer:       Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, 0.12)
   property color disabledContent:          Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, 0.38)
 }

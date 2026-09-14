@@ -16,6 +16,8 @@ Item {
   property bool active: false
   property bool loading: false
   property string iconLabel: ""
+  property string iconFont: Config.iconFont
+  property bool iconVariableAxes: true
   property real iconOpacity: 1.0
   property string labelText: ""
   property real labelOpacity: 1.0
@@ -25,9 +27,9 @@ Item {
       ? Colors.fgSurface
     : (Config.ghostTheme ? Colors.styleAccent : Colors.primary)
     )
-  property color iconColor: root.accentColor
-  property color labelColor: root.accentColor
-  property color inactiveBg: Colors.surfaceContainerHigh
+  property color iconColor: Config.liquidGlassTheme ? Colors.barForeground : root.accentColor
+  property color labelColor: Config.liquidGlassTheme ? Colors.barForeground : root.accentColor
+  property color inactiveBg: Config.liquidGlassTheme ? Colors.liquidGlassClear : Colors.surfaceContainerHigh
   // Indicators stay quiet at rest and reveal their outline on hover/focus;
   // active state is conveyed by the content color and owning popup surface.
   property bool borderOnHoverOnly: true
@@ -37,6 +39,7 @@ Item {
   property string badgeText: ""
   property color badgeColor: Colors.error
   property color badgeTextColor: Colors.fgError
+  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassHighContrast
 
   // Nothing's dot-matrix numeral font is reserved for pure numeric readouts
   // (battery/brightness/volume %), not textual states like "Muted" or
@@ -128,7 +131,9 @@ Item {
       ? 0
       : (Config.neoBrutalism
         ? Config.shapeMedium
-        : (root.horizontal ? height / 2 : width / 2))
+        : (Config.liquidGlassTheme
+          ? Config.shapeCompact
+          : (root.horizontal ? height / 2 : width / 2)))
     clip: true
     color: {
       var overlay = mouseArea.pressed ? Colors.pressOverlay
@@ -136,12 +141,21 @@ Item {
           : (root.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
       var base = root.integrated
         ? "transparent"
+        : (root.flatLiquidChrome
+          ? (root.active ? Colors.liquidGlassClear : "transparent")
         : (root.borderOnHoverOnly
-          ? ((Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme) ? Colors.styleSurface : "transparent")
-          : root.inactiveBg)
+          ? ((Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme)
+            ? Colors.styleSurface
+            : (Config.liquidGlassTheme ? Colors.liquidGlassClear : "transparent"))
+          : root.inactiveBg))
       return Qt.tint(base, overlay)
     }
     border.color: {
+      if (Config.liquidGlassTheme) {
+        return root.active || mouseArea.containsMouse || root.activeFocus
+          ? Colors.styleOutline
+          : "transparent"
+      }
       if (Config.neoBrutalism || Config.ghostTheme) return Colors.styleOutline
       if (Config.nothingEvolution) {
         return root.active || mouseArea.containsMouse || root.activeFocus
@@ -155,11 +169,19 @@ Item {
     }
     border.width: root.integrated || Config.nothingDesign
       ? (Config.nothingEvolution && !root.integrated ? Config.themeBorderWidth : 0)
-      : Config.themeBorderWidth
+      : (Config.liquidGlassTheme
+        ? ((root.active || mouseArea.containsMouse || root.activeFocus) ? Config.themeBorderWidth : 0)
+        : Config.themeBorderWidth)
 
     Behavior on color {
       ColorAnimation { duration: Config.animationDuration }
     }
+  }
+
+  GlassSheen {
+    anchors.fill: bgOverlay
+    radius: bgOverlay.radius
+    glassEnabled: !root.flatLiquidChrome || root.active || root.hovered || root.activeFocus
   }
 
   GridLayout {
@@ -190,9 +212,11 @@ Item {
       text: root.iconLabel
       opacity: root.iconOpacity
       color: root.iconColor
-      font.family: Config.iconFont
+      font.family: root.iconFont
       font.pixelSize: Config.iconSize
-      font.variableAxes: Config.iconVariableAxes(root.active ? 1 : 0, Config.iconSize)
+      font.variableAxes: root.iconVariableAxes
+        ? Config.iconVariableAxes(root.active ? 1 : 0, Config.iconSize)
+        : ({})
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       Layout.preferredWidth: Config.iconSize
@@ -210,7 +234,9 @@ Item {
         ? (root.numericLabel ? Config.dotFontFamily : Config.monoFontFamily)
         : Config.fontFamily
       font.pixelSize: Config.typeLabelMediumSize
-      font.weight: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.themeFontWeight : Font.Medium
+      font.weight: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+        ? Config.themeFontWeight
+        : Font.Medium
       font.letterSpacing: Config.nothingDesign ? 0.3 : Config.typeLabelTracking
       lineHeight: Config.typeLabelMediumLineHeight
       lineHeightMode: Text.FixedHeight

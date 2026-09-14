@@ -1,12 +1,18 @@
 import QtQuick
 import "../../../config"
 import "."
+// Liquid Glass reuses this accessible control and supplies its material roles
+// through the facade; keep the sheen local to the track rather than the thumb.
+import "../../primitives"
 
 Item {
   id: root
 
   ThemeTokens { id: theme }
 
+  // Liquid Glass shares the slider's input/accessibility behavior, but uses
+  // macOS's thin linear track and a glass lozenge while it is active.
+  property bool liquidGlass: false
   property real value: 0.5
   property bool muted: false
   property color activeColor: theme.primary
@@ -43,18 +49,24 @@ Item {
   signal interactionFinished()
 
   width: parent ? parent.width : 240
-  height: 40
+  height: root.liquidGlass ? 28 : 40
   activeFocusOnTab: true
 
   readonly property bool hovered: sliderMouse.containsMouse
   readonly property bool pressed: sliderMouse.pressed
   readonly property bool active: hovered || pressed || activeFocus
-  readonly property real trackHeight: 16
+  readonly property real trackHeight: root.liquidGlass ? 4 : 16
   readonly property real trackRadius: trackHeight / 2
-  readonly property real trackInsideRadius: 2
-  readonly property real targetThumbWidth: pressed ? 8 : (hovered || activeFocus ? 6 : 4)
-  readonly property real targetThumbHeight: pressed ? 48 : (hovered || activeFocus ? 46 : 44)
-  readonly property real targetGap: pressed ? 4 : (hovered || activeFocus ? 5 : 6)
+  readonly property real trackInsideRadius: root.liquidGlass ? trackRadius : 2
+  readonly property real targetThumbWidth: root.liquidGlass
+    ? (pressed ? 7 : (hovered || activeFocus ? 6 : 4))
+    : (pressed ? 8 : (hovered || activeFocus ? 6 : 4))
+  readonly property real targetThumbHeight: root.liquidGlass
+    ? (pressed ? 22 : (hovered || activeFocus ? 20 : 18))
+    : (pressed ? 48 : (hovered || activeFocus ? 46 : 44))
+  readonly property real targetGap: root.liquidGlass
+    ? 0
+    : (pressed ? 4 : (hovered || activeFocus ? 5 : 6))
   property real thumbWidth: 4
   property real thumbHeight: 44
   property real gap: 6
@@ -160,6 +172,7 @@ Item {
       width: Math.min(parent.width, 8)
       radius: root.trackInsideRadius
       color: parent.color
+      visible: !root.liquidGlass
     }
   }
 
@@ -173,13 +186,20 @@ Item {
     // Keep the inactive track distinct from the filled surfaces that contain
     // settings sliders. Surface variant is a semantic track fill, while the
     // container-highest role can visually disappear against those cards.
-    color: theme.surfaceVariant
+    color: Config.liquidGlassTheme ? root.surfaceContainerHighest : theme.surfaceVariant
+
+    GlassSheen {
+      anchors.fill: parent
+      radius: parent.radius
+      glassEnabled: !root.liquidGlass || root.active
+    }
 
     Rectangle {
       anchors { top: parent.top; bottom: parent.bottom; left: parent.left }
       width: Math.min(parent.width, 8)
       radius: root.trackInsideRadius
       color: parent.color
+      visible: !root.liquidGlass
     }
 
     Rectangle {
@@ -188,8 +208,19 @@ Item {
       height: 4
       radius: 2
       color: root.muted ? root.outline : root.activeColor
-      visible: parent.width > 20
+      visible: !root.liquidGlass && parent.width > 20
     }
+  }
+
+  Rectangle {
+    id: knobShadow
+    x: thumbCenter - width / 2 + (root.liquidGlass ? 1 : 0)
+    y: parent.height / 2 - height / 2 + (root.liquidGlass ? 1 : 0)
+    width: root.thumbWidth
+    height: root.thumbHeight
+    radius: width / 2
+    color: Colors.liquidGlassShadow
+    visible: root.liquidGlass && root.enabled
   }
 
   Rectangle {
@@ -199,10 +230,22 @@ Item {
     width: root.thumbWidth
     height: root.thumbHeight
     radius: width / 2
-    color: Qt.tint(root.muted ? root.outline : root.activeColor, root.stateOverlay)
-    border.width: root.pressed ? theme.focusBorderWidth : 0
-    border.color: root.surfaceContainerHigh
+    color: root.liquidGlass
+      ? (root.active
+        ? Qt.tint(root.surfaceContainerHigh, root.stateOverlay)
+        : (root.muted ? root.outline : root.activeColor))
+      : Qt.tint(root.muted ? root.outline : root.activeColor, root.stateOverlay)
+    border.width: root.liquidGlass
+      ? (root.active ? 1 : 0)
+      : (root.pressed ? theme.focusBorderWidth : 0)
+    border.color: root.liquidGlass ? Colors.liquidGlassEdge : root.surfaceContainerHigh
     Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
+
+    GlassSheen {
+      anchors.fill: parent
+      radius: parent.radius
+      glassEnabled: root.liquidGlass && root.active
+    }
   }
 
   MouseArea {

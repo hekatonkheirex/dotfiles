@@ -9,12 +9,13 @@ usage() {
 Usage: verify-ui-suite.sh [options]
 
 Verify the user-installed GTK, icon, Kvantum, cursor, terminal, btop, and
-Neovim pieces of the four-style UI suite. SDDM is checked through its existing
-system integration verifier unless --skip-sddm is supplied.
+Neovim pieces of the five-style UI suite, plus the MacTahoe GTK/icon/Kvantum/cursor
+companion used by Liquid Glass. SDDM is checked through its existing system integration
+verifier unless --skip-sddm is supplied.
 
 Options:
   --skip-sddm    Skip system-wide SDDM checks
-  --skip-cursors Skip the Ghost cursor check
+  --skip-cursors Skip Ghost and MacTahoe cursor checks
   --skip-nvim    Skip the Neovim plugin checks
 EOF
 }
@@ -105,11 +106,28 @@ check_kvantum_theme() {
   check_file "$HOME/.config/Kvantum/$theme/$theme.svg" "$theme Kvantum SVG"
 }
 
+check_mactahoe_kvantum_theme() {
+  local theme=$1
+  check_file "$HOME/.config/Kvantum/MacTahoe/$theme.kvconfig" "$theme MacTahoe Kvantum config"
+  check_file "$HOME/.config/Kvantum/MacTahoe/$theme.svg" "$theme MacTahoe Kvantum SVG"
+}
+
+check_cursor_theme() {
+  local theme=$1
+  if [[ -f "$HOME/.local/share/icons/$theme/index.theme" ||
+        -f "$HOME/.icons/$theme/index.theme" ]]; then
+    pass_check "$theme cursor metadata"
+  else
+    fail_check "$theme cursor metadata"
+  fi
+}
+
 for theme in \
   Material3-Expressive-Dynamic Material3-Expressive-Dynamic-Dark \
   Neo-Brutalism Neo-Brutalism-Dark \
   Nothing-OS Nothing-OS-Dark \
-  Ghost-Light Ghost-Dark; do
+  Ghost-Light Ghost-Dark \
+  MacTahoe-Light MacTahoe-Dark; do
   check_gtk_theme "$theme"
 done
 
@@ -117,7 +135,8 @@ for theme in \
   Material3-Expressive-Dynamic-Icons Material3-Expressive-Dynamic-Dark-Icons \
   Neo-Brutalism-Icons Neo-Brutalism-Dark-Icons \
   Nothing-Light-Icons Nothing-Dark-Icons \
-  Ghost-Light-Icons Ghost-Dark-Icons; do
+  Ghost-Light-Icons Ghost-Dark-Icons \
+  MacTahoe-light MacTahoe-dark; do
   check_icon_theme "$theme"
 done
 
@@ -129,10 +148,16 @@ for theme in \
   check_kvantum_theme "$theme"
 done
 
+for theme in MacTahoe MacTahoeDark; do
+  check_mactahoe_kvantum_theme "$theme"
+done
+
 if (( ! skip_cursors )); then
   check_dir "$HOME/.icons/ghost-section9/cursors" 'Ghost cursor theme'
+  check_cursor_theme MacTahoe-cursors
+  check_cursor_theme MacTahoe-dark-cursors
 else
-  printf 'SKIP Ghost cursor check (--skip-cursors)\n'
+  printf 'SKIP Ghost and MacTahoe cursor checks (--skip-cursors)\n'
 fi
 check_file "$HOME/.config/btop/themes/ghost.theme" 'Ghost btop theme'
 if (( ! skip_nvim )); then

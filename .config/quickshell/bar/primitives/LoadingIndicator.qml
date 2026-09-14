@@ -17,9 +17,7 @@ Item {
     : (Config.neoBrutalism ? Colors.styleSurface : Colors.styleControl)
   property string accessibleName: "Loading"
   property string accessibleDescription: "Work in progress"
-  readonly property bool material3Style: !Config.nothingDesign
-    && !Config.neoBrutalism
-    && !Config.ghostTheme
+  readonly property bool material3Style: Config.material3Theme
 
   implicitWidth: root.size
   implicitHeight: root.size

@@ -71,7 +71,7 @@ Flickable {
 
   Process {
     id: getWallpaperProc
-    command: ["sh", "-c", "awww query | grep -o 'image: .*' | cut -d' ' -f2 | xargs basename"]
+    command: ["sh", "-c", "awww query | sed -n 's#.*image: .*/##p'"]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {

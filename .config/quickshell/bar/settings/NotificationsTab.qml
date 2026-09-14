@@ -15,7 +15,7 @@ Flickable {
   readonly property int neoShadowAllowance: Config.neoBrutalism
     ? Config.themeShadowOffset
     : 0
-  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property bool material3Theme: Config.material3Theme
   readonly property int segmentedButtonGap: notificationsTab.material3Theme ? 0 : Config.spacingSmall
   anchors.fill: parent
   visible: root.currentTab === 9

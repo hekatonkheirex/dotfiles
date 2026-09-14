@@ -49,7 +49,7 @@ PanelWindow {
   }
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: "quickshell-popup"
+  WlrLayershell.namespace: Config.layerNamespace("popup")
   WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.focusable: true
 
@@ -877,12 +877,19 @@ PanelWindow {
       rightMargin: root.neoShadowPadding
       bottomMargin: root.neoShadowPadding
     }
-    color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
-      ? Colors.styleSurfaceRaised
-      : Colors.surfaceContainer
-    radius: Config.borderRadius
+    color: Config.liquidGlassTheme
+      ? Colors.chromeSurface
+      : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+        ? Colors.styleSurfaceRaised
+        : Colors.surfaceContainer)
+    radius: Config.popupRadius
     border.color: Colors.styleOutline
     border.width: Config.themeBorderWidth
+
+    GlassSheen {
+      anchors.fill: parent
+      radius: parent.radius
+    }
 
     transform: [
       Translate { id: transX; x: 0 },
@@ -1061,7 +1068,9 @@ PanelWindow {
         Layout.fillWidth: true
         Layout.preferredHeight: 70
         radius: Config.shapeMedium
-        color: Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surfaceContainerLow
+        color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+          ? Colors.styleSurface
+          : Colors.surfaceContainerLow
         border.color: Colors.styleOutline
         border.width: Config.themeBorderWidth
 
@@ -1097,7 +1106,9 @@ PanelWindow {
         Layout.preferredHeight: root.wallpaperMode ? root.wallpaperGridHeight : 0
         visible: root.wallpaperMode
         radius: Config.shapeMedium
-        color: Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surfaceContainerLow
+        color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+          ? Colors.styleSurface
+          : Colors.surfaceContainerLow
         border.color: Colors.styleOutline
         border.width: Config.themeBorderWidth
         clip: true

@@ -1,5 +1,6 @@
 // Theme facade. Concrete Material 3, Neo Brutalism, Nothing, and Ghost switches
-// live in separate folders while this interface remains stable for callers.
+// live in separate implementations; Liquid Glass reuses the Material 3 switch
+// logic with a dedicated compact control treatment.
 import QtQml
 import QtQuick
 import "../config"
@@ -12,12 +13,12 @@ Item {
   id: root
 
   property bool checked: false
-  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property bool material3Theme: Config.material3Theme
   property color activeColor: Colors.primary
   property color activeContentColor: root.material3Theme ? Colors.fgPrimary : Colors.styleAccentText
   property color checkmarkColor: activeColor
-  property color surfaceContainerHigh: Colors.surfaceContainerHigh
-  property color surfaceContainerHighest: Colors.surfaceContainerHighest
+  property color surfaceContainerHigh: Config.liquidGlassTheme ? Colors.liquidGlassRaised : Colors.surfaceContainerHigh
+  property color surfaceContainerHighest: Config.liquidGlassTheme ? Colors.liquidGlassControl : Colors.surfaceContainerHighest
   property color outline: root.material3Theme ? Colors.outline : Colors.styleOutlineStrong
   property color focusColor: root.material3Theme ? Colors.primary : activeColor
   property color hoverOverlay: Colors.hoverOverlay
@@ -40,16 +41,23 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.ghostTheme
-      ? ghostImplementation
-      : (Config.nothingDesign
-        ? nothingImplementation
-        : (Config.neoBrutalism ? neoImplementation : materialImplementation))
+    sourceComponent: Config.liquidGlassTheme
+      ? liquidImplementation
+      : (Config.ghostTheme
+        ? ghostImplementation
+        : (Config.nothingDesign
+          ? nothingImplementation
+          : (Config.neoBrutalism ? neoImplementation : materialImplementation)))
   }
 
   Component {
     id: materialImplementation
     Material3.SwitchControl {}
+  }
+
+  Component {
+    id: liquidImplementation
+    Material3.SwitchControl { liquidGlass: true }
   }
 
   Component {

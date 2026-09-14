@@ -25,9 +25,7 @@ Rectangle {
   property bool navigationItem: false
   property bool navigationFocused: false
   property int trailingSpacing: Config.spacingCompact
-  readonly property bool material3Style: !Config.nothingDesign
-    && !Config.neoBrutalism
-    && !Config.ghostTheme
+  readonly property bool material3Style: Config.material3Theme
   readonly property bool materialNavigationItem: root.navigationItem
     && root.material3Style
   readonly property bool materialStatusItem: root.statusActive
@@ -68,7 +66,7 @@ Rectangle {
   signal clicked(var mouse)
 
   height: 44
-  radius: Config.shapeMedium
+  radius: Config.liquidGlassTheme ? Config.shapeCompact : Config.shapeMedium
   activeFocusOnTab: root.enabled
   opacity: root.enabled ? 1.0 : 0.38
 

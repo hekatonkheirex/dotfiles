@@ -1,6 +1,6 @@
 // Theme facade. Concrete Material 3, Neo Brutalism, Nothing, and Ghost
-// implementations live in separate folders; existing bar call sites keep this
-// stable type.
+// implementations live in separate folders; Liquid Glass reuses the Material
+// 3 control geometry with its own semantic surfaces.
 import QtQml
 import QtQuick
 import QtQuick.Controls
@@ -24,14 +24,14 @@ Item {
   property string variant: "tonal"
   // Material 3 standard buttons place a leading icon beside the label. The
   // expressive themes keep their existing stacked treatment by default.
-  property bool horizontalContent: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  property bool horizontalContent: Config.material3Theme || Config.liquidGlassTheme
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""
   // Opt-in only: Material 3 can add an expressive selected-state halo while
   // the other theme implementations keep their native treatment.
   property bool expressiveSelectedShape: false
-  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property bool material3Theme: Config.material3Theme
   readonly property bool segmented: root.material3Theme
     && root.grouped
     && root.groupPosition !== "single"
@@ -41,7 +41,8 @@ Item {
   property real contentSpacing: Config.spacingMedium
   property color iconColor: {
     if (root.segmented) return root.selected ? Colors.fgSecondaryContainer : Colors.fgSurfaceVariant
-    if (root.filled) return Config.ghostTheme || Config.neoBrutalism || Config.nothingDesign
+    if (root.filled) return Config.ghostTheme || Config.neoBrutalism
+      || Config.nothingDesign || Config.liquidGlassTheme
       ? Colors.styleAccentText
       : Colors.fgPrimary
     return root.material3Theme && root.variant === "tonal"
@@ -56,9 +57,11 @@ Item {
       : (Config.neoBrutalism
         ? Config.shapeCompact
         : (root.selected ? Math.max(0, root.height / 2) : Config.shapeCompact)))
-    : (Config.nothingDesign
+    : (Config.liquidGlassTheme
       ? Config.shapeCompact
-      : (Config.neoBrutalism ? 4 : (root.horizontalContent ? 20 : Config.shapeMedium)))
+      : (Config.nothingDesign
+        ? Config.shapeCompact
+        : (Config.neoBrutalism ? 4 : (root.horizontalContent ? 20 : Config.shapeMedium))))
   property color color: {
     var overlay = root.pressed ? Colors.pressOverlay
       : (root.hovered ? Colors.hoverOverlay
@@ -76,8 +79,8 @@ Item {
       base = root.filled
         ? Colors.styleAccent
         : (root.textVariant
-          ? Colors.styleSurface
-          : Colors.styleSurfaceRaised)
+          ? (Config.liquidGlassTheme && root.variant === "text" ? "transparent" : Colors.styleSurface)
+          : (Config.liquidGlassTheme ? Colors.liquidGlassClear : Colors.styleSurfaceRaised))
     }
     return Qt.tint(base, overlay)
   }
@@ -87,7 +90,7 @@ Item {
         ? Colors.outline
         : "transparent"
     }
-    return Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+    return Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
       ? Colors.styleOutlineStrong
       : (root.filled || root.textVariant
         ? "transparent"
@@ -111,15 +114,22 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.ghostTheme
-      ? ghostImplementation
-      : (Config.nothingDesign
-        ? nothingImplementation
-        : (Config.neoBrutalism ? neoImplementation : materialImplementation))
+    sourceComponent: Config.liquidGlassTheme
+      ? liquidImplementation
+      : (Config.ghostTheme
+        ? ghostImplementation
+        : (Config.nothingDesign
+          ? nothingImplementation
+          : (Config.neoBrutalism ? neoImplementation : materialImplementation)))
   }
 
   Component {
     id: materialImplementation
+    Material3.ActionButton {}
+  }
+
+  Component {
+    id: liquidImplementation
     Material3.ActionButton {}
   }
 
