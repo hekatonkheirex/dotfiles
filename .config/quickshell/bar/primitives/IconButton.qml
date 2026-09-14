@@ -1,6 +1,6 @@
 // Theme facade. Concrete Material 3, Neo Brutalism, Nothing, and Ghost
-// implementations live in separate folders; existing popup call sites keep
-// this stable type.
+// implementations live in separate folders; Liquid Glass reuses the Material
+// 3 control geometry with its own semantic surfaces.
 import QtQml
 import QtQuick
 import QtQuick.Controls
@@ -17,7 +17,7 @@ Item {
   property int size: 32
   property int iconSize: 18
   property string variant: "standard"
-  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property bool material3Theme: Config.material3Theme
   property color iconColor: {
     if (!root.material3Theme) return root.selected ? Colors.styleAccentText : Colors.fgSurface
     if (root.selected) return Colors.fgPrimary
@@ -28,7 +28,11 @@ Item {
   property color hoverColor: Qt.tint("transparent", Colors.hoverOverlay)
   property color pressColor: Qt.tint("transparent", Colors.pressOverlay)
   property color backgroundColor: {
-    if (!root.material3Theme) return Config.neoBrutalism ? Colors.styleSurface : "transparent"
+    if (!root.material3Theme) {
+      if (root.selected) return Colors.styleAccent
+      if (Config.liquidGlassTheme) return Colors.liquidGlassClear
+      return Config.neoBrutalism ? Colors.styleSurface : "transparent"
+    }
     if (root.selected) return Colors.primary
     return root.variant === "filled"
       ? Colors.surfaceContainerHighest
@@ -38,9 +42,11 @@ Item {
   property bool outlined: root.variant === "outlined" && !root.selected
   property bool selected: false
   property bool checkable: false
-  property real radius: Config.nothingDesign
+  property real radius: Config.liquidGlassTheme
     ? Config.shapeCompact
-    : (Config.neoBrutalism ? 4 : size / 2)
+    : (Config.nothingDesign
+      ? Config.shapeCompact
+      : (Config.neoBrutalism ? 4 : size / 2))
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""
@@ -58,15 +64,22 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.ghostTheme
-      ? ghostImplementation
-      : (Config.nothingDesign
-        ? nothingImplementation
-        : (Config.neoBrutalism ? neoImplementation : materialImplementation))
+    sourceComponent: Config.liquidGlassTheme
+      ? liquidImplementation
+      : (Config.ghostTheme
+        ? ghostImplementation
+        : (Config.nothingDesign
+          ? nothingImplementation
+          : (Config.neoBrutalism ? neoImplementation : materialImplementation)))
   }
 
   Component {
     id: materialImplementation
+    Material3.IconButton {}
+  }
+
+  Component {
+    id: liquidImplementation
     Material3.IconButton {}
   }
 

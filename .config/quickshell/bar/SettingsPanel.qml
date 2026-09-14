@@ -252,7 +252,7 @@ PanelWindow {
                   + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: "quickshell-popup"
+  WlrLayershell.namespace: Config.layerNamespace("popup")
   WlrLayershell.layer: WlrLayer.Top
 
   // Center the panel until the user moves it. A resized panel stays anchored to
@@ -522,14 +522,23 @@ PanelWindow {
         bottomMargin: Config.neoBrutalism ? Config.themeShadowOffset : 0
       }
       radius: Config.borderRadius
-      color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
-        ? Colors.styleSurface
-        : Colors.surface
+      color: Config.liquidGlassTheme
+        ? Colors.chromeSurface
+        : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+          ? Colors.styleSurface
+          : Colors.surface)
       clip: true
-      border.width: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.themeBorderWidth : 0
-      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+      border.width: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+        ? Config.themeBorderWidth
+        : 0
+      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Colors.styleOutline
         : Colors.outlineVariant
+
+      GlassSheen {
+        anchors.fill: parent
+        radius: parent.radius
+      }
 
       transform: [
         Translate { id: transX; x: 0 },

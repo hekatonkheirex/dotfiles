@@ -1,6 +1,7 @@
 // Shared surface treatment. Material 3 keeps its tonal surface and outline;
 // Neo Brutalism adds the visible hard offset while consuming the same Matugen
-// semantic roles for fills, ink, and accents.
+// semantic roles for fills, ink, and accents. Liquid Glass gives local cards
+// the same neutral translucent material as its functional chrome.
 import QtQuick
 import "../../config"
 
@@ -10,21 +11,20 @@ Item {
   // Material 3 card variants. Outlined remains the compatibility default so
   // existing surfaces keep their current treatment until they opt in.
   property string variant: "outlined"
-  property color surfaceColor: Config.nothingDesign || Config.neoBrutalism || Config.ghostTheme
-    ? Colors.styleSurface
-    : Colors.surface
-  property color outlineColor: Config.nothingDesign || Config.neoBrutalism || Config.ghostTheme
-    ? Colors.styleOutline
-    : Colors.outlineVariant
+  property color surfaceColor: Config.material3Theme ? Colors.surface : Colors.styleSurface
+  property color outlineColor: Config.material3Theme ? Colors.outlineVariant : Colors.styleOutline
   property real outlineWidth: Config.themeBorderWidth
   property real radius: Config.shapeLarge
   property bool clipContent: false
-  readonly property bool material3Theme: !Config.nothingDesign && !Config.neoBrutalism && !Config.ghostTheme
+  readonly property bool material3Theme: Config.material3Theme
+  readonly property color liquidGlassSurfaceColor: root.variant === "elevated"
+    ? Colors.liquidGlassRaised
+    : (root.variant === "filled" ? Colors.liquidGlassRaised : Colors.liquidGlassClear)
   readonly property color renderedSurfaceColor: root.material3Theme
     ? (root.variant === "elevated"
       ? Colors.surfaceContainerLow
       : (root.variant === "filled" ? Colors.surfaceContainerHighest : root.surfaceColor))
-    : root.surfaceColor
+    : (Config.liquidGlassTheme ? root.liquidGlassSurfaceColor : root.surfaceColor)
   readonly property color renderedOutlineColor: root.material3Theme && root.variant !== "outlined"
     ? "transparent"
     : root.outlineColor
@@ -66,6 +66,12 @@ Item {
     border.color: root.renderedOutlineColor
     border.width: root.renderedOutlineWidth
     clip: root.clipContent
+  }
+
+  GlassSheen {
+    anchors.fill: surface
+    radius: surface.radius
+    glassEnabled: Config.liquidGlassTheme
   }
 
   Item {
