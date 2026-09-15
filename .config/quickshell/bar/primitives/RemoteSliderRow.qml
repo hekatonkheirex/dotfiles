@@ -29,13 +29,11 @@ RowLayout {
   Layout.fillWidth: true
   spacing: Config.spacingMedium
 
-  Text {
+  IconGlyph {
     visible: root.leadingIcon !== ""
-    text: root.leadingIcon
-    color: Colors.fgSurfaceVariant
-    font.family: Config.iconFont
-    font.pixelSize: Config.iconSize
-    font.variableAxes: Config.iconVariableAxes(0, Config.iconSize)
+    iconLabel: root.leadingIcon
+    iconColor: Colors.fgSurfaceVariant
+    iconSize: Config.iconSize
     Layout.preferredWidth: 20
   }
 

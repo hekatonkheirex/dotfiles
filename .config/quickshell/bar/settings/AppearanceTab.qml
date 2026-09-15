@@ -895,13 +895,11 @@ Flickable {
                 radius: Config.shapeCompact
                 color: Colors.styleAccent
 
-                Text {
+                IconGlyph {
                   anchors.centerIn: parent
-                  text: "dock_to_bottom"
-                  color: Colors.styleAccentText
-                  font.family: Config.iconFont
-                  font.pixelSize: Config.iconSize
-                  font.variableAxes: Config.iconVariableAxes(0, Config.iconSize)
+                  iconLabel: "dock_to_bottom"
+                  iconColor: Colors.styleAccentText
+                  iconSize: Config.iconSize
                 }
               }
             }

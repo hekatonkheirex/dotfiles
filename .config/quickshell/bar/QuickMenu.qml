@@ -29,6 +29,9 @@ PanelWindow {
   property double openTime: 0
 
   signal lockRequested()
+  signal settingsRequested()
+
+  readonly property int lockPowerIndex: root.powerOptions.length
 
   property bool caffeineOn: false
   property bool airplaneOn: false
@@ -93,8 +96,15 @@ PanelWindow {
 
   function focusPower(index) {
     root.activePowerIndex = index
-    var item = powerRepeater.itemAt(index)
+    var item = index === root.lockPowerIndex
+      ? lockPowerButton
+      : powerRepeater.itemAt(index)
     if (item) item.forceActiveFocus()
+  }
+
+  function requestLock() {
+    root.lockRequested()
+    root.dismissed()
   }
 
   function powerIcon(label) {
@@ -246,10 +256,16 @@ PanelWindow {
     if (visible) {
       if (Config.reducedMotion) {
         entryAnimation.stop()
+        reducedMotionEntryAnimation.stop()
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
         transX.x = 0
-        bg.opacity = 1.0
+        if (Config.liquidGlassTheme) {
+          bg.opacity = 0.0
+          reducedMotionEntryAnimation.start()
+        } else {
+          bg.opacity = 1.0
+        }
       } else {
         entryAnimation.start()
       }
@@ -298,17 +314,20 @@ PanelWindow {
         }
         event.accepted = true
       } else if (event.key === Qt.Key_Left) {
-        var len = root.powerOptions.length;
+        var len = root.powerOptions.length + 1;
         var nextIndex = (root.activePowerIndex === -1) ? 0 : (root.activePowerIndex === len - 1 ? 0 : root.activePowerIndex + 1);
         root.focusPower(nextIndex)
         event.accepted = true
       } else if (event.key === Qt.Key_Right) {
-        var len = root.powerOptions.length;
+        var len = root.powerOptions.length + 1;
         var nextIndex = (root.activePowerIndex === -1) ? len - 1 : (root.activePowerIndex === 0 ? len - 1 : root.activePowerIndex - 1);
         root.focusPower(nextIndex)
         event.accepted = true
       } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-        if (root.activePowerIndex >= 0 && root.activePowerIndex < root.powerOptions.length) {
+        if (root.activePowerIndex === root.lockPowerIndex) {
+          root.requestLock()
+          event.accepted = true
+        } else if (root.activePowerIndex >= 0 && root.activePowerIndex < root.powerOptions.length) {
           root.requestPower(root.activePowerIndex)
           event.accepted = true
         }
@@ -360,17 +379,17 @@ PanelWindow {
         NumberAnimation {
           target: scaleTransform
           properties: "xScale,yScale"
-          from: 0.85
+          from: Config.surfaceEntryScale
           to: 1.0
-          duration: Config.motionLong
+          duration: Config.surfaceEntryDuration
           easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
           target: transX
           property: "x"
-          from: -30
+          from: Config.surfaceEntryOffset
           to: 0
-          duration: Config.motionLong
+          duration: Config.surfaceEntryDuration
           easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
@@ -378,9 +397,19 @@ PanelWindow {
           property: "opacity"
           from: 0.0
           to: 1.0
-          duration: Config.motionMedium
+          duration: Config.surfaceOpacityDuration
           easing.type: Easing.OutCubic
         }
+      }
+
+      NumberAnimation {
+        id: reducedMotionEntryAnimation
+        target: bg
+        property: "opacity"
+        from: 0.0
+        to: 1.0
+        duration: Config.reducedMotionFadeDuration
+        easing.type: Easing.OutCubic
       }
 
       Column {
@@ -474,15 +503,14 @@ PanelWindow {
         ActionButton {
           width: (parent.width - 4 * Config.spacingSmall) / 5
           height: width
-          iconLabel: "lock"
+          iconLabel: "settings"
           labelText: ""
-          tooltipText: "Lock screen"
+          tooltipText: "Settings"
           horizontalContent: false
-          accessibleName: "Lock screen"
-          accessibleDescription: "Locks the session"
+          accessibleName: "Settings"
+          accessibleDescription: "Opens shell settings"
           onActivated: {
-            root.lockRequested()
-            root.dismissed()
+            root.settingsRequested()
           }
         }
       }
@@ -506,7 +534,7 @@ PanelWindow {
             required property var modelData
             required property int index
 
-            width: (parent.width - 3 * Config.spacingSmall) / 4
+            width: (parent.width - 4 * Config.spacingSmall) / 5
             height: width
             iconLabel: root.powerIcon(modelData.label)
             labelText: ""
@@ -524,6 +552,26 @@ PanelWindow {
               root.requestPower(index)
             }
           }
+        }
+
+        ActionButton {
+          id: lockPowerButton
+          width: (parent.width - 4 * Config.spacingSmall) / 5
+          height: width
+          iconLabel: "lock"
+          labelText: ""
+          selected: root.activePowerIndex === root.lockPowerIndex
+          horizontalContent: false
+          tooltipText: "Lock screen"
+          accessibleName: "Lock screen"
+          accessibleDescription: "Locks the session"
+          onActiveFocusChanged: {
+            if (activeFocus) root.activePowerIndex = root.lockPowerIndex
+          }
+          onHoveredChanged: {
+            if (hovered) root.activePowerIndex = root.lockPowerIndex
+          }
+          onActivated: root.requestLock()
         }
       }
     }

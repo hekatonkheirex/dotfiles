@@ -17,6 +17,29 @@ if [[ -z "$ui_style" ]] && command -v jq >/dev/null 2>&1; then
   ui_style=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || printf 'material3')
 fi
 
+sync_mango_liquid_glass_blur() {
+  local decorations_file="$HOME/.config/mango/decorations.conf"
+  [[ -f "$decorations_file" ]] || return 0
+
+  local passes=2
+  local radius=5
+  if [[ "$1" == "liquid-glass" ]]; then
+    passes=3
+    radius=10
+  fi
+
+  # Keep Mango's hand-maintained decoration file as the source of truth while
+  # switching only the blur intensity that belongs to Liquid Glass.
+  sed -i -E \
+    -e "s|^(blur_params_num_passes[[:space:]]*=[[:space:]]*).*$|\\1${passes}|" \
+    -e "s|^(blur_params_radius[[:space:]]*=[[:space:]]*).*$|\\1${radius}|" \
+    "$decorations_file"
+}
+
+if ! sync_mango_liquid_glass_blur "$ui_style"; then
+  printf 'Could not synchronize Mango Liquid Glass blur settings; keeping the existing values.\n' >&2
+fi
+
 fixed_terminal_assets="$script_dir/ensure-style-terminal-assets.sh"
 if [[ -f "$fixed_terminal_assets" ]] &&
    ! bash "$fixed_terminal_assets"; then

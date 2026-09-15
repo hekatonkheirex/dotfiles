@@ -421,10 +421,16 @@ PanelWindow {
       idleCheck.running = true
       if (Config.reducedMotion) {
         entryAnimation.stop()
+        reducedMotionEntryAnimation.stop()
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
         transX.x = 0
-        bg.opacity = 1.0
+        if (Config.liquidGlassTheme) {
+          bg.opacity = 0.0
+          reducedMotionEntryAnimation.start()
+        } else {
+          bg.opacity = 1.0
+        }
       } else {
         entryAnimation.start()
       }
@@ -550,17 +556,17 @@ PanelWindow {
         NumberAnimation {
           target: scaleTransform
           properties: "xScale,yScale"
-          from: 0.85
+          from: Config.surfaceEntryScale
           to: 1.0
-          duration: Config.motionLong
+          duration: Config.surfaceEntryDuration
           easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
           target: transX
           property: "x"
-          from: -30
+          from: Config.surfaceEntryOffset
           to: 0
-          duration: Config.motionLong
+          duration: Config.surfaceEntryDuration
           easing.type: Config.themeMotionEasing
         }
         NumberAnimation {
@@ -568,9 +574,19 @@ PanelWindow {
           property: "opacity"
           from: 0.0
           to: 1.0
-          duration: Config.motionMedium
+          duration: Config.surfaceOpacityDuration
           easing.type: Easing.OutCubic
         }
+      }
+
+      NumberAnimation {
+        id: reducedMotionEntryAnimation
+        target: bg
+        property: "opacity"
+        from: 0.0
+        to: 1.0
+        duration: Config.reducedMotionFadeDuration
+        easing.type: Easing.OutCubic
       }
 
       Item {

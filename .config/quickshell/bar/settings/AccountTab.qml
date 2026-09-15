@@ -92,12 +92,10 @@ Flickable {
     Layout.preferredHeight: 32
     spacing: Config.spacingSmall
 
-    Text {
-      text: infoRow.icon
-      font.family: Config.iconFont
-      font.pixelSize: 16
-      font.variableAxes: Config.iconVariableAxes(0, 16)
-      color: Colors.primary
+    IconGlyph {
+      iconLabel: infoRow.icon
+      iconSize: 16
+      iconColor: Colors.primary
       Layout.preferredWidth: 20
     }
 
@@ -193,13 +191,11 @@ Flickable {
             maskSource: profileMask
           }
 
-          Text {
+          IconGlyph {
             anchors.centerIn: parent
-            text: "person"
-            font.family: Config.iconFont
-            font.pixelSize: 48
-            font.variableAxes: Config.iconVariableAxes(0, 48)
-            color: Colors.fgSurfaceVariant
+            iconLabel: "person"
+            iconSize: 48
+            iconColor: Colors.fgSurfaceVariant
             visible: profilePic.status !== Image.Ready
           }
         }
@@ -238,12 +234,10 @@ Flickable {
 
           Row {
             spacing: Config.spacingSmall
-            Text {
-              text: "navigation"
-              font.family: Config.iconFont
-              font.pixelSize: accountTab.compactLayout ? 13 : 15
-              font.variableAxes: Config.iconVariableAxes(0, accountTab.compactLayout ? 13 : 15)
-              color: Colors.primary
+            IconGlyph {
+              iconLabel: "navigation"
+              iconSize: accountTab.compactLayout ? 13 : 15
+              iconColor: Colors.primary
             }
             Text {
               text: "on " + Config.wmType
@@ -263,12 +257,10 @@ Flickable {
           Row {
             visible: Settings.systemShowUptime
             spacing: Config.spacingSmall
-            Text {
-              text: "schedule"
-              font.family: Config.iconFont
-              font.pixelSize: accountTab.compactLayout ? 13 : 15
-              font.variableAxes: Config.iconVariableAxes(0, accountTab.compactLayout ? 13 : 15)
-              color: Colors.fgSurfaceVariant
+            IconGlyph {
+              iconLabel: "schedule"
+              iconSize: accountTab.compactLayout ? 13 : 15
+              iconColor: Colors.fgSurfaceVariant
             }
             Text {
               text: root.uptimeText.replace("up ", "")

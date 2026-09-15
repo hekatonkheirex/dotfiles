@@ -121,12 +121,10 @@ Flickable {
               Layout.fillWidth: true
               spacing: Config.spacingSmall
 
-              Text {
-                text: "monitor"
-                color: Colors.styleAccent
-                font.family: Config.iconFont
-                font.pixelSize: Config.iconSize + 4
-                font.variableAxes: Config.iconVariableAxes(0, Config.iconSize + 4)
+              IconGlyph {
+                iconLabel: "monitor"
+                iconColor: Colors.styleAccent
+                iconSize: Config.iconSize + 4
                 Layout.alignment: Qt.AlignVCenter
               }
 
@@ -407,12 +405,10 @@ Flickable {
         anchors.margins: Config.spacingSmall
         spacing: Config.spacingSmall
 
-        Text {
-          text: "warning"
-          color: Colors.error
-          font.family: Config.iconFont
-          font.pixelSize: Config.iconSize
-          font.variableAxes: Config.iconVariableAxes(0, Config.iconSize)
+        IconGlyph {
+          iconLabel: "warning"
+          iconColor: Colors.error
+          iconSize: Config.iconSize
           Layout.alignment: Qt.AlignTop
         }
 

@@ -55,10 +55,16 @@ PanelWindow {
       dismissTimer.restart()
     if (Config.reducedMotion) {
       entryAnimation.stop()
+      reducedMotionEntryAnimation.stop()
       scaleTransform.xScale = 1.0
       scaleTransform.yScale = 1.0
       transX.x = 0
-      bg.opacity = 1.0
+      if (Config.liquidGlassTheme) {
+        bg.opacity = 0.0
+        reducedMotionEntryAnimation.start()
+      } else {
+        bg.opacity = 1.0
+      }
     } else {
       entryAnimation.start()
     }
@@ -175,17 +181,17 @@ PanelWindow {
       NumberAnimation {
         target: scaleTransform
         properties: "xScale,yScale"
-        from: 0.8
+        from: Config.toastEntryScale
         to: 1.0
-        duration: Config.motionLong
+        duration: Config.toastEntryDuration
         easing.type: Config.themeMotionEasing
       }
       NumberAnimation {
         target: transX
         property: "x"
-        from: 50
+        from: Config.toastEntryOffset
         to: 0
-        duration: Config.motionLong
+        duration: Config.toastEntryDuration
         easing.type: Config.themeMotionEasing
       }
       NumberAnimation {
@@ -193,9 +199,19 @@ PanelWindow {
         property: "opacity"
         from: 0.0
         to: 1.0
-        duration: Config.motionMedium
+        duration: Config.surfaceOpacityDuration
         easing.type: Easing.OutCubic
       }
+    }
+
+    NumberAnimation {
+      id: reducedMotionEntryAnimation
+      target: bg
+      property: "opacity"
+      from: 0.0
+      to: 1.0
+      duration: Config.reducedMotionFadeDuration
+      easing.type: Easing.OutCubic
     }
 
     ColumnLayout {

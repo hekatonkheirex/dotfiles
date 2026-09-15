@@ -209,13 +209,11 @@ PopupBase {
           color: "transparent"
           visible: root.mprisArtUrl === ""
 
-          Text {
+          IconGlyph {
             anchors.centerIn: parent
-            text: "music_note"
-            font.family: Config.iconFont
-            font.pixelSize: 36
-            font.variableAxes: Config.iconVariableAxes(0, 36)
-            color: Colors.fgSurfaceVariant
+            iconLabel: "music_note"
+            iconSize: 36
+            iconColor: Colors.fgSurfaceVariant
           }
         }
       }

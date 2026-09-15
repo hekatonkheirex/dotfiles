@@ -205,12 +205,10 @@ Flickable {
 
     RowLayout {
       spacing: Config.spacingSmall
-      Text {
-        text: statCell.icon
-        font.family: Config.iconFont
-        font.pixelSize: Config.iconSize
-        font.variableAxes: Config.iconVariableAxes(0, Config.iconSize)
-        color: Colors.primary
+      IconGlyph {
+        iconLabel: statCell.icon
+        iconSize: Config.iconSize
+        iconColor: Colors.primary
       }
       Text {
         text: statCell.label

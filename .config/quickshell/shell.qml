@@ -506,6 +506,7 @@ ShellRoot {
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
     onLockRequested: lockScreen.lockScreen()
+    onSettingsRequested: bar.openPopup = "settings"
 
     anchors.left: true
     margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
@@ -520,7 +521,9 @@ ShellRoot {
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: Config.layerNamespace("confirmation")
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.focusable: powerConfirmationWindow.visible
+    WlrLayershell.keyboardFocus: powerConfirmationWindow.visible
+      ? WlrKeyboardFocus.Exclusive
+      : WlrKeyboardFocus.None
 
     anchors.left: true
     anchors.right: true

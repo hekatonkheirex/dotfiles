@@ -352,13 +352,11 @@ Flickable {
             radius: Config.shapeCompact
             color: Colors.primary
             Layout.alignment: Qt.AlignVCenter
-            Text {
+            IconGlyph {
               anchors.centerIn: parent
-              text: "device_thermostat"
-              color: Colors.fgPrimary
-              font.family: Config.iconFont
-              font.pixelSize: Config.iconSize
-              font.variableAxes: Config.iconVariableAxes(0, Config.iconSize)
+              iconLabel: "device_thermostat"
+              iconColor: Colors.fgPrimary
+              iconSize: Config.iconSize
             }
           }
 
