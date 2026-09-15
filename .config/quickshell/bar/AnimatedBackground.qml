@@ -6,6 +6,9 @@ Item {
   clip: true
 
   property bool running: true
+  // Liquid Glass keeps the soft static material backdrop but avoids ambient
+  // motion; Ghost and Material 3 retain their existing animated backgrounds.
+  property bool motionEnabled: true
   property bool transparentBg: false
   property bool flatMode: false
   property color flatColor: Colors.bg
@@ -38,13 +41,15 @@ Item {
 
     SequentialAnimation on x {
       loops: Animation.Infinite
-      running: bgContainer.running && !bgContainer.flatMode && !Config.reducedMotion
+      running: bgContainer.running && bgContainer.motionEnabled
+        && !bgContainer.flatMode && !Config.reducedMotion
       NumberAnimation { from: -100; to: bgContainer.width - blob1.width + 100; duration: 35000; easing.type: Easing.InOutSine }
       NumberAnimation { to: -100; duration: 35000; easing.type: Easing.InOutSine }
     }
     SequentialAnimation on y {
       loops: Animation.Infinite
-      running: bgContainer.running && !bgContainer.flatMode && !Config.reducedMotion
+      running: bgContainer.running && bgContainer.motionEnabled
+        && !bgContainer.flatMode && !Config.reducedMotion
       NumberAnimation { from: -100; to: bgContainer.height - blob1.height + 100; duration: 27000; easing.type: Easing.InOutSine }
       NumberAnimation { to: -100; duration: 27000; easing.type: Easing.InOutSine }
     }
@@ -63,13 +68,15 @@ Item {
 
     SequentialAnimation on x {
       loops: Animation.Infinite
-      running: bgContainer.running && !bgContainer.flatMode && !Config.reducedMotion
+      running: bgContainer.running && bgContainer.motionEnabled
+        && !bgContainer.flatMode && !Config.reducedMotion
       NumberAnimation { from: bgContainer.width - blob2.width + 100; to: -100; duration: 39000; easing.type: Easing.InOutSine }
       NumberAnimation { to: bgContainer.width - blob2.width + 100; duration: 39000; easing.type: Easing.InOutSine }
     }
     SequentialAnimation on y {
       loops: Animation.Infinite
-      running: bgContainer.running && !bgContainer.flatMode && !Config.reducedMotion
+      running: bgContainer.running && bgContainer.motionEnabled
+        && !bgContainer.flatMode && !Config.reducedMotion
       NumberAnimation { from: -100; to: bgContainer.height - blob2.height + 100; duration: 31000; easing.type: Easing.InOutSine }
       NumberAnimation { to: -100; duration: 31000; easing.type: Easing.InOutSine }
     }
@@ -88,13 +95,15 @@ Item {
 
     SequentialAnimation on x {
       loops: Animation.Infinite
-      running: bgContainer.running && !bgContainer.flatMode && !Config.reducedMotion
+      running: bgContainer.running && bgContainer.motionEnabled
+        && !bgContainer.flatMode && !Config.reducedMotion
       NumberAnimation { from: bgContainer.width / 4; to: bgContainer.width * 3/4; duration: 45000; easing.type: Easing.InOutSine }
       NumberAnimation { to: bgContainer.width / 4; duration: 45000; easing.type: Easing.InOutSine }
     }
     SequentialAnimation on y {
       loops: Animation.Infinite
-      running: bgContainer.running && !bgContainer.flatMode && !Config.reducedMotion
+      running: bgContainer.running && bgContainer.motionEnabled
+        && !bgContainer.flatMode && !Config.reducedMotion
       NumberAnimation { from: bgContainer.height * 3/4; to: bgContainer.height / 4; duration: 37000; easing.type: Easing.InOutSine }
       NumberAnimation { to: bgContainer.height * 3/4; duration: 37000; easing.type: Easing.InOutSine }
     }

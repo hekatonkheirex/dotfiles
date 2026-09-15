@@ -206,19 +206,16 @@ Item {
       Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
     }
 
-    Text {
+    IconGlyph {
       id: iconText
       visible: !root.loading
-      text: root.iconLabel
-      opacity: root.iconOpacity
-      color: root.iconColor
-      font.family: root.iconFont
-      font.pixelSize: Config.iconSize
-      font.variableAxes: root.iconVariableAxes
-        ? Config.iconVariableAxes(root.active ? 1 : 0, Config.iconSize)
-        : ({})
-      horizontalAlignment: Text.AlignHCenter
-      verticalAlignment: Text.AlignVCenter
+      iconLabel: root.iconLabel
+      iconColor: root.iconColor
+      iconSize: Config.iconSize
+      iconOpacity: root.iconOpacity
+      filled: root.active
+      iconFont: root.iconFont
+      iconVariableAxes: root.iconVariableAxes
       Layout.preferredWidth: Config.iconSize
       Layout.preferredHeight: Config.iconSize
       Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter

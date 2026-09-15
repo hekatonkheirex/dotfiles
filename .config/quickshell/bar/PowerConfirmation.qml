@@ -158,17 +158,13 @@ FocusScope {
         width: parent.width
         spacing: root.actionIcon !== "" ? 10 : 0
 
-        Text {
+        IconGlyph {
           visible: root.actionIcon !== ""
+          iconLabel: root.actionIcon
+          iconColor: root.confirmColor
+          iconSize: 24
           width: visible ? 28 : 0
           height: 28
-          text: root.actionIcon
-          color: root.confirmColor
-          font.family: Config.iconFont
-          font.pixelSize: 24
-          font.variableAxes: Config.iconVariableAxes(0, 24)
-          verticalAlignment: Text.AlignVCenter
-          horizontalAlignment: Text.AlignHCenter
         }
 
         Text {

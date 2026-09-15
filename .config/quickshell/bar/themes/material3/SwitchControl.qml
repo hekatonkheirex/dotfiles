@@ -9,7 +9,8 @@ Item {
   ThemeTokens { id: theme }
 
   // Liquid Glass shares the Material 3 control's interaction and accessibility
-  // behavior, but uses the compact mini-switch geometry and glass knob.
+  // behavior, but uses the compact macOS switch geometry and flat neutral
+  // thumb.
   property bool liquidGlass: false
   property bool checked: false
   property color activeColor: theme.primary
@@ -46,23 +47,24 @@ Item {
   readonly property bool hovered: switchMouse.containsMouse
   readonly property bool pressed: switchMouse.pressed
   readonly property bool active: hovered || pressed || activeFocus
-  readonly property real liquidTrackWidth: Math.min(42, root.width)
-  readonly property real liquidTrackHeight: Math.min(24, root.height)
+  readonly property real liquidTrackWidth: Math.min(38, root.width)
+  readonly property real liquidTrackHeight: Math.min(22, root.height)
   readonly property real liquidTrackX: (root.width - root.liquidTrackWidth) / 2
   readonly property real liquidTrackY: (root.height - root.liquidTrackHeight) / 2
+  readonly property real liquidThumbInset: 1
   readonly property real targetThumbSize: root.liquidGlass
-    ? (pressed ? 20 : 18)
+    ? (pressed ? 22 : 20)
     : (pressed ? 28 : (checked ? 24 : 16))
   readonly property real targetX: root.liquidGlass
     ? (checked
-      ? root.liquidTrackX + root.liquidTrackWidth - (pressed ? 20 : 18) - 3
-      : root.liquidTrackX + 3)
+      ? root.liquidTrackX + root.liquidTrackWidth - root.targetThumbSize - root.liquidThumbInset
+      : root.liquidTrackX + root.liquidThumbInset)
     : (checked
       ? (pressed ? width - 28 - 2 : width - 24 - 4)
       : (pressed ? 2 : 8))
 
-  property real thumbSize: 16
-  property real thumbX: 8
+  property real thumbSize: root.liquidGlass ? 20 : 16
+  property real thumbX: root.liquidGlass ? root.targetX : 8
 
   function animateDuration(base) {
     return root.reducedMotion ? 0 : Math.max(0, root.motionDuration || base)
@@ -73,7 +75,7 @@ Item {
   }
 
   Behavior on thumbSize {
-    enabled: Config.expressiveMotion && !root.reducedMotion
+    enabled: Config.spatialMotion && !root.reducedMotion
     SpringAnimation {
       spring: Config.motionSpatialSpring
       damping: Config.motionSpatialDamping
@@ -82,7 +84,7 @@ Item {
     }
   }
   Behavior on thumbX {
-    enabled: Config.expressiveMotion && !root.reducedMotion
+    enabled: Config.spatialMotion && !root.reducedMotion
     SpringAnimation {
       spring: Config.motionSpatialSpring
       damping: Config.motionSpatialDamping
@@ -125,22 +127,15 @@ Item {
     radius: height / 2
     color: root.enabled
       ? Qt.tint(root.checked
-        ? (root.liquidGlass
-          ? Qt.rgba(root.activeColor.r, root.activeColor.g, root.activeColor.b, 0.90)
-          : root.activeColor)
-        : root.surfaceContainerHighest, root.stateOverlay)
-      : root.surfaceContainerHighest
+        ? root.activeColor
+        : (root.liquidGlass ? Colors.liquidGlassControlTrack : root.surfaceContainerHighest),
+        root.stateOverlay)
+      : (root.liquidGlass ? Colors.liquidGlassControlTrack : root.surfaceContainerHighest)
     border.width: root.liquidGlass
-      ? 1
+      ? 0
       : (root.checked || !root.enabled ? 0 : theme.focusBorderWidth)
     border.color: root.liquidGlass ? Colors.liquidGlassEdge : root.outline
     opacity: root.enabled ? 1 : 0.55
-
-    GlassSheen {
-      anchors.fill: parent
-      radius: parent.radius
-      glassEnabled: !root.liquidGlass || root.active
-    }
 
     Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
   }
@@ -165,30 +160,23 @@ Item {
     radius: width / 2
     color: root.enabled
       ? (root.liquidGlass
-        ? Qt.tint(Colors.liquidGlassRaised, root.stateOverlay)
+        ? Qt.tint(Colors.liquidGlassControlThumb, root.stateOverlay)
         : Qt.tint(root.checked ? root.activeContentColor : root.outline, root.stateOverlay))
       : root.outline
-    border.width: root.liquidGlass && root.active ? 1 : 0
-    border.color: Colors.liquidGlassEdge
+    border.width: root.liquidGlass && root.activeFocus ? theme.focusBorderWidth : 0
+    border.color: root.focusColor
 
     Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
 
-    GlassSheen {
-      anchors.fill: parent
-      radius: parent.radius
-      glassEnabled: root.liquidGlass && root.active
-    }
-
-    Text {
+    IconGlyph {
       anchors.centerIn: parent
-      text: "check"
-      font.family: Config.iconFont
-      font.pixelSize: 16
-      font.variableAxes: Config.iconVariableAxes(1, 16)
-      color: root.checked ? root.checkmarkColor : "transparent"
+      iconLabel: "check"
+      iconSize: 16
+      iconColor: root.checked ? root.checkmarkColor : "transparent"
+      iconOpacity: root.checked && !root.liquidGlass ? 1 : 0
+      filled: true
       visible: root.checked && !root.liquidGlass
-      opacity: root.checked && !root.liquidGlass ? 1 : 0
-      Behavior on opacity { NumberAnimation { duration: root.animateDuration(150) } }
+      Behavior on iconOpacity { NumberAnimation { duration: root.animateDuration(150) } }
     }
   }
 

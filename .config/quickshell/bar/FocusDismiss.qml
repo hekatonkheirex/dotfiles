@@ -1,18 +1,46 @@
 import QtQuick
+import QtQuick.Window
 import "../config"
 
 Item {
   id: focusDismiss
   property var target: parent
   signal dismissed()
+  readonly property var popupWindow: Window.window
 
-  Component.onCompleted: {
-    if (focusDismiss.parent && (Config.isNiri || Config.isMango)) {
-      focusDismiss.parent.activeFocusChanged.connect(function() {
-        if (!focusDismiss.parent.activeFocus && focusDismiss.target && focusDismiss.target.visible) focusDismiss.dismissed()
-      })
+  function focusIsInsidePopup() {
+    if (!focusDismiss.popupWindow || focusDismiss.popupWindow.active === false) return false
+
+    var activeItem = focusDismiss.popupWindow.activeFocusItem
+    var popupRoot = focusDismiss.parent
+    while (activeItem) {
+      if (activeItem === popupRoot) return true
+      activeItem = activeItem.parent
+    }
+    return false
+  }
+
+  function dismissIfFocusLeft() {
+    if (focusDismiss.target && focusDismiss.target.visible
+        && !focusDismiss.focusIsInsidePopup()) {
+      focusDismiss.dismissed()
+    }
+  }
+
+  Connections {
+    target: focusDismiss.popupWindow
+    enabled: Config.isNiri || Config.isMango
+
+    function onActiveFocusItemChanged() {
+      focusDismiss.dismissIfFocusLeft()
     }
 
+    function onActiveChanged() {
+      focusDismiss.dismissIfFocusLeft()
+    }
+  }
+
+  Component.onCompleted: {
     Qt.application.activeChanged.connect(function() {
       if (!Qt.application.active && focusDismiss.target && focusDismiss.target.visible) focusDismiss.dismissed()
     })

@@ -206,19 +206,18 @@ Item {
     width: Math.min(implicitWidth, Math.max(0, root.width - Config.spacingMedium * 2))
     spacing: Math.min(root.contentSpacing, Config.spacingSmall)
 
-    Text {
+    IconGlyph {
       id: horizontalIconText
-      text: root.renderedIconLabel
-      color: root.iconColor
-      font.family: Config.iconFont
-      font.pixelSize: root.iconSize
-      font.variableAxes: Config.iconVariableAxes(root.filled ? 1 : 0, root.iconSize)
+      iconLabel: root.renderedIconLabel
+      iconColor: root.iconColor
+      iconSize: root.iconSize
+      filled: root.filled
       anchors.verticalCenter: parent.verticalCenter
     }
 
     Text {
       width: Math.min(implicitWidth, Math.max(0,
-        root.width - horizontalIconText.implicitWidth
+        root.width - horizontalIconText.width
           - horizontalContentRow.spacing - Config.spacingMedium * 2))
       text: root.labelText
       color: root.iconColor
@@ -240,13 +239,12 @@ Item {
     anchors.centerIn: parent
     spacing: root.labelText !== "" ? root.contentSpacing : 0
 
-    Text {
+    IconGlyph {
       anchors.horizontalCenter: parent.horizontalCenter
-      text: root.renderedIconLabel
-      color: root.iconColor
-      font.family: Config.iconFont
-      font.pixelSize: root.iconSize
-      font.variableAxes: Config.iconVariableAxes(root.filled ? 1 : 0, root.iconSize)
+      iconLabel: root.renderedIconLabel
+      iconColor: root.iconColor
+      iconSize: root.iconSize
+      filled: root.filled
     }
 
     Text {

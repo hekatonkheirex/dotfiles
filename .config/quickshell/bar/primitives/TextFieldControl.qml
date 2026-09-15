@@ -53,13 +53,11 @@ Rectangle {
     }
     spacing: Config.spacingSmall
 
-    Text {
+    IconGlyph {
       visible: root.leadingIcon !== ""
-      text: root.leadingIcon
-      color: root.leadingIconColor
-      font.family: Config.iconFont
-      font.pixelSize: root.leadingIconSize
-      font.variableAxes: Config.iconVariableAxes(0, root.leadingIconSize)
+      iconLabel: root.leadingIcon
+      iconColor: root.leadingIconColor
+      iconSize: root.leadingIconSize
       Layout.alignment: Qt.AlignVCenter
     }
 

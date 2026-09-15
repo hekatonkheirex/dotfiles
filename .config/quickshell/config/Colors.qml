@@ -720,7 +720,8 @@ QtObject {
   readonly property color liquidGlassRegular: liquidGlassHighContrast
     ? surfaceContainer
     : Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b,
-        darkMode ? 0.88 : 0.84)
+        // Keep enough backdrop visible for Mango's layer blur to read as glass.
+        darkMode ? 0.58 : 0.50)
   readonly property color liquidGlassClear: liquidGlassHighContrast
     ? surfaceContainerHigh
     : Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b,
@@ -733,6 +734,14 @@ QtObject {
     ? surfaceContainerHighest
     : Qt.rgba(surfaceContainerHigh.r, surfaceContainerHigh.g, surfaceContainerHigh.b,
         darkMode ? 0.74 : 0.66)
+  // macOS-style controls use neutral inactive chrome and a light control
+  // thumb; active controls supply their own semantic accent color.
+  readonly property color liquidGlassControlTrack: liquidGlassHighContrast
+    ? outline
+    : Qt.rgba(barForeground.r, barForeground.g, barForeground.b, darkMode ? 0.30 : 0.22)
+  readonly property color liquidGlassControlThumb: liquidGlassHighContrast
+    ? (darkMode ? "#f5f5f7" : "#ffffff")
+    : Qt.rgba(1, 1, 1, darkMode ? 0.90 : 0.94)
   readonly property color liquidGlassHighlight: liquidGlassHighContrast
     ? Qt.rgba(1, 1, 1, 0)
     : Qt.rgba(1, 1, 1, darkMode ? 0.14 : 0.34)

@@ -131,14 +131,14 @@ Rectangle {
     anchors.rightMargin: Config.spacingSmall
     spacing: Config.spacingSmall
 
-    Text {
+    IconGlyph {
       visible: root.leadingIcon !== "" && root.leadingImageSource === ""
-      text: root.leadingIcon
-      color: root.stateHighlighted ? root.selectedContentColor : root.leadingIconColor
-      opacity: root.leadingIconOpacity
-      font.family: Config.iconFont
-      font.pixelSize: Config.iconSize + 6
-      font.variableAxes: Config.iconVariableAxes(root.stateHighlighted ? 1 : 0, Config.iconSize + 6)
+      iconLabel: root.leadingIcon
+      iconColor: root.stateHighlighted ? root.selectedContentColor : root.leadingIconColor
+      iconOpacity: root.leadingIconOpacity
+      iconSize: Config.iconSize + 6
+      filled: root.stateHighlighted
+      Layout.alignment: Qt.AlignVCenter
     }
 
     Rectangle {
@@ -147,6 +147,7 @@ Rectangle {
       height: 30
       radius: 15
       color: Colors.surfaceContainerHigh
+      Layout.alignment: Qt.AlignVCenter
 
       Image {
         anchors.centerIn: parent
@@ -173,6 +174,7 @@ Rectangle {
 
     ColumnLayout {
       Layout.fillWidth: true
+      Layout.alignment: Qt.AlignVCenter
       spacing: 0
 
       Text {
