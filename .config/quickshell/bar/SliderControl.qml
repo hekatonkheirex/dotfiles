@@ -22,7 +22,7 @@ Item {
   property color focusColor: root.material3Theme ? Colors.primary : activeColor
   property color hoverOverlay: Colors.hoverOverlay
   property color pressOverlay: Colors.pressOverlay
-  property int motionDuration: 150
+  property int motionDuration: Config.controlMotionDuration
   property bool reducedMotion: false
   property real stepSize: 0.05
   property string accessibleName: "Slider"

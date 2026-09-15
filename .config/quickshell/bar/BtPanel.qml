@@ -299,14 +299,12 @@ Item {
 
       Item { Layout.preferredHeight: 12 }
 
-      Text {
+      IconGlyph {
         Layout.alignment: Qt.AlignHCenter
-        text: "bluetooth_disabled"
-        color: Colors.error
-        font.family: Config.iconFont
-        font.pixelSize: 48
-        font.variableAxes: Config.iconVariableAxes(0, 48)
-        opacity: 0.75
+        iconLabel: "bluetooth_disabled"
+        iconColor: Colors.error
+        iconSize: 48
+        iconOpacity: 0.75
       }
 
       Text {
@@ -346,14 +344,12 @@ Item {
         Layout.preferredHeight: 12
       }
 
-      Text {
+      IconGlyph {
         Layout.alignment: Qt.AlignHCenter
-        text: "bluetooth_disabled"
-        color: Colors.fgSurfaceVariant
-        font.family: Config.iconFont
-        font.pixelSize: 48
-        font.variableAxes: Config.iconVariableAxes(0, 48)
-        opacity: 0.25
+        iconLabel: "bluetooth_disabled"
+        iconColor: Colors.fgSurfaceVariant
+        iconSize: 48
+        iconOpacity: 0.25
       }
 
       Text {
@@ -570,8 +566,8 @@ Item {
               anchors.verticalCenter: parent.verticalCenter
             }
 
-            Text {
-              text: {
+            IconGlyph {
+              iconLabel: {
                 var b = parseInt(model.battery)
                 if (isNaN(b)) return "battery_unknown"
                 if (b <= 10) return "battery_alert"
@@ -582,10 +578,8 @@ Item {
                 if (b <= 95) return "battery_5_bar"
                 return "battery_full"
               }
-              color: Colors.primary
-              font.family: Config.iconFont
-              font.pixelSize: 18
-              font.variableAxes: Config.iconVariableAxes(0, 18)
+              iconColor: Colors.primary
+              iconSize: 18
               anchors.verticalCenter: parent.verticalCenter
             }
           }

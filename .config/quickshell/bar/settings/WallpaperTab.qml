@@ -296,13 +296,12 @@ Flickable {
               anchors.margins: 6
               visible: wallDelegate.isCurrent
 
-              Text {
+              IconGlyph {
                 anchors.centerIn: parent
-                text: "check"
-                font.family: Config.iconFont
-                font.pixelSize: Config.iconSizeSmall
-                font.variableAxes: Config.iconVariableAxes(1, Config.iconSizeSmall)
-                color: Colors.fgPrimary
+                iconLabel: "check"
+                iconSize: Config.iconSizeSmall
+                iconColor: Colors.fgPrimary
+                filled: true
               }
             }
 

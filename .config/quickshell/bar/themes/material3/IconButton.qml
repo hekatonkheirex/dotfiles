@@ -78,14 +78,13 @@ Item {
     radius: root.radius
   }
 
-  Text {
+  IconGlyph {
     anchors.centerIn: parent
-    text: root.iconLabel
-    color: root.iconColor
-    opacity: root.enabled ? 1.0 : 0.38
-    font.family: Config.iconFont
-    font.pixelSize: root.iconSize
-    font.variableAxes: Config.iconVariableAxes(root.selected ? 1 : 0, root.iconSize)
+    iconLabel: root.iconLabel
+    iconColor: root.iconColor
+    iconSize: root.iconSize
+    iconOpacity: root.enabled ? 1.0 : 0.38
+    filled: root.selected
   }
 
   Keys.onPressed: function(event) {

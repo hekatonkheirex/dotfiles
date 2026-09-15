@@ -292,6 +292,7 @@ Item {
         AnimatedBackground {
           anchors.fill: parent
           running: root.locked
+          motionEnabled: !Config.liquidGlassTheme
           flatMode: root.flatLockMode
           flatColor: root.flatBackground
           visible: !Settings.lockUseWallpaper || !root.wallpaperReady
@@ -416,12 +417,10 @@ Item {
             spacing: Config.spacingSmall
             visible: Settings.lockShowMedia && root.lockMprisTitle !== ""
 
-            Text {
-              text: root.lockMprisStatus === "Playing" ? "pause" : "play_arrow"
-              font.family: Config.iconFont
-              font.pixelSize: 16
-              font.variableAxes: Config.iconVariableAxes(0, 16)
-              color: mutedText
+            IconGlyph {
+              iconLabel: root.lockMprisStatus === "Playing" ? "pause" : "play_arrow"
+              iconSize: 16
+              iconColor: mutedText
               anchors.verticalCenter: parent.verticalCenter
             }
 
@@ -611,6 +610,7 @@ Item {
       AnimatedBackground {
         anchors.fill: parent
         running: root.locked
+        motionEnabled: !Config.liquidGlassTheme
         flatMode: root.flatLockMode
         flatColor: root.flatBackground
         visible: !Settings.lockUseWallpaper || !root.wallpaperReady
@@ -686,12 +686,10 @@ Item {
           spacing: Config.spacingSmall
           visible: Settings.lockShowMedia && root.lockMprisTitle !== ""
 
-          Text {
-            text: root.lockMprisStatus === "Playing" ? "pause" : "play_arrow"
-            font.family: Config.iconFont
-            font.pixelSize: 16
-            font.variableAxes: Config.iconVariableAxes(0, 16)
-            color: root.mutedText
+          IconGlyph {
+            iconLabel: root.lockMprisStatus === "Playing" ? "pause" : "play_arrow"
+            iconSize: 16
+            iconColor: root.mutedText
             anchors.verticalCenter: parent.verticalCenter
           }
 

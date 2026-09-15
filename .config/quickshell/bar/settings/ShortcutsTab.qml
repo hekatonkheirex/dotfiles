@@ -194,7 +194,8 @@ Flickable {
         action: Config.isNiri ? "Show all Niri shortcuts" : "Reload Mango configuration"
         keys: Config.isNiri ? "Mod + Shift + /" : "Mod + Shift + Alt + R"
       }
-      ShortcutRow { action: "Screenshot"; keys: "Print" }
+      ShortcutRow { action: "Screenshot region"; keys: "Print" }
+      ShortcutRow { action: "Screenshot monitor"; keys: "Ctrl + Print" }
       ShortcutRow { action: "Power off monitors"; keys: "Mod + Shift + P" }
       ShortcutRow { action: "Quit " + shortcutsTab.compositorName; keys: "Mod + Shift + E" }
     }

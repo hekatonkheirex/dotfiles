@@ -147,13 +147,11 @@ PopupBase {
           Layout.alignment: Qt.AlignVCenter
         }
 
-        Text {
+        IconGlyph {
           visible: root.status !== "loading"
-          text: "cloud_off"
-          color: root.status === "offline" ? Colors.fgErrorContainer : Colors.fgSurfaceVariant
-          font.family: Config.iconFont
-          font.pixelSize: 22
-          font.variableAxes: Config.iconVariableAxes(0, 22)
+          iconLabel: "cloud_off"
+          iconColor: root.status === "offline" ? Colors.fgErrorContainer : Colors.fgSurfaceVariant
+          iconSize: 22
           Layout.alignment: Qt.AlignVCenter
         }
 
@@ -190,12 +188,10 @@ PopupBase {
           anchors.centerIn: parent
           spacing: Config.spacingLarge
 
-          Text {
-            text: Colors.weatherIcon(root.desc)
-            font.family: Config.iconFont
-            font.pixelSize: 64
-            font.variableAxes: Config.iconVariableAxes(0, 64)
-            color: Colors.weatherColor(root.desc)
+          IconGlyph {
+            iconLabel: Colors.weatherIcon(root.desc)
+            iconSize: 64
+            iconColor: Colors.weatherColor(root.desc)
             Layout.alignment: Qt.AlignVCenter
           }
 
@@ -293,12 +289,10 @@ PopupBase {
                     Layout.alignment: Qt.AlignHCenter
                   }
 
-                  Text {
-                    text: Colors.weatherIcon(modelData.desc)
-                    font.family: Config.iconFont
-                    font.pixelSize: 28
-                    font.variableAxes: Config.iconVariableAxes(0, 28)
-                    color: Colors.weatherColor(modelData.desc)
+                  IconGlyph {
+                    iconLabel: Colors.weatherIcon(modelData.desc)
+                    iconSize: 28
+                    iconColor: Colors.weatherColor(modelData.desc)
                     Layout.alignment: Qt.AlignHCenter
                   }
 
@@ -348,12 +342,10 @@ PopupBase {
             anchors.centerIn: parent
             spacing: Config.spacingSmall
 
-            Text {
-              text: modelData.icon
-              font.family: Config.iconFont
-              font.pixelSize: 20
-              font.variableAxes: Config.iconVariableAxes(0, 20)
-              color: modelData.color
+            IconGlyph {
+              iconLabel: modelData.icon
+              iconSize: 20
+              iconColor: modelData.color
               Layout.alignment: Qt.AlignVCenter
             }
 
@@ -418,12 +410,10 @@ PopupBase {
               Layout.alignment: Qt.AlignHCenter
             }
 
-            Text {
-              text: Colors.weatherIcon(modelData.desc)
-              font.family: Config.iconFont
-              font.pixelSize: 32
-              font.variableAxes: Config.iconVariableAxes(0, 32)
-              color: Colors.weatherColor(modelData.desc)
+            IconGlyph {
+              iconLabel: Colors.weatherIcon(modelData.desc)
+              iconSize: 32
+              iconColor: Colors.weatherColor(modelData.desc)
               Layout.alignment: Qt.AlignHCenter
             }
 

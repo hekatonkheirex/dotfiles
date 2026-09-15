@@ -5,11 +5,9 @@ import "../config"
 StatusIndicator {
   id: root
 
-  // macOS uses the Apple mark for its menu-bar application menu. The
-  // private-use glyph is provided by the locally installed SF Pro font.
-  iconLabel: Config.liquidGlassTheme ? "\uf8ff" : "apps"
-  iconFont: Config.liquidGlassTheme ? "SF Pro Display" : Config.iconFont
-  iconVariableAxes: !Config.liquidGlassTheme
+  // Liquid Glass resolves this launcher mark through the symbolic icon theme;
+  // the other styles keep their existing Material label.
+  iconLabel: "apps"
   accentColor: Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
   inactiveBg: "transparent"
   borderOnHoverOnly: true

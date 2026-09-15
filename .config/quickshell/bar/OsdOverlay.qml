@@ -27,7 +27,9 @@ PanelWindow {
   property real osdOpacity: 0
 
   Behavior on osdOpacity {
-    NumberAnimation { duration: Config.motionMedium}
+    NumberAnimation {
+      duration: Config.liquidGlassTheme ? Config.transientFadeDuration : Config.motionMedium
+    }
   }
 
   NumberAnimation {
@@ -35,7 +37,7 @@ PanelWindow {
     target: root
     property: "osdOpacity"
     to: 0
-    duration: (Config.reducedMotion ? 0 : 300)
+    duration: Config.transientFadeDuration
     onStopped: {
       if (root.osdOpacity === 0) root.visible = false
     }
@@ -222,9 +224,9 @@ PanelWindow {
       anchors.centerIn: parent
       spacing: Config.spacingSmall
 
-      Text {
+      IconGlyph {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: {
+        iconLabel: {
           if (root.osdType === "volume") return root.muted ? "volume_off" : (root.value <= 0.01 ? "volume_mute" : (root.value <= 0.3 ? "volume_mute" : (root.value <= 0.7 ? "volume_down" : "volume_up")));
           if (root.osdType === "mic") return root.muted ? "mic_off" : "mic";
           if (root.osdType === "airplane") return root.muted ? "airplanemode_active" : "airplanemode_inactive";
@@ -232,10 +234,8 @@ PanelWindow {
           if (root.osdType === "kbdlight") return "keyboard";
           return "brightness_high";
         }
-        font.family: Config.iconFont
-        font.pixelSize: 28
-        font.variableAxes: Config.iconVariableAxes(0, 28)
-        color: {
+        iconSize: 28
+        iconColor: {
           if (root.osdType === "volume") return root.muted ? (Colors.error) : (Colors.primary);
           if (root.osdType === "mic") return root.muted ? (Colors.error) : (Colors.primary);
           if (root.osdType === "airplane") return root.muted ? (Colors.primary) : (Colors.fgSurfaceVariant);

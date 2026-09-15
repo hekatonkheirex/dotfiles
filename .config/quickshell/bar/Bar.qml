@@ -92,12 +92,11 @@ PanelWindow {
   }
 
   function getSettingsX() {
-    if (!root.horizontal) return 0
-    return settingsIndicator ? settingsIndicator.mapToItem(null, 0, 0).x + settingsIndicator.width / 2 : getMenuIndicatorX()
+    return getMenuIndicatorX()
   }
 
   function getSettingsY() {
-    return settingsIndicator ? settingsIndicator.mapToItem(null, 0, 0).y : getMenuIndicatorY()
+    return getMenuIndicatorY()
   }
 
   function getMenuIndicatorY() {
@@ -917,42 +916,6 @@ PanelWindow {
             integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("notification", notifIndicator)
-            }
-          }
-        }
-
-        Item {
-          id: settingsWrapper
-          Layout.preferredWidth: root.horizontal
-            ? (root.pillsBar ? root.horizontalPillLength : root.wSize) * root.expandProgress
-            : parent.width
-          Layout.preferredHeight: root.horizontal
-            ? parent.height
-            : Math.max(
-                root.pillsBar ? root.verticalPillLength : 0,
-                settingsIndicator.verticalLayoutHeight
-              ) * root.expandProgress
-          Layout.fillHeight: root.horizontal
-          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
-
-          PillSurface {
-            horizontal: root.horizontal
-            visible: root.pillsBar
-          }
-
-          MenuIndicator {
-            id: settingsIndicator
-            anchors.fill: parent
-            iconLabel: "settings"
-            accessibleName: "Settings"
-            active: root.openPopup === "settings"
-            horizontal: root.horizontal
-            integrated: root.fullBar
-            onClicked: function(mouse) {
-              root.togglePopup("settings", settingsIndicator)
             }
           }
         }

@@ -359,14 +359,12 @@ Item {
 
       Item { Layout.preferredHeight: 12 }
 
-      Text {
+      IconGlyph {
         Layout.alignment: Qt.AlignHCenter
-        text: "wifi_off"
-        color: Colors.error
-        font.family: Config.iconFont
-        font.pixelSize: 48
-        font.variableAxes: Config.iconVariableAxes(0, 48)
-        opacity: 0.75
+        iconLabel: "wifi_off"
+        iconColor: Colors.error
+        iconSize: 48
+        iconOpacity: 0.75
       }
 
       Text {
@@ -406,14 +404,12 @@ Item {
         Layout.preferredHeight: 12
       }
 
-      Text {
+      IconGlyph {
         Layout.alignment: Qt.AlignHCenter
-        text: "wifi"
-        color: Colors.fgSurfaceVariant
-        font.family: Config.iconFont
-        font.pixelSize: 48
-        font.variableAxes: Config.iconVariableAxes(0, 48)
-        opacity: 0.25
+        iconLabel: "wifi"
+        iconColor: Colors.fgSurfaceVariant
+        iconSize: 48
+        iconOpacity: 0.25
       }
 
       Text {
@@ -693,13 +689,11 @@ Item {
           Layout.alignment: Qt.AlignVCenter
         }
 
-        Text {
-          text: "lock"
+        IconGlyph {
+          iconLabel: "lock"
           visible: model.secured
-          color: Colors.outline
-          font.family: Config.iconFont
-          font.pixelSize: 16
-          font.variableAxes: Config.iconVariableAxes(0, 16)
+          iconColor: Colors.outline
+          iconSize: 16
           Layout.alignment: Qt.AlignVCenter
         }
       }
