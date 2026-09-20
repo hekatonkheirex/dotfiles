@@ -1,7 +1,6 @@
 import QtQuick
+import QtQml
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Io
 import "../config"
 
 PopupBase {
@@ -9,84 +8,21 @@ PopupBase {
 
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 400)
 
-  property real volume: 0.5
-  property bool muted: false
-  property real micVolume: 0.5
-  property bool micMuted: false
+  readonly property real volume: AudioService.volume
+  readonly property bool muted: AudioService.muted
+  readonly property real micVolume: AudioService.micVolume
+  readonly property bool micMuted: AudioService.micMuted
 
-  function setVolume(val) {
-    root.volume = Math.max(0, Math.min(1, val))
-    Quickshell.execDetached(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", String(root.volume)])
+  Binding {
+    target: AudioService
+    property: "popupActive"
+    value: root.visible
   }
 
-  function toggleMute() {
-    root.muted = !root.muted
-    Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", root.muted ? "1" : "0"])
-  }
-
-  function setMicVolume(val) {
-    root.micVolume = Math.max(0, Math.min(1, val))
-    Quickshell.execDetached(["wpctl", "set-volume", "@DEFAULT_AUDIO_SOURCE@", String(root.micVolume)])
-  }
-
-  function toggleMicMute() {
-    root.micMuted = !root.micMuted
-    Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", root.micMuted ? "1" : "0"])
-  }
-
-  Process {
-    id: audioQuery
-    command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]
-    running: false
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var out = text.trim()
-        var m = /Volume:\s*([\d.]+)/.exec(out)
-        if (m) root.volume = parseFloat(m[1])
-        root.muted = out.indexOf("[MUTED]") >= 0
-      }
-    }
-  }
-
-  Process {
-    id: micQuery
-    command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@"]
-    running: false
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var out = text.trim()
-        var m = /Volume:\s*([\d.]+)/.exec(out)
-        if (m) root.micVolume = parseFloat(m[1])
-        root.micMuted = out.indexOf("[MUTED]") >= 0
-      }
-    }
-  }
-
-  function pollAudio() { audioQuery.running = true; micQuery.running = true }
-
-  Process {
-    id: audioWatcher
-    command: ["pactl", "subscribe"]
-    running: root.visible
-    stdout: SplitParser {
-      onRead: function(data) {
-        if (data.indexOf("sink") >= 0 || data.indexOf("source") >= 0) root.pollAudio()
-      }
-    }
-    onRunningChanged: {
-      if (!running && root.visible) audioWatcherRetry.start()
-    }
-  }
-
-  Timer {
-    id: audioWatcherRetry
-    interval: 1000
-    onTriggered: {
-      if (root.visible) audioWatcher.running = true
-    }
-  }
-
-  onShown: root.pollAudio()
+  function setVolume(value) { AudioService.setVolume(value) }
+  function toggleMute() { AudioService.toggleMute() }
+  function setMicVolume(value) { AudioService.setMicVolume(value) }
+  function toggleMicMute() { AudioService.toggleMicMute() }
 
   Column {
     id: contentColumn

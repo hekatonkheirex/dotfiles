@@ -11,17 +11,8 @@ StatusIndicator {
   accentColor: Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
   accessibleName: "Battery"
 
-  readonly property var batteryDevice: {
-    for (var i = 0; i < UPower.devices.count; i++) {
-      var d = UPower.devices.get(i)
-      if (d.ready && d.isLaptopBattery) return d
-    }
-    if (UPower.displayDevice && UPower.displayDevice.ready)
-      return UPower.displayDevice
-    return null
-  }
-
-  readonly property real pct: batteryDevice ? batteryDevice.percentage * 100 : -1
+  readonly property var batteryDevice: BatteryService.batteryDevice
+  readonly property real pct: BatteryService.pct
 
   iconLabel: {
     if (!batteryDevice) return "battery_unknown"

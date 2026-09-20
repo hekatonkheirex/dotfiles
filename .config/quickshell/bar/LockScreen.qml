@@ -12,16 +12,19 @@ import "../config"
 Item {
   id: root
 
-
   property bool locked: false
+  // Read the compositor-owned state directly as well as the local mirror so
+  // bar surfaces stay hidden while the protocol state is changing.
+  readonly property bool compositorLocked: Config.isNiri && sessionLock.locked
   onLockedChanged: {
+    updateReloadWatchState()
     if (locked) {
       fprintdProcess.running = true
-      currentWallpaperProc.running = Settings.lockUseWallpaper
+      currentWallpaperProc.running = root.wallpaperRequested
     } else {
       fprintdProcess.running = false
       fprintdRetry.stop()
-      currentWallpaperProc.running = false
+      currentWallpaperProc.running = root.wallpaperRequested
     }
   }
   readonly property color accentColor: Config.nothingEvolution ? Colors.styleAccent : Colors.primary
@@ -48,24 +51,62 @@ Item {
     : (Config.neoBrutalism
       ? Qt.rgba(textColor.r, textColor.g, textColor.b, 0.72)
       : Qt.rgba(1, 1, 1, 0.2))
+  readonly property int lockAvatarSize: 96
+  readonly property int lockFieldWidth: Config.liquidGlassTheme ? 320 : 280
+  readonly property int lockFieldHeight: Config.liquidGlassTheme ? 52 : 48
+  readonly property real lockFieldRadius: Config.liquidGlassTheme ? Config.shapeLarge : root.inputRadius
+  readonly property color lockFieldFill: Config.liquidGlassTheme ? Colors.liquidGlassControl : root.inputFill
+  readonly property color lockFieldBorder: Config.liquidGlassTheme ? Colors.liquidGlassEdge : root.inputBorder
+  readonly property int liquidGlassClockSize: Math.max(92, Settings.lockClockSize)
+  // The macOS lock identity uses a stable blue instead of the wallpaper's
+  // generated accent, so the account marker stays recognizable on every photo.
+  readonly property color liquidGlassAvatarColor: "#2f80ed"
 
   readonly property string home: Quickshell.env("HOME")
   property date now: new Date()
+  readonly property string liquidGlassDateText: {
+    var d = root.now
+    var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    return days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate()
+  }
+  readonly property string liquidGlassTimeText: {
+    var d = root.now
+    var hours = d.getHours()
+    if (!Settings.clock24h) hours = hours % 12 || 12
+    return (Settings.clock24h ? hours.toString().padStart(2, "0") : hours.toString())
+      + ":" + d.getMinutes().toString().padStart(2, "0")
+  }
   property string wallpaperSource: ""
   property bool wallpaperReady: false
+  // Liquid Glass follows Apple's lock-screen treatment: its photo backdrop is
+  // part of the style, while the shared wallpaper preference remains an
+  // opt-in for the other styles.
+  readonly property bool wallpaperRequested: Settings.lockUseWallpaper || Config.liquidGlassTheme
+  readonly property bool wallpaperVisible: root.wallpaperRequested && root.wallpaperReady
+  readonly property bool wallpaperBlurred: root.wallpaperVisible && Config.liquidGlassTheme
+  readonly property int wallpaperBlurMax: 64
 
   Process {
     id: currentWallpaperProc
     command: ["sh", "-c", "awww query 2>/dev/null | sed -n 's/.*image: //p' | head -1"]
-    running: root.locked && Settings.lockUseWallpaper
+    // Query while Liquid Glass is active so the lock surface has the current
+    // wallpaper ready on its first frame instead of flashing the fallback.
+    running: root.wallpaperRequested
     stdout: StdioCollector {
       onStreamFinished: {
         var value = text.trim()
+        var nextSource = ""
+        if (value.indexOf("file://") === 0) nextSource = value
+        else if (value.indexOf("/") === 0) nextSource = "file://" + value
+        else if (value !== "") nextSource = "file://" + root.home + "/Pictures/Walls/" + value
+
+        // Locking rechecks the active wallpaper. Do not invalidate an already
+        // decoded image when awww returns the same path; Image will not emit
+        // another status change for an unchanged source.
+        if (nextSource === root.wallpaperSource) return
         root.wallpaperReady = false
-        if (value.indexOf("file://") === 0) root.wallpaperSource = value
-        else if (value.indexOf("/") === 0) root.wallpaperSource = "file://" + value
-        else if (value !== "") root.wallpaperSource = "file://" + root.home + "/Pictures/Walls/" + value
-        else root.wallpaperSource = ""
+        root.wallpaperSource = nextSource
       }
     }
   }
@@ -83,9 +124,15 @@ Item {
 
   Connections {
     target: Settings
-    function onLockUseWallpaperChanged() {
+    function refreshWallpaper() {
       root.wallpaperReady = false
-      currentWallpaperProc.running = Settings.lockUseWallpaper && root.locked
+      currentWallpaperProc.running = root.wallpaperRequested
+    }
+    function onLockUseWallpaperChanged() {
+      refreshWallpaper()
+    }
+    function onThemeStyleChanged() {
+      refreshWallpaper()
     }
   }
 
@@ -130,12 +177,20 @@ Item {
   property string lockPassword: ""
   property string lockInputText: ""
   property string lockError: ""
+  property bool liquidGlassLoginPrompted: false
   property bool authenticated: false
   property string pendingPowerLabel: ""
   property var pendingPowerCommand: []
 
   function username() {
     return Quickshell.env("USER") || "user"
+  }
+
+  function updateReloadWatchState() {
+    // Destroying a WlSessionLock while it is active leaves the compositor in
+    // its secure fallback state. Do not let a file change start a reload in
+    // that window; unlock restores the normal watcher behavior.
+    Quickshell.watchFiles = !(root.locked || sessionLock.locked)
   }
 
   function clearPassword() {
@@ -147,17 +202,21 @@ Item {
   function lockScreen() {
     clearPassword()
     lockError = ""
+    liquidGlassLoginPrompted = false
     authenticated = false
     cancelPowerAction()
     root.locked = true
-    sessionLock.locked = true
+    updateReloadWatchState()
+    if (Config.isNiri) sessionLock.locked = true
   }
 
   function unlockSession() {
     authenticated = true
     clearPassword()
+    liquidGlassLoginPrompted = false
     root.locked = false
-    sessionLock.locked = false
+    if (Config.isNiri) sessionLock.locked = false
+    updateReloadWatchState()
     Quickshell.execDetached(["loginctl", "unlock-session"])
   }
 
@@ -254,13 +313,247 @@ Item {
     }
   }
 
+  Component {
+    id: liquidGlassLockLayout
+
+    FocusScope {
+      anchors.fill: parent
+      // Keep the outer focus scope active after the identity is clicked so the
+      // newly-created password input can receive focus on the first click.
+      focus: root.locked
+      activeFocusOnTab: true
+
+      Keys.onPressed: function(event) {
+        if (!root.liquidGlassLoginPrompted
+            && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+          root.liquidGlassLoginPrompted = true
+          event.accepted = true
+        }
+      }
+
+      Timer {
+        id: liquidGlassPasswordFocusTimer
+        interval: 0
+        repeat: false
+        onTriggered: {
+          if (root.liquidGlassLoginPrompted
+              && liquidGlassPasswordField.item
+              && liquidGlassPasswordField.item.input) {
+            liquidGlassPasswordField.item.input.forceActiveFocus()
+          }
+        }
+      }
+
+      Connections {
+        target: root
+        function onLiquidGlassLoginPromptedChanged() {
+          if (root.liquidGlassLoginPrompted) {
+            liquidGlassPasswordFocusTimer.restart()
+          }
+        }
+      }
+
+      Column {
+        anchors {
+          top: parent.top
+          horizontalCenter: parent.horizontalCenter
+          topMargin: Math.max(96, Math.round(parent.height * 0.20))
+        }
+        spacing: Config.spacingSmall
+
+        Text {
+          anchors.horizontalCenter: parent.horizontalCenter
+          text: root.liquidGlassDateText
+          color: root.textColor
+          font.family: Config.fontFamily
+          font.pixelSize: Math.max(18, Config.typeHeadlineSmallSize + 2)
+          font.weight: Font.DemiBold
+          font.letterSpacing: 0.1
+        }
+
+        Text {
+          anchors.horizontalCenter: parent.horizontalCenter
+          text: root.liquidGlassTimeText
+          color: root.textColor
+          font.family: Config.fontFamily
+          font.pixelSize: root.liquidGlassClockSize
+          font.weight: Font.Light
+          font.letterSpacing: -1.2
+          style: Text.Normal
+        }
+      }
+
+      Column {
+        anchors {
+          horizontalCenter: parent.horizontalCenter
+          bottom: parent.bottom
+          bottomMargin: Math.max(40, Math.round(parent.height * 0.05))
+        }
+        width: 320
+        spacing: Config.spacingSmall
+
+        Item {
+          width: parent.width
+          height: root.lockAvatarSize + Config.spacingMedium * 2 + 38
+
+          Column {
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: Config.spacingMedium
+
+            Rectangle {
+              anchors.horizontalCenter: parent.horizontalCenter
+              width: root.lockAvatarSize
+              height: root.lockAvatarSize
+              radius: width / 2
+              clip: true
+              color: root.liquidGlassAvatarColor
+              border.width: 1
+              border.color: Qt.rgba(1, 1, 1, 0.34)
+
+              Image {
+                id: liquidGlassProfileImage
+                anchors.fill: parent
+                source: "file://" + root.home + "/Pictures/profile.jpg"
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                visible: status === Image.Ready
+              }
+
+              Text {
+                anchors.centerIn: parent
+                text: root.username().charAt(0).toUpperCase()
+                color: "white"
+                font.family: Config.fontFamily
+                font.pixelSize: 40
+                font.weight: Font.Normal
+                visible: liquidGlassProfileImage.status !== Image.Ready
+              }
+            }
+
+            Text {
+              anchors.horizontalCenter: parent.horizontalCenter
+              text: root.username()
+              color: root.textColor
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyLargeSize
+              font.weight: Font.DemiBold
+            }
+
+            Text {
+              anchors.horizontalCenter: parent.horizontalCenter
+              text: "Click to log in"
+              color: Qt.rgba(root.textColor.r, root.textColor.g, root.textColor.b, 0.66)
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyMediumSize
+              visible: !root.liquidGlassLoginPrompted
+            }
+          }
+
+          MouseArea {
+            anchors.fill: parent
+            enabled: !root.liquidGlassLoginPrompted
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.liquidGlassLoginPrompted = true
+          }
+        }
+
+        Loader {
+          id: liquidGlassPasswordField
+          active: root.liquidGlassLoginPrompted
+          visible: active
+          focus: active
+          width: parent.width
+          height: active ? 52 : 0
+          onLoaded: {
+            if (item && item.input) item.input.forceActiveFocus()
+          }
+          sourceComponent: Component {
+            FocusScope {
+              id: liquidGlassPasswordScope
+              width: 320
+              height: 52
+              focus: true
+              property alias input: passwordInput
+
+              Component.onCompleted: passwordInput.forceActiveFocus()
+
+              Rectangle {
+                anchors.fill: parent
+                radius: Config.shapeLarge
+                color: Colors.liquidGlassControl
+                border.width: 1
+                border.color: Colors.liquidGlassEdge
+              }
+
+              GlassSheen {
+                anchors.fill: parent
+                radius: Config.shapeLarge
+              }
+
+              TextInput {
+                id: passwordInput
+                anchors {
+                  fill: parent
+                  leftMargin: Config.spacingLarge
+                  rightMargin: Config.spacingLarge
+                }
+                color: root.textColor
+                font.family: Config.fontFamily
+                font.pixelSize: Config.typeBodyLargeSize
+                text: root.lockInputText
+                echoMode: TextInput.Password
+                passwordCharacter: "\u25CF"
+                focus: true
+                activeFocusOnPress: true
+                cursorVisible: true
+                verticalAlignment: Qt.AlignVCenter
+                selectByMouse: true
+
+                onTextChanged: {
+                  root.lockPassword = text
+                  root.lockInputText = text
+                  root.lockError = ""
+                }
+
+                Keys.onPressed: function(event) {
+                  if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    root.tryLockAuth()
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        Text {
+          anchors.horizontalCenter: parent.horizontalCenter
+          text: root.lockError
+          color: root.errorColor
+          font.family: Config.fontFamily
+          font.pixelSize: Config.typeBodyMediumSize
+          visible: root.lockError.length > 0
+        }
+      }
+    }
+  }
+
   WlSessionLock {
     id: sessionLock
+    // Keep the local mirror synchronized with compositor-owned state before
+    // the bar evaluates its visibility binding. Active lock reloads are
+    // blocked above because destroying WlSessionLock while locked violates
+    // the Wayland session-lock protocol.
+    Component.onCompleted: {
+      if (Config.isNiri) root.locked = sessionLock.locked
+      root.updateReloadWatchState()
+    }
     onLockedChanged: {
+      if (!Config.isNiri) return
       if (locked) {
         root.lockPassword = ""
         root.lockInputText = ""
         root.lockError = ""
+        root.liquidGlassLoginPrompted = false
         root.authenticated = false
       } else {
         root.cancelPowerAction()
@@ -282,30 +575,47 @@ Item {
         }
 
         Image {
+          id: nativeWallpaperImage
           anchors.fill: parent
           source: root.wallpaperSource
           fillMode: Image.PreserveAspectCrop
           asynchronous: true
-          visible: Settings.lockUseWallpaper && root.wallpaperReady
+          // MultiEffect renders the source into its own texture. Leaving the
+          // raw image visible would let the unblurred edge bleed through.
+          visible: false
+        }
+
+        MultiEffect {
+          anchors.fill: parent
+          source: nativeWallpaperImage
+          visible: root.wallpaperVisible
+          // The lock surface is exactly the output size, so blur padding
+          // would be clipped at the top and bottom edges.
+          autoPaddingEnabled: false
+          blurEnabled: root.wallpaperBlurred
+          blur: root.wallpaperBlurred ? 1.0 : 0.0
+          blurMax: root.wallpaperBlurMax
         }
 
         AnimatedBackground {
           anchors.fill: parent
           running: root.locked
           motionEnabled: !Config.liquidGlassTheme
-          flatMode: root.flatLockMode
-          flatColor: root.flatBackground
-          visible: !Settings.lockUseWallpaper || !root.wallpaperReady
+          flatMode: root.flatLockMode || Config.liquidGlassTheme
+          flatColor: Config.liquidGlassTheme ? Colors.d_background : root.flatBackground
+          visible: !root.wallpaperVisible
         }
 
         Rectangle {
           anchors.fill: parent
-          color: Qt.rgba(0, 0, 0, 0.15)
+          color: Config.liquidGlassTheme
+            ? Qt.rgba(0, 0, 0, 0.14)
+            : Qt.rgba(0, 0, 0, 0.15)
         }
 
         Rectangle {
           anchors.fill: parent
-          visible: !root.flatLockMode || (Settings.lockUseWallpaper && root.wallpaperReady)
+          visible: !Config.liquidGlassTheme && (!root.flatLockMode || root.wallpaperVisible)
           gradient: Gradient {
             orientation: Gradient.Vertical
             GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.5) }
@@ -317,16 +627,17 @@ Item {
         Column {
           anchors.centerIn: parent
           spacing: Config.spacingLarge
+          visible: !Config.liquidGlassTheme
 
             Rectangle {
               anchors.horizontalCenter: parent.horizontalCenter
-              width: 96
-              height: 96
+              width: root.lockAvatarSize
+              height: root.lockAvatarSize
               radius: width / 2
               clip: true
-              border.width: 3
-              border.color: accentColor
-              color: Colors.primaryContainer
+              border.width: Config.liquidGlassTheme ? 1 : 3
+              border.color: Config.liquidGlassTheme ? Colors.liquidGlassEdgeStrong : accentColor
+              color: Config.liquidGlassTheme ? Colors.liquidGlassRaised : Colors.primaryContainer
 
               Image {
                 id: profileImage
@@ -358,7 +669,7 @@ Item {
               Text {
                 anchors.centerIn: parent
                 text: root.username().charAt(0).toUpperCase()
-                color: Colors.fgPrimaryContainer
+                color: Config.liquidGlassTheme ? textColor : Colors.fgPrimaryContainer
                 font.family: Config.fontFamily
                 font.pixelSize: Config.typeDisplaySmallSize
                 font.weight: Config.typeStrongWeight
@@ -369,7 +680,18 @@ Item {
 
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            visible: !Config.nothingEvolution
+            text: root.username()
+            color: textColor
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeHeadlineSmallSize
+            font.weight: Config.typeStrongWeight
+            visible: Config.liquidGlassTheme
+          }
+
+          Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: !Config.nothingEvolution && !Config.liquidGlassTheme
+            height: Config.liquidGlassTheme ? 0 : implicitHeight
             text: {
               var d = root.now
               return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
@@ -397,7 +719,8 @@ Item {
 
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            visible: !Config.nothingEvolution
+            visible: !Config.nothingEvolution && !Config.liquidGlassTheme
+            height: Config.liquidGlassTheme ? 0 : implicitHeight
             text: {
               var d = root.now
               var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -442,12 +765,32 @@ Item {
 
           Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 280
-            height: 48
-            radius: root.inputRadius
-            color: root.inputFill
-            border.width: Config.themeBorderWidth
-            border.color: root.inputBorder
+            width: root.lockFieldWidth
+            height: root.lockFieldHeight
+            radius: root.lockFieldRadius
+            color: root.lockFieldFill
+            border.width: Config.liquidGlassTheme ? 1 : Config.themeBorderWidth
+            border.color: root.lockFieldBorder
+
+            GlassSheen {
+              anchors.fill: parent
+              radius: parent.radius
+            }
+
+            Text {
+              anchors {
+                left: parent.left
+                leftMargin: Config.spacingLarge
+                verticalCenter: parent.verticalCenter
+              }
+              text: "Password"
+              color: Qt.rgba(textColor.r, textColor.g, textColor.b, 0.56)
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyLargeSize
+              font.letterSpacing: Config.typeBodyTracking
+              visible: Config.liquidGlassTheme && root.lockInputText === ""
+              z: 1
+            }
 
             TextInput {
               anchors {
@@ -467,6 +810,7 @@ Item {
               cursorVisible: true
               verticalAlignment: Qt.AlignVCenter
               selectByMouse: true
+              z: 2
 
               MouseArea {
                 anchors.fill: parent
@@ -531,7 +875,7 @@ Item {
               iconLabel: "power_settings_new"
               iconColor: mutedText
               variant: "outlined"
-              borderColor: Qt.rgba(1, 1, 1, 0.3)
+              borderColor: Config.liquidGlassTheme ? Colors.liquidGlassEdgeStrong : Qt.rgba(1, 1, 1, 0.3)
               accessibleName: "Suspend computer"
               tooltipText: "Suspend computer"
               onClicked: root.requestPowerAction("Suspend", ["systemctl", "suspend"])
@@ -561,6 +905,15 @@ Item {
               onClicked: root.requestPowerAction("Power off", ["systemctl", "poweroff"])
             }
           }
+        }
+
+        Loader {
+          anchors.fill: parent
+          active: Config.liquidGlassTheme
+          visible: active
+          focus: active
+          activeFocusOnTab: active
+          sourceComponent: liquidGlassLockLayout
         }
 
         PowerConfirmation {
@@ -594,36 +947,51 @@ Item {
       exclusionMode: ExclusionMode.Ignore
       WlrLayershell.namespace: "quickshell-lock"
       WlrLayershell.layer: WlrLayer.Overlay
+      WlrLayershell.focusable: true
+      WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
       anchors.left: true
       anchors.right: true
       anchors.top: true
       anchors.bottom: true
 
       Image {
+        id: fallbackWallpaperImage
         anchors.fill: parent
         source: root.wallpaperSource
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
-        visible: Settings.lockUseWallpaper && root.wallpaperReady
+        visible: false
+      }
+
+      MultiEffect {
+        anchors.fill: parent
+        source: fallbackWallpaperImage
+        visible: root.wallpaperVisible
+        autoPaddingEnabled: false
+        blurEnabled: root.wallpaperBlurred
+        blur: root.wallpaperBlurred ? 1.0 : 0.0
+        blurMax: root.wallpaperBlurMax
       }
 
       AnimatedBackground {
         anchors.fill: parent
         running: root.locked
         motionEnabled: !Config.liquidGlassTheme
-        flatMode: root.flatLockMode
-        flatColor: root.flatBackground
-        visible: !Settings.lockUseWallpaper || !root.wallpaperReady
+        flatMode: root.flatLockMode || Config.liquidGlassTheme
+        flatColor: Config.liquidGlassTheme ? Colors.d_background : root.flatBackground
+        visible: !root.wallpaperVisible
       }
 
       Rectangle {
         anchors.fill: parent
-        color: Qt.rgba(0, 0, 0, 0.15)
+        color: Config.liquidGlassTheme
+          ? Qt.rgba(0, 0, 0, 0.14)
+          : Qt.rgba(0, 0, 0, 0.15)
       }
 
       Rectangle {
         anchors.fill: parent
-        visible: !root.flatLockMode || (Settings.lockUseWallpaper && root.wallpaperReady)
+        visible: !Config.liquidGlassTheme && (!root.flatLockMode || root.wallpaperVisible)
         gradient: Gradient {
           orientation: Gradient.Vertical
           GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.5) }
@@ -635,10 +1003,12 @@ Item {
       Column {
         anchors.centerIn: parent
         spacing: Config.spacingLarge
+        visible: !Config.liquidGlassTheme
 
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
-          visible: !Config.nothingEvolution
+          visible: !Config.nothingEvolution && !Config.liquidGlassTheme
+          height: Config.liquidGlassTheme ? 0 : implicitHeight
           text: {
             var d = root.now
             return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
@@ -666,7 +1036,8 @@ Item {
 
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
-          visible: !Config.nothingEvolution
+          visible: !Config.nothingEvolution && !Config.liquidGlassTheme
+          height: Config.liquidGlassTheme ? 0 : implicitHeight
           text: {
             var d = root.now
             var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -679,6 +1050,58 @@ Item {
           font.letterSpacing: Config.typeHeadlineTracking
           lineHeight: Config.typeHeadlineSmallLineHeight
           lineHeightMode: Text.FixedHeight
+        }
+
+        Loader {
+          active: Config.liquidGlassTheme
+          visible: active
+          anchors.horizontalCenter: parent.horizontalCenter
+          sourceComponent: Component {
+            Column {
+              width: 320
+              spacing: Config.spacingSmall
+
+              Rectangle {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: root.lockAvatarSize
+                height: root.lockAvatarSize
+                radius: width / 2
+                clip: true
+                color: Colors.liquidGlassRaised
+                border.width: 1
+                border.color: Colors.liquidGlassEdgeStrong
+
+                Image {
+                  id: fallbackProfileImage
+                  anchors.fill: parent
+                  source: "file://" + root.home + "/Pictures/profile.jpg"
+                  fillMode: Image.PreserveAspectCrop
+                  asynchronous: true
+                  visible: status === Image.Ready
+                }
+
+                Text {
+                  anchors.centerIn: parent
+                  text: root.username().charAt(0).toUpperCase()
+                  color: root.textColor
+                  font.family: Config.fontFamily
+                  font.pixelSize: Config.typeDisplaySmallSize
+                  font.weight: Config.typeStrongWeight
+                  font.letterSpacing: Config.typeDisplayTracking
+                  visible: fallbackProfileImage.status !== Image.Ready
+                }
+              }
+
+              Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: root.username()
+                color: root.textColor
+                font.family: Config.fontFamily
+                font.pixelSize: Config.typeHeadlineSmallSize
+                font.weight: Config.typeStrongWeight
+              }
+            }
+          }
         }
 
         Row {
@@ -711,12 +1134,32 @@ Item {
 
         Rectangle {
           anchors.horizontalCenter: parent.horizontalCenter
-          width: 280
-          height: 48
-          radius: root.inputRadius
-          color: root.inputFill
-          border.width: Config.themeBorderWidth
-          border.color: root.inputBorder
+          width: root.lockFieldWidth
+          height: root.lockFieldHeight
+          radius: root.lockFieldRadius
+          color: root.lockFieldFill
+          border.width: Config.liquidGlassTheme ? 1 : Config.themeBorderWidth
+          border.color: root.lockFieldBorder
+
+          GlassSheen {
+            anchors.fill: parent
+            radius: parent.radius
+          }
+
+          Text {
+            anchors {
+              left: parent.left
+              leftMargin: Config.spacingLarge
+              verticalCenter: parent.verticalCenter
+            }
+            text: "Password"
+            color: Qt.rgba(root.textColor.r, root.textColor.g, root.textColor.b, 0.56)
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeBodyLargeSize
+            font.letterSpacing: Config.typeBodyTracking
+            visible: Config.liquidGlassTheme && root.lockInputText === ""
+            z: 1
+          }
 
           TextInput {
             anchors {
@@ -736,6 +1179,7 @@ Item {
             cursorVisible: true
             verticalAlignment: Qt.AlignVCenter
             selectByMouse: true
+            z: 2
 
             MouseArea {
               anchors.fill: parent
@@ -789,6 +1233,83 @@ Item {
           lineHeightMode: Text.FixedHeight
           opacity: 0.8
         }
+
+        Loader {
+          active: Config.liquidGlassTheme
+          visible: active
+          anchors.horizontalCenter: parent.horizontalCenter
+          sourceComponent: Component {
+            Row {
+              spacing: Config.spacingExtraLarge
+
+              IconButton {
+                size: 40
+                iconSize: 20
+                iconLabel: "power_settings_new"
+                iconColor: root.mutedText
+                variant: "outlined"
+                borderColor: Colors.liquidGlassEdgeStrong
+                accessibleName: "Suspend computer"
+                tooltipText: "Suspend computer"
+                onClicked: root.requestPowerAction("Suspend", ["systemctl", "suspend"])
+              }
+
+              IconButton {
+                size: 40
+                iconSize: 20
+                iconLabel: "restart_alt"
+                iconColor: root.mutedText
+                variant: "outlined"
+                borderColor: Colors.liquidGlassEdgeStrong
+                accessibleName: "Restart computer"
+                tooltipText: "Restart computer"
+                onClicked: root.requestPowerAction("Restart", ["systemctl", "reboot"])
+              }
+
+              IconButton {
+                size: 40
+                iconSize: 20
+                iconLabel: "power_off"
+                iconColor: root.mutedText
+                variant: "outlined"
+                borderColor: Colors.liquidGlassEdgeStrong
+                accessibleName: "Power off computer"
+                tooltipText: "Power off computer"
+                onClicked: root.requestPowerAction("Power off", ["systemctl", "poweroff"])
+              }
+            }
+          }
+        }
+      }
+
+      Loader {
+        anchors.fill: parent
+        active: Config.liquidGlassTheme
+        visible: active
+        focus: active
+        activeFocusOnTab: active
+        sourceComponent: liquidGlassLockLayout
+      }
+
+      PowerConfirmation {
+        id: fallbackLockPowerConfirmation
+        anchors.fill: parent
+        opened: root.pendingPowerLabel !== ""
+        actionLabel: root.pendingPowerLabel
+        actionDescription: root.pendingPowerLabel !== ""
+          ? "This will " + root.pendingPowerLabel.toLowerCase() + " the computer."
+          : ""
+        scrimColor: Qt.rgba(0, 0, 0, 0.58)
+        dialogColor: Qt.rgba(0, 0, 0, 0.88)
+        dialogTextColor: root.textColor
+        dialogSecondaryTextColor: root.mutedText
+        dialogBorderColor: Colors.liquidGlassEdgeStrong
+        cancelColor: Colors.liquidGlassControl
+        cancelTextColor: root.textColor
+        confirmColor: root.accentColor
+        confirmTextColor: Colors.fgPrimary
+        onConfirmed: root.confirmPowerAction()
+        onCancelled: root.cancelPowerAction()
       }
     }
   }

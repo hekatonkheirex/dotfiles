@@ -40,9 +40,4 @@ Item {
     }
   }
 
-  Component.onCompleted: {
-    Qt.application.activeChanged.connect(function() {
-      if (!Qt.application.active && focusDismiss.target && focusDismiss.target.visible) focusDismiss.dismissed()
-    })
-  }
 }

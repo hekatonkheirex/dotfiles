@@ -13,6 +13,11 @@ PanelWindow {
   property int notificationCount: 0
   property QtObject notificationServer: null
   property string barPosition: "top"
+  // PanelWindow's Wayland surface is not safe to reuse across a reload when
+  // the theme-dependent namespace may have changed. The shell enables this
+  // after one event-loop turn so a reloaded instance drops the old surface
+  // before creating the new one.
+  property bool surfaceReady: false
   readonly property bool horizontal: barPosition === "top" || barPosition === "bottom"
   readonly property bool dockedTop: barPosition === "top"
   readonly property bool dockedBottom: barPosition === "bottom"
@@ -51,6 +56,13 @@ PanelWindow {
     running: root.visible
     repeat: true
     onTriggered: now = new Date()
+  }
+
+  Timer {
+    interval: 0
+    running: true
+    repeat: false
+    onTriggered: root.surfaceReady = true
   }
 
   // Reinterprets root.now in Settings.timezone (an IANA name) when set,
@@ -689,6 +701,7 @@ PanelWindow {
           AudioIndicator {
             id: audioIndicator
             anchors.fill: parent
+            visible: audioWrapper.visible
             active: root.openPopup === "audio"
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent
@@ -726,6 +739,7 @@ PanelWindow {
           BrightnessIndicator {
             id: brightnessIndicator
             anchors.fill: parent
+            visible: brightnessWrapper.visible
             active: root.openPopup === "brightness"
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent
@@ -763,6 +777,7 @@ PanelWindow {
           MediaIndicator {
             id: mediaIndicator
             anchors.fill: parent
+            visible: mediaWrapper.visible
             active: root.openPopup === "media"
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent
@@ -804,6 +819,7 @@ PanelWindow {
           WeatherIndicator {
             id: weatherIndicator
             anchors.fill: parent
+            visible: weatherWrapper.visible
             active: root.openPopup === "weather"
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent

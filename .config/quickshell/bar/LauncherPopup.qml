@@ -179,6 +179,10 @@ PanelWindow {
   readonly property bool actionMode: searchText.trim().startsWith(">")
   readonly property bool wallpaperMode: searchText.trim().startsWith("@")
   readonly property bool clipboardMode: searchText.trim().startsWith(";")
+
+  onWallpaperModeChanged: {
+    if (root.wallpaperMode) root.refreshWallpapers()
+  }
   readonly property int wallpaperCellWidth: 180
   readonly property int wallpaperCellHeight: 124
   readonly property int wallpaperCardWidth: 164
@@ -450,6 +454,11 @@ PanelWindow {
     clipboardProc.running = true
   }
 
+  function refreshWallpapers() {
+    if (wallpaperProc.running) return
+    wallpaperProc.running = true
+  }
+
   function requestClipboardWipe() {
     if (root.clipboardWipeRunning) return
 
@@ -672,6 +681,7 @@ PanelWindow {
       return
     }
 
+    var terms = q.split(/\s+/)
     var matches = []
     for (var i = 0; i < appModel.count; i++) {
       var app = appModel.get(i)
@@ -716,7 +726,6 @@ PanelWindow {
       }
 
       // 6. Check individual terms for multi-word queries
-      var terms = q.split(/\s+/)
       if (terms.length > 1) {
         var allTermsMatch = true
         var termScore = 0
@@ -810,8 +819,6 @@ PanelWindow {
           appendFilteredResult(appModel.get(i), "app")
         }
       }
-      wallpaperProc.running = false
-      wallpaperProc.running = true
       if (Config.reducedMotion) {
         entryAnimation.stop()
         reducedMotionEntryAnimation.stop()
@@ -1037,7 +1044,9 @@ PanelWindow {
         ScrollBar.vertical: SettingsScrollBar { scrollTarget: appList }
 
         delegate: ListItem {
-          width: appList.width
+          // The scrollbar is overlaid on the ListView; leave a gutter so a
+          // selected row's rounded border cannot run underneath its thumb.
+          width: Math.max(0, appList.width - Config.spacingMedium)
           height: root.clipboardMode ? 54 : 44
           radius: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.shapeMedium : 22
           leadingIcon: model.kind === "action" || model.kind === "wallpaper"

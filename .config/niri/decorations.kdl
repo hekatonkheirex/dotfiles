@@ -69,7 +69,7 @@ animations {
 }
 
 blur {
-  off
+  on
     // off
     passes 3
     offset 3.0

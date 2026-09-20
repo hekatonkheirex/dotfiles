@@ -114,22 +114,15 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.liquidGlassTheme
-      ? liquidImplementation
-      : (Config.ghostTheme
-        ? ghostImplementation
-        : (Config.nothingDesign
-          ? nothingImplementation
-          : (Config.neoBrutalism ? neoImplementation : materialImplementation)))
+    sourceComponent: Config.ghostTheme
+      ? ghostImplementation
+      : (Config.nothingDesign
+        ? nothingImplementation
+        : (Config.neoBrutalism ? neoImplementation : materialImplementation))
   }
 
   Component {
     id: materialImplementation
-    Material3.ActionButton {}
-  }
-
-  Component {
-    id: liquidImplementation
     Material3.ActionButton {}
   }
 

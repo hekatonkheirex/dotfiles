@@ -2,17 +2,10 @@
 set -euo pipefail
 
 script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
-  runtime_dir="$XDG_RUNTIME_DIR/quickshell"
-else
-  runtime_dir="$HOME/.cache/quickshell/runtime"
-fi
-
-umask 077
-mkdir -p -- "$runtime_dir"
-if [[ "$(stat -c '%a' -- "$runtime_dir" 2>/dev/null || true)" != "700" ]]; then
-  chmod 700 -- "$runtime_dir"
-fi
+# shellcheck source=runtime-dir.sh
+source "$script_dir/runtime-dir.sh"
+runtime_dir=$(quickshell_runtime_dir)
+ensure_quickshell_runtime_dir "$runtime_dir"
 exec 9>"$runtime_dir/radio-toggle.lock"
 flock -n 9 || exit 0
 

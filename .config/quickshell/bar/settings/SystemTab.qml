@@ -11,6 +11,7 @@ import "../../config"
 Flickable {
   id: systemTab
   property QtObject root: null
+  property bool sessionLocked: false
   readonly property bool compactLayout: root ? root.compactLayout : false
   readonly property int neoShadowAllowance: Config.neoBrutalism
     ? Config.themeShadowOffset
@@ -189,6 +190,10 @@ Flickable {
   }
 
   function restartShell() {
+    if (systemTab.sessionLocked) {
+      systemTab.actionStatus = "Unlock before reloading Quickshell"
+      return
+    }
     systemTab.actionStatus = "Restarting Quickshell..."
     Quickshell.execDetached(["systemctl", "--user", "restart", "quickshell.service"])
   }

@@ -1,0 +1,11 @@
+[Unit]
+Description=Set display backlight according to AC power state
+After=systemd-backlight@backlight:intel_backlight.service
+Before=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/backlight_auto.sh
+
+[Install]
+WantedBy=multi-user.target

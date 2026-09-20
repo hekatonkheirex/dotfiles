@@ -1,7 +1,6 @@
 import QtQuick
+import QtQml
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Io
 import "primitives"
 import "../config"
 
@@ -11,71 +10,28 @@ PopupBase {
   surfaceWidth: 620
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 520)
 
-  property string city: ""
-  property string temp: "--°"
-  property string desc: ""
-  property string status: "loading"
-  property string statusMessage: "Loading weather..."
-  property string updatedAt: ""
-  property var forecast: []
-  property var hourly: []
-  property string humidity: "--%"
-  property string feelsLike: "--"
-  property string wind: "--"
-  property string pressure: "--"
-  property string uv: "--"
-  property string precipChance: "--%"
+  readonly property string city: WeatherService.city
+  readonly property string temp: WeatherService.temp
+  readonly property string desc: WeatherService.desc
+  readonly property string status: WeatherService.status
+  readonly property string statusMessage: WeatherService.statusMessage
+  readonly property string updatedAt: WeatherService.updatedAt
+  readonly property var forecast: WeatherService.forecast
+  readonly property var hourly: WeatherService.hourly
+  readonly property string humidity: WeatherService.humidity
+  readonly property string feelsLike: WeatherService.feelsLike
+  readonly property string wind: WeatherService.wind
+  readonly property string pressure: WeatherService.pressure
+  readonly property string uv: WeatherService.uv
+  readonly property string precipChance: WeatherService.precipChance
 
-  Process {
-    id: weatherProc
-    command: [
-      "python3",
-      "-u",
-      Quickshell.env("HOME") + "/.config/quickshell/scripts/weather.py",
-      Settings.weatherUnits,
-      Settings.weatherLocation,
-      Settings.weatherAllowIpGeolocation ? "1" : "0"
-    ]
-    running: false
-    stdout: StdioCollector {
-      onStreamFinished: {
-        try {
-          var info = JSON.parse(text.trim());
-          root.status = info.status || "ok";
-          root.statusMessage = info.message || "";
-          root.updatedAt = info.updated_at || "";
-          root.city = info.city;
-          root.temp = info.current_temp;
-          root.desc = info.current_desc;
-          root.humidity = info.humidity;
-          root.feelsLike = info.apparent_temp;
-          root.wind = info.wind_speed;
-          root.pressure = info.pressure;
-          root.uv = info.uv_index;
-          root.precipChance = info.precipitation_chance;
-          root.forecast = info.forecast;
-          root.hourly = info.hourly;
-        } catch (e) { print("WeatherPopup parse error:", e) }
-      }
-    }
+  Binding {
+    target: WeatherService
+    property: "popupActive"
+    value: root.visible
   }
 
-  function refresh() {
-    weatherProc.running = false
-    weatherProc.running = true
-  }
-
-  Connections {
-    target: Settings
-    function onWeatherUnitsChanged() { if (root.visible) root.refresh() }
-    function onWeatherLocationChanged() { if (root.visible) root.refresh() }
-    function onWeatherAllowIpGeolocationChanged() { if (root.visible) root.refresh() }
-    function onWeatherRefreshIntervalMinutesChanged() { if (root.visible) root.refresh() }
-  }
-
-  onShown: {
-    root.refresh()
-  }
+  function refresh() { WeatherService.refresh() }
 
   ColumnLayout {
     id: contentColumn
@@ -139,7 +95,7 @@ PopupBase {
           size: 32
           contained: true
           visible: root.status === "loading"
-          running: weatherProc.running
+          running: WeatherService.loading
           indicatorColor: Colors.primary
           accessibleName: "Loading weather"
           Layout.preferredWidth: 32

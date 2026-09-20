@@ -16,6 +16,7 @@ PanelWindow {
   signal dismissed()
   signal lockRequested()
   property QtObject notificationPopup: null
+  property bool sessionLocked: false
 
   property bool isHorizontal: false
   signal toggleHorizontal()
@@ -40,6 +41,15 @@ PanelWindow {
   property real panelTop: 0
 
   property string searchQuery: ""
+
+  function captureScreenshot(mode) {
+    root.dismissed()
+    Quickshell.execDetached([
+      "bash",
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/capture-screen.sh",
+      mode
+    ])
+  }
 
   // Keep navigation metadata in one place so the sidebar and search results
   // share the same labels and hierarchy. The group names are intentionally
@@ -454,6 +464,11 @@ PanelWindow {
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
   Component.onCompleted: {
+    // Mango reports transient layer-focus changes as application deactivation
+    // when switching tags or clients. Settings is a full-page surface, so
+    // those compositor transitions must not dismiss it.
+    if (!Config.isNiri) return
+
     Qt.application.activeChanged.connect(function() {
       if (!Qt.application.active && root.visible) root.dismissed()
     })
@@ -466,6 +481,15 @@ PanelWindow {
     Keys.priority: Keys.BeforeItem
 
     Keys.onPressed: function(event) {
+      // Mango's global Print bindings cannot see keys while this full-screen
+      // layer owns exclusive keyboard focus. Keep the screenshot shortcuts
+      // available from Settings and use the same helper as Mango's binds.
+      if (event.key === Qt.Key_Print) {
+        root.captureScreenshot(event.modifiers & Qt.ControlModifier ? "monitor" : "region")
+        event.accepted = true
+        return
+      }
+
       // Let the search field handle its own keys (typing, cursor movement,
       // its own Escape/Up/Down) instead of the sidebar's global shortcuts —
       // this handler runs BeforeItem, so it would otherwise steal Space,
@@ -1028,7 +1052,10 @@ PanelWindow {
 
           Component {
             id: systemTabComponent
-            SystemTab { root: tabContainer.panelRoot }
+            SystemTab {
+              root: tabContainer.panelRoot
+              sessionLocked: root.sessionLocked
+            }
           }
       }
     }

@@ -67,26 +67,32 @@ def get_player_info(sender):
 
 preferred_player_sender = None
 
+
+def select_active_sender(preferred_sender=None):
+    if preferred_sender and preferred_sender in players:
+        return preferred_sender
+
+    selected_sender = None
+    for sender, info in players.items():
+        if not info:
+            continue
+        if selected_sender is None:
+            selected_sender = sender
+        elif info['status'] == 'Playing' and players[selected_sender]['status'] != 'Playing':
+            selected_sender = sender
+    return selected_sender
+
+
 def update_and_print():
     global preferred_player_sender
     # Verify preferred player is still active
     if preferred_player_sender and preferred_player_sender not in players:
         preferred_player_sender = None
 
-    active = None
-    if preferred_player_sender:
-        active = players.get(preferred_player_sender)
-
-    if not active:
-        # Find the best active player
-        for sender, info in players.items():
-            if info:
-                if active is None:
-                    active = info
-                    preferred_player_sender = sender
-                elif info['status'] == 'Playing' and active['status'] != 'Playing':
-                    active = info
-                    preferred_player_sender = sender
+    active_sender = select_active_sender(preferred_player_sender)
+    active = players.get(active_sender) if active_sender else None
+    if active_sender:
+        preferred_player_sender = active_sender
     
     if active:
         sys.stdout.write(json.dumps(active) + "\n")
@@ -153,16 +159,7 @@ def send_command(action):
     global preferred_player_sender
     active_sender = preferred_player_sender
     if not active_sender or active_sender not in players:
-        # Fallback
-        active = None
-        for sender, info in players.items():
-            if info:
-                if active is None:
-                    active = info
-                    active_sender = sender
-                elif info['status'] == 'Playing' and active['status'] != 'Playing':
-                    active = info
-                    active_sender = sender
+        active_sender = select_active_sender()
                 
     if not active_sender:
         return

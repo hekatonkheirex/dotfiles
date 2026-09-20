@@ -10,7 +10,7 @@ PopupBase {
 
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingExtraLarge, 450)
 
-  property var batteryDevice: null
+  readonly property var batteryDevice: BatteryService.batteryDevice
   property real pct: -1
   property var state: null
   property bool charging: false
@@ -26,22 +26,9 @@ PopupBase {
     return m + "m"
   }
 
-  function findBattery() {
-    // prefer the real battery device (has voltage, capacity)
-    for (var i = 0; i < UPower.devices.count; i++) {
-      var d = UPower.devices.get(i)
-      if (d.ready && d.isLaptopBattery) return d
-    }
-    // fall back to display device
-    if (UPower.displayDevice && UPower.displayDevice.ready)
-      return UPower.displayDevice
-    return null
-  }
-
   function updateBattery() {
-    var dev = root.findBattery()
+    var dev = root.batteryDevice
     if (dev) {
-      root.batteryDevice = dev
       // UPowerDevice.percentage is 0-1, convert to 0-100
       root.pct = dev.percentage * 100
       root.state = dev.state
