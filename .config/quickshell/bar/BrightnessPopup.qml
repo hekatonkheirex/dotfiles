@@ -1,7 +1,6 @@
 import QtQuick
+import QtQml
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Io
 import "../config"
 
 PopupBase {
@@ -9,48 +8,15 @@ PopupBase {
 
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 400)
 
-  property real pct: 0
+  readonly property real pct: BrightnessService.pct
 
-  function setBrightness(val) {
-    root.pct = Math.max(0, Math.min(100, val))
-    Quickshell.execDetached(["brightnessctl", "set", Math.round(root.pct) + "%"])
+  Binding {
+    target: BrightnessService
+    property: "popupActive"
+    value: root.visible
   }
 
-  Process {
-    id: getProc
-    command: ["sh", "-c", "brightnessctl -m | cut -d, -f4 | tr -d %"]
-    running: false
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var val = parseFloat(text.trim())
-        if (!isNaN(val)) root.pct = val
-      }
-    }
-  }
-
-  function pollBrightness() { getProc.running = true }
-
-  Process {
-    id: brightnessWatcher
-    command: ["sh", "-c", "inotifywait -m -e modify /sys/class/backlight/*/brightness"]
-    running: root.visible
-    stdout: SplitParser {
-      onRead: function(data) { root.pollBrightness() }
-    }
-    onRunningChanged: {
-      if (!running && root.visible) brightnessWatcherRetry.start()
-    }
-  }
-
-  Timer {
-    id: brightnessWatcherRetry
-    interval: 1000
-    onTriggered: {
-      if (root.visible) brightnessWatcher.running = true
-    }
-  }
-
-  onShown: root.pollBrightness()
+  function setBrightness(value) { BrightnessService.setBrightness(value) }
 
   Column {
     id: contentColumn

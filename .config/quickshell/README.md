@@ -46,7 +46,12 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── Settings.qml           # Persisted preferences singleton (FileView + JsonAdapter over settings.json)
 │   ├── Colors.qml             # Material roles, palette resolution, fixed Classic Nothing/Ghost palettes, adaptive Evolution roles, Liquid Glass regular/clear roles, Matugen fallback + system dark-mode tracking
 │   ├── PaletteCatalog.js      # Fixed Material 3, Catppuccin, Gruvbox, and TokyoNight semantic palettes
-│   └── cava.ini                # cava config for the real-time audio visualizer
+│   ├── AudioService.qml       # Shared PipeWire sink/source state and watcher
+│   ├── BrightnessService.qml  # Shared backlight state and watcher
+│   ├── BatteryService.qml     # Shared UPower battery-device selection
+│   ├── MediaService.qml       # Shared MPRIS monitor state
+│   ├── WeatherService.qml     # Shared weather fetch/cache state
+│   └── cava.ini               # cava config for the real-time audio visualizer
 ├── bar/
 │   ├── Bar.qml                 # The panel itself — full-bar/pills-bar styles, orientation-aware active indicators
 │   ├── SettingsPanel.qml       # Settings panel shell (state, processes, tab bar) — content in settings/
@@ -123,6 +128,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── commandcenter            # Legacy alias for settings
 │   ├── lock                     # Lock trigger (private runtime trigger)
 │   ├── emit-trigger             # Validated private runtime trigger writer
+│   ├── runtime-dir.sh            # Shared private runtime-directory setup
 │   ├── toggle-airplane.sh       # Bounded Wi-Fi/Bluetooth airplane-mode toggle
 │   ├── toggle-bluetooth.sh      # Bounded Bluetooth power toggle
 │   ├── apply-wallpaper.sh       # Wallpaper selection + Matugen/theme refresh
@@ -284,7 +290,7 @@ Clipboard previews are shown only after opening the provider. The enabled `clipb
 - **Fingerprint reader** via `fprintd-verify` (auto-retries on failure), started/stopped imperatively in `onLockedChanged` to avoid QML declarative binding breaks
 - Profile image (`~/Pictures/profile.jpg`), live clock, suspend/reboot/poweroff buttons
 - **Lock & Power settings** configure automatic lock and suspend timeouts plus TLP power profiles; the existing dim/display-off stages remain fixed, and suspend locks first
-- Animated background (`AnimatedBackground.qml`) for Material 3; Nothing Classic uses a static neutral fallback, while Nothing Evolution uses its selectable Gooey or Micrographics clock face and adaptive accent
+- Liquid Glass always uses the active wallpaper with a full-screen blur and a restrained veil; its lock surface follows the macOS two-zone layout with a top date/time and a bottom identity prompt that reveals authentication on click, while other styles keep the existing wallpaper toggle and animated/flat fallback
 - Controlled via `IpcHandler.lock()`, `scripts/lock`, or directly via the private runtime trigger
 
 ## Popup System
@@ -295,7 +301,7 @@ Popup positioning follows the active bar placement (computed in `shell.qml`'s `p
 - **Top/bottom**: Anchored past the bar edge and horizontally centered on the clicked widget's X coordinate, clamped to fit the screen.
 - **Left/right**: Anchored past the bar edge and vertically aligned to the triggering widget's Y coordinate.
 
-Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` watches the popup window's active focus item so moving focus between controls inside a popup does not dismiss it, while application deactivation still closes the popup. `PopupBase.qml` supplies the shared M3 background/border/entry-animation chrome that most popups build on; Liquid Glass adds translucent functional surfaces and a restrained sheen to that same path. Actual backdrop blur remains compositor-owned and is optional when the compositor has background effects enabled.
+Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` watches the popup window's active focus item so moving focus between controls inside a popup does not dismiss it, while application deactivation closes transient popups. The full-page Settings surface remains open through Mango's transient layer-focus changes so switching tags or clients does not dismiss it. `PopupBase.qml` supplies the shared M3 background/border/entry-animation chrome that most popups build on; Liquid Glass adds translucent functional surfaces and a restrained sheen to that same path. Actual backdrop blur remains compositor-owned and is optional when the compositor has background effects enabled.
 
 | Popup | Trigger | Content |
 |---|---|---|

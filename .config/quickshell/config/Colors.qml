@@ -82,11 +82,13 @@ QtObject {
   property bool systemDark: false
   property bool darkMode: themePreference === 1 ? false : (themePreference === 2 ? true : systemDark)
 
-  readonly property bool nothingDesign: Settings.themeStyle === "nothing"
-  readonly property bool nothingEvolution: nothingDesign && Settings.nothingVariant === "evolution"
-  readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
-  readonly property bool ghostTheme: Settings.themeStyle === "ghost"
-  readonly property bool liquidGlassTheme: Settings.themeStyle === "liquid-glass"
+  // Config is the single owner of the active UI style flags. Keep these
+  // aliases for Colors' existing role-selection API.
+  readonly property bool nothingDesign: Config.nothingDesign
+  readonly property bool nothingEvolution: Config.nothingEvolution
+  readonly property bool neoBrutalism: Config.neoBrutalism
+  readonly property bool ghostTheme: Config.ghostTheme
+  readonly property bool liquidGlassTheme: Config.liquidGlassTheme
   readonly property bool paletteSourceSelectable: !nothingDesign && !ghostTheme
   readonly property bool fixedPaletteActive: Settings.colorSource === "fixed" && paletteSourceSelectable
 

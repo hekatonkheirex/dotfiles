@@ -18,6 +18,7 @@ fi
 output_dir="${HOME}/Pictures/Screenshots"
 state_dir="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}"
 state_file="${state_dir}/mango-screenshot-region-${UID:-$(id -u)}"
+selection_notification_file="${state_file}.notification"
 
 is_mango_session() {
   [[ -n "${MANGO_INSTANCE_SIGNATURE:-}" ]] && command -v mmsg >/dev/null 2>&1
@@ -31,6 +32,41 @@ set_mango_keymode() {
 reset_mango_keymode() {
   if is_mango_session; then
     mmsg dispatch setkeymode,default >/dev/null 2>&1 || true
+  fi
+}
+
+close_selection_cue() {
+  local notification_id
+  notification_id="$(cat "$selection_notification_file" 2>/dev/null || true)"
+  rm -f "$selection_notification_file"
+
+  if [[ "$notification_id" =~ ^[0-9]+$ ]] && command -v gdbus >/dev/null 2>&1; then
+    gdbus call --session \
+      --dest org.freedesktop.Notifications \
+      --object-path /org/freedesktop/Notifications \
+      --method org.freedesktop.Notifications.CloseNotification \
+      "$notification_id" >/dev/null 2>&1 || true
+  fi
+}
+
+show_selection_cue() {
+  local notification_id state_tmp
+  notification_id="$(notify-send -a Quickshell -u normal -t 0 -p \
+    "Screenshot region ready" \
+    "Press Enter or Space to capture; Esc to cancel." 2>/dev/null || true)"
+  if [[ ! "$notification_id" =~ ^[0-9]+$ ]]; then
+    return 0
+  fi
+
+  state_tmp="$(mktemp "${selection_notification_file}.XXXXXX")"
+  chmod 600 "$state_tmp"
+  printf '%s\n' "$notification_id" > "$state_tmp"
+  mv -f "$state_tmp" "$selection_notification_file"
+}
+
+dismiss_quickshell_popups() {
+  if command -v quickshell >/dev/null 2>&1; then
+    quickshell ipc call shell dismissPopups >/dev/null 2>&1 || true
   fi
 }
 
@@ -66,6 +102,7 @@ capture_region() {
 }
 
 capture_desktop() {
+  dismiss_quickshell_popups
   new_output_file
   grim "$output_file"
   finish_capture
@@ -77,6 +114,8 @@ capture_monitor() {
       "Mango monitor discovery requires mmsg and jq."
     return 127
   fi
+
+  dismiss_quickshell_popups
 
   local monitor
   monitor="$(mmsg get all-monitors 2>/dev/null \
@@ -100,10 +139,12 @@ begin_region() {
     return 127
   fi
 
+  dismiss_quickshell_popups
+  close_selection_cue
   rm -f "$state_file"
 
   local geometry
-  geometry="$(slurp 2>/dev/null || true)"
+  geometry="$(slurp -b '#00000088' 2>/dev/null || true)"
   # Cancelling the selector is a normal interaction, not an error.
   if [[ -z "$geometry" ]]; then
     return 0
@@ -120,6 +161,7 @@ begin_region() {
     mv -f "$state_tmp" "$state_file"
 
     if set_mango_keymode screenshot-confirm; then
+      show_selection_cue
       return 0
     fi
 
@@ -132,6 +174,7 @@ begin_region() {
 confirm_region() {
   local geometry
   geometry="$(cat "$state_file" 2>/dev/null || true)"
+  close_selection_cue
   rm -f "$state_file"
   reset_mango_keymode
 
@@ -140,6 +183,7 @@ confirm_region() {
 }
 
 cancel_region() {
+  close_selection_cue
   rm -f "$state_file"
   reset_mango_keymode
 }

@@ -12,17 +12,11 @@ case "$trigger" in
     ;;
 esac
 
-if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
-  runtime_dir="$XDG_RUNTIME_DIR/quickshell"
-else
-  runtime_dir="$HOME/.cache/quickshell/runtime"
-fi
-
-umask 077
-mkdir -p -- "$runtime_dir"
-if [[ "$(stat -c '%a' -- "$runtime_dir" 2>/dev/null || true)" != "700" ]]; then
-  chmod 700 -- "$runtime_dir"
-fi
+script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=runtime-dir.sh
+source "$script_dir/runtime-dir.sh"
+runtime_dir=$(quickshell_runtime_dir)
+ensure_quickshell_runtime_dir "$runtime_dir"
 trigger_path="$runtime_dir/$trigger"
 rm -f -- "$trigger_path"
 : >"$trigger_path"

@@ -1,2 +1,4 @@
-ACTION=="change", SUBSYSTEM=="power_supply", ATTR{online}=="1", RUN+="/usr/local/bin/backlight_auto.sh ac"
-ACTION=="change", SUBSYSTEM=="power_supply", ATTR{online}=="0", RUN+="/usr/local/bin/backlight_auto.sh battery"
+# Only the main AC adapter represents the laptop's plugged-in state.  USB-C
+# power-supply devices also emit online changes and can otherwise override it.
+ACTION=="change", SUBSYSTEM=="power_supply", KERNEL=="AC", ATTR{online}=="1", RUN+="/usr/local/bin/backlight_auto.sh ac"
+ACTION=="change", SUBSYSTEM=="power_supply", KERNEL=="AC", ATTR{online}=="0", RUN+="/usr/local/bin/backlight_auto.sh battery"

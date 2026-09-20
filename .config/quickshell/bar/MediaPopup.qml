@@ -1,4 +1,5 @@
 import QtQuick
+import QtQml
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -11,13 +12,13 @@ PopupBase {
   surfaceWidth: 360
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 480)
 
-  property string mprisStatus: "NoPlayer"
-  property string mprisTitle: ""
-  property string mprisArtist: ""
-  property string mprisAlbum: ""
-  property string mprisArtUrl: ""
-  property int mprisLengthSec: 0
-  property string mprisLengthStr: "0:00"
+  readonly property string mprisStatus: MediaService.status
+  readonly property string mprisTitle: MediaService.title
+  readonly property string mprisArtist: MediaService.artist
+  readonly property string mprisAlbum: MediaService.album
+  readonly property string mprisArtUrl: MediaService.artUrl
+  readonly property int mprisLengthSec: MediaService.lengthSec
+  readonly property string mprisLengthStr: MediaService.lengthStr
   property int elapsedSeconds: 0
   property var cavaBarValues: []
   readonly property string runtimeDirectory: {
@@ -28,6 +29,12 @@ PopupBase {
   }
 
   onMprisTitleChanged: root.elapsedSeconds = 0
+
+  Binding {
+    target: MediaService
+    property: "popupActive"
+    value: root.visible
+  }
 
   function formatTime(sec) {
     var m = Math.floor(sec / 60)
@@ -41,37 +48,6 @@ PopupBase {
     repeat: true
     onTriggered: {
       if (root.elapsedSeconds < root.mprisLengthSec) root.elapsedSeconds += 1
-    }
-  }
-
-  Process {
-    id: mprisProcess
-    command: ["python3", "-u", Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_monitor.py"]
-    running: root.visible
-    stdout: SplitParser {
-      onRead: function(data) {
-        try {
-          var info = JSON.parse(data.trim());
-          root.mprisStatus = info.status;
-          root.mprisTitle = info.title;
-          root.mprisArtist = info.artist;
-          root.mprisAlbum = info.album;
-          root.mprisArtUrl = info.artUrl;
-          root.mprisLengthSec = info.length_sec;
-          root.mprisLengthStr = info.length_str;
-        } catch (e) { print("MediaPopup mpris parse error:", e) }
-      }
-    }
-    onRunningChanged: {
-      if (!running && root.visible) mprisProcessRetry.start()
-    }
-  }
-
-  Timer {
-    id: mprisProcessRetry
-    interval: 3000
-    onTriggered: {
-      if (root.visible) mprisProcess.running = true
     }
   }
 

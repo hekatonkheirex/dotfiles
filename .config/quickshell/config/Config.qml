@@ -28,11 +28,12 @@ QtObject {
     && !ghostTheme && !liquidGlassTheme
 
   // Niri's layer rule already enables background effects for unknown
-  // quickshell namespaces when the user has compositor blur enabled. Liquid
-  // Glass uses that path while the regular namespaces retain their existing
-  // behavior for the other UI styles.
+  // quickshell namespaces when the user has compositor blur enabled. Keep
+  // transient Liquid Glass surfaces on that path, but leave the persistent
+  // bar open and transparent at rest. The lock surface owns its own
+  // full-screen wallpaper blur.
   function layerNamespace(kind) {
-    return liquidGlassTheme
+    return liquidGlassTheme && kind !== "panel"
       ? "quickshell-liquid-glass-" + kind
       : "quickshell-" + kind
   }
@@ -44,9 +45,7 @@ QtObject {
   readonly property int barWidth: ghostTheme
     ? Math.min(Settings.barSize, 34)
     : Settings.barSize
-  readonly property int widgetSize: ghostTheme
-    ? Math.min(Settings.barSize, 34)
-    : Settings.barSize
+  readonly property int widgetSize: barWidth
   // Live-adjustable via the Appearance settings tab (single density scale);
   // mirrors Settings the same way reducedMotion below does, so every binding
   // that reads these updates immediately without touching the consuming file.

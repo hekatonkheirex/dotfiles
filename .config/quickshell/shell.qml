@@ -314,6 +314,10 @@ ShellRoot {
       bar.openPopup = bar.openPopup === "settings" ? "" : "settings"
     }
 
+    function dismissPopups() {
+      bar.openPopup = ""
+    }
+
     // Compatibility alias for existing scripts and external IPC callers.
     function commandcenter() {
       settings()
@@ -413,7 +417,12 @@ ShellRoot {
     barPosition: shell.barPosition
     notificationServer: notifServer
     fullBar: shell.fullBar
-    visible: !lockScreen.locked
+    // Wait for persisted settings before exposing the panel so the first
+    // mapped surface uses the final bar geometry and style.
+    visible: bar.surfaceReady
+      && Settings.initialLoadComplete
+      && !lockScreen.locked
+      && !lockScreen.compositorLocked
   }
 
   AudioPopup {
@@ -549,7 +558,7 @@ ShellRoot {
 
   SettingsPanel {
     id: settingsPanel
-    visible: bar.openPopup === "settings" && !lockScreen.locked
+    visible: bar.openPopup === "settings" && !lockScreen.locked && !lockScreen.compositorLocked
     onDismissed: bar.openPopup = ""
     onLockRequested: lockScreen.lockScreen()
     isHorizontal: shell.isHorizontal
@@ -560,6 +569,7 @@ ShellRoot {
     onResetAllSettings: shell.resetAllSettingsToDefaults()
     fullBar: shell.fullBar
     notificationPopup: notificationPopup
+    sessionLocked: lockScreen.locked || lockScreen.compositorLocked
     onToggleFullBar: shell.toggleFullBar()
   }
 

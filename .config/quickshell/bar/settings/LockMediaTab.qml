@@ -124,11 +124,14 @@ Flickable {
           Layout.fillWidth: true
           leadingIcon: "wallpaper"
           title: "Use current wallpaper"
-          subtitle: Settings.lockUseWallpaper
-            ? "Show the desktop wallpaper behind the lock screen"
-            : "Use the animated lock-screen background"
+          subtitle: Config.liquidGlassTheme
+          ? "Liquid Glass always uses the current wallpaper with a strong blur"
+            : (Settings.lockUseWallpaper
+              ? "Show the desktop wallpaper behind the lock screen"
+              : "Use the animated lock-screen background")
           SwitchControl {
-            checked: Settings.lockUseWallpaper
+            checked: Config.liquidGlassTheme || Settings.lockUseWallpaper
+            enabled: !Config.liquidGlassTheme
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest

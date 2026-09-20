@@ -199,6 +199,7 @@ if [ -d "$THINKPAD_DIR" ]; then
         # Copy Backlight rules and script
         copy_system_file "$THINKPAD_DIR/99-backlight-automation.rules" "/etc/udev/rules.d/99-backlight-automation.rules"
         copy_system_file "$THINKPAD_DIR/backlight_auto.sh" "/usr/local/bin/backlight_auto.sh"
+        copy_system_file "$THINKPAD_DIR/backlight-auto.service" "/etc/systemd/system/backlight-auto.service"
         sudo chmod +x "/usr/local/bin/backlight_auto.sh"
         
         # Copy GRUB config
@@ -239,6 +240,7 @@ if [ -d "$THINKPAD_DIR" ]; then
         # Reloading systemd config
         echo -e "${CYAN}Reloading systemd manager configuration...${NC}"
         sudo systemctl daemon-reload || true
+        sudo systemctl enable backlight-auto.service || true
         
         # Ask to regenerate GRUB
         echo
