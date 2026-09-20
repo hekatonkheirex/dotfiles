@@ -37,11 +37,13 @@ PopupBase {
     }
     spacing: Config.spacingMedium
 
-        Row {
+        RowLayout {
           width: parent.width
           spacing: Config.spacingSmall
 
           Text {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
             text: root.monthNames[root.displayMonth.getMonth()] + " " + root.displayMonth.getFullYear()
             color: Colors.fgSurface
             font.family: Config.fontFamily
@@ -52,9 +54,8 @@ PopupBase {
             lineHeightMode: Text.FixedHeight
           }
 
-          Item { width: 1; height: 1; Layout.fillWidth: true }
-
           Row {
+            Layout.alignment: Qt.AlignVCenter
             spacing: Config.spacingCompact
 
             Repeater {
