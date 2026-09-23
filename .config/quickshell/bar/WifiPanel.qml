@@ -49,31 +49,48 @@ Item {
     savedListModel.clear()
   }
 
+  // Parse nmcli's terse output. Colons and backslashes inside fields are
+  // backslash-escaped; only an unescaped colon separates fields.
+  function parseTerseFields(line) {
+    var fields = []
+    var field = ""
+    var escaped = false
+
+    for (var i = 0; i < line.length; i++) {
+      var c = line[i]
+      if (escaped) {
+        if (c === ":" || c === "\\") field += c
+        else field += "\\" + c
+        escaped = false
+      } else if (c === "\\") {
+        escaped = true
+      } else if (c === ":") {
+        fields.push(field)
+        field = ""
+      } else {
+        field += c
+      }
+    }
+
+    if (escaped) field += "\\"
+    fields.push(field)
+    return fields
+  }
+
   function parseWifiList(output) {
-    var lines = output.trim().split("\n");
+    var lines = String(output || "").split(/\r?\n/)
     var list = [];
     var seenSSIDs = {};
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
-      if (!line) continue;
+      if (line === "") continue;
 
-      var parts = [];
-      var currentPart = "";
-      for (var j = 0; j < line.length; j++) {
-        var c = line[j];
-        if (c === ":" && (j === 0 || line[j-1] !== "\\")) {
-          parts.push(currentPart);
-          currentPart = "";
-        } else {
-          currentPart += c;
-        }
-      }
-      parts.push(currentPart);
+      var parts = root.parseTerseFields(line)
 
       if (parts.length < 4) continue;
 
       var active = parts[0] === "yes";
-      var ssid = parts[1].replace(/\\(.)/g, "$1");
+      var ssid = parts[1];
       var signal = parseInt(parts[2]);
       var security = parts[3];
 
@@ -176,9 +193,10 @@ Item {
     stdout: StdioCollector {
       onStreamFinished: {
         root.wifiDevice = ""
-        var lines = text.trim().split("\n")
+        var lines = text.split(/\r?\n/)
         for (var i = 0; i < lines.length; i++) {
-          var parts = lines[i].split(":")
+          if (lines[i] === "") continue
+          var parts = root.parseTerseFields(lines[i])
           if (parts.length >= 3 && parts[1] === "wifi" && parts[2].indexOf("connected") === 0) {
             root.wifiDevice = parts[0]
             break
@@ -195,12 +213,11 @@ Item {
 
   Process {
     id: listQuery
-    command: ["nmcli", "-t", "-f", "active,ssid,signal,security", "dev", "wifi", "list"]
+    command: ["nmcli", "-t", "-e", "yes", "-f", "active,ssid,signal,security", "dev", "wifi", "list"]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
-        var out = text.trim()
-        var parsed = root.parseWifiList(out)
+        var parsed = root.parseWifiList(text)
         wifiListModel.clear()
         for (var i = 0; i < parsed.length; i++) {
           wifiListModel.append(parsed[i])
@@ -217,14 +234,15 @@ Item {
 
   Process {
     id: savedQuery
-    command: ["nmcli", "-t", "-e", "no", "-f", "NAME,TYPE,AUTOCONNECT,DEVICE", "connection", "show"]
+    command: ["nmcli", "-t", "-e", "yes", "-f", "NAME,TYPE,AUTOCONNECT,DEVICE", "connection", "show"]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
         savedListModel.clear()
-        var lines = text.trim().split("\n")
+        var lines = text.split(/\r?\n/)
         for (var i = 0; i < lines.length; i++) {
-          var parts = lines[i].split(":")
+          if (lines[i] === "") continue
+          var parts = root.parseTerseFields(lines[i])
           if (parts.length < 4 || parts[1] !== "802-11-wireless") continue
           savedListModel.append({
             name: parts[0],
