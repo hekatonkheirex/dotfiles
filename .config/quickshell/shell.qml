@@ -104,6 +104,11 @@ ShellRoot {
     ])
   }
 
+  function requestLock() {
+    bar.openPopup = ""
+    lockScreen.lockScreen()
+  }
+
   function themeModeName(preference) {
     var modes = ["auto", "light", "dark"]
     return modes[preference] || "auto"
@@ -289,7 +294,7 @@ ShellRoot {
     }
 
     function lock() {
-      lockScreen.lockScreen()
+      shell.requestLock()
     }
 
     function welcome() {
@@ -514,7 +519,7 @@ ShellRoot {
     visible: bar.openPopup === "quickmenu" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
-    onLockRequested: lockScreen.lockScreen()
+    onLockRequested: shell.requestLock()
     onSettingsRequested: bar.openPopup = "settings"
 
     anchors.left: true
@@ -560,7 +565,7 @@ ShellRoot {
     id: settingsPanel
     visible: bar.openPopup === "settings" && !lockScreen.locked && !lockScreen.compositorLocked
     onDismissed: bar.openPopup = ""
-    onLockRequested: lockScreen.lockScreen()
+    onLockRequested: shell.requestLock()
     isHorizontal: shell.isHorizontal
     barPosition: shell.barPosition
     onToggleHorizontal: shell.toggleLayout()

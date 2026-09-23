@@ -205,9 +205,18 @@ Item {
     liquidGlassLoginPrompted = false
     authenticated = false
     cancelPowerAction()
+
+    // Mango's layer-shell fallback is only a visual overlay, not a Wayland
+    // session lock. Use the standalone locker there so compositor shortcuts
+    // cannot bypass authentication.
+    if (!Config.isNiri) {
+      Quickshell.execDetached(["swaylock", "-f"])
+      return
+    }
+
     root.locked = true
     updateReloadWatchState()
-    if (Config.isNiri) sessionLock.locked = true
+    sessionLock.locked = true
   }
 
   function unlockSession() {

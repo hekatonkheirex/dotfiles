@@ -284,14 +284,17 @@ Clipboard previews are shown only after opening the provider. The enabled `clipb
 
 ## Lock Screen
 
-`bar/LockScreen.qml` is a standalone component using `WlSessionLock` with:
+On Niri, `bar/LockScreen.qml` provides the themed lock surface using
+`WlSessionLock`. Mango uses `swaylock -f` for a compositor-enforced session
+lock; the Quickshell layer-shell overlay is not used as a security boundary.
+The Niri lock surface includes:
 
 - **PAM password auth** via `Quickshell.Services.Pam`
 - **Fingerprint reader** via `fprintd-verify` (auto-retries on failure), started/stopped imperatively in `onLockedChanged` to avoid QML declarative binding breaks
 - Profile image (`~/Pictures/profile.jpg`), live clock, suspend/reboot/poweroff buttons
 - **Lock & Power settings** configure automatic lock and suspend timeouts plus TLP power profiles; the existing dim/display-off stages remain fixed, and suspend locks first
 - Liquid Glass always uses the active wallpaper with a full-screen blur and a restrained veil; its lock surface follows the macOS two-zone layout with a top date/time and a bottom identity prompt that reveals authentication on click, while other styles keep the existing wallpaper toggle and animated/flat fallback
-- Controlled via `IpcHandler.lock()`, `scripts/lock`, or directly via the private runtime trigger
+- Lock requests are available through `IpcHandler.lock()`, `scripts/lock`, or the private runtime trigger; Mango routes them to `swaylock`
 
 ## Popup System
 

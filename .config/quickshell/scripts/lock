@@ -1,9 +1,24 @@
 #!/usr/bin/env bash
 
-# Keep the Quickshell lock screen as the normal path. If the shell crashed
+# Mango's Quickshell lock surface is a layer-shell overlay rather than a
+# compositor session lock, so use swaylock directly for every script-based
+# lock request there. This also makes swayidle wait until swaylock has locked
+# the session before it proceeds to suspend.
+quickshell_bin=$(command -v quickshell || true)
+desktop_names="${XDG_CURRENT_DESKTOP:-} ${XDG_SESSION_DESKTOP:-}"
+case "${desktop_names,,}" in
+  *mango*)
+    if [ -n "$quickshell_bin" ] \
+      && "$quickshell_bin" list 2>/dev/null | rg -q 'Config path: .*/\.config/quickshell/shell\.qml'; then
+      "$quickshell_bin" ipc call shell dismissPopups >/dev/null 2>&1 || true
+    fi
+    exec swaylock -f
+    ;;
+esac
+
+# Keep the Quickshell lock screen as the normal Niri path. If the shell crashed
 # while Niri still holds the session lock, use the installed standalone locker
 # so the red fail-closed screen can be recovered without restarting Niri.
-quickshell_bin=$(command -v quickshell || true)
 if [ -n "$quickshell_bin" ] \
   && "$quickshell_bin" list 2>/dev/null | rg -q 'Config path: .*/\.config/quickshell/shell\.qml'; then
   exec "$(dirname -- "$0")/emit-trigger" qslock-trigger
