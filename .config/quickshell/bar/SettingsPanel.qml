@@ -74,27 +74,27 @@ PanelWindow {
   // pages use custom sliders or segmented controls, so wrapping every control
   // in a navigation component would make the pages harder to maintain.
   readonly property var searchEntries: [
-    { tab: 0, category: "System details", icon: "person", title: "Machine info", subtitle: "Hostname, OS, kernel, CPU, and GPU" },
-    { tab: 0, category: "System details", icon: "wifi", title: "Network status", subtitle: "IP address and connection details" },
+    { tab: 0, category: "System details", icon: "person", title: "Machine info", anchor: "Machine", subtitle: "Hostname, OS, kernel, CPU, and GPU" },
+    { tab: 0, category: "System details", icon: "wifi", title: "Network status", anchor: "Network", subtitle: "IP address and connection details" },
     { tab: 1, category: "Motion", icon: "motion_photos_off", title: "Reduced motion", subtitle: "Use shorter, calmer transitions" },
     { tab: 1, category: "Clock", icon: "schedule", title: "Show uptime", subtitle: "Show uptime on the Account tab" },
     { tab: 1, category: "Clock", icon: "schedule", title: "24-hour clock", subtitle: "Use a 24-hour clock format" },
     { tab: 1, category: "Clock", icon: "timer", title: "Show seconds", subtitle: "Display seconds in the bar clock" },
     { tab: 1, category: "Calendar", icon: "calendar_view_week", title: "Week starts Monday", subtitle: "Set the first day of the calendar week" },
-    { tab: 1, category: "Bar contents", icon: "apps", title: "Bar item visibility", subtitle: "Launcher, workspaces, clock, tray, audio, weather, and more" },
+    { tab: 1, category: "Bar contents", icon: "apps", title: "Bar item visibility", anchor: "Bar Contents", subtitle: "Launcher, workspaces, clock, tray, audio, weather, and more" },
     { tab: 1, category: "Weather and location", icon: "my_location", title: "Use IP geolocation", subtitle: "Use your network location for weather" },
-    { tab: 1, category: "Weather and location", icon: "location_on", title: "Weather location", subtitle: "Set a city or town for weather" },
+    { tab: 1, category: "Weather and location", icon: "location_on", title: "Weather location", anchor: "Manual weather location", subtitle: "Set a city or town for weather" },
     { tab: 1, category: "Weather and location", icon: "update", title: "Weather refresh interval", subtitle: "Choose how often weather refreshes" },
-    { tab: 1, category: "Weather and location", icon: "thermostat", title: "Temperature units", subtitle: "Use metric or imperial units" },
+    { tab: 1, category: "Weather and location", icon: "thermostat", title: "Temperature units", anchor: "Metric units", subtitle: "Use metric or imperial units" },
     { tab: 2, category: "General UI", icon: "auto_awesome", title: "UI Style", subtitle: "Material, Neo, Nothing, Ghost, or Evolution" },
     { tab: 2, category: "Color and theme", icon: "palette", title: "Color source", subtitle: "Live wallpaper colors or a fixed palette" },
     { tab: 2, category: "Color and theme", icon: "dark_mode", title: "Color mode", subtitle: "Automatic, light, or dark" },
-    { tab: 2, category: "Color and theme", icon: "palette", title: "Color palette", subtitle: "Material 3, Catppuccin, Gruvbox, or TokyoNight" },
+    { tab: 2, category: "Color and theme", icon: "palette", title: "Color palette", anchor: "Palette family", subtitle: "Material 3, Catppuccin, Gruvbox, or TokyoNight" },
     { tab: 2, category: "Color and theme", icon: "contrast", title: "Contrast", subtitle: "Standard, medium, or high contrast" },
     { tab: 2, category: "Bar", icon: "dock_to_bottom", title: "Bar placement", subtitle: "Top, bottom, left, or right" },
     { tab: 2, category: "Bar", icon: "view_week", title: "Bar display style", subtitle: "One continuous bar or separate pills" },
     { tab: 2, category: "Workspaces", icon: "looks_5", title: "Visible workspaces", subtitle: "Show active workspaces, one through five, or one through ten" },
-    { tab: 2, category: "Workspaces", icon: "shapes", title: "Workspace marker style", subtitle: "Choose expressive, pill, rounded, circle, dots, glyph, or other shapes" },
+    { tab: 2, category: "Workspaces", icon: "shapes", title: "Workspace marker style", anchor: "Workspace buttons", subtitle: "Choose expressive, pill, rounded, circle, dots, glyph, or other shapes" },
     { tab: 2, category: "Sizing", icon: "format_size", title: "UI Font Size", subtitle: "Adjust the shell's base text size" },
     { tab: 2, category: "Sizing", icon: "schedule", title: "Clock Size", subtitle: "Adjust the bar clock size" },
     { tab: 2, category: "Sizing", icon: "photo_size_select_small", title: "Icon Size", subtitle: "Adjust shared icon sizing" },
@@ -102,16 +102,16 @@ PanelWindow {
     { tab: 2, category: "Sizing", icon: "height", title: "Bar Size", subtitle: "Adjust bar thickness and widget size" },
     { tab: 2, category: "Reset", icon: "settings_backup_restore", title: "Reset Appearance", subtitle: "Restore appearance defaults" },
     { tab: 3, category: "Wallpaper", icon: "wallpaper", title: "Wallpaper", subtitle: "Browse, set, and randomize wallpapers" },
-    { tab: 4, category: "Outputs", icon: "monitor", title: "Display mode", subtitle: "Choose the output resolution and refresh rate" },
-    { tab: 4, category: "Outputs", icon: "photo_size_select_small", title: "Display scale", subtitle: "Adjust output scaling" },
-    { tab: 4, category: "Outputs", icon: "screen_rotation", title: "Display transform", subtitle: "Rotate or reflect the output" },
+    { tab: 4, category: "Outputs", icon: "monitor", title: "Display mode", anchor: "Mode", subtitle: "Choose the output resolution and refresh rate" },
+    { tab: 4, category: "Outputs", icon: "photo_size_select_small", title: "Display scale", anchor: "Scale", subtitle: "Adjust output scaling" },
+    { tab: 4, category: "Outputs", icon: "screen_rotation", title: "Display transform", anchor: "Transform", subtitle: "Rotate or reflect the output" },
     { tab: 4, category: "Touchpad", icon: "touch_app", title: "Tap to click", subtitle: "Use a light tap instead of pressing the pad" },
-    { tab: 4, category: "Touchpad", icon: "swap_vert", title: "Touchpad natural scrolling", subtitle: "Scroll in the direction your fingers move" },
-    { tab: 4, category: "Touchpad", icon: "touchpad_mouse", title: "Touchpad scroll method", subtitle: "Choose the touchpad scroll gesture" },
-    { tab: 4, category: "Mouse", icon: "mouse", title: "Mouse natural scrolling", subtitle: "Reverse the mouse wheel direction" },
-    { tab: 4, category: "Trackpoint", icon: "mouse", title: "Trackpoint natural scrolling", subtitle: "Reverse the TrackPoint scroll direction" },
-    { tab: 4, category: "Pointer", icon: "speed", title: "Pointer acceleration", subtitle: "Adjust mouse and TrackPoint acceleration" },
-    { tab: 5, category: "Connections", icon: "wifi", title: "Wi-Fi", subtitle: "Connect, forget, and manage saved networks" },
+    { tab: 4, category: "Touchpad", icon: "swap_vert", title: "Touchpad natural scrolling", anchor: "touchpad-natural-scroll", subtitle: "Scroll in the direction your fingers move" },
+    { tab: 4, category: "Touchpad", icon: "touchpad_mouse", title: "Touchpad scroll method", anchor: "Scroll method", subtitle: "Choose the touchpad scroll gesture" },
+    { tab: 4, category: "Mouse", icon: "mouse", title: "Mouse natural scrolling", anchor: "mouse-natural-scroll", subtitle: "Reverse the mouse wheel direction" },
+    { tab: 4, category: "Trackpoint", icon: "mouse", title: "Trackpoint natural scrolling", anchor: "trackpoint-natural-scroll", subtitle: "Reverse the TrackPoint scroll direction" },
+    { tab: 4, category: "Pointer", icon: "speed", title: "Pointer acceleration", anchor: "mouse-accel-speed", subtitle: "Adjust mouse and TrackPoint acceleration" },
+    { tab: 5, category: "Connections", icon: "wifi", title: "Wi-Fi", anchor: "Network", subtitle: "Connect, forget, and manage saved networks" },
     { tab: 6, category: "Connections", icon: "bluetooth", title: "Bluetooth", subtitle: "Pair and connect nearby devices" },
     { tab: 7, category: "Media popup", icon: "image", title: "Show album art", subtitle: "Show artwork in the media popup" },
     { tab: 7, category: "Media popup", icon: "linear_scale", title: "Show progress bar", subtitle: "Show playback progress" },
@@ -121,7 +121,7 @@ PanelWindow {
     { tab: 8, category: "Lock screen", icon: "schedule", title: "Clock face", subtitle: "Choose the lock-screen clock style" },
     { tab: 8, category: "Idle and power", icon: "lock", title: "Lock after inactivity", subtitle: "Set the idle lock timeout" },
     { tab: 8, category: "Idle and power", icon: "bedtime", title: "Suspend after inactivity", subtitle: "Set the idle suspend timeout" },
-    { tab: 8, category: "Power", icon: "bolt", title: "Power Profiles", subtitle: "Choose the automatic power profile" },
+    { tab: 8, category: "Power", icon: "bolt", title: "Power Profiles", anchor: "Power profiles", subtitle: "Choose the automatic power profile" },
     { tab: 8, category: "Power", icon: "coffee", title: "Caffeine", subtitle: "Temporarily prevent idle actions" },
     { tab: 9, category: "Notifications", icon: "do_not_disturb_on", title: "Do Not Disturb", subtitle: "Suppress notification toasts" },
     { tab: 9, category: "Notifications", icon: "bedtime", title: "Quiet hours", subtitle: "Silence notifications during a schedule" },
@@ -133,17 +133,17 @@ PanelWindow {
     { tab: 10, category: "Diagnostics", icon: "memory", title: "Memory (RAM)", subtitle: "View current memory usage" },
     { tab: 10, category: "Diagnostics", icon: "storage", title: "Disk Storage", subtitle: "View root filesystem usage" },
     { tab: 10, category: "Diagnostics", icon: "swap_horiz", title: "Swap", subtitle: "View swap usage" },
-    { tab: 10, category: "Diagnostics", icon: "thermostat", title: "CPU Temperature", subtitle: "View processor temperature" },
+    { tab: 10, category: "Diagnostics", icon: "thermostat", title: "CPU Temperature", anchor: "CPU Temp", subtitle: "View processor temperature" },
     { tab: 10, category: "Diagnostics", icon: "mode_fan", title: "Fan Speed", subtitle: "View fan speed when available" },
     { tab: 10, category: "Diagnostics", icon: "battery_full", title: "Battery", subtitle: "View battery status" },
     { tab: 10, category: "Diagnostics", icon: "battery_alert", title: "Battery Health", subtitle: "View battery health" },
     { tab: 10, category: "Diagnostics", icon: "battery_charging_full", title: "Battery Cycles", subtitle: "View battery cycle count" },
     { tab: 10, category: "Diagnostics", icon: "trending_up", title: "Load Average", subtitle: "View one, five, and fifteen minute load" },
     { tab: 10, category: "Shell actions", icon: "refresh", title: "Reload Quickshell", subtitle: "Restart the shell process" },
-    { tab: 11, category: "Application shortcuts", icon: "apps", title: "App shortcuts", subtitle: "Launch applications and common actions" },
-    { tab: 11, category: "Window shortcuts", icon: "window", title: "Window shortcuts", subtitle: "Focus, move, and resize windows" },
-    { tab: 11, category: "Workspace shortcuts", icon: "workspaces", title: "Workspace shortcuts", subtitle: "Move between and manage workspaces" },
-    { tab: 11, category: "System shortcuts", icon: "keyboard", title: "System shortcuts", subtitle: "Use shell, media, brightness, and power shortcuts" }
+    { tab: 11, category: "Application shortcuts", icon: "apps", title: "App shortcuts", anchor: "Apps", subtitle: "Launch applications and common actions" },
+    { tab: 11, category: "Window shortcuts", icon: "window", title: "Window shortcuts", anchor: "Windows", subtitle: "Focus, move, and resize windows" },
+    { tab: 11, category: "Workspace shortcuts", icon: "workspaces", title: "Workspace shortcuts", anchor: "Workspaces", subtitle: "Move between and manage workspaces" },
+    { tab: 11, category: "System shortcuts", icon: "keyboard", title: "System shortcuts", anchor: "System", subtitle: "Use shell, media, brightness, and power shortcuts" }
   ]
 
   function tabLabel(tabIndex) {
@@ -314,7 +314,7 @@ PanelWindow {
 
   Process {
     id: idleCheck
-    command: ["sh", "-c", "pgrep -x swayidle >/dev/null 2>&1 && echo active || echo inactive"]
+    command: [Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh", "status"]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
@@ -368,11 +368,77 @@ PanelWindow {
     if (mainItem) mainItem.forceActiveFocus()
   }
 
+  function selectSearchResult(entry) {
+    if (!entry) return
+    root.searchTargetTitle = entry.anchor || entry.title
+    root.selectTab(entry.tab)
+    searchTargetTimer.restart()
+  }
+
+  property string searchTargetTitle: ""
+
+  function findSearchTarget(item, title) {
+    if (!item || !item.visible) return null
+    var names = [item.objectName, item.accessibleName, item.title,
+                 item.label, item.labelText, item.text, item.pageTitle]
+    for (var n = 0; n < names.length; n++) {
+      if (names[n] && String(names[n]).toLowerCase() === title.toLowerCase()) return item
+    }
+    if (item.contentItem && item.contentItem !== item) {
+      var contentMatch = root.findSearchTarget(item.contentItem, title)
+      if (contentMatch) return contentMatch
+    }
+    var children = item.children || []
+    for (var i = 0; i < children.length; i++) {
+      var match = root.findSearchTarget(children[i], title)
+      if (match) return match
+    }
+    return null
+  }
+
+  function revealSearchTarget() {
+    var page = tabLoader.item
+    if (!page) return
+    var target = root.findSearchTarget(page, root.searchTargetTitle)
+    if (!target) {
+      searchField.input.forceActiveFocus()
+      return
+    }
+    if (page.contentY !== undefined) {
+      var position = target.mapToItem(page, 0, 0)
+      page.contentY = Math.max(0, Math.min(page.contentY + position.y - Config.spacingLarge,
+        Math.max(0, page.contentHeight - page.height)))
+    }
+    var highlightPosition = target.mapToItem(tabContainer, 0, 0)
+    searchHighlight.x = highlightPosition.x
+    searchHighlight.y = highlightPosition.y
+    searchHighlight.width = target.width
+    searchHighlight.height = target.height
+    searchHighlight.visible = true
+    highlightTimer.restart()
+    if (target.activeFocusOnTab) target.forceActiveFocus()
+    else if (!root.focusFirstFocusable(target)) root.focusFirstFocusable(target.parent)
+    root.searchTargetTitle = ""
+    searchField.text = ""
+  }
+
+  Timer {
+    id: highlightTimer
+    interval: 1300
+    onTriggered: searchHighlight.visible = false
+  }
+
+  Timer {
+    id: searchTargetTimer
+    interval: 60
+    repeat: false
+    onTriggered: root.revealSearchTarget()
+  }
+
   function selectTab(index) {
     root.currentTab = Math.max(0, Math.min(tabRepeater.count - 1, index))
     root.focusTab(root.currentTab)
   }
-
   function focusFirstFocusable(item) {
     if (!item || !item.visible) return false
 
@@ -739,8 +805,7 @@ PanelWindow {
             onAccepted: {
               var results = root.searchResults
               if (results.length > 0) {
-                root.selectTab(results[0].tab)
-                input.text = ""
+                root.selectSearchResult(results[0])
               }
             }
           }
@@ -914,24 +979,16 @@ PanelWindow {
                     title: searchEntry.modelData.title
                     subtitle: searchEntry.modelData.subtitle
                     accessibleName: searchEntry.modelData.title
-                    accessibleDescription: "Jump to " + root.entryContext(searchEntry.modelData)
-                      + ". " + searchEntry.modelData.subtitle
-
                     Keys.onReturnPressed: function(event) {
-                      root.selectTab(searchEntry.modelData.tab)
-                      searchField.text = ""
+                      root.selectSearchResult(searchEntry.modelData)
                       event.accepted = true
                     }
                     Keys.onSpacePressed: function(event) {
-                      root.selectTab(searchEntry.modelData.tab)
-                      searchField.text = ""
+                      root.selectSearchResult(searchEntry.modelData)
                       event.accepted = true
                     }
 
-                    onClicked: {
-                      root.selectTab(searchEntry.modelData.tab)
-                      searchField.text = ""
-                    }
+                    onClicked: root.selectSearchResult(searchEntry.modelData)
                   }
                 }
               }
@@ -990,6 +1047,16 @@ PanelWindow {
                 default: return generalTabComponent
               }
             }
+          }
+
+          Rectangle {
+            id: searchHighlight
+            visible: false
+            z: 10
+            color: "transparent"
+            radius: Config.shapeMedium
+            border.width: 2
+            border.color: Colors.primary
           }
 
           Component {

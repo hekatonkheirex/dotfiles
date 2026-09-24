@@ -11,7 +11,6 @@ PanelWindow {
   id: root
 
   property int notificationCount: 0
-  property QtObject notificationServer: null
   property string barPosition: "top"
   // PanelWindow's Wayland surface is not safe to reuse across a reload when
   // the theme-dependent namespace may have changed. The shell enables this
@@ -1102,13 +1101,4 @@ PanelWindow {
     }
   }
 
-  Binding {
-    target: root
-    property: "notificationCount"
-    // NotificationServer exposes trackedNotifications as an ObjectModel;
-    // use its values list so the indicator follows additions/removals.
-    value: notificationServer && notificationServer.trackedNotifications
-      ? notificationServer.trackedNotifications.values.length
-      : 0
-  }
 }

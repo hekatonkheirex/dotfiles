@@ -80,7 +80,7 @@ Item {
   function parseWifiList(output) {
     var lines = String(output || "").split(/\r?\n/)
     var list = [];
-    var seenSSIDs = {};
+    var seenSSIDs = Object.create(null);
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
       if (line === "") continue;

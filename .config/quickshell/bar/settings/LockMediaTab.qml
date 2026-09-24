@@ -358,14 +358,14 @@ Flickable {
           checkable: true
           accessibleName: "Caffeine mode"
           accessibleDescription: root.caffeineOn
-            ? "Enabled; idle lock, display off, and suspend are paused"
-            : "Disabled; idle lock, display off, and suspend are active"
+            ? "Enabled; idle lock, display off, and suspend timers are paused; lid-close suspend still locks"
+            : "Disabled; idle lock, display off, and suspend timers are active; lid-close suspend still locks"
           onActivated: {
             if (root.caffeineOn) {
               Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
               root.caffeineOn = false
             } else {
-              Quickshell.execDetached(["killall", "swayidle"])
+              Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh", "stop"])
               root.caffeineOn = true
             }
           }

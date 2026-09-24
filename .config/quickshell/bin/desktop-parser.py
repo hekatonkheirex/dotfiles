@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, os, re, shlex, sys, tempfile
+import json, os, re, shlex, shutil, sys, tempfile
 from pathlib import Path
 
 XDG_DATA_HOME = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
@@ -76,13 +76,20 @@ def resolve_icon(icon_name):
     return ""
 
 def get_apps_mtime_sum():
-    total = 0.0
-    for d in APP_DIRS:
-        if d.exists():
-            total += d.stat().st_mtime
-    return total
+    """Fingerprint desktop files, not just directory entries."""
+    fingerprint = []
+    for appdir in APP_DIRS:
+        if not appdir.is_dir():
+            continue
+        for path in sorted(appdir.rglob("*.desktop")):
+            try:
+                stat = path.stat()
+                fingerprint.append([str(path), stat.st_mtime_ns, stat.st_size])
+            except OSError:
+                continue
+    return fingerprint
 
-CACHE_VERSION = 3
+CACHE_VERSION = 4
 
 FIELD_CODE_RE = re.compile(r"%[fFuUdDnNickvm]")
 
@@ -97,18 +104,18 @@ def parse_exec(exec_cmd):
     except ValueError:
         return []
 
-def load_cache(mtime_sum):
+def load_cache(fingerprint):
     if CACHE_PATH.exists():
         try:
             with open(CACHE_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if data.get("mtime_sum") == mtime_sum and data.get("version") == CACHE_VERSION:
+                if data.get("fingerprint") == fingerprint and data.get("version") == CACHE_VERSION:
                     return data.get("apps")
         except Exception:
             pass
     return None
 
-def save_cache(mtime_sum, apps):
+def save_cache(fingerprint, apps):
     temporary_path = None
     try:
         CACHE_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -116,7 +123,7 @@ def save_cache(mtime_sum, apps):
             os.chmod(CACHE_DIR, 0o700)
         fd, temporary_path = tempfile.mkstemp(prefix="app-cache.", dir=CACHE_DIR)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump({"mtime_sum": mtime_sum, "version": CACHE_VERSION, "apps": apps}, f)
+            json.dump({"fingerprint": fingerprint, "version": CACHE_VERSION, "apps": apps}, f)
             f.flush()
             os.fsync(f.fileno())
         os.chmod(temporary_path, 0o600)
@@ -128,26 +135,35 @@ def save_cache(mtime_sum, apps):
             except OSError:
                 pass
 
+
 def main():
-    mtime_sum = get_apps_mtime_sum()
-    cached_apps = load_cache(mtime_sum)
+    fingerprint = get_apps_mtime_sum()
+    cached_apps = load_cache(fingerprint)
     if cached_apps is not None:
         print(json.dumps(cached_apps))
         sys.exit(0)
 
     apps = []
-    seen = set()
+    # Freedesktop precedence is per desktop-file ID: the first entry wins,
+    # including Hidden=true tombstones in the user data directory.
+    seen_ids = set()
     for appdir in APP_DIRS:
-        if not appdir.exists():
+        if not appdir.is_dir():
             continue
-        for f in sorted(appdir.iterdir()):
-            if f.suffix != ".desktop":
+        for f in sorted(appdir.rglob("*.desktop")):
+            desktop_id = f.relative_to(appdir).as_posix().replace("/", "-")
+            if desktop_id in seen_ids:
                 continue
+            seen_ids.add(desktop_id)
             entry = parse_desktop(f)
             if not entry:
                 continue
-            no_display = entry.get("NoDisplay", "false").lower()
-            if no_display in ("true", "1"):
+            if entry.get("Hidden", "false").lower() in ("true", "1"):
+                continue
+            if entry.get("NoDisplay", "false").lower() in ("true", "1"):
+                continue
+            try_exec = entry.get("TryExec", "").strip()
+            if try_exec and not (os.path.isabs(try_exec) and os.access(try_exec, os.X_OK)) and not shutil.which(try_exec):
                 continue
             name = entry.get("Name", f.stem)
             exec_cmd = entry.get("Exec", "")
@@ -156,10 +172,6 @@ def main():
             argv = parse_exec(exec_cmd)
             if not argv:
                 continue
-            key = (name, tuple(argv))
-            if key in seen:
-                continue
-            seen.add(key)
             icon_name = entry.get("Icon", "")
             apps.append({
                 "name": name,
@@ -173,7 +185,7 @@ def main():
                 "terminal": entry.get("Terminal", "false").lower() == "true",
             })
     apps.sort(key=lambda a: a["name"].lower())
-    save_cache(mtime_sum, apps)
+    save_cache(fingerprint, apps)
     print(json.dumps(apps))
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ Item {
   // Read the compositor-owned state directly as well as the local mirror so
   // bar surfaces stay hidden while the protocol state is changing.
   readonly property bool compositorLocked: Config.isNiri && sessionLock.locked
+  readonly property bool secure: Config.isNiri && sessionLock.locked && sessionLock.secure
   onLockedChanged: {
     updateReloadWatchState()
     if (locked) {
