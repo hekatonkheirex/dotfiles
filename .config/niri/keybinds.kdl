@@ -272,7 +272,7 @@ binds {
   //
   // The allow-inhibiting=false property can be applied to other binds as well,
   // which ensures niri always processes them, even when an inhibitor is active.
-  // Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+  Mod+Shift+Escape allow-inhibiting=false repeat=false hotkey-overlay-title="Toggle Shortcut Inhibition" { toggle-keyboard-shortcuts-inhibit; }
 
   // The quit action will show a confirmation dialog to avoid accidental exits.
   Mod+Shift+E { quit; }

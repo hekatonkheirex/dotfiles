@@ -13,7 +13,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Notification handling** with history and toasts, styled through the selected UI system.
 - **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; the Quick Menu and Notifications tab share the persisted setting.
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
-- **App launcher** with fuzzy app search, local offline **voice search**, shell actions via `>` (including capture), clipboard history via `;`, and wallpaper search via `@`.
+- **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, local offline **voice search**, shell actions via `>` (including capture), clipboard history via `;`, and wallpaper search via `@`.
 - **On-Screen Display (OSD)** overlay for volume, brightness, mic mute, airplane mode, bluetooth, and keyboard backlight (polled from sysfs since the EC never emits a key event for it).
 - **Settings panel**: A multi-functional, resizable and draggable panel launched via `XF86Tools` with twelve tabs:
   - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
@@ -126,7 +126,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── quickmenu                # Quick menu trigger (private runtime trigger)
 │   ├── settings                 # Settings trigger (private runtime trigger)
 │   ├── commandcenter            # Legacy alias for settings
-│   ├── lock                     # Lock trigger (private runtime trigger)
+│   ├── lock                     # Lock helper; waits for Niri's secure session-lock state
 │   ├── emit-trigger             # Validated private runtime trigger writer
 │   ├── runtime-dir.sh            # Shared private runtime-directory setup
 │   ├── toggle-airplane.sh       # Bounded Wi-Fi/Bluetooth airplane-mode toggle
@@ -143,7 +143,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── verify-ui-suite.sh       # Verifies user-level assets across all five UI style families
 │   ├── install-sddm-integration.sh # Installs the root SDDM bridge and polkit policy
 │   ├── verify-sddm-integration.sh  # Verifies the bridge and all supported SDDM theme assets
-│   ├── idle.sh                  # swayidle: dim, lock, display off, suspend
+│   ├── idle.sh                  # Caffeine-controlled swayidle timeouts: dim, lock, display off, suspend
 │   ├── idle-brightness-off      # Saves and dims brightness in the runtime directory
 │   ├── idle-brightness-restore  # Validates and restores saved brightness
 │   ├── sync-theme-mode-locked.sh # Serialized wrapper for the external theme synchronizer
@@ -173,14 +173,14 @@ Service file at `~/.config/systemd/user/quickshell.service`:
 Description=Quickshell Desktop Panel
 PartOf=graphical-session.target
 After=graphical-session.target
+# Stop restarting if it crashes more than 5 times in 10 seconds.
+StartLimitIntervalSec=10s
+StartLimitBurst=5
 
 [Service]
 ExecStart=/usr/bin/quickshell
 Restart=on-failure
 RestartSec=2s
-# Stop restarting if it crashes more than 5 times in 10 seconds.
-StartLimitIntervalSec=10s
-StartLimitBurst=5
 
 [Install]
 WantedBy=graphical-session.target
@@ -189,6 +189,7 @@ WantedBy=graphical-session.target
 In `~/.config/niri/startup.kdl`:
 
 ```
+spawn-sh-at-startup "exec swayidle -w before-sleep $HOME/.config/quickshell/scripts/lock"
 spawn-sh-at-startup "~/.config/quickshell/scripts/idle.sh"
 spawn-sh-at-startup "dbus-update-activation-environment --systemd --all && systemctl --user start quickshell.service"
 ```
@@ -218,7 +219,7 @@ switch-events {
 }
 ```
 
-`scripts/lid.sh` (an equivalent standalone entry point for non-Niri lid handlers) locks via the same `scripts/lock` trigger.
+`scripts/lid.sh` (an equivalent standalone entry point for non-Niri lid handlers) locks via the same `scripts/lock` helper.
 
 ## Keybindings
 
@@ -229,7 +230,7 @@ Keybindings live in Niri's `~/.config/niri/keybinds.kdl` and spawn Quickshell's 
 | `Mod+D` | Toggle app launcher popup | `scripts/launcher` → private runtime trigger |
 | `Mod+Escape` | Toggle quick settings menu | `scripts/quickmenu` → private runtime trigger |
 | `XF86Tools` | Toggle Settings popup | `scripts/settings` → private runtime trigger |
-| `Mod+Alt+L` | Lock screen | `scripts/lock` → private runtime trigger |
+| `Mod+Alt+L` | Lock screen | `scripts/lock` → Niri secure-lock acknowledgement |
 | `XF86AudioRaiseVolume` / `LowerVolume` / `Mute` | Volume up/down/mute | `wpctl` + private runtime trigger |
 | `XF86AudioMicMute` | Mic mute toggle | `wpctl` + private runtime trigger |
 | `XF86AudioPlay/Stop/Prev/Next` | Media transport controls | `playerctl` |
@@ -282,6 +283,8 @@ The launcher keeps provider selection explicit so the normal app search stays un
 
 Clipboard previews are shown only after opening the provider. The enabled `clipboard-history.service` records new text through `scripts/clipboard-history-capture`. Clipboard history can contain passwords, tokens, and private messages; use the clear action when that history should be removed.
 
+App discovery follows XDG desktop-file precedence: a user `Hidden=true` entry masks the matching system entry, `TryExec` entries appear only when their executable is available, and edits to desktop files invalidate the private launcher cache.
+
 ## Lock Screen
 
 On Niri, `bar/LockScreen.qml` provides the themed lock surface using
@@ -296,6 +299,10 @@ The Niri lock surface includes:
 - Liquid Glass always uses the active wallpaper with a full-screen blur and a restrained veil; its lock surface follows the macOS two-zone layout with a top date/time and a bottom identity prompt that reveals authentication on click, while other styles keep the existing wallpaper toggle and animated/flat fallback
 - Lock requests are available through `IpcHandler.lock()`, `scripts/lock`, or the private runtime trigger; Mango routes them to `swaylock`
 
+Niri starts an independent swayidle before-sleep watcher. It remains active
+when Caffeine pauses the idle timeout watcher, and the lock helper waits for
+WlSessionLock to report that every output is covered before returning.
+
 ## Popup System
 
 Popup visibility is driven entirely by the bar's `openPopup` string property, held on `Bar.qml` and read by `shell.qml`. Each indicator widget signals a popup name, and the corresponding popup shows/hides accordingly.
@@ -303,6 +310,8 @@ Popup visibility is driven entirely by the bar's `openPopup` string property, he
 Popup positioning follows the active bar placement (computed in `shell.qml`'s `popupMarginLeft`/`popupMarginTop`):
 - **Top/bottom**: Anchored past the bar edge and horizontally centered on the clicked widget's X coordinate, clamped to fit the screen.
 - **Left/right**: Anchored past the bar edge and vertically aligned to the triggering widget's Y coordinate.
+
+All bar-owned popups, the shield, Settings, notifications, and power confirmation use the bar's display. Placement and wallpaper-launcher sizing are clamped in that display's local coordinates rather than the primary monitor's dimensions.
 
 Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` watches the popup window's active focus item so moving focus between controls inside a popup does not dismiss it, while application deactivation closes transient popups. The full-page Settings surface remains open through Mango's transient layer-focus changes so switching tags or clients does not dismiss it. `PopupBase.qml` supplies the shared M3 background/border/entry-animation chrome that most popups build on; Liquid Glass adds translucent functional surfaces and a restrained sheen to that same path. Actual backdrop blur remains compositor-owned and is optional when the compositor has background effects enabled.
 
@@ -357,20 +366,20 @@ Handles popup dismissal on app focus loss with target null checks. On Niri and M
 - **Bar.qml**: Single component for all four placements and both display styles (continuous full bar / floating pills bar), driven by `barPosition`, `horizontal`, `pillsBar`, and `fullBar` properties. In pills mode, every visible widget receives its own floating surface while the transparent panel still provides the input region for gaps and outside-click dismissal. Surface geometry follows the selected UI style.
 - **WorkspaceIndicator**: 100% event-driven. Streams workspaces from Niri (`niri msg event-stream`) using `SplitParser`. Runs only when visible. Anchored directly in the workspace zone so it stays stationary in both display styles and orientations.
 - **Mango layout indicator**: Reads the active tag's layout from the shared `mmsg watch all-monitors` stream and displays its readable name between the workspace and focused-window indicators. Visibility is controlled from General > Bar Contents.
-- **AudioIndicator / BrightnessIndicator / MediaIndicator / WeatherIndicator**: Event-driven watchers and polling loops are bound to their active/visible state, so they are suspended when their parent bar is hidden, saving CPU wakeups and RAM.
+- **AudioIndicator / BrightnessIndicator / MediaIndicator / WeatherIndicator**: Event-driven watchers and polling loops are bound to their active/visible state. Audio writes for sink and microphone are serialized and coalesced during rapid slider/toggle input, with a final state read after the latest write.
 - **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
 - **WifiPanel / BtPanel**: Network and Bluetooth controls live in Settings tabs, including saved Wi-Fi profiles, Bluetooth discovery/pairing, and connected-device actions. They are intentionally not rendered as compact bar indicators.
 - **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu, orientation-aware layout.
 - **QuickMenu**: Presents a five-tile Quick Settings row for Caffeine, airplane mode, Bluetooth, DND, and Settings, plus a five-button power row containing lock and confirmed power actions.
-- **Settings**: Provides the twelve tabs listed above, remembers the last selected tab, keeps Network and Bluetooth Settings-only, and preserves Settings/power entry points even when bar content switches are disabled. The panel can be moved from its header and resized from the bottom-right corner.
-- **Weather**: Uses a configured manual location by default, optionally supports IP geolocation, refreshes on the persisted interval, reports the last update time, and shows an explicit unavailable/offline state when data cannot be fetched.
+- **Settings**: Provides the twelve tabs listed above, remembers the last selected tab, keeps Network and Bluetooth Settings-only, and preserves Settings/power entry points even when bar content switches are disabled. The panel can be moved from its header and resized from the bottom-right corner. Search results open and scroll to the matching control or section, with keyboard focus and a brief highlight.
+- **Weather**: Uses a configured manual location by default, optionally supports IP geolocation, refreshes on the persisted interval, and reports the last update time. Refreshes coalesce rather than aborting an active fetch; invalid responses and command failures appear in the popup as errors.
 - **Notifications**: Retains history while DND or quiet hours suppress toast delivery; critical-notification bypass, toast placement, retention, and clear-history actions are persisted.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a polling re-query runs in `shell.qml` after reloads.
 - **Theme ownership**: Live remains Matugen's wallpaper-generated palette for Material 3, Neo Brutalism, Nothing Evolution, and external desktop themes. Fixed palettes are resolved by `config/PaletteCatalog.js` and exported to `~/.cache/matugen/fixed_palette.json`; wallpaper generation keeps `~/.cache/matugen/live_palette.json`, and `scripts/sync-active-palette.sh` activates the selected source into the shared current cache before rendering the Matugen/template path. This keeps Quickshell, GTK, Kvantum, Kitty, Starship, btop, Neovim, Niri, and the installed Material 3/Neo outputs on one active palette without losing the Live source when Fixed is selected. Nothing Classic, Nothing Evolution, and Ghost retain their own style-specific palette behavior. `scripts/sync-active-palette.sh` is the shared refresh entry point: it activates the selected cache, renders it with Matugen, regenerates the existing Material 3 and Neo Brutalism desktop themes, and re-runs the light/dark synchronizer. `scripts/apply-wallpaper.sh` refreshes the Live cache even when Fixed is selected, then reactivates the chosen source. `config/Colors.qml` consumes the selected semantic source, while `sync-active-palette.sh` refreshes Material 3 and Liquid Glass's existing Matugen terminal paths in place and `generate-neo-kitty-theme.sh` continues to refresh Neo's terminal files from the active cache. The root-owned `scripts/sync-sddm-theme-root.sh` helper, installed at `/usr/local/libexec/quickshell-sync-sddm-theme` with its polkit action, supports the single dark-only `Ghost-SDDM` greeter for both modes and updates the SDDM drop-in only when the explicit selector changes. `scripts/apply-accent-color.sh` is a compatibility stub. The Material 3, Neo Brutalism, Nothing, and Ghost style choices are propagated to GTK, icons, Qt/Kvantum, fonts, Kitty, Starship, btop, Neovim, and SDDM by the theme synchronizers and to Niri focus-ring/window-border width/colors by `sync-terminal-theme.sh`; Liquid Glass selects the MacTahoe GTK/icon/Kvantum/cursor companion while retaining its local QML surfaces and the Matugen-backed external terminal/editor/monitor/compositor assets. Neo full-bar geometry owns its extra layer-shell reservation in `Bar.qml`.
-- **New deployment**: `yadm bootstrap` (or `/home/mura/install.sh`) offers to run `scripts/install-ui-suite.sh`. The installer clones the Material 3, Neo Brutalism, Nothing, and Ghost source projects into `~/Projects`, reuses their existing build/install scripts, installs the system SDDM outputs and bridge, syncs the active terminal/editor/desktop state, and leaves generated theme assets outside yadm. Run it directly with `./scripts/install-ui-suite.sh`; use `--dry-run`, `--skip-sddm`, `--skip-cursors`, or `--skip-nvim` for controlled deployments. `scripts/verify-ui-suite.sh` checks GTK, icons, Kvantum, cursors, Kitty, Starship, btop, Neovim, and SDDM across the full suite.
+- **New deployment**: `yadm bootstrap` (or `/home/mura/install.sh`) offers to run `scripts/install-ui-suite.sh`. The installer clones the Material 3, Neo Brutalism, Nothing, and Ghost source projects into `~/Projects`, reuses their existing build/install scripts, and installs the system SDDM outputs and bridge. Generated SDDM trees are checked before privilege escalation; only named, managed theme directories are replaced, leaving unrelated installed themes alone. It syncs the active terminal/editor/desktop state and leaves generated theme assets outside yadm. Run it directly with `./scripts/install-ui-suite.sh`; use `--dry-run`, `--skip-sddm`, `--skip-cursors`, or `--skip-nvim` for controlled deployments. `scripts/verify-ui-suite.sh` checks GTK, icons, Kvantum, cursors, Kitty, Starship, btop, Neovim, and SDDM across the full suite.
 - **Appearance tab**: Owns color mode, Live/Fixed source, fixed palette family and variant, contrast level, UI style, palette reload, bar placement, bar display style, UI sizing, independent bar-clock sizing controls, and the confirmed appearance-default reset.
 - **Display & Input tab**: Reads and safely edits Niri output, input, and edge-gesture settings through the validated `scripts.niri_config` CLI. Remote controls only read while their Settings page is active.
-- **Wallpaper tab**: Lists images from `~/Pictures/Walls`; `scripts/generate-thumbnails.sh` produces and caches 200×130 center-cropped thumbnails under `~/.cache/quickshell/wallpaper-thumbs`, regenerating only when the source is newer than the cached thumbnail. The tab tracks the active wallpaper, supports keyboard selection, and exposes randomize/apply actions.
+- **Wallpaper tab**: Lists images from `~/Pictures/Walls`; `scripts/generate-thumbnails.sh` produces 200×130 center-cropped thumbnails under `~/.cache/quickshell/wallpaper-thumbs`, regenerating only when the source is newer. Conversions run with bounded concurrency and publish complete files atomically; failures return a nonzero exit status. The tab tracks the active wallpaper, supports keyboard selection, and exposes randomize/apply actions.
 - **Lock & Power tab**: Owns lock-screen options, idle lock/suspend timeouts, Caffeine, TLP power-profile selection with automatic AC/battery restore, and the Evolution-only Gooey/Micrographics clock-face selector.
 - **Media tab**: Owns media artwork, progress, and always-visible-control preferences for the media popup.
 - **Media / MPRIS**: `scripts/mpris_monitor.py` broadcasts the active player's state as newline-delimited JSON over stdout (consumed via `SplitParser`), and also listens on a private runtime named pipe for out-of-band pokes. `scripts/mpris_control.py` sends play/pause/next/prev to whichever player is currently active (preferring a "Playing" one); the visualizer is available in the Settings media controls.

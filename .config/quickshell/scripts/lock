@@ -16,11 +16,25 @@ case "${desktop_names,,}" in
     ;;
 esac
 
-# Keep the Quickshell lock screen as the normal Niri path. If the shell crashed
-# while Niri still holds the session lock, use the installed standalone locker
-# so the red fail-closed screen can be recovered without restarting Niri.
+# On Niri, read the current compositor-backed lock state from Quickshell.
+# A marker from a previous shell process must never authorize suspend.
 if [ -n "$quickshell_bin" ] \
-  && "$quickshell_bin" list 2>/dev/null | rg -q 'Config path: .*/\.config/quickshell/shell\.qml'; then
+  && /usr/bin/timeout --foreground 1s "$quickshell_bin" list 2>/dev/null | rg -q 'Config path: .*/\.config/quickshell/shell\.qml'; then
+  if printf '%s' "$desktop_names" | rg -qi 'niri'; then
+    if /usr/bin/timeout --foreground 1s "$quickshell_bin" ipc call shell lock >/dev/null 2>&1; then
+      attempt=0
+      while [ "$attempt" -lt 30 ]; do
+        if [ "$(/usr/bin/timeout --foreground 1s "$quickshell_bin" ipc prop get shell lockSecure 2>/dev/null)" = "true" ]; then
+          exit 0
+        fi
+        sleep 0.05
+        attempt=$((attempt + 1))
+      done
+      printf 'Quickshell did not confirm a secure Niri session lock.\n' >&2
+    fi
+    exec swaylock -f
+  fi
+
   exec "$(dirname -- "$0")/emit-trigger" qslock-trigger
 fi
 

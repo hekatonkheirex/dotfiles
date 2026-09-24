@@ -275,6 +275,7 @@ Flickable {
             onWriteFailed: displayInputTab.onFieldFailed(message)
           }
           RemoteSwitchRow {
+            objectName: "touchpad-natural-scroll"
             Layout.fillWidth: true
             live: displayInputTab.visible && displayInputTab.root && displayInputTab.root.visible
             cliFile: "inputs"; cliField: "touchpad-natural-scroll"
@@ -307,6 +308,7 @@ Flickable {
           }
 
           RemoteSwitchRow {
+            objectName: "mouse-natural-scroll"
             Layout.fillWidth: true
             live: displayInputTab.visible && displayInputTab.root && displayInputTab.root.visible
             cliFile: "inputs"; cliField: "mouse-natural-scroll"
@@ -315,6 +317,7 @@ Flickable {
             onWriteFailed: displayInputTab.onFieldFailed(message)
           }
           RemoteSliderRow {
+            objectName: "mouse-accel-speed"
             Layout.fillWidth: true
             live: displayInputTab.visible && displayInputTab.root && displayInputTab.root.visible
             cliFile: "inputs"; cliField: "mouse-accel-speed"
@@ -337,6 +340,7 @@ Flickable {
           }
 
           RemoteSwitchRow {
+            objectName: "trackpoint-natural-scroll"
             Layout.fillWidth: true
             live: displayInputTab.visible && displayInputTab.root && displayInputTab.root.visible
             cliFile: "inputs"; cliField: "trackpoint-natural-scroll"

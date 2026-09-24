@@ -283,6 +283,7 @@ ShellRoot {
   IpcHandler {
     id: ipc
     target: "shell"
+    readonly property bool lockSecure: lockScreen.secure
 
     function launcher() {
       if (bar.horizontal) {
@@ -389,6 +390,7 @@ ShellRoot {
     id: notificationToast
     notificationServer: notifServer
     barPosition: shell.barPosition
+    screen: bar.screen
   }
 
   Connections {
@@ -413,6 +415,7 @@ ShellRoot {
 
   PopupShield {
     id: shield
+    screen: bar.screen
     visible: bar.openPopup !== "" && !lockScreen.locked
     onShieldClicked: bar.openPopup = ""
   }
@@ -420,7 +423,7 @@ ShellRoot {
   Bar {
     id: bar
     barPosition: shell.barPosition
-    notificationServer: notifServer
+    notificationCount: notificationPopup.count
     fullBar: shell.fullBar
     // Wait for persisted settings before exposing the panel so the first
     // mapped surface uses the final bar geometry and style.
@@ -435,101 +438,110 @@ ShellRoot {
     visible: bar.openPopup === "audio" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
+    screen: bar.screen
 
     anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
     anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
   BrightnessPopup {
     id: brightnessPopup
     visible: bar.openPopup === "brightness" && !lockScreen.locked
     anchorY: bar.popupAnchorY
+    screen: bar.screen
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
     anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
   MediaPopup {
     id: mediaPopup
     visible: bar.openPopup === "media" && !lockScreen.locked
     anchorY: bar.popupAnchorY
+    screen: bar.screen
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
     anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
   WeatherPopup {
     id: weatherPopup
     visible: bar.openPopup === "weather" && !lockScreen.locked
     anchorY: bar.popupAnchorY
+    screen: bar.screen
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
     anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
   BatteryPopup {
     id: batteryPopup
     visible: bar.openPopup === "battery" && !lockScreen.locked
     anchorY: bar.popupAnchorY
+    screen: bar.screen
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
     anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
   CalendarPopup {
     id: calendarPopup
     visible: bar.openPopup === "calendar" && !lockScreen.locked
     anchorY: bar.popupAnchorY
+    screen: bar.screen
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
     anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
   NotificationPopup {
     id: notificationPopup
     visible: bar.openPopup === "notification" && !lockScreen.locked
     anchorY: bar.popupAnchorY
+    screen: bar.screen
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
     anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
   QuickMenu {
     id: quickMenu
     visible: bar.openPopup === "quickmenu" && !lockScreen.locked
     anchorY: bar.popupAnchorY
+    screen: bar.screen
     onDismissed: bar.openPopup = ""
     onLockRequested: shell.requestLock()
     onSettingsRequested: bar.openPopup = "settings"
 
     anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
     anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
   PanelWindow {
     id: powerConfirmationWindow
+    screen: bar.screen
     visible: quickMenu.pendingPowerIndex >= 0 && !lockScreen.locked
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
@@ -563,6 +575,7 @@ ShellRoot {
 
   SettingsPanel {
     id: settingsPanel
+    screen: bar.screen
     visible: bar.openPopup === "settings" && !lockScreen.locked && !lockScreen.compositorLocked
     onDismissed: bar.openPopup = ""
     onLockRequested: shell.requestLock()
@@ -584,17 +597,18 @@ ShellRoot {
 
   LauncherPopup {
     id: launcherPopup
+    screen: bar.screen
     visible: bar.openPopup === "launcher" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
 
     anchors.left: true
     margins.left: launcherPopup.wallpaperMode
-      ? Math.max(0, (Screen.desktopAvailableWidth - launcherPopup.implicitWidth) / 2)
-      : shell.popupMarginLeft(implicitWidth, Screen.desktopAvailableWidth)
+      ? Math.max(0, (bar.screen.width - launcherPopup.implicitWidth) / 2)
+      : shell.popupMarginLeft(implicitWidth, bar.screen.width)
     anchors.top: true
     margins.top: launcherPopup.wallpaperMode
-      ? Math.max(0, (Screen.desktopAvailableHeight - launcherPopup.implicitHeight) / 2)
-      : shell.popupMarginTop(implicitHeight, Screen.desktopAvailableHeight)
+      ? Math.max(0, (bar.screen.height - launcherPopup.implicitHeight) / 2)
+      : shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 }

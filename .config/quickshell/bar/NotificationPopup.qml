@@ -11,28 +11,8 @@ PopupBase {
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500)
 
   property var notifications: []
-  property var notificationTimestamps: ({})
   property int count: 0
   readonly property int historyLimit: Math.max(1, Settings.notificationHistoryLimit)
-
-  function rememberNotification(n) {
-    if (!n || n.id === undefined || root.notificationTimestamps[n.id] !== undefined) return
-    var timestamps = Object.assign({}, root.notificationTimestamps)
-    timestamps[n.id] = Date.now()
-    root.notificationTimestamps = timestamps
-  }
-
-  function forgetNotification(n) {
-    if (!n || n.id === undefined || root.notificationTimestamps[n.id] === undefined) return
-    var timestamps = Object.assign({}, root.notificationTimestamps)
-    delete timestamps[n.id]
-    root.notificationTimestamps = timestamps
-  }
-
-  function notificationTimestamp(n) {
-    if (!n || n.id === undefined) return 0
-    return root.notificationTimestamps[n.id] || 0
-  }
 
   function twoDigits(value) {
     return value < 10 ? "0" + value : value.toString()
@@ -57,32 +37,46 @@ PopupBase {
     notifications = copy
     count = notifications.length
     for (var i = 0; i < removed.length; i++) {
-      if (removed[i]) {
-        removed[i].tracked = false
-        root.forgetNotification(removed[i])
-      }
+      var live = removed[i].liveNotif
+      if (live) live.tracked = false
     }
   }
 
   function addNotification(n) {
-    root.rememberNotification(n)
+    if (!n) return
+    var entry = {
+      id: n.id,
+      appName: n.appName || "",
+      summary: n.summary || "",
+      body: n.body || "",
+      timestamp: Date.now(),
+      liveNotif: n
+    }
     var copy = notifications.slice()
-    copy.push(n)
+    copy.push(entry)
     notifications = copy
     count = notifications.length
     root.trimHistory()
-  }
-
-  function removeNotification(n) {
-    for (var i = 0; i < notifications.length; i++) {
-      if (notifications[i] === n) {
-        var copy = notifications.slice()
-        copy.splice(i, 1)
-        notifications = copy
-        count = notifications.length
-        root.forgetNotification(n)
+    n.closed.connect(function() {
+      entry.liveNotif = null
+      for (var i = 0; i < root.notifications.length; i++) {
+        if (root.notifications[i] !== entry) continue
+        var updated = root.notifications.slice()
+        updated[i] = Object.assign({}, entry, { liveNotif: null })
+        root.notifications = updated
         return
       }
+    })
+  }
+
+  function removeNotification(entry) {
+    var copy = notifications.slice()
+    for (var i = 0; i < copy.length; i++) {
+      if (copy[i] !== entry) continue
+      copy.splice(i, 1)
+      notifications = copy
+      count = notifications.length
+      return
     }
   }
 
@@ -90,28 +84,20 @@ PopupBase {
     var copy = notifications.slice()
     notifications = []
     count = 0
-    notificationTimestamps = ({})
     for (var i = 0; i < copy.length; i++) {
-      // The bar reads NotificationServer.trackedNotifications. Explicitly
-      // untrack so clearing history also clears its bell. Setting tracked to
-      // false also sends the notification's close request.
-      if (copy[i]) copy[i].tracked = false
+      if (copy[i].liveNotif) copy[i].liveNotif.tracked = false
     }
   }
 
-  // Called externally from shell.qml on notification received
+  // Called externally from shell.qml on notification received.
   function onNotificationReceived(notif) {
     root.addNotification(notif)
-    notif.closed.connect(function() {
-      root.removeNotification(notif)
-    })
   }
 
   Connections {
     target: Settings
     function onNotificationHistoryLimitChanged() { root.trimHistory() }
   }
-
 
   Column {
     id: contentColumn
@@ -178,7 +164,7 @@ PopupBase {
               width: parent.width
               height: mainContainer.implicitHeight + Config.spacingSmall
 
-              readonly property QtObject notif: modelData
+              readonly property var notif: modelData
 
               Rectangle {
                 id: mainContainer
@@ -247,7 +233,7 @@ PopupBase {
                     }
 
                     Text {
-                      text: root.formatNotificationTimestamp(root.notificationTimestamp(notif))
+                      text: root.formatNotificationTimestamp(notif ? notif.timestamp : 0)
                       color: Colors.fgSurfaceVariant
                       font.family: Config.fontFamily
                       font.pixelSize: Config.typeLabelSmallSize
@@ -259,14 +245,14 @@ PopupBase {
                     IconButton {
                       size: 20
                       iconSize: 12
-                      iconLabel: "close"
+                      iconLabel: notif && notif.liveNotif !== null ? "close" : "delete"
                       iconColor: Colors.fgSurfaceVariant
-                      accessibleName: "Dismiss notification"
-                      tooltipText: "Dismiss notification"
+                      accessibleName: notif && notif.liveNotif !== null ? "Dismiss notification" : "Remove notification"
+                      tooltipText: notif && notif.liveNotif !== null ? "Dismiss notification" : "Remove notification"
                       onClicked: {
-                        if (index >= 0 && index < root.notifications.length) {
-                          root.notifications[index].tracked = false
-                        }
+                        if (!notif) return
+                        if (notif.liveNotif) notif.liveNotif.tracked = false
+                        else root.removeNotification(notif)
                       }
                     }
                   }

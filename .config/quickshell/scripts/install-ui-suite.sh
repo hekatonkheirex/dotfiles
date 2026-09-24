@@ -115,15 +115,63 @@ run_step() {
 install_sddm_dist() {
   local name=$1
   local dist_dir="$projects_dir/$name/dist"
+  local themes=()
+  case "$name" in
+    material3-expressive-sddm)
+      themes=(Material3-Expressive-Dynamic-SDDM Material3-Expressive-Dynamic-Dark-SDDM) ;;
+    neo-brutalism-sddm)
+      themes=(Neo-Brutalism-SDDM Neo-Brutalism-Dark-SDDM) ;;
+    nothing-sddm)
+      themes=(Nothing-OS-SDDM Nothing-OS-Dark-SDDM) ;;
+    ghost-sddm)
+      dist_dir="$projects_dir/ghost-sddm/.build"
+      themes=(Ghost-SDDM) ;;
+    *) die "unmanaged SDDM source project: $name" ;;
+  esac
+  [[ -d "$dist_dir" && ! -L "$dist_dir" ]] || die "missing or unsafe generated SDDM output: $dist_dir"
+  local item base found=0
+  while IFS= read -r -d '' item; do
+    [[ ! -L "$item" && ( -d "$item" || -f "$item" ) ]] || die "unsafe file in generated SDDM output: $item"
+    if [[ -d "$item" && "$item" == "$dist_dir/"* && ${item#"$dist_dir/"} != */* ]]; then
+      base=${item##*/}
+      local allowed=0 theme
+      for theme in "${themes[@]}"; do [[ "$base" == "$theme" ]] && allowed=1; done
+      (( allowed )) || die "unknown theme directory in generated output: $base"
+      found=1
+    fi
+  done < <(find "$dist_dir" -mindepth 1 -print0)
+  (( found )) || die "no known theme directories in generated output: $dist_dir"
+  for theme in "${themes[@]}"; do
+    [[ -d "$dist_dir/$theme" && ! -L "$dist_dir/$theme" ]] || die "missing managed SDDM theme: $dist_dir/$theme"
+  done
 
   if (( dry_run )); then
-    printf '[dry-run] copy %s/. -> %s/\n' "$dist_dir" "$sddm_theme_root"
+    printf '[dry-run] safely replace managed themes from %s under %s\n' "$dist_dir" "$sddm_theme_root"
     return
   fi
-  [[ -d "$dist_dir" ]] || die "missing generated SDDM output: $dist_dir"
   command -v sudo >/dev/null 2>&1 || die 'sudo is required for system-wide SDDM themes'
-  sudo install -d -m 0755 "$sddm_theme_root"
-  sudo cp -r "$dist_dir/." "$sddm_theme_root/"
+  sudo bash -s -- "$dist_dir" "$sddm_theme_root" "${themes[@]}" <<'ROOT_SCRIPT'
+set -euo pipefail
+src=$1 root=$2; shift 2
+install -d -o root -g root -m 0755 "$root"
+stage=$(mktemp -d "$root/.quickshell-stage.XXXXXX")
+trap 'rm -rf -- "$stage"' EXIT
+for theme in "$@"; do
+  cp -a -- "$src/$theme" "$stage/$theme"
+  chown -R root:root "$stage/$theme"
+  chmod -R u=rwX,go=rX "$stage/$theme"
+done
+for theme in "$@"; do
+  dest="$root/$theme"
+  backup="$root/.quickshell-old.$$.$theme"
+  if [[ -e "$dest" || -L "$dest" ]]; then mv -- "$dest" "$backup"; fi
+  if ! mv -- "$stage/$theme" "$dest"; then
+    if [[ -e "$backup" || -L "$backup" ]]; then mv -- "$backup" "$dest"; fi
+    exit 1
+  fi
+  rm -rf -- "$backup"
+done
+ROOT_SCRIPT
 }
 
 if (( ! dry_run )); then
@@ -201,13 +249,7 @@ if (( ! skip_sddm )); then
   install_sddm_dist nothing-sddm
 
   run_step 'Ghost SDDM theme build' "$projects_dir/ghost-sddm" make build
-  if (( dry_run )); then
-    printf '[dry-run] copy %s/.build/Ghost-SDDM/. -> %s/Ghost-SDDM/\n' "$projects_dir/ghost-sddm" "$sddm_theme_root"
-  else
-    command -v sudo >/dev/null 2>&1 || die 'sudo is required for system-wide Ghost SDDM'
-    sudo install -d -m 0755 "$sddm_theme_root/Ghost-SDDM"
-    sudo cp -r "$projects_dir/ghost-sddm/.build/Ghost-SDDM/." "$sddm_theme_root/Ghost-SDDM/"
-  fi
+  install_sddm_dist ghost-sddm
 
   run_step 'Quickshell SDDM bridge' "$script_dir" bash "$script_dir/install-sddm-integration.sh"
   run_step 'SDDM integration verification' "$script_dir" bash "$script_dir/verify-sddm-integration.sh"

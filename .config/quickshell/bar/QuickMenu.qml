@@ -39,7 +39,7 @@ PanelWindow {
 
   Process {
     id: idleCheck
-    command: ["sh", "-c", "pgrep -x swayidle >/dev/null 2>&1 && echo active || echo inactive"]
+    command: [Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh", "status"]
     running: false
     stdout: StdioCollector {
       onStreamFinished: {
@@ -73,7 +73,7 @@ PanelWindow {
       Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
       root.caffeineOn = false
     } else {
-      Quickshell.execDetached(["killall", "swayidle"])
+      Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh", "stop"])
       root.caffeineOn = true
     }
   }

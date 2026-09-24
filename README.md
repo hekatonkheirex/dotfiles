@@ -17,7 +17,7 @@ This repository contains my personal configurations, customized scripts, and sys
 
 - **Window Manager** • Main: [Niri](https://niri-wm.github.io/niri/) (Scroll-stacking Wayland compositor)
 - **Desktop Shell & Panels** • Custom [Quickshell](https://quickshell.outfoxxed.me/) (QML-based status bar, widgets, volume/brightness popups, notifications, and desktop dashboard)
-- **Theme Suite** • Four selectable Quickshell UI styles: Material 3, Neo Brutalism, Nothing, and Ghost, with shared desktop synchronization
+- **Theme Suite** • Five selectable Quickshell UI styles: Material 3, Neo Brutalism, Nothing, Ghost, and Liquid Glass, with shared desktop synchronization
 - **Terminal** • [Kitty](https://sw.kovidgoyal.net/kitty/) configured with expressive dynamic themes
 - **Shell** • Zsh with [zinit](https://github.com/zdharma-continuum/zinit) and [Starship](https://github.com/starship/starship) prompt
 - **File Manager** • Gnome Nautilus
@@ -26,14 +26,19 @@ This repository contains my personal configurations, customized scripts, and sys
 
 Quickshell is a single QML shell rooted at [`shell.qml`](.config/quickshell/shell.qml). It owns the bar, launcher, Quick Menu, Command Center, popups, notifications, OSD, lock screen, and shared desktop state. The bar supports top, bottom, left, and right placement, plus continuous full-bar and floating-pills layouts.
 
-The current tracked state is `layout=left`, `fullBar=true`, automatic color mode (`themePreference=0`), Material 3 UI style (`themeStyle=material3`), and `colorscheme=matugen` for terminal/Niri synchronization. These values are persisted in [`settings.json`](.config/quickshell/settings.json), [`layout`](.config/quickshell/layout), and [`colorscheme`](.config/quickshell/colorscheme); the supported values remain configurable from the Appearance panel.
+The current local state is `layout=top`, `fullBar=true`, dark color mode (`themePreference=2`), Material 3 UI style (`themeStyle=material3`), and `colorscheme=matugen` for terminal/Niri synchronization. These values are persisted in [`settings.json`](.config/quickshell/settings.json), [`layout`](.config/quickshell/layout), and [`colorscheme`](.config/quickshell/colorscheme); the supported values remain configurable from the Appearance panel.
 
-The two Quickshell UI styles share the same semantic palette and controls:
+The five styles use shared semantic roles and common controls, with style-specific geometry, typography, and palette behavior:
 
-- **Material 3**: Roboto Flex typography, tonal surface elevation, expressive corner radii, and soft focus/elevation treatment.
-- **Neo Brutalism**: JetBrains Mono typography, high-contrast semantic ink, heavier borders, compact radii, and hard offset shadows. Its Niri gaps, focus ring, window radius, and shadow are synchronized by the existing theme scripts.
+- **Material 3**: Roboto Flex typography, tonal surfaces, and expressive shape/elevation.
+- **Neo Brutalism**: JetBrains Mono, semantic ink outlines, compact radii, and hard offset shadows.
+- **Nothing**: Classic's authored neutral/red palette or Evolution's wallpaper-aware adaptive roles.
+- **Ghost**: Authored cyberpunk palette and terminal-inspired treatment.
+- **Liquid Glass**: Translucent functional surfaces with an opaque high-contrast fallback.
 
-The style changes geometry and ink treatment only. It does not replace the Matugen palette. The shell-specific file map is documented in [`~/.config/quickshell/README.md`](.config/quickshell/README.md).
+The shell-specific file map and color-mode behavior are documented in [the Quickshell README](.config/quickshell/README.md).
+
+The launcher respects XDG desktop-entry precedence (`Hidden` and `TryExec`) and refreshes its cache when entries change. Settings search opens and scrolls to a matching control or section. Audio writes are serialized during rapid adjustments; weather refreshes coalesce and report failed fetches. Wallpaper thumbnail generation reports conversion failures and only publishes complete images. Bar popups are bound to the bar's monitor.
 
 The generated GTK/Qt desktop themes are named `Material3-Expressive-Dynamic` and `Material3-Expressive-Dynamic-Dark`; they are synchronized independently from the Quickshell UI style.
 
@@ -47,8 +52,7 @@ To glue the desktop environment together, several custom scripts handle system t
 
 - **[`voice-search.py`](.config/quickshell/scripts/voice-search.py)**: An offline voice recognition launcher search tool.
   - *What it does*: It uses the `python-vosk` library and a local offline speech-to-text Vosk model (automatically downloaded on first run, ~40MB) to transcribe recorded voice input and output search queries in plain text.
-- **[`desktop-parser.py`](.config/quickshell/bin/desktop-parser.py)**: An efficient desktop application parser.
-  - *What it does*: It scans standard XDG applications paths (`/usr/share/applications`, `~/.local/share/applications`), extracts details from `.desktop` files, resolves application icons from your current icon themes, caches the results to `/tmp/qs-app-cache-<uid>.json` (with cache invalidation matched to the directories' modified timestamps), and outputs JSON data to feed the launcher panel.
+- **[`desktop-parser.py`](.config/quickshell/bin/desktop-parser.py)**: Parses XDG desktop entries into launcher records without executing `Exec` through a shell. It honors hidden/unavailable entries and user overrides, resolves icons, and keeps a private app cache under `$XDG_RUNTIME_DIR/quickshell` (or `~/.cache/quickshell/runtime` when unavailable).
 - **[`idle.sh`](.config/quickshell/scripts/idle.sh)**: Swayidle wrapper.
   - *What it does*: Handles multi-level inactivity timeouts:
     - **150 seconds**: Dims screen brightness to 10% (saving previous level).
@@ -57,8 +61,8 @@ To glue the desktop environment together, several custom scripts handle system t
     - **900 seconds by default**: Puts the machine to sleep (`systemctl suspend`, configurable through `idleSuspendTimeoutSeconds`).
 - **[`safe-logout.sh`](.config/quickshell/scripts/safe-logout.sh)**: A clean session terminate utility.
   - *What it does*: First attempts composer-specific clean exits (e.g. `niri msg action quit`). If the desktop environment remains active after a half-second grace period, it sends a direct `SIGKILL` to the active systemd session using `loginctl kill-session`.
-- **Trigger Scripts (`launcher`, `quickmenu`, `commandcenter`, `lock`)**:
-  - *What they do*: Simple wrappers that touch `/tmp/` trigger files (e.g., `/tmp/qslauncher-trigger`, `/tmp/qslock-trigger`, `/tmp/qsquickmenu-trigger`). The main Quickshell QML shell watches these files to toggle overlays and UI dashboards instantly.
+- **Trigger Scripts (`launcher`, `quickmenu`, `settings`, `lock`)**:
+  - *What they do*: Write validated trigger names to a private per-user runtime directory; Quickshell watches them to open the corresponding surface. `commandcenter` remains a compatibility alias for Settings.
 
 ### 🎨 Material You Theming Pipeline
 
@@ -79,7 +83,7 @@ The theming flow:
 
 The tracked [`colorscheme`](.config/quickshell/colorscheme) is currently `matugen`. `claude` is available as a fixed alternate palette for Kitty and Niri synchronization; Quickshell itself continues to consume the Matugen role cache. [`apply-accent-color.sh`](.config/quickshell/scripts/apply-accent-color.sh) remains only as a compatibility entry point and does not provide runtime accent editing.
 
-Theme changes are runtime settings now; switching between Material 3, Neo Brutalism, Nothing, or Ghost, or between light, dark, and automatic mode, does not require a yadm branch checkout.
+Theme changes are runtime settings now; switching among Material 3, Neo Brutalism, Nothing, Ghost, and Liquid Glass, or between light, dark, and automatic mode, does not require a yadm branch checkout.
 
 ### 🔋 Thinkpad / Laptop Optimizations (`.config/thinkpad/`)
 
@@ -97,7 +101,7 @@ System-level rules located in `.config/thinkpad` automate power management, secu
 
 ## 🚀 Installation & Bootstrapping
 
-We provide an interactive installer that checks package dependencies, configures an AUR helper, installs standard/AUR packages, copies system configurations, and can clone/build/install the four UI style families without storing generated theme assets in yadm.
+We provide an interactive installer that checks package dependencies, configures an AUR helper, installs standard/AUR packages, copies system configurations, and can clone/build/install the four external UI style families without storing generated theme assets in yadm.
 
 ### Method A: YADM (Recommended)
 
@@ -116,7 +120,7 @@ We provide an interactive installer that checks package dependencies, configures
     yadm bootstrap
     ```
 
-   The final bootstrap step offers to clone the theme sources into `~/Projects`, run their existing installers, install the system SDDM themes and bridge, and synchronize the active desktop. The source projects and generated outputs remain outside yadm.
+   The final bootstrap step offers to clone the theme sources into `~/Projects`, run their existing installers, install the system SDDM themes and bridge, and synchronize the active desktop. Generated SDDM trees are validated before privileged installation; only the named managed theme directories are replaced, leaving other SDDM themes intact. The source projects and generated outputs remain outside yadm.
 
 ### Method B: Standard Git Clone
 

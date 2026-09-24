@@ -1,6 +1,26 @@
 #!/usr/bin/env sh
 
 settings_file="$HOME/.config/quickshell/settings.json"
+idle_watcher_pattern='^/usr/bin/swayidle timeout '
+
+idle_watcher_running() {
+  /usr/bin/pgrep -f "$idle_watcher_pattern" >/dev/null 2>&1
+}
+
+case "$1" in
+  status)
+    if idle_watcher_running; then
+      printf 'active\n'
+    else
+      printf 'inactive\n'
+    fi
+    exit 0
+    ;;
+  stop)
+    /usr/bin/pkill -f "$idle_watcher_pattern" >/dev/null 2>&1 || true
+    exit 0
+    ;;
+esac
 
 read_timeout() {
   key="$1"
@@ -29,10 +49,10 @@ read_timeout() {
 # Settings changes restart the current idle watcher without defeating Caffeine.
 # If swayidle is not running, keep it stopped until the user disables Caffeine.
 if [ "${1:-}" = "restart" ]; then
-  if ! /usr/bin/pgrep -x swayidle >/dev/null 2>&1; then
+  if ! idle_watcher_running; then
     exit 0
   fi
-  /usr/bin/pkill -x swayidle >/dev/null 2>&1 || true
+  /usr/bin/pkill -f "$idle_watcher_pattern" >/dev/null 2>&1 || true
 fi
 
 lock_timeout=$(read_timeout idleLockTimeoutSeconds 300 86400)
