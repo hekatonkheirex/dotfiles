@@ -11,7 +11,7 @@ Item {
   property real radius: 0
   property bool glassEnabled: true
 
-  visible: root.glassEnabled && Config.liquidGlassTheme
+  visible: root.glassEnabled && Config.liquidGlassTheme && !Colors.liquidGlassOpaque
   clip: true
 
   Rectangle {

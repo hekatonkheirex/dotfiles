@@ -39,7 +39,7 @@ Rectangle {
       ? Colors.surfaceContainerHighest
       : (root.material3Style
         ? Colors.secondaryContainer
-        : (Config.neoBrutalism || Config.ghostTheme
+        : (Config.ghostTheme
           ? Colors.styleAccent
           : (Config.nothingDesign
             ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
@@ -50,7 +50,7 @@ Rectangle {
       ? Colors.fgSurface
       : (root.material3Style
         ? Colors.fgSecondaryContainer
-        : (Config.neoBrutalism || Config.ghostTheme
+        : (Config.ghostTheme
           ? Colors.styleAccentText
           : (Config.nothingEvolution
             ? Colors.styleSelectedText
@@ -98,7 +98,7 @@ Rectangle {
     ? "transparent"
     : (root.material3Style && root.stateHighlighted
       ? "transparent"
-      : (Config.neoBrutalism || Config.ghostTheme
+      : (Config.ghostTheme
         ? Colors.styleOutlineStrong
         : (Config.nothingDesign
           ? (root.stateHighlighted ? Colors.styleOutlineStrong : "transparent")

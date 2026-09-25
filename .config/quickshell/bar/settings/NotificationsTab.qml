@@ -12,16 +12,13 @@ Flickable {
   property QtObject root: null
   property QtObject notificationPopup: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
   readonly property bool material3Theme: Config.material3Theme
   readonly property int segmentedButtonGap: notificationsTab.material3Theme ? 0 : Config.spacingSmall
   anchors.fill: parent
   visible: root.currentTab === 9
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + notificationsTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: notificationsTab }
@@ -40,8 +37,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, notificationsTab.width - notificationsTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + notificationsTab.neoShadowAllowance
+    width: Math.max(0, notificationsTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "Notifications"
@@ -53,7 +50,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: behaviorCol.implicitHeight + Config.spacingSmall * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth
@@ -87,7 +84,7 @@ Flickable {
         RowLayout {
           Layout.fillWidth: true
           Layout.preferredHeight: 40
-          spacing: Config.spacingSmall + notificationsTab.neoShadowAllowance
+          spacing: Config.spacingSmall
 
           Text {
             text: "Toast Duration"

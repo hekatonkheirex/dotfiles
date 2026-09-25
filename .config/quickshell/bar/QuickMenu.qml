@@ -150,11 +150,10 @@ PanelWindow {
     Quickshell.execDetached(option.cmd)
   }
 
-  readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
 
-  implicitWidth: Config.popupWidth + neoShadowPadding
+  implicitWidth: Config.popupWidth
   visible: false
-  implicitHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500) + neoShadowPadding
+  implicitHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500)
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: Config.layerNamespace("popup")
@@ -334,33 +333,15 @@ PanelWindow {
       }
     }
 
-    Rectangle {
-      id: styleShadow
-      x: Config.themeShadowOffset
-      y: Config.themeShadowOffset
-      width: bg.width
-      height: bg.height
-      radius: bg.radius
-      color: Colors.styleShadow
-      visible: Config.neoBrutalism
-      z: -1
-    }
 
     Rectangle {
       id: bg
-      anchors {
-        left: parent.left
-        top: parent.top
-        right: parent.right
-        bottom: parent.bottom
-        rightMargin: root.neoShadowPadding
-        bottomMargin: root.neoShadowPadding
-      }
+      anchors.fill: parent
       radius: Config.popupRadius
       color: Colors.chromeSurface
       clip: true
       border.width: Config.themeBorderWidth
-      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+      border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Colors.styleOutline
         : Colors.outlineVariant
 
@@ -421,7 +402,7 @@ PanelWindow {
         spacing: Config.spacingMedium
 
         Text {
-          text: Config.nothingEvolution || Config.liquidGlassTheme ? "Quick Settings" : "Power Options"
+          text: "Quick Settings"
           color: Colors.fgSurface
           font.family: Config.fontFamily
           font.pixelSize: Config.typeHeadlineSmallSize
@@ -435,6 +416,14 @@ PanelWindow {
           width: parent.width
           height: 1
           color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
+        }
+
+        Text {
+          text: "CONTROLS"
+          color: Colors.fgSurfaceVariant
+          font.family: Config.monoFontFamily
+          font.pixelSize: Config.typeLabelSmallSize
+          font.letterSpacing: Config.typeMonoTracking
         }
 
       Row {
@@ -521,6 +510,14 @@ PanelWindow {
           color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
         }
 
+        Text {
+          text: "POWER"
+          color: Colors.fgSurfaceVariant
+          font.family: Config.monoFontFamily
+          font.pixelSize: Config.typeLabelSmallSize
+          font.letterSpacing: Config.typeMonoTracking
+        }
+
       Row {
         spacing: Config.spacingSmall
         width: parent.width
@@ -540,6 +537,7 @@ PanelWindow {
             labelText: ""
             selected: index === root.activePowerIndex
             horizontalContent: false
+            tooltipText: modelData.label
             accessibleName: modelData.label
             accessibleDescription: "Power action"
             onActiveFocusChanged: {

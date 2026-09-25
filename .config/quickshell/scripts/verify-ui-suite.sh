@@ -124,7 +124,6 @@ check_cursor_theme() {
 
 for theme in \
   Material3-Expressive-Dynamic Material3-Expressive-Dynamic-Dark \
-  Neo-Brutalism Neo-Brutalism-Dark \
   Nothing-OS Nothing-OS-Dark \
   Ghost-Light Ghost-Dark \
   MacTahoe-Light MacTahoe-Dark; do
@@ -133,7 +132,6 @@ done
 
 for theme in \
   Material3-Expressive-Dynamic-Icons Material3-Expressive-Dynamic-Dark-Icons \
-  Neo-Brutalism-Icons Neo-Brutalism-Dark-Icons \
   Nothing-Light-Icons Nothing-Dark-Icons \
   Ghost-Light-Icons Ghost-Dark-Icons \
   MacTahoe-light MacTahoe-dark; do
@@ -142,7 +140,6 @@ done
 
 for theme in \
   Material3-Expressive-Dynamic Material3-Expressive-Dynamic-Dark \
-  Neo-Brutalism Neo-Brutalism-Dark \
   Nothing-OS Nothing-OS-Dark \
   Ghost Ghost-Dark; do
   check_kvantum_theme "$theme"
@@ -170,8 +167,6 @@ fi
 for file in \
   "$HOME/.config/kitty/matugen-light.conf" \
   "$HOME/.config/kitty/matugen-dark.conf" \
-  "$HOME/.config/kitty/neo-brutalism-matugen-light.conf" \
-  "$HOME/.config/kitty/neo-brutalism-matugen-dark.conf" \
   "$HOME/.config/kitty/nothing-light.conf" \
   "$HOME/.config/kitty/nothing-dark.conf" \
   "$HOME/.config/kitty/ghost-light.conf" \
@@ -182,8 +177,6 @@ done
 for file in \
   "$HOME/.config/starship/matugen-light.toml" \
   "$HOME/.config/starship/matugen-dark.toml" \
-  "$HOME/.config/starship/neo-brutalism-matugen-light.toml" \
-  "$HOME/.config/starship/neo-brutalism-matugen-dark.toml" \
   "$HOME/.config/starship/nothing-light.toml" \
   "$HOME/.config/starship/nothing-dark.toml" \
   "$HOME/.config/starship/ghost-light.toml" \

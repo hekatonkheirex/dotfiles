@@ -10,17 +10,11 @@ Flickable {
   id: generalTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
-  readonly property int neoControlAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset * 2
-    : 0
   anchors.fill: parent
   visible: root.currentTab === 1
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + generalTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: generalTab }
@@ -35,8 +29,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, generalTab.width - generalTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + generalTab.neoShadowAllowance
+    width: Math.max(0, generalTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "General"
@@ -54,7 +48,7 @@ Flickable {
         variant: "filled"
         Layout.fillWidth: true
         Layout.preferredHeight: behaviorCol.implicitHeight + Config.spacingSmall * 2
-        radius: Config.shapeLarge
+        radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
         outlineWidth: Config.themeBorderWidth
@@ -80,6 +74,26 @@ Flickable {
               reducedMotion: Config.reducedMotion
               accessibleName: "Reduced motion"
               onToggled: { Settings.reduceMotion = !Settings.reduceMotion; Settings.save() }
+            }
+          }
+
+          ListItem {
+            Layout.fillWidth: true
+            leadingIcon: "blur_on"
+            title: "Reduce transparency"
+            subtitle: Settings.reduceTransparency
+              ? "Glass and Evolution surfaces are opaque"
+              : "Glass and Evolution show the backdrop"
+            SwitchControl {
+              checked: Settings.reduceTransparency
+              activeColor: Colors.primary
+              surfaceContainerHigh: Colors.surfaceContainerHigh
+              surfaceContainerHighest: Colors.surfaceContainerHighest
+              outline: Colors.styleOutlineStrong
+              motionDuration: Config.motionMedium
+              reducedMotion: Config.reducedMotion
+              accessibleName: "Reduce transparency"
+              onToggled: { Settings.reduceTransparency = !Settings.reduceTransparency; Settings.save() }
             }
           }
 
@@ -116,7 +130,7 @@ Flickable {
         variant: "filled"
         Layout.fillWidth: true
         Layout.preferredHeight: clockCol.implicitHeight + Config.spacingSmall * 2
-        radius: Config.shapeLarge
+        radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
         outlineWidth: Config.themeBorderWidth
@@ -240,7 +254,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: barContentsCol.implicitHeight + Config.spacingSmall * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth
@@ -331,7 +345,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: weatherCol.implicitHeight + Config.spacingMedium * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth
@@ -375,7 +389,7 @@ Flickable {
 
           Item {
             width: Math.min(160, Math.max(96,
-              generalTab.width - 56 - generalTab.neoControlAllowance))
+              generalTab.width - 56))
             height: 36
 
             Row {

@@ -118,15 +118,15 @@ FocusScope {
 
   Rectangle {
     id: dialogShadow
-    x: dialog.x + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
-    y: dialog.y + (Config.neoBrutalism ? Config.themeShadowOffset : 2)
+    x: dialog.x
+    y: dialog.y + 2
     width: dialog.width
     height: dialog.height
     radius: dialog.radius
     color: root.material3Theme
       ? Qt.rgba(Colors.shadow.r, Colors.shadow.g, Colors.shadow.b, 0.18)
       : Colors.styleShadow
-    visible: root.material3Theme || Config.neoBrutalism || Config.liquidGlassTheme
+    visible: root.material3Theme || Config.liquidGlassTheme
     z: 1
   }
 

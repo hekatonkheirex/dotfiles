@@ -15,17 +15,14 @@ QtObject {
   }
   readonly property bool isNiri: wmType === "niri"
   readonly property bool isMango: wmType === "mango"
-  // UI style is separate from Matugen's external desktop palette. Material 3,
-  // Neo Brutalism, and Liquid Glass consume its generated roles; classic
-  // Nothing and Ghost use authored roles while Nothing Evolution consumes the
-  // adaptive cache.
+  // UI style is separate from the desktop palette. Material 3 and Liquid
+  // Glass consume Matugen roles; Nothing Classic and Ghost use authored
+  // palettes, while Nothing Evolution uses the adaptive cache.
   readonly property bool nothingDesign: Settings.themeStyle === "nothing"
   readonly property bool nothingEvolution: nothingDesign && Settings.nothingVariant === "evolution"
-  readonly property bool neoBrutalism: Settings.themeStyle === "neo-brutalism"
   readonly property bool ghostTheme: Settings.themeStyle === "ghost"
   readonly property bool liquidGlassTheme: Settings.themeStyle === "liquid-glass"
-  readonly property bool material3Theme: !nothingDesign && !neoBrutalism
-    && !ghostTheme && !liquidGlassTheme
+  readonly property bool material3Theme: !nothingDesign && !ghostTheme && !liquidGlassTheme
 
   // Niri's layer rule already enables background effects for unknown
   // quickshell namespaces when the user has compositor blur enabled. Keep
@@ -60,16 +57,14 @@ QtObject {
   // scrollbar, which is intentionally overlaid on the Flickable edge.
   readonly property int settingsScrollbarGutter: spacingMedium
 
+  // Classic keeps its NType display and mono labels, but uses a readable
+  // sans for dense settings copy instead of setting paragraphs in display type.
   readonly property string fontFamily: nothingEvolution
     ? "Geist"
-    : (nothingDesign
-      ? "NType 82"
-      : ((neoBrutalism || ghostTheme) ? "JetBrains Mono" : "Roboto Flex"))
+    : (nothingDesign ? "Noto Sans" : (ghostTheme ? "JetBrains Mono" : "Roboto Flex"))
   readonly property string monoFontFamily: nothingEvolution
     ? "Geist Mono"
-    : (nothingDesign
-      ? "NType 82 Mono"
-      : ((neoBrutalism || ghostTheme) ? "JetBrains Mono" : "Roboto Flex"))
+    : (nothingDesign ? "NType 82 Mono" : (ghostTheme ? "JetBrains Mono" : "Roboto Flex"))
   readonly property string displayFontFamily: nothingEvolution
     ? "Geist"
     : (nothingDesign ? "NType 82 Headline" : fontFamily)
@@ -78,18 +73,10 @@ QtObject {
   readonly property string dotFontFamily: nothingEvolution
     ? "Geist Mono"
     : (nothingDesign ? "Ndot 57" : displayFontFamily)
-  // Keep icon geometry coherent with the active visual language. Material 3
-  // and Ghost use the calm outlined family, Nothing uses rounded symbols, and
-  // Neo uses the sharper family to match its square surfaces. Liquid Glass
-  // resolves the same semantic labels through the desktop's symbolic theme;
-  // IconGlyph owns that platform-specific rendering path.
-  readonly property string iconFont: neoBrutalism
-    ? "Material Symbols Sharp"
-    : (nothingDesign ? "Material Symbols Rounded" : "Material Symbols Outlined")
-  // Material Symbols is a variable font. These defaults keep icons crisp and
-  // let semantic states opt into fill without scattering font-axis values
-  // through individual controls.
-  readonly property int iconWeight: neoBrutalism ? 500 : 400
+  // Material 3 and Ghost use outlined icons; Nothing uses rounded symbols.
+  // Liquid Glass resolves labels through the desktop symbolic icon theme.
+  readonly property string iconFont: nothingDesign ? "Material Symbols Rounded" : "Material Symbols Outlined"
+  readonly property int iconWeight: 400
   readonly property int iconGrade: 0
   function iconVariableAxes(fill, pixelSize) {
     var normalizedFill = Math.max(0, Math.min(1, fill))
@@ -371,10 +358,12 @@ QtObject {
   // so these keep the current laptop density while preserving the hierarchy
   // and naming of the M3 type scale. Use weight and line height to express
   // emphasis; do not make every setting row compete with its page heading.
-  readonly property int typeLabelSmallSize: Math.max(8, fontPixelSize - 1)
+  readonly property int typeLabelSmallSize: nothingDesign && !nothingEvolution
+    ? Math.max(12, fontPixelSize) : Math.max(8, fontPixelSize - 1)
   readonly property int typeLabelMediumSize: fontPixelSize
   readonly property int typeLabelLargeSize: fontPixelSize + 2
-  readonly property int typeBodySmallSize: Math.max(10, fontPixelSize - 1)
+  readonly property int typeBodySmallSize: nothingDesign && !nothingEvolution
+    ? Math.max(12, fontPixelSize) : Math.max(10, fontPixelSize - 1)
   readonly property int typeBodyMediumSize: fontPixelSize + 1
   readonly property int typeBodyLargeSize: fontPixelSize + 3
   readonly property int typeTitleSmallSize: fontPixelSize + 2
@@ -438,45 +427,24 @@ QtObject {
     + clockLineSpacing
     + spacingMedium * 2
 
-  // Nothing uses a soft, pill-leaning radius scale (Control Center toggles,
-  // widget cards). Liquid Glass uses a restrained macOS-like scale: small
-  // hover targets, medium popovers, and larger but controlled window corners.
-  // Neo Brutalism keeps its existing hard-edged geometry; Material 3 retains
-  // its expressive shapes.
-  // Ghost carries the recovered GITS theme's frameRadius: 0 — every surface
-  // is a hard, square HUD panel, no rounding at any scale.
-  readonly property int shapeCompact: ghostTheme ? 0 : (liquidGlassTheme ? 6 : (nothingEvolution ? 10 : (nothingDesign ? 8 : (neoBrutalism ? 4 : 8))))
-  readonly property int shapeMedium: ghostTheme ? 0 : (liquidGlassTheme ? 10 : (nothingEvolution ? 18 : (nothingDesign ? 14 : (neoBrutalism ? 6 : 12))))
-  readonly property int shapeLarge: ghostTheme ? 0 : (liquidGlassTheme ? 16 : (nothingEvolution ? 24 : (nothingDesign ? 20 : (neoBrutalism ? 10 : 16))))
+  // Nothing uses soft corners; Liquid Glass uses restrained macOS-like
+  // geometry. Ghost keeps its square HUD panels.
+  readonly property int shapeCompact: ghostTheme ? 0 : (liquidGlassTheme ? 6 : (nothingEvolution ? 10 : (nothingDesign ? 8 : 8)))
+  readonly property int shapeMedium: ghostTheme ? 0 : (liquidGlassTheme ? 10 : (nothingEvolution ? 18 : (nothingDesign ? 14 : 12)))
+  readonly property int shapeLarge: ghostTheme ? 0 : (liquidGlassTheme ? 16 : (nothingEvolution ? 24 : (nothingDesign ? 20 : 16)))
+  // Keep Settings cards nested within the Evolution window's larger corners.
+  readonly property int settingsCardRadius: nothingEvolution ? shapeMedium : shapeLarge
   readonly property int borderRadius: shapeLarge
   readonly property int popupRadius: liquidGlassTheme ? 10 : borderRadius
   readonly property int barRadius: liquidGlassTheme
     ? shapeLarge
     : (nothingEvolution ? shapeMedium : ((nothingDesign || ghostTheme) ? 0 : borderRadius))
-  readonly property int themeBorderWidth: neoBrutalism ? 3 : 1
-  readonly property int themeFocusBorderWidth: neoBrutalism ? 4 : 2
-  readonly property int themeShadowOffset: neoBrutalism ? 6 : 0
-  // Keep the Neo full-bar edge aligned with Niri's focused-window edge:
-  // the 18px Niri gap minus its 4px focus ring.
-  readonly property int neoWindowGap: neoBrutalism ? 18 : 0
-  readonly property int neoFullBarInset: neoBrutalism
-    ? Math.max(0, neoWindowGap - themeFocusBorderWidth)
-    : 0
-  // Icon-plus-label Neo controls need room for the thick border and hard shadow.
-  readonly property int themeActionButtonMinHeight: neoBrutalism ? 56 : 0
-  // Material 3 uses a compact horizontal icon-plus-label action. The other
-  // themes retain their taller stacked treatment; compact selector delegates
-  // still provide their own height.
-  readonly property int themeLabeledActionButtonHeight: (nothingDesign || neoBrutalism || ghostTheme) ? 64 : 48
-  // Keep compact settings choices visually distinct in every theme. The
-  // button content has its own compact spacing; this value separates adjacent
-  // choices so their outlines and labels do not visually merge.
-  readonly property int themeOptionGap: neoBrutalism
-    ? themeShadowOffset
-    : (nothingEvolution || liquidGlassTheme ? spacingSmall : spacingCompact)
-  readonly property int themeFontWeight: neoBrutalism
-    ? Font.DemiBold
-    : (nothingEvolution || liquidGlassTheme ? Font.Medium : (nothingDesign ? Font.Medium : Font.Normal))
+  readonly property int themeBorderWidth: 1
+  readonly property int themeFocusBorderWidth: 2
+  readonly property int themeLabeledActionButtonHeight: (nothingDesign || ghostTheme) ? 64 : 48
+  readonly property int themeOptionGap: nothingEvolution || liquidGlassTheme ? spacingSmall : spacingCompact
+  readonly property int themeFontWeight: nothingEvolution || liquidGlassTheme
+    ? Font.Medium : (nothingDesign ? Font.Medium : Font.Normal)
 
   // Motion is centralized here. reducedMotion mirrors the persisted Settings
   // singleton directly; compatibility consumers continue using animationDuration.
@@ -489,7 +457,7 @@ QtObject {
   // Interactive controls and workspace indicators use the shared spatial
   // spring model. Liquid Glass keeps that direct feedback but removes the
   // decorative expressive shape morphs used by Material 3.
-  readonly property bool spatialMotion: !nothingDesign && !neoBrutalism && !ghostTheme
+  readonly property bool spatialMotion: !nothingDesign && !ghostTheme
   readonly property bool expressiveMotion: spatialMotion && !liquidGlassTheme
   readonly property real motionSpatialSpring: 12.0
   readonly property real motionSpatialDamping: 1.0
@@ -526,19 +494,16 @@ QtObject {
     : Easing.OutBack
   readonly property real evolutionSurfaceAlpha: 0.86
   readonly property real evolutionRaisedAlpha: 0.92
-  readonly property real evolutionControlAlpha: 0.74
+  readonly property real evolutionControlAlpha: 0.86
 
   readonly property int popupWidth: 340
   readonly property int popupPadding: spacingLarge
-  readonly property int settingsMinWidth: 320
+  readonly property int settingsMinWidth: 560
   readonly property int settingsMinHeight: 360
   // Shared label column for remote settings rows. Sized for the longest
   // current label while allowing larger type settings to preserve full text.
   readonly property int settingsRowLabelWidth: 200
-  // Neo's hard shadows and block controls need a little more room in the
-  // Appearance tab; Nothing and Material 3 keep the compact footprint.
-  readonly property int settingsMaxWidth: neoBrutalism ? 1200 : 1100
-  readonly property int settingsMaxHeight: neoBrutalism ? 900 : 820
+  readonly property int settingsMaxWidth: 1100
   readonly property int settingsDefaultWidth: 900
   readonly property int settingsDefaultHeight: 680
   readonly property int clockIntervalMs: 1000

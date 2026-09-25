@@ -225,9 +225,6 @@ ShellRoot {
   // bindings stay reactive.
   function popupBarInset() {
     return bar.verticalPillPanelWidth + Config.spacingMedium
-      + (bar.fullBar && Config.neoBrutalism
-        ? Config.themeShadowOffset + 2
-        : 0)
   }
 
   function popupMarginLeft(w, screenW) {

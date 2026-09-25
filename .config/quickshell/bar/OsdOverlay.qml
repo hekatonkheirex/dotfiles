@@ -12,10 +12,9 @@ PanelWindow {
   property string osdType: ""
   property real value: 0
   property bool muted: false
-  readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
 
-  implicitWidth: 300 + neoShadowPadding
-  implicitHeight: 120 + neoShadowPadding
+  implicitWidth: 300
+  implicitHeight: 120
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
   WlrLayershell.namespace: Config.layerNamespace("osd")
@@ -182,29 +181,10 @@ PanelWindow {
     }
   }
 
-  Rectangle {
-    id: osdShadow
-    x: Config.themeShadowOffset
-    y: Config.themeShadowOffset
-    width: osdSurface.width
-    height: osdSurface.height
-    radius: osdSurface.radius
-    color: Colors.styleShadow
-    opacity: root.osdOpacity
-    visible: Config.neoBrutalism
-    z: -1
-  }
 
   Rectangle {
     id: osdSurface
-    anchors {
-      left: parent.left
-      top: parent.top
-      right: parent.right
-      bottom: parent.bottom
-      rightMargin: root.neoShadowPadding
-      bottomMargin: root.neoShadowPadding
-    }
+    anchors.fill: parent
     radius: Config.shapeLarge
     opacity: root.osdOpacity
     color: {

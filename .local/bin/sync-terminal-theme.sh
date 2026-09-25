@@ -25,7 +25,7 @@ if [ -z "$UI_STYLE" ]; then
   UI_STYLE=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || echo material3)
 fi
 case "$UI_STYLE" in
-neo-brutalism | nothing | ghost) ;;
+nothing | ghost) ;;
 *) UI_STYLE=material3 ;;
 esac
 
@@ -52,11 +52,6 @@ sync_editor_and_monitor_themes() {
   elif [ "$UI_STYLE" = "nothing" ]; then
     nvim_colorscheme="nothing"
     [ "$MODE" = "light" ] && nvim_colorscheme="nothing-light"
-  elif [ "$UI_STYLE" = "neo-brutalism" ]; then
-    # Neo Brutalism always follows the wallpaper-derived Matugen roles,
-    # regardless of the selected terminal colorscheme ($SCHEME).
-    nvim_colorscheme="matugen"
-    [ "$MODE" = "light" ] && nvim_colorscheme="matugen-light"
   elif [ "$SCHEME" = "matugen" ]; then
     # Material 3 (the default UI_STYLE) follows the selected terminal
     # colorscheme: matugen here, claude via the default above.
@@ -81,17 +76,12 @@ sync_editor_and_monitor_themes() {
 }
 
 # The UI style owns the terminal palette when it has a distinct identity.
-# Material 3 keeps the selected terminal colorscheme, Nothing is fixed, and
-# Neo Brutalism follows the wallpaper-derived Matugen roles.
+# Material 3 keeps the selected terminal colorscheme; Nothing and Ghost are fixed.
 KITTY_THEME_NAME="$SCHEME-$MODE.conf"
 STARSHIP_THEME_NAME="$SCHEME-$MODE.toml"
-NEO_TERMINAL_GENERATOR="$HOME/.config/quickshell/scripts/generate-neo-kitty-theme.sh"
 if [ "$UI_STYLE" = "nothing" ]; then
   KITTY_THEME_NAME="nothing-$MODE.conf"
   STARSHIP_THEME_NAME="nothing-$MODE.toml"
-elif [ "$UI_STYLE" = "neo-brutalism" ]; then
-  KITTY_THEME_NAME="neo-brutalism-matugen-$MODE.conf"
-  STARSHIP_THEME_NAME="neo-brutalism-matugen-$MODE.toml"
 elif [ "$UI_STYLE" = "ghost" ]; then
   # Ghost keeps fixed mode-paired Kitty and Starship assets recovered from
   # the same theme suite.
@@ -106,12 +96,6 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
 
   sync_editor_and_monitor_themes
 
-  if [ "$UI_STYLE" = "neo-brutalism" ] && [ -x "$NEO_TERMINAL_GENERATOR" ]; then
-    for kitty_mode in light dark; do
-      "$NEO_TERMINAL_GENERATOR" "$kitty_mode" ||
-        echo "Neo Brutalism Kitty/Starship $kitty_mode generation failed; keeping the previous themes."
-    done
-  fi
 
   if [ ! -f "$KITTY_CONF" ]; then
     echo "Kitty theme not found: $KITTY_CONF; falling back to $SCHEME-$MODE.conf"
@@ -245,20 +229,7 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
       shadow="#000000"
     fi
 
-    if [ "$UI_STYLE" = "neo-brutalism" ]; then
-      focus_width=4
-      focus_active="$on_surface"
-      focus_inactive="$outline"
-      niri_corner_radius=8
-      neo_gap=18
-      neo_shadow_offset=10
-      layout_gaps="gaps $neo_gap"
-      if [ "$MODE" = "dark" ]; then
-        shadow_color="$on_surface"
-      else
-        shadow_color="$shadow"
-      fi
-    elif [ "$UI_STYLE" = "nothing" ]; then
+    if [ "$UI_STYLE" = "nothing" ]; then
       focus_width=2
       focus_active="$on_surface"
       focus_inactive="$outline"
@@ -298,17 +269,7 @@ layout {
         urgent-color "$primary"
     }
 EOF
-    if [ "$UI_STYLE" = "neo-brutalism" ]; then
-      cat <<EOF >>"$colors_tmp"
-    shadow {
-        softness 0
-        spread 0
-        offset x=$neo_shadow_offset y=$neo_shadow_offset
-        draw-behind-window true
-        color "$shadow_color"
-    }
-EOF
-    elif [ "$UI_STYLE" = "nothing" ] || [ "$UI_STYLE" = "ghost" ]; then
+    if [ "$UI_STYLE" = "nothing" ] || [ "$UI_STYLE" = "ghost" ]; then
       cat <<EOF >>"$colors_tmp"
     shadow {
         off
@@ -423,14 +384,7 @@ EOF
       mango_shadow_x=0
       mango_shadow_y=5
       mango_shadow_color="$(mango_color "$shadow" 66)"
-      if [ "$UI_STYLE" = "neo-brutalism" ]; then
-        mango_gap=18
-        mango_shadow_size=0
-        mango_shadow_blur=0
-        mango_shadow_x=10
-        mango_shadow_y=10
-        mango_shadow_color="$(mango_color "$shadow_color" ff)"
-      elif [ "$UI_STYLE" = "nothing" ] || [ "$UI_STYLE" = "ghost" ]; then
+      if [ "$UI_STYLE" = "nothing" ] || [ "$UI_STYLE" = "ghost" ]; then
         mango_shadows=0
       fi
 

@@ -23,7 +23,7 @@ Item {
   readonly property string mangoLayoutName: layoutNameForMangoToken(mangoLayoutSymbol)
   readonly property string focusedWindowInfo: focusedWindowTitle !== "" ? focusedWindowTitle : focusedWindowAppId
   readonly property string focusedWindowProgram: formatProgramName(focusedWindowAppId)
-  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassHighContrast
+  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassOpaque
   readonly property color workspaceGroupColor: root.flatLiquidChrome
     ? "transparent"
     : (Config.liquidGlassTheme
@@ -572,11 +572,11 @@ Item {
     id: grid
     columns: root.horizontal ? Math.max(1, root.visibleWorkspaces.length) : 1
     anchors {
-      left: parent.left
+      left: root.horizontal ? undefined : parent.left
       right: root.horizontal ? undefined : parent.right
+      horizontalCenter: root.horizontal ? parent.horizontalCenter : undefined
       top: root.horizontal ? undefined : parent.top
       verticalCenter: root.horizontal ? parent.verticalCenter : undefined
-      leftMargin: root.horizontal ? 6 : 0
       topMargin: root.horizontal ? 0 : 6
     }
     height: root.horizontal
@@ -678,15 +678,12 @@ Item {
             ? 0
             : (Config.nothingEvolution
               ? ((modelData.isFocused || wsMouse.containsMouse) ? Config.themeBorderWidth : 0)
-              : (Config.nothingDesign
-                ? 0
-                : (Config.neoBrutalism
-                  ? Config.themeBorderWidth
-                  : (modelData.isFocused ? 0 : Config.themeBorderWidth))))
+              : (Config.nothingDesign ? 0
+                : (modelData.isFocused ? 0 : Config.themeBorderWidth)))
           border.color: {
             if (root.flatLiquidChrome) return "transparent"
             if (Config.liquidGlassTheme) return Colors.barForeground
-            if (Config.neoBrutalism || Config.ghostTheme) return Colors.styleOutline
+            if (Config.ghostTheme) return Colors.styleOutline
             if (Config.nothingEvolution) return Colors.styleOutline
             if (Config.nothingDesign) return "transparent"
             if (modelData.isFocused) return "transparent"
@@ -762,18 +759,12 @@ Item {
             && modelData.isFocused
             && !Config.ghostTheme
           anchors.centerIn: parent
-          anchors.verticalCenterOffset: root.horizontal
-            ? (Config.neoBrutalism ? Config.themeShadowOffset : 2)
-            : 0
-          anchors.horizontalCenterOffset: !root.horizontal && Config.neoBrutalism
-            ? Config.themeShadowOffset
-            : 0
+          anchors.verticalCenterOffset: root.horizontal ? 2 : 0
+          anchors.horizontalCenterOffset: 0
           width: root.horizontal ? root.numberedWorkspaceWidth(modelData) : root.numberedVerticalWidth
           height: root.horizontal ? grid.height : root.numberedWorkspaceHeight(modelData)
           radius: Config.ghostTheme ? 0 : Math.min(width, height) / 2
-          color: Config.neoBrutalism
-            ? Colors.styleShadow
-            : Qt.rgba(Colors.shadow.r, Colors.shadow.g, Colors.shadow.b, 0.14)
+          color: Qt.rgba(Colors.shadow.r, Colors.shadow.g, Colors.shadow.b, 0.14)
           z: 0
         }
 
@@ -794,7 +785,7 @@ Item {
           Row {
             visible: root.horizontal
             anchors.centerIn: parent
-            anchors.verticalCenterOffset: 1
+            anchors.verticalCenterOffset: Config.nothingDesign && !Config.nothingEvolution ? 5 : 1
             spacing: modelData.isOccupied && !modelData.isFocused ? 4 : 0
 
             Text {
@@ -815,7 +806,7 @@ Item {
               radius: 3
               color: Colors.tertiary
               anchors.verticalCenter: parent.verticalCenter
-              anchors.verticalCenterOffset: -1
+              anchors.verticalCenterOffset: Config.nothingDesign && !Config.nothingEvolution ? -5 : -1
             }
           }
 

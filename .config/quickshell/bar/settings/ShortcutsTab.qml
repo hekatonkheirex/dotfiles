@@ -10,14 +10,11 @@ import "../../config"
 Flickable {
   id: shortcutsTab
   property QtObject root: null
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
   anchors.fill: parent
   visible: root.currentTab === 11
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + shortcutsTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: shortcutsTab }
@@ -43,7 +40,7 @@ Flickable {
     implicitWidth: keyText.implicitWidth + Config.spacingLarge
     implicitHeight: 22
     radius: Config.shapeMedium
-    color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+    color: Config.nothingDesign || Config.ghostTheme
       ? Colors.styleControl
       : Colors.surfaceContainerHighest
     border.color: Colors.styleOutline
@@ -56,7 +53,7 @@ Flickable {
       color: Colors.fgSurface
       font.family: Config.fontFamily
       font.pixelSize: Config.textCaptionSize
-      font.weight: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.themeFontWeight : Font.Medium
+      font.weight: Config.nothingDesign || Config.ghostTheme ? Config.themeFontWeight : Font.Medium
     }
   }
 
@@ -86,7 +83,7 @@ Flickable {
     property string title: ""
     Layout.fillWidth: true
     Layout.preferredHeight: rowsCol.implicitHeight + Config.spacingLarge * 2
-    radius: Config.shapeLarge
+    radius: Config.settingsCardRadius
     surfaceColor: Colors.surfaceContainer
     outlineColor: Colors.styleOutline
     outlineWidth: Config.themeBorderWidth
@@ -115,8 +112,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, shortcutsTab.width - shortcutsTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + shortcutsTab.neoShadowAllowance
+    width: Math.max(0, shortcutsTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "Shortcuts"
@@ -125,7 +122,7 @@ Flickable {
 
     RowLayout {
       Layout.fillWidth: true
-      spacing: Config.spacingSmall + shortcutsTab.neoShadowAllowance
+      spacing: Config.spacingSmall
 
       ActionButton {
         Layout.fillWidth: true

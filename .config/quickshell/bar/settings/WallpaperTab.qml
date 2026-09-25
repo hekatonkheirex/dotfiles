@@ -12,14 +12,11 @@ Flickable {
 
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
   anchors.fill: parent
   visible: root.currentTab === 3
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + wallpaperTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: wallpaperTab }
@@ -106,9 +103,9 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, wallpaperTab.width - wallpaperTab.neoShadowAllowance - Config.settingsScrollbarGutter)
+    width: Math.max(0, wallpaperTab.width - Config.settingsScrollbarGutter)
     height: Math.max(wallpaperTab.height, implicitHeight)
-    spacing: Config.spacingLarge + wallpaperTab.neoShadowAllowance
+    spacing: Config.spacingLarge
 
     RowLayout {
       Layout.fillWidth: true
@@ -116,15 +113,13 @@ Flickable {
 
       ColumnLayout {
         Layout.fillWidth: true
+        Layout.minimumWidth: 0
         Layout.alignment: Qt.AlignVCenter
         spacing: Config.spacingCompact
 
-        Text {
-          text: "Wallpaper"
-          color: Colors.fgSurface
-          font.family: Config.displayFontFamily
-          font.pixelSize: Config.textHeadlineSize
-          font.weight: Config.themeFontWeight
+        SettingsPageHeader {
+          pageTitle: "Wallpaper"
+          subtitle: "Browse and apply wallpaper from local images."
         }
 
         Text {
@@ -133,8 +128,8 @@ Flickable {
             + (wallpaperTab.currentWallpaper || "None")
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
-          font.pixelSize: Config.textBodySize
-          font.weight: Font.Medium
+          font.pixelSize: Config.typeLabelMediumSize
+          font.letterSpacing: Config.typeLabelTracking
           elide: Text.ElideRight
         }
       }
@@ -161,9 +156,8 @@ Flickable {
       Layout.fillHeight: true
       Layout.minimumHeight: 340
       Layout.preferredHeight: 340
-      // Keep the lower outline and Neo offset inside the clipped tab viewport.
-      Layout.bottomMargin: Config.spacingSmall + wallpaperTab.neoShadowAllowance
-      radius: Config.shapeLarge
+      Layout.bottomMargin: Config.spacingSmall
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth
@@ -200,8 +194,8 @@ Flickable {
 
         delegate: Item {
           id: wallDelegate
-          width: wallpaperGrid.cellWidth - Config.spacingSmall - wallpaperTab.neoShadowAllowance
-          height: wallpaperGrid.cellHeight - Config.spacingSmall - wallpaperTab.neoShadowAllowance
+          width: wallpaperGrid.cellWidth - Config.spacingSmall
+          height: wallpaperGrid.cellHeight - Config.spacingSmall
           property real cornerRadius: Config.shapeMedium
           readonly property bool isKeyboardSelected: GridView.isCurrentItem && wallpaperGrid.activeFocus
 
@@ -220,7 +214,7 @@ Flickable {
             id: wallSurface
             anchors.fill: parent
             radius: wallDelegate.cornerRadius
-            color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+            color: Config.nothingDesign || Config.ghostTheme
               ? Colors.styleSurface
               : Colors.surfaceContainerHigh
             clip: true
