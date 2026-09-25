@@ -131,7 +131,7 @@ Flickable {
       subtitle: "Profile, session, and machine information."
     }
 
-  StyledSurface {
+  SettingsCard {
     id: profileCard
     variant: "elevated"
     Layout.fillWidth: true
@@ -283,7 +283,7 @@ Flickable {
   }
 
   // Machine Info card
-  StyledSurface {
+  SettingsCard {
     variant: "filled"
     Layout.fillWidth: true
     Layout.preferredHeight: machineInfoCol.implicitHeight + Config.spacingMedium * 2
@@ -298,16 +298,7 @@ Flickable {
       anchors.margins: Config.spacingMedium
       spacing: Config.spacingSmall
 
-      Text {
-        text: "Machine"
-        color: Colors.fgSurfaceVariant
-        font.family: Config.fontFamily
-        font.pixelSize: Config.typeLabelSmallSize
-        font.weight: Config.typeMediumWeight
-        font.letterSpacing: Config.typeLabelTracking
-        lineHeight: Config.typeLabelSmallLineHeight
-        lineHeightMode: Text.FixedHeight
-      }
+      SettingsSectionLabel { text: "Machine" }
 
       ColumnLayout {
         Layout.fillWidth: true

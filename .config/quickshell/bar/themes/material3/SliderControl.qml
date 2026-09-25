@@ -50,16 +50,15 @@ Item {
   width: parent ? parent.width : 240
   height: root.liquidGlass ? 28 : 40
   activeFocusOnTab: true
-  // Liquid Glass uses direct-manipulation feedback for pointer input. Keep
-  // its keyboard focus treatment opt-in so popup reactivation cannot leave a
-  // rounded focus outline around a slider that was used with the pointer.
+  // A pointer press retains keyboard adjustment without painting a selection
+  // outline. Tab focus and keyboard adjustment still show the focus ring.
+  property bool pointerFocus: false
   property bool keyboardFocus: false
 
   readonly property bool hovered: sliderMouse.containsMouse
   readonly property bool pressed: sliderMouse.pressed
   readonly property bool active: hovered || pressed || activeFocus
-  readonly property bool focusRingVisible: root.activeFocus
-    && (!root.liquidGlass || root.keyboardFocus)
+  readonly property bool focusRingVisible: root.activeFocus && (!root.pointerFocus || root.keyboardFocus)
   readonly property real trackHeight: root.liquidGlass ? 5 : 16
   readonly property real trackRadius: trackHeight / 2
   readonly property real trackInsideRadius: root.liquidGlass ? trackRadius : 2
@@ -125,7 +124,10 @@ Item {
   onTargetGapChanged: gap = targetGap
 
   onActiveFocusChanged: {
-    if (!root.activeFocus) root.keyboardFocus = false
+    if (!root.activeFocus) {
+      root.pointerFocus = false
+      root.keyboardFocus = false
+    }
   }
 
   Keys.onPressed: function(event) {
@@ -263,6 +265,7 @@ Item {
 
     onPressed: function(mouse) {
       root.keyboardFocus = false
+      root.pointerFocus = true
       root.forceActiveFocus(Qt.MouseFocusReason)
       draggingThumb = Math.abs(mouse.x - root.thumbCenter) <= Math.max(10, root.thumbWidth)
       grabOffset = draggingThumb ? mouse.x - root.thumbCenter : 0

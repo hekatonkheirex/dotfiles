@@ -8,6 +8,9 @@ Item {
   // Material 3 card variants. Outlined remains the compatibility default so
   // existing surfaces keep their current treatment until they opt in.
   property string variant: "outlined"
+  // Settings groups use a quieter surface and fine outline, without changing
+  // the shell's unrelated popup and dashboard cards.
+  property bool settingsSection: false
   property color surfaceColor: Config.material3Theme ? Colors.surface : Colors.styleSurface
   property color outlineColor: Config.material3Theme ? Colors.outlineVariant : Colors.styleOutline
   property real outlineWidth: Config.themeBorderWidth
@@ -20,14 +23,15 @@ Item {
   readonly property color renderedSurfaceColor: root.material3Theme
     ? (root.variant === "elevated"
       ? Colors.surfaceContainerLow
-      : (root.variant === "filled" ? Colors.surfaceContainerHighest : root.surfaceColor))
+      : (root.variant === "filled"
+        ? (root.settingsSection ? Colors.surfaceContainer : Colors.surfaceContainerHighest)
+        : root.surfaceColor))
     : (Config.liquidGlassTheme ? root.liquidGlassSurfaceColor : root.surfaceColor)
-  readonly property color renderedOutlineColor: root.material3Theme && root.variant !== "outlined"
-    ? "transparent"
-    : root.outlineColor
-  readonly property real renderedOutlineWidth: root.material3Theme && root.variant !== "outlined"
-    ? 0
-    : root.outlineWidth
+  readonly property color renderedOutlineColor: root.material3Theme && root.settingsSection && root.variant === "filled"
+    ? Qt.rgba(Colors.outlineVariant.r, Colors.outlineVariant.g, Colors.outlineVariant.b, 0.25)
+    : (root.material3Theme && root.variant !== "outlined" ? "transparent" : root.outlineColor)
+  readonly property real renderedOutlineWidth: root.material3Theme && root.settingsSection && root.variant === "filled"
+    ? 1 : (root.material3Theme && root.variant !== "outlined" ? 0 : root.outlineWidth)
 
   default property alias content: contentLayer.data
 

@@ -10,6 +10,7 @@ ColumnLayout {
 
   Layout.fillWidth: true
   spacing: Config.spacingSmall
+  Layout.bottomMargin: Config.spacingSmall
 
   Text {
     Layout.fillWidth: true
@@ -20,7 +21,8 @@ ColumnLayout {
       : (Config.ghostTheme ? Config.typeHeadlineSmallSize + 2
         : (Config.nothingDesign && !Config.nothingEvolution
           ? Config.typeHeadlineMediumSize : Config.typeHeadlineLargeSize))
-    font.weight: Config.ghostTheme ? Config.typeMediumWeight : Config.themeFontWeight
+    font.weight: Config.material3Theme ? Config.typeMediumWeight
+      : (Config.ghostTheme ? Config.typeMediumWeight : Config.themeFontWeight)
     font.letterSpacing: Config.ghostTheme ? Config.typeMonoTracking : Config.typeHeadlineTracking
     lineHeight: Config.ghostTheme ? Config.typeHeadlineMediumLineHeight
       : Config.typeHeadlineLargeLineHeight

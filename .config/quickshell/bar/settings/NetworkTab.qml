@@ -30,9 +30,17 @@ Flickable {
       subtitle: "Connect to Wi-Fi networks and manage saved connections."
     }
 
-    WifiPanel {
-      id: wifiPanel
+    SettingsSectionLabel { text: "Connections" }
+
+    SettingsCard {
       Layout.fillWidth: true
+      Layout.preferredHeight: wifiPanel.implicitHeight + Config.spacingLarge * 2
+
+      WifiPanel {
+        id: wifiPanel
+        anchors.fill: parent
+        anchors.margins: Config.spacingLarge
+      }
     }
   }
 }

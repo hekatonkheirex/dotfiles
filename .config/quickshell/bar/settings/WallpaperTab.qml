@@ -149,7 +149,7 @@ Flickable {
       }
     }
 
-    StyledSurface {
+    SettingsCard {
       id: wallpaperSurface
       variant: "filled"
       Layout.fillWidth: true

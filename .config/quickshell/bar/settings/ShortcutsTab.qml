@@ -76,7 +76,7 @@ Flickable {
     KeyChip { keys: shortcutRow.keys }
   }
 
-  component GroupCard: StyledSurface {
+  component GroupCard: SettingsCard {
     id: groupCard
     variant: "filled"
     default property alias rows: rowsList.data
@@ -94,13 +94,7 @@ Flickable {
       anchors.margins: Config.spacingLarge
       spacing: Config.spacingCompact
 
-      Text {
-        text: groupCard.title
-        color: Colors.fgSurfaceVariant
-        font.family: Config.fontFamily
-        font.pixelSize: Config.textCaptionSize
-        font.weight: Font.Medium
-      }
+      SettingsSectionLabel { text: groupCard.title }
 
       ColumnLayout {
         id: rowsList

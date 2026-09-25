@@ -27,7 +27,7 @@ Flickable {
       subtitle: "Configure media playback controls and the media popup."
     }
 
-    StyledSurface {
+    SettingsCard {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: mediaCol.implicitHeight + Config.spacingSmall * 2
@@ -42,14 +42,9 @@ Flickable {
         anchors.margins: Config.spacingSmall
         spacing: Config.spacingSmall
 
-        Text {
-          text: "Media"
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.textCaptionSize
-          font.weight: Font.Medium
+        SettingsSectionLabel {
+          text: "Playback controls"
           Layout.leftMargin: Config.spacingSmall
-          Layout.topMargin: Config.spacingCompact
         }
 
         ListItem {
