@@ -7,6 +7,7 @@ import "../config"
 
 PopupBase {
   id: root
+  surfaceColor: Colors.readingSurface
 
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500)
 

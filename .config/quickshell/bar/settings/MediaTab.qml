@@ -8,22 +8,19 @@ import "../../config"
 Flickable {
   id: mediaTab
   property QtObject root: null
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
   anchors.fill: parent
   visible: root.currentTab === 7
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + mediaTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: mediaTab }
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, mediaTab.width - mediaTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + mediaTab.neoShadowAllowance
+    width: Math.max(0, mediaTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "Media"
@@ -34,7 +31,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: mediaCol.implicitHeight + Config.spacingSmall * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth

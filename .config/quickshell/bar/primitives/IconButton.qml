@@ -1,12 +1,10 @@
-// Theme facade. Concrete Material 3, Neo Brutalism, Nothing, and Ghost
-// implementations live in separate folders; Liquid Glass reuses the Material
-// 3 control geometry with its own semantic surfaces.
+// Theme facade. Material 3, Nothing, and Ghost controls share an API;
+// Liquid Glass uses Material control geometry.
 import QtQml
 import QtQuick
 import QtQuick.Controls
 import "../../config"
 import "../themes/material3" as Material3
-import "../themes/neo_brutalism" as NeoBrutalism
 import "../themes/nothing" as Nothing
 import "../themes/ghost" as Ghost
 
@@ -31,7 +29,7 @@ Item {
     if (!root.material3Theme) {
       if (root.selected) return Colors.styleAccent
       if (Config.liquidGlassTheme) return Colors.liquidGlassClear
-      return Config.neoBrutalism ? Colors.styleSurface : "transparent"
+      return "transparent"
     }
     if (root.selected) return Colors.primary
     return root.variant === "filled"
@@ -42,11 +40,8 @@ Item {
   property bool outlined: root.variant === "outlined" && !root.selected
   property bool selected: false
   property bool checkable: false
-  property real radius: Config.liquidGlassTheme
-    ? Config.shapeCompact
-    : (Config.nothingDesign
-      ? Config.shapeCompact
-      : (Config.neoBrutalism ? 4 : size / 2))
+  property real radius: Config.liquidGlassTheme || Config.nothingDesign
+    ? Config.shapeCompact : size / 2
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""
@@ -64,11 +59,8 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.ghostTheme
-      ? ghostImplementation
-      : (Config.nothingDesign
-        ? nothingImplementation
-        : (Config.neoBrutalism ? neoImplementation : materialImplementation))
+    sourceComponent: Config.ghostTheme ? ghostImplementation
+      : (Config.nothingDesign ? nothingImplementation : materialImplementation)
   }
 
   Component {
@@ -76,10 +68,6 @@ Item {
     Material3.IconButton {}
   }
 
-  Component {
-    id: neoImplementation
-    NeoBrutalism.IconButton {}
-  }
 
   Component {
     id: nothingImplementation

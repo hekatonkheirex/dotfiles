@@ -18,19 +18,18 @@ PanelWindow {
   property int topMarginFloor: 0
   property int bottomMarginPad: 0
   property bool dismissOnAppInactive: true
-  // Child popups provide the surface dimensions; Neo adds an outer inset so
-  // the hard offset remains inside the layer-shell window bounds.
+  // Child popups provide the surface dimensions.
   property real surfaceWidth: Config.popupWidth
   property real surfaceHeight: 0
-  readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
+  property color surfaceColor: Colors.chromeSurface
   readonly property alias bg: bg
   default property alias content: bg.data
 
   signal dismissed()
   signal shown()
 
-  implicitWidth: surfaceWidth + neoShadowPadding
-  implicitHeight: surfaceHeight + neoShadowPadding
+  implicitWidth: surfaceWidth
+  implicitHeight: surfaceHeight
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
@@ -39,12 +38,9 @@ PanelWindow {
   WlrLayershell.focusable: true
 
   anchors.left: true
-  // Match the actual rendered bar/pill thickness, not the base bar size:
-  // Nothing and Neo's pills-mode panel is wider than Config.barWidth, and a
-  // flat offset made popups overlap the bar's own widgets.
-  margins.left: (!Settings.fullBar && (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme)
-    ? Config.barWidth + (Config.neoBrutalism ? 2 : 18)
-    : Config.barWidth) + Config.spacingMedium
+  // Nothing and Ghost pills need more clearance than the nominal bar width.
+  margins.left: (!Settings.fullBar && (Config.nothingDesign || Config.ghostTheme)
+    ? Config.barWidth + 18 : Config.barWidth) + Config.spacingMedium
   property int screenH: Screen.desktopAvailableHeight
 
   anchors.top: true
@@ -88,33 +84,15 @@ PanelWindow {
       onDismissed: root.dismissed()
     }
 
-    Rectangle {
-      id: styleShadow
-      x: Config.themeShadowOffset
-      y: Config.themeShadowOffset
-      width: bg.width
-      height: bg.height
-      radius: bg.radius
-      color: Colors.styleShadow
-      visible: Config.neoBrutalism
-      z: -1
-    }
 
     Rectangle {
       id: bg
-      anchors {
-        left: parent.left
-        top: parent.top
-        right: parent.right
-        bottom: parent.bottom
-        rightMargin: root.neoShadowPadding
-        bottomMargin: root.neoShadowPadding
-      }
+      anchors.fill: parent
       radius: Config.popupRadius
-      color: Colors.chromeSurface
+      color: root.surfaceColor
       clip: true
       border.width: Config.themeBorderWidth
-      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+      border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Colors.styleOutline
         : Colors.outlineVariant
 

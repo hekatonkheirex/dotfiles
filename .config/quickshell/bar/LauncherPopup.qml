@@ -25,15 +25,14 @@ PanelWindow {
 
   signal dismissed()
 
-  readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
 
-  implicitWidth: (wallpaperMode
+  implicitWidth: wallpaperMode
     ? Math.min(Config.settingsMaxWidth, Math.max(Config.popupWidth, Screen.desktopAvailableWidth - Config.spacingPage))
-    : Config.popupWidth) + neoShadowPadding
+    : Config.popupWidth
   visible: false
-  implicitHeight: (wallpaperMode
+  implicitHeight: wallpaperMode
     ? Math.min(Config.settingsMaxHeight, wallpaperGridHeight + 86)
-    : Math.min(clipItem.implicitHeight + Config.spacingPage, clipboardMode ? 560 : 500)) + neoShadowPadding
+    : Math.min(clipItem.implicitHeight + Config.spacingPage, clipboardMode ? 560 : 500)
 
   Behavior on implicitWidth {
     NumberAnimation {
@@ -191,7 +190,7 @@ PanelWindow {
   readonly property int wallpaperCellGap: wallpaperCellWidth - wallpaperCardWidth
   // The grid has two horizontal margins from clipItem and the frame.
   readonly property int wallpaperGridAvailableWidth: Math.max(1,
-    implicitWidth - neoShadowPadding - Config.spacingMedium * 4)
+    implicitWidth - Config.spacingMedium * 4)
   readonly property int wallpaperColumns: Math.max(1,
     Math.floor((wallpaperGridAvailableWidth + wallpaperCellGap) / wallpaperCellWidth))
   // Center the visible cards, rather than the larger cells that contain them.
@@ -868,33 +867,15 @@ PanelWindow {
     onTriggered: root.refreshClipboard()
   }
 
-  Rectangle {
-    id: styleShadow
-    x: bg.x + Config.themeShadowOffset
-    y: bg.y + Config.themeShadowOffset
-    width: bg.width
-    height: bg.height
-    radius: bg.radius
-    color: Colors.styleShadow
-    visible: Config.neoBrutalism
-    z: -1
-  }
 
   Rectangle {
     id: bg
-    anchors {
-      left: parent.left
-      top: parent.top
-      right: parent.right
-      bottom: parent.bottom
-      rightMargin: root.neoShadowPadding
-      bottomMargin: root.neoShadowPadding
-    }
-    color: Config.liquidGlassTheme
-      ? Colors.chromeSurface
-      : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
-        ? Colors.styleSurfaceRaised
-        : Colors.surfaceContainer)
+    anchors.fill: parent
+    color: Config.nothingEvolution ? Colors.readingSurface
+      : (Config.liquidGlassTheme
+        ? Colors.chromeSurface
+        : ((Config.nothingDesign || Config.ghostTheme)
+          ? Colors.styleSurfaceRaised : Colors.surfaceContainer))
     radius: Config.popupRadius
     border.color: Colors.styleOutline
     border.width: Config.themeBorderWidth
@@ -1048,7 +1029,7 @@ PanelWindow {
           // selected row's rounded border cannot run underneath its thumb.
           width: Math.max(0, appList.width - Config.spacingMedium)
           height: root.clipboardMode ? 54 : 44
-          radius: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme ? Config.shapeMedium : 22
+          radius: Config.nothingDesign || Config.ghostTheme ? Config.shapeMedium : 22
           leadingIcon: model.kind === "action" || model.kind === "wallpaper"
             || model.kind === "clipboard-action" || model.kind === "clipboard" ? model.icon : ""
           leadingImageSource: model.kind !== "action" && model.kind !== "wallpaper" && model.icon !== ""

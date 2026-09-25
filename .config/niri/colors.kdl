@@ -3,15 +3,15 @@ layout {
     
     focus-ring {
         width 2
-        active-color "#bec2ff"
-        inactive-color "#8f8fa1"
+        active-color "#c7bfff"
+        inactive-color "#928f9f"
     }
     border {
         off
         width 2
-        active-color "#bec2ff"
-        inactive-color "#8f8fa1"
-        urgent-color "#bec2ff"
+        active-color "#c7bfff"
+        inactive-color "#928f9f"
+        urgent-color "#c7bfff"
     }
 }
 window-rule {

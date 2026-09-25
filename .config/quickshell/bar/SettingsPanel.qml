@@ -30,9 +30,11 @@ PanelWindow {
   property int currentTab: Math.max(0, Math.min(tabCount - 1, Settings.lastSettingsTab))
   property int focusedTab: currentTab
   property double openTime: 0
-  readonly property bool compactLayout: root.implicitWidth <= 480
-  readonly property int sidebarWidth: root.implicitWidth <= 480 ? 108 : 168
-  readonly property int sidebarRowSpacing: 2
+  readonly property bool compactLayout: root.implicitWidth < (Config.ghostTheme ? 800 : 760)
+  // Keep navigation readable without stealing the content column on narrow panels.
+  readonly property int sidebarWidth: root.implicitWidth <= 480 ? 108
+    : (Config.ghostTheme ? 216 : 184)
+  readonly property int sidebarRowSpacing: Config.spacingCompact
   readonly property int contentMargin: root.implicitHeight < 540 ? Config.spacingMedium : Config.spacingExtraLarge
   readonly property real centeredLeftMargin: Math.max(Config.spacingLarge, (desktopW - root.implicitWidth) / 2)
   readonly property real centeredTopMargin: Math.max(Config.spacingLarge, (desktopH - root.implicitHeight) / 2)
@@ -77,6 +79,7 @@ PanelWindow {
     { tab: 0, category: "System details", icon: "person", title: "Machine info", anchor: "Machine", subtitle: "Hostname, OS, kernel, CPU, and GPU" },
     { tab: 0, category: "System details", icon: "wifi", title: "Network status", anchor: "Network", subtitle: "IP address and connection details" },
     { tab: 1, category: "Motion", icon: "motion_photos_off", title: "Reduced motion", subtitle: "Use shorter, calmer transitions" },
+    { tab: 1, category: "Motion", icon: "blur_on", title: "Reduce transparency", subtitle: "Opaque surfaces for Liquid Glass and Nothing Evolution" },
     { tab: 1, category: "Clock", icon: "schedule", title: "Show uptime", subtitle: "Show uptime on the Account tab" },
     { tab: 1, category: "Clock", icon: "schedule", title: "24-hour clock", subtitle: "Use a 24-hour clock format" },
     { tab: 1, category: "Clock", icon: "timer", title: "Show seconds", subtitle: "Display seconds in the bar clock" },
@@ -86,7 +89,7 @@ PanelWindow {
     { tab: 1, category: "Weather and location", icon: "location_on", title: "Weather location", anchor: "Manual weather location", subtitle: "Set a city or town for weather" },
     { tab: 1, category: "Weather and location", icon: "update", title: "Weather refresh interval", subtitle: "Choose how often weather refreshes" },
     { tab: 1, category: "Weather and location", icon: "thermostat", title: "Temperature units", anchor: "Metric units", subtitle: "Use metric or imperial units" },
-    { tab: 2, category: "General UI", icon: "auto_awesome", title: "UI Style", subtitle: "Material, Neo, Nothing, Ghost, or Evolution" },
+    { tab: 2, category: "General UI", icon: "auto_awesome", title: "UI Style", subtitle: "Material, Nothing Classic, Evolution, Ghost, or Liquid Glass" },
     { tab: 2, category: "Color and theme", icon: "palette", title: "Color source", subtitle: "Live wallpaper colors or a fixed palette" },
     { tab: 2, category: "Color and theme", icon: "dark_mode", title: "Color mode", subtitle: "Automatic, light, or dark" },
     { tab: 2, category: "Color and theme", icon: "palette", title: "Color palette", anchor: "Palette family", subtitle: "Material 3, Catppuccin, Gruvbox, or TokyoNight" },
@@ -158,12 +161,20 @@ PanelWindow {
   readonly property var searchResults: {
     var q = root.searchQuery.trim().toLowerCase()
     if (q === "") return []
+    function relevance(entry) {
+      var title = entry.title.toLowerCase()
+      if (title === q) return 0
+      if (title.indexOf(q) === 0) return 1
+      if (title.indexOf(q) !== -1) return 2
+      if (entry.category.toLowerCase().indexOf(q) !== -1) return 3
+      if (root.tabLabel(entry.tab).toLowerCase().indexOf(q) !== -1) return 4
+      if (entry.subtitle.toLowerCase().indexOf(q) !== -1) return 5
+      return 6
+    }
     return root.searchEntries.filter(function(entry) {
-      var tabText = root.tabLabel(entry.tab).toLowerCase()
-      return entry.title.toLowerCase().indexOf(q) !== -1
-          || entry.category.toLowerCase().indexOf(q) !== -1
-          || entry.subtitle.toLowerCase().indexOf(q) !== -1
-          || tabText.indexOf(q) !== -1
+      return relevance(entry) < 6
+    }).sort(function(a, b) {
+      return relevance(a) - relevance(b)
     })
   }
 
@@ -255,11 +266,9 @@ PanelWindow {
   // fall back to Config.settingsDefaultWidth/Height until the user drags the resize handle.
   implicitWidth: Math.min(Math.min(Config.settingsMaxWidth, desktopW - Config.spacingPage),
                           Math.max(Config.settingsMinWidth, Settings.settingsPanelWidth > 0 ? Settings.settingsPanelWidth : Config.settingsDefaultWidth))
-                 + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
   visible: false
-  implicitHeight: Math.min(Math.min(Config.settingsMaxHeight, desktopH - Config.spacingPage),
+  implicitHeight: Math.min(desktopH - Config.spacingPage,
                            Math.max(Config.settingsMinHeight, Settings.settingsPanelHeight > 0 ? Settings.settingsPanelHeight : Config.settingsDefaultHeight))
-                  + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: Config.layerNamespace("popup")
@@ -466,6 +475,8 @@ PanelWindow {
   }
 
   onCurrentTabChanged: {
+    searchHighlight.visible = false
+    highlightTimer.stop()
     root.ensureCurrentTabVisible()
     if (Settings.lastSettingsTab !== root.currentTab) {
       Settings.lastSettingsTab = root.currentTab
@@ -595,39 +606,24 @@ PanelWindow {
       }
     }
 
-    Rectangle {
-      id: styleShadow
-      x: Config.themeShadowOffset
-      y: Config.themeShadowOffset
-      width: bg.width
-      height: bg.height
-      radius: bg.radius
-      color: Colors.styleShadow
-      visible: Config.neoBrutalism
-      z: -1
-    }
 
     Rectangle {
       id: bg
-      anchors {
-        left: parent.left
-        top: parent.top
-        right: parent.right
-        bottom: parent.bottom
-        rightMargin: Config.neoBrutalism ? Config.themeShadowOffset : 0
-        bottomMargin: Config.neoBrutalism ? Config.themeShadowOffset : 0
-      }
+      anchors.fill: parent
       radius: Config.borderRadius
-      color: Config.liquidGlassTheme
-        ? Colors.chromeSurface
-        : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
-          ? Colors.styleSurface
-          : Colors.surface)
+      color: {
+        if (Config.nothingEvolution) return Colors.readingSurface
+        if (Config.liquidGlassTheme) {
+          var glass = Colors.chromeSurface
+          return Qt.rgba(glass.r, glass.g, glass.b, Math.max(glass.a, 0.94))
+        }
+        return Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surface
+      }
       clip: true
-      border.width: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+      border.width: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Config.themeBorderWidth
         : 0
-      border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+      border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Colors.styleOutline
         : Colors.outlineVariant
 
@@ -689,7 +685,7 @@ PanelWindow {
           rightMargin: root.contentMargin
           topMargin: root.contentMargin
         }
-        height: 44
+        height: 48
         z: 2
 
         MouseArea {
@@ -723,34 +719,18 @@ PanelWindow {
           }
         }
 
-        Column {
-          id: headerTitle
+        Text {
+          id: titleText
           anchors.left: parent.left
           anchors.verticalCenter: parent.verticalCenter
-          spacing: Config.spacingCompact
-
-          Text {
-            id: titleText
-            text: "Settings"
-            color: Colors.fgSurface
-            font.family: Config.displayFontFamily
-            font.pixelSize: Config.typeHeadlineSmallSize
-            font.weight: Config.themeFontWeight
-            font.letterSpacing: Config.typeHeadlineTracking
-            lineHeight: Config.typeHeadlineSmallLineHeight
-            lineHeightMode: Text.FixedHeight
-          }
-
-          Text {
-            text: Config.nothingEvolution ? "NOTHING OS EVOLUTION" : "SYSTEM CONTROL"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.monoFontFamily
-            font.pixelSize: Config.typeLabelSmallSize
-            font.letterSpacing: Config.typeMonoTracking
-            lineHeight: Config.typeLabelSmallLineHeight
-            lineHeightMode: Text.FixedHeight
-            visible: !root.compactLayout
-          }
+          text: "Settings"
+          color: Colors.fgSurface
+          font.family: Config.displayFontFamily
+          font.pixelSize: Config.nothingEvolution ? Config.typeHeadlineSmallSize : Config.typeHeadlineMediumSize
+          font.weight: Config.themeFontWeight
+          font.letterSpacing: Config.typeHeadlineTracking
+          lineHeight: Config.typeHeadlineMediumLineHeight
+          lineHeightMode: Text.FixedHeight
         }
 
         IconButton {
@@ -786,15 +766,16 @@ PanelWindow {
           Layout.maximumWidth: root.sidebarWidth
           Layout.fillWidth: false
           Layout.fillHeight: true
-          spacing: Config.spacingSmall
+          spacing: Config.spacingMedium
 
           TextFieldControl {
             id: searchField
             Layout.fillWidth: true
             leadingIcon: "search"
             leadingIconSize: 16
-            placeholder: root.compactLayout ? "Search" : "Search settings"
+            placeholder: root.sidebarWidth <= 108 ? "Search" : "Search settings"
             accessibleName: "Search settings"
+            Layout.bottomMargin: Config.spacingSmall
             onEscapePressed: {
               if (root.searchQuery !== "") {
                 input.text = ""
@@ -828,7 +809,6 @@ PanelWindow {
             boundsBehavior: Flickable.StopAtBounds
             flickableDirection: Flickable.VerticalFlick
             clip: true
-            ScrollBar.vertical: SettingsScrollBar { scrollTarget: sidebarScroll }
 
             ColumnLayout {
               id: sidebarColumn
@@ -853,7 +833,7 @@ PanelWindow {
                   Text {
                     visible: tabEntry.firstInGroup
                     Layout.fillWidth: true
-                    Layout.topMargin: index === 0 ? 0 : Config.spacingSmall
+                    Layout.topMargin: index === 0 ? 0 : Config.spacingMedium
                     text: modelData.group.toUpperCase()
                     color: Colors.fgSurfaceVariant
                     font.family: Config.monoFontFamily
@@ -882,6 +862,10 @@ PanelWindow {
                     Accessible.selected: root.currentTab === index
                     Accessible.selectable: true
                     Accessible.focusable: true
+                    ToolTip.visible: root.sidebarWidth <= 108 && navigationRow.hovered
+                    ToolTip.text: modelData.label
+                    ToolTip.delay: 550
+
 
                     Keys.priority: Keys.BeforeItem
 
@@ -944,6 +928,16 @@ PanelWindow {
               width: searchResultsScroll.width
               spacing: root.sidebarRowSpacing
 
+              Text {
+                visible: root.searchResults.length > 0
+                Layout.fillWidth: true
+                Layout.bottomMargin: Config.spacingSmall
+                text: root.searchResults.length + (root.searchResults.length === 1 ? " result" : " results")
+                color: Colors.fgSurfaceVariant
+                font.family: Config.fontFamily
+                font.pixelSize: Config.typeBodyMediumSize
+              }
+
               Repeater {
                 model: root.searchResults
 
@@ -970,6 +964,7 @@ PanelWindow {
                     font.letterSpacing: Config.typeMonoTracking
                     lineHeight: Config.typeLabelSmallLineHeight
                     lineHeightMode: Text.FixedHeight
+                    wrapMode: Text.WordWrap
                   }
 
                   ListItem {
@@ -997,7 +992,7 @@ PanelWindow {
                 visible: root.searchResults.length === 0
                 Layout.fillWidth: true
                 Layout.topMargin: Config.spacingSmall
-                text: "No settings found"
+                text: "No settings found. Try a shorter search."
                 color: Colors.fgSurfaceVariant
                 font.family: Config.fontFamily
                 font.pixelSize: Config.typeBodyMediumSize
@@ -1018,12 +1013,13 @@ PanelWindow {
           color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.12)
         }
 
-        // Tab Content Area Container
+        // Page content gets its own quiet gutter after the navigation rail.
         Item {
           id: tabContainer
           property QtObject panelRoot: root
           Layout.fillWidth: true
           Layout.fillHeight: true
+          Layout.leftMargin: root.compactLayout ? 0 : Config.spacingSmall
           clip: true
 
           Loader {
@@ -1127,10 +1123,7 @@ PanelWindow {
       }
     }
 
-    // Resize handle, bottom-right corner of the visible surface. A direct
-    // child of bg (not nested inside contentColumn) so anchoring to bg.right/
-    // bg.bottom is valid, and it lines up with bg's real edge even when
-    // neo-brutalism's shadow offset shrinks bg relative to the window bounds.
+    // Keep the resize handle anchored to the visible surface, not its contents.
     MouseArea {
       id: resizeHandle
       width: 18
@@ -1149,8 +1142,8 @@ PanelWindow {
 
       onPressed: function(mouse) {
         pressLocal = mapToItem(null, mouse.x, mouse.y)
-        startWidth = root.implicitWidth - (Config.neoBrutalism ? Config.themeShadowOffset : 0)
-        startHeight = root.implicitHeight - (Config.neoBrutalism ? Config.themeShadowOffset : 0)
+        startWidth = root.implicitWidth
+        startHeight = root.implicitHeight
         didResize = false
       }
 
@@ -1160,7 +1153,7 @@ PanelWindow {
         var deltaX = p.x - pressLocal.x
         var deltaY = p.y - pressLocal.y
         var maxW = Math.min(Config.settingsMaxWidth, root.desktopW - Config.spacingPage)
-        var maxH = Math.min(Config.settingsMaxHeight, root.desktopH - Config.spacingPage)
+        var maxH = root.desktopH - Config.spacingPage
         Settings.settingsPanelWidth = Math.round(Math.max(Config.settingsMinWidth, Math.min(maxW, startWidth + deltaX)))
         Settings.settingsPanelHeight = Math.round(Math.max(Config.settingsMinHeight, Math.min(maxH, startHeight + deltaY)))
         didResize = true

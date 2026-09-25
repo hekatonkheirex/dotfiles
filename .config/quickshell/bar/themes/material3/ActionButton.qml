@@ -237,10 +237,11 @@ Item {
     id: verticalContentColumn
     visible: !horizontalContentRow.visible
     anchors.centerIn: parent
-    spacing: root.labelText !== "" ? root.contentSpacing : 0
+    spacing: root.labelText !== "" && root.renderedIconLabel !== "" ? root.contentSpacing : 0
 
     IconGlyph {
       anchors.horizontalCenter: parent.horizontalCenter
+      visible: root.renderedIconLabel !== ""
       iconLabel: root.renderedIconLabel
       iconColor: root.iconColor
       iconSize: root.iconSize

@@ -14,24 +14,13 @@ Item {
   property bool integrated: false
 
   property int visibleCount: 0
-  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassHighContrast
+  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassOpaque
   readonly property real preferredLength: visibleCount * (Config.widgetSize)
 
   Layout.preferredWidth: horizontal ? preferredLength : (Config.widgetSize)
   Layout.preferredHeight: horizontal ? (Config.widgetSize) : preferredLength
   visible: visibleCount > 0
 
-  Rectangle {
-    id: shadow
-    x: (horizontal ? 0 : 6) + Config.themeShadowOffset
-    y: (horizontal ? 6 : 0) + Config.themeShadowOffset
-    width: horizontal ? systemTrayAreaRoot.width : Math.max(0, systemTrayAreaRoot.width - 12)
-    height: horizontal ? Math.max(0, systemTrayAreaRoot.height - 12) : systemTrayAreaRoot.height
-    radius: Config.borderRadius
-    color: Colors.styleShadow
-    visible: Config.neoBrutalism && systemTrayAreaRoot.visible && !systemTrayAreaRoot.integrated
-    z: -1
-  }
 
   Rectangle {
     id: traySurface
@@ -50,12 +39,12 @@ Item {
         ? "transparent"
         : (Config.liquidGlassTheme
           ? Colors.liquidGlassClear
-        : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
+        : (Config.nothingDesign || Config.ghostTheme
           ? Colors.styleSurface
           : Colors.surfaceContainerHigh)))
     border.color: systemTrayAreaRoot.flatLiquidChrome
       ? "transparent"
-      : (Config.neoBrutalism || Config.ghostTheme || Config.liquidGlassTheme
+      : (Config.ghostTheme || Config.liquidGlassTheme
         ? Colors.styleOutline
       : (Config.nothingDesign
         ? "transparent"
@@ -158,7 +147,7 @@ Item {
           radius: Config.shapeMedium
           color: "transparent"
           border.width: trayIconDelegate.activeFocus ? Config.themeFocusBorderWidth : 0
-          border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+          border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
             ? Colors.styleOutline
             : Colors.primary
         }

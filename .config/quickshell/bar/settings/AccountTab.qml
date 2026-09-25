@@ -12,14 +12,11 @@ Flickable {
   id: accountTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
   anchors.fill: parent
   visible: root.currentTab === 0
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + accountTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: accountTab }
@@ -126,8 +123,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, accountTab.width - accountTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + accountTab.neoShadowAllowance
+    width: Math.max(0, accountTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "Account"
@@ -139,7 +136,7 @@ Flickable {
     variant: "elevated"
     Layout.fillWidth: true
     Layout.preferredHeight: accountTab.compactLayout ? 196 : 152
-    radius: Config.shapeLarge
+    radius: Config.settingsCardRadius
     surfaceColor: Colors.surfaceContainer
     outlineColor: Colors.styleOutline
     outlineWidth: Config.themeBorderWidth
@@ -290,7 +287,7 @@ Flickable {
     variant: "filled"
     Layout.fillWidth: true
     Layout.preferredHeight: machineInfoCol.implicitHeight + Config.spacingMedium * 2
-    radius: Config.shapeLarge
+    radius: Config.settingsCardRadius
     surfaceColor: Colors.surfaceContainer
     outlineColor: Colors.styleOutline
     outlineWidth: Config.themeBorderWidth
@@ -337,10 +334,8 @@ Flickable {
   GridLayout {
     Layout.fillWidth: true
     columns: accountTab.compactLayout ? 1 : 2
-    // Neo controls carry a hard offset shadow; keep that footprint out of
-    // the inter-button gap so the two outlines remain visually separate.
-    columnSpacing: Config.spacingMedium + accountTab.neoShadowAllowance
-    rowSpacing: Config.spacingMedium + accountTab.neoShadowAllowance
+    columnSpacing: Config.spacingMedium
+    rowSpacing: Config.spacingMedium
 
     ActionButton {
       Layout.fillWidth: true

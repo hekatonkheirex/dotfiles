@@ -10,9 +10,6 @@ Flickable {
   id: lockMediaTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
   readonly property bool material3Theme: Config.material3Theme
   readonly property int segmentedButtonGap: lockMediaTab.material3Theme ? 0 : Config.spacingCompact
   // Keep trailing idle sliders the same length as the shared settings rows.
@@ -27,7 +24,7 @@ Flickable {
   visible: root.currentTab === 8
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + lockMediaTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: lockMediaTab }
@@ -68,8 +65,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, lockMediaTab.width - lockMediaTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + lockMediaTab.neoShadowAllowance
+    width: Math.max(0, lockMediaTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "Lock & Power"
@@ -81,7 +78,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: lockCol.implicitHeight + Config.spacingSmall * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth
@@ -245,7 +242,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: idleCol.implicitHeight + Config.spacingSmall * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth

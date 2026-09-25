@@ -64,6 +64,7 @@ FileView {
     notificationToastPosition: "top-right",
     notificationToastDurationMs: 5000,
     reduceMotion: false,
+    reduceTransparency: false,
     spacingScale: 1.0,
     systemShowUptime: true,
     colorSource: "live",
@@ -99,7 +100,14 @@ FileView {
   // adapterUpdated is emitted for adapter writes, not for the initial file
   // read. Use FileView's load signal so surfaces that depend on persisted
   // settings are created with the loaded values.
-  onLoaded: initialLoadComplete = true
+  onLoaded: {
+    if (themeStyle === "neo-brutalism") {
+      themeStyle = "nothing"
+      nothingVariant = "evolution"
+      root.save()
+    }
+    initialLoadComplete = true
+  }
 
   onAdapterUpdated: {
     initialLoadComplete = true
@@ -143,6 +151,7 @@ FileView {
   property alias mediaShowAlbumArt: adapter.mediaShowAlbumArt
   property alias mediaShowProgressBar: adapter.mediaShowProgressBar
   property alias notificationCriticalBypass: adapter.notificationCriticalBypass
+  property alias reduceTransparency: adapter.reduceTransparency
   property alias notificationHistoryLimit: adapter.notificationHistoryLimit
   property alias notificationQuietHoursEnabled: adapter.notificationQuietHoursEnabled
   property alias notificationQuietHoursEnd: adapter.notificationQuietHoursEnd
@@ -175,6 +184,7 @@ FileView {
     fontPixelSize = root.defaults.fontPixelSize
     fullBar = root.defaults.fullBar
     iconSize = root.defaults.iconSize
+    reduceTransparency = root.defaults.reduceTransparency
     spacingScale = root.defaults.spacingScale
     workspaceShape = root.defaults.workspaceShape
     workspaceCount = root.defaults.workspaceCount
@@ -281,6 +291,7 @@ FileView {
     property bool mediaShowAlbumArt: root.defaults.mediaShowAlbumArt
     property bool mediaShowProgressBar: root.defaults.mediaShowProgressBar
     property bool notificationCriticalBypass: root.defaults.notificationCriticalBypass
+    property bool reduceTransparency: root.defaults.reduceTransparency
     property int notificationHistoryLimit: root.defaults.notificationHistoryLimit
     property bool notificationQuietHoursEnabled: root.defaults.notificationQuietHoursEnabled
     property int notificationQuietHoursEnd: root.defaults.notificationQuietHoursEnd
@@ -296,12 +307,9 @@ FileView {
     property string colorPalette: root.defaults.colorPalette
     property string colorVariant: root.defaults.colorVariant
     property string colorContrast: root.defaults.colorContrast
-    // UI style; Nothing Classic and Ghost select fixed Quickshell palettes,
-    // while Nothing Evolution, Material 3, Neo, and Liquid Glass can use
-    // Matugen roles.
+    // Nothing Classic remains selectable until Evolution's release and review;
+    // Evolution uses wallpaper-aware roles.
     property string themeStyle: root.defaults.themeStyle
-    // Classic Nothing remains available as a fallback while Evolution uses
-    // the wallpaper-aware Nothing OS 5 visual language.
     property string nothingVariant: root.defaults.nothingVariant
     property string lockClockFace: root.defaults.lockClockFace
     // 0 = auto, 1 = light, 2 = dark.

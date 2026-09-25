@@ -19,7 +19,7 @@ if [ -z "$UI_STYLE" ] && command -v jq &>/dev/null; then
   UI_STYLE=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || echo material3)
 fi
 case "$UI_STYLE" in
-  nothing|neo-brutalism|material3|ghost) ;;
+  nothing|material3|ghost) ;;
   *) UI_STYLE=material3 ;;
 esac
 
@@ -122,31 +122,6 @@ esac
       qt_general_font="NType 82,13,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"
     fi
 
-    if [ "$UI_STYLE" = "neo-brutalism" ]; then
-      local neo_theme="Neo-Brutalism"
-      local neo_icon_theme="Neo-Brutalism-Icons"
-      [ "$mode" = "dark" ] && neo_theme="Neo-Brutalism-Dark"
-      [ "$mode" = "dark" ] && neo_icon_theme="Neo-Brutalism-Dark-Icons"
-      if [ -d "$HOME/.themes/$neo_theme/gtk-4.0" ]; then
-        gtk_theme="$neo_theme"
-        gtk_font="JetBrains Mono 13"
-      else
-        echo "Neo Brutalism GTK theme not found at ~/.themes/$neo_theme; keeping Material 3 GTK."
-      fi
-      if [ -f "$HOME/.config/Kvantum/$neo_theme/$neo_theme.kvconfig" ]; then
-        qt_theme="$neo_theme"
-      else
-        echo "Neo Brutalism Kvantum theme not found at ~/.config/Kvantum/$neo_theme; keeping Material 3 Qt style."
-      fi
-      if [ -f "$HOME/.local/share/icons/$neo_icon_theme/index.theme" ] || \
-        [ -f "$HOME/.icons/$neo_icon_theme/index.theme" ]; then
-        icon_theme="$neo_icon_theme"
-      else
-        echo "Neo Brutalism icon theme not found at ~/.local/share/icons/$neo_icon_theme or ~/.icons/$neo_icon_theme; keeping Material 3 icons."
-      fi
-      qt_fixed_font="JetBrains Mono,14,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"
-      qt_general_font="JetBrains Mono,13,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"
-    fi
 
     if [ "$UI_STYLE" = "ghost" ]; then
       local ghost_theme="Ghost-Light"

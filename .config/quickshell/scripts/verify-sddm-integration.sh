@@ -85,8 +85,6 @@ if (( ! bridge_only )); then
   themes=(
     Material3-Expressive-Dynamic-SDDM
     Material3-Expressive-Dynamic-Dark-SDDM
-    Neo-Brutalism-SDDM
-    Neo-Brutalism-Dark-SDDM
     Nothing-OS-SDDM
     Nothing-OS-Dark-SDDM
     Ghost-SDDM

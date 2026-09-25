@@ -119,8 +119,6 @@ install_sddm_dist() {
   case "$name" in
     material3-expressive-sddm)
       themes=(Material3-Expressive-Dynamic-SDDM Material3-Expressive-Dynamic-Dark-SDDM) ;;
-    neo-brutalism-sddm)
-      themes=(Neo-Brutalism-SDDM Neo-Brutalism-Dark-SDDM) ;;
     nothing-sddm)
       themes=(Nothing-OS-SDDM Nothing-OS-Dark-SDDM) ;;
     ghost-sddm)
@@ -184,9 +182,6 @@ repos=(
   material3-expressive-theme
   material3-expressive-icons
   material3-expressive-kvantum
-  neo-brutalism-theme
-  neo-brutalism-icons
-  neo-brutalism-kvantum
   nothing-theme
   nothing-icons
   nothing-kvantum
@@ -197,7 +192,6 @@ repos=(
 if (( ! skip_sddm )); then
   repos+=(
     material3-expressive-sddm
-    neo-brutalism-sddm
     nothing-sddm
     ghost-sddm
   )
@@ -211,14 +205,10 @@ for repo in "${repos[@]}"; do
 done
 
 # Material 3 owns the shared GTK build engine and current Matugen palette.
-# Nothing, Neo, and Ghost consume that generated baseline, so keep this order.
+# Nothing and Ghost consume that generated baseline, so keep this order.
 run_step 'Material 3 GTK theme' "$projects_dir/material3-expressive-theme" python3 generate.py
 run_step 'Material 3 icon themes' "$projects_dir/material3-expressive-icons" python3 generate.py
 run_step 'Material 3 Kvantum themes' "$projects_dir/material3-expressive-kvantum" python3 generate.py
-
-run_step 'Neo Brutalism GTK theme' "$projects_dir/neo-brutalism-theme" python3 generate.py
-run_step 'Neo Brutalism icon themes' "$projects_dir/neo-brutalism-icons" make install
-run_step 'Neo Brutalism Kvantum themes' "$projects_dir/neo-brutalism-kvantum" make install
 
 run_step 'Nothing GTK theme' "$projects_dir/nothing-theme" python3 generate.py
 run_step 'Nothing icon themes' "$projects_dir/nothing-icons" make install
@@ -234,16 +224,12 @@ if (( ! skip_cursors )); then
 fi
 
 # The external style repositories do not provide the fixed Starship/btop
-# companions or the Neo Matugen terminal pair. Fill those local integration
-# assets before the active-style synchronization and final verification.
+# companions. Fill local integration assets before active-style synchronization.
 run_step 'Style terminal companion assets' "$script_dir" bash "$script_dir/ensure-style-terminal-assets.sh"
 
 if (( ! skip_sddm )); then
   run_step 'Material 3 SDDM themes' "$projects_dir/material3-expressive-sddm" python3 generate.py
   install_sddm_dist material3-expressive-sddm
-
-  run_step 'Neo Brutalism SDDM themes' "$projects_dir/neo-brutalism-sddm" python3 generate.py
-  install_sddm_dist neo-brutalism-sddm
 
   run_step 'Nothing SDDM themes' "$projects_dir/nothing-sddm" python3 generate.py --output dist
   install_sddm_dist nothing-sddm

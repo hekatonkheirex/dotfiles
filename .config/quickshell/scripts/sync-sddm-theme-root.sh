@@ -7,7 +7,7 @@ if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
 fi
 
 if [[ $# -ne 2 ]]; then
-  printf 'Usage: %s <light|dark> <material3|neo-brutalism|nothing|ghost>\n' "$0" >&2
+  printf 'Usage: %s <light|dark> <material3|nothing|ghost>\n' "$0" >&2
   exit 2
 fi
 
@@ -30,10 +30,6 @@ case "$ui_style" in
   material3)
     theme_name="Material3-Expressive-Dynamic-SDDM"
     [[ "$mode" == "dark" ]] && theme_name="Material3-Expressive-Dynamic-Dark-SDDM"
-    ;;
-  neo-brutalism)
-    theme_name="Neo-Brutalism-SDDM"
-    [[ "$mode" == "dark" ]] && theme_name="Neo-Brutalism-Dark-SDDM"
     ;;
   ghost)
     # Ghost recovered one dark-only greeter. Keep it selected for both desktop

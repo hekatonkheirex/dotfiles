@@ -10,6 +10,5 @@ qmllint shell.qml \
   bar/settings/*.qml \
   bar/primitives/*.qml \
   bar/themes/material3/*.qml \
-  bar/themes/neo_brutalism/*.qml \
   bar/themes/nothing/*.qml \
   bar/themes/ghost/*.qml

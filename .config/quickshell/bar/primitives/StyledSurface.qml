@@ -1,7 +1,4 @@
-// Shared surface treatment. Material 3 keeps its tonal surface and outline;
-// Neo Brutalism adds the visible hard offset while consuming the same Matugen
-// semantic roles for fills, ink, and accents. Liquid Glass gives local cards
-// the same neutral translucent material as its functional chrome.
+// Shared tonal cards; Liquid Glass uses neutral translucent material.
 import QtQuick
 import "../../config"
 
@@ -34,17 +31,6 @@ Item {
 
   default property alias content: contentLayer.data
 
-  Rectangle {
-    id: shadow
-    x: Config.themeShadowOffset
-    y: Config.themeShadowOffset
-    width: root.width
-    height: root.height
-    radius: root.radius
-    color: Colors.styleShadow
-    visible: Config.neoBrutalism
-    z: -1
-  }
 
   Rectangle {
     id: materialElevationShadow

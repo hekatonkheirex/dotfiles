@@ -88,10 +88,11 @@ Item {
 
   Column {
     anchors.centerIn: parent
-    spacing: root.labelText !== "" ? root.contentSpacing : 0
+    spacing: root.labelText !== "" && root.iconLabel !== "" ? root.contentSpacing : 0
 
     Text {
       anchors.horizontalCenter: parent.horizontalCenter
+      visible: root.iconLabel !== ""
       text: root.iconLabel
       color: root.iconColor
       font.family: Config.iconFont

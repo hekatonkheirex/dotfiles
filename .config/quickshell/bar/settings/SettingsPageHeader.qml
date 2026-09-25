@@ -9,17 +9,23 @@ ColumnLayout {
   property string subtitle: ""
 
   Layout.fillWidth: true
-  spacing: Config.spacingCompact
+  spacing: Config.spacingSmall
 
   Text {
-    text: pageHeader.pageTitle
+    Layout.fillWidth: true
+    text: Config.ghostTheme ? pageHeader.pageTitle.toUpperCase() : pageHeader.pageTitle
     color: Colors.fgSurface
     font.family: Config.displayFontFamily
-    font.pixelSize: Config.typeHeadlineSmallSize
-    font.weight: Config.themeFontWeight
-    font.letterSpacing: Config.typeHeadlineTracking
-    lineHeight: Config.typeHeadlineSmallLineHeight
+    font.pixelSize: pageHeader.width < 360 ? Config.typeHeadlineSmallSize
+      : (Config.ghostTheme ? Config.typeHeadlineSmallSize + 2
+        : (Config.nothingDesign && !Config.nothingEvolution
+          ? Config.typeHeadlineMediumSize : Config.typeHeadlineLargeSize))
+    font.weight: Config.ghostTheme ? Config.typeMediumWeight : Config.themeFontWeight
+    font.letterSpacing: Config.ghostTheme ? Config.typeMonoTracking : Config.typeHeadlineTracking
+    lineHeight: Config.ghostTheme ? Config.typeHeadlineMediumLineHeight
+      : Config.typeHeadlineLargeLineHeight
     lineHeightMode: Text.FixedHeight
+    wrapMode: Text.WordWrap
   }
 
   Text {
@@ -28,9 +34,9 @@ ColumnLayout {
     text: pageHeader.subtitle
     color: Colors.fgSurfaceVariant
     font.family: Config.fontFamily
-    font.pixelSize: Config.typeBodyMediumSize
+    font.pixelSize: Config.typeBodyLargeSize
     font.letterSpacing: Config.typeBodyTracking
-    lineHeight: Config.typeBodyMediumLineHeight
+    lineHeight: Config.typeBodyLargeLineHeight
     lineHeightMode: Text.FixedHeight
     wrapMode: Text.WordWrap
   }

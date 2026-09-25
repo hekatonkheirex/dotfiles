@@ -8,14 +8,11 @@ import "../../config"
 Flickable {
   id: networkTab
   property QtObject root: null
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
   anchors.fill: parent
   visible: root.currentTab === 5
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + networkTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: networkTab }
@@ -25,8 +22,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, networkTab.width - networkTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + networkTab.neoShadowAllowance
+    width: Math.max(0, networkTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "Network"

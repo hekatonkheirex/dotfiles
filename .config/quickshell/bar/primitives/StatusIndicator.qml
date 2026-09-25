@@ -39,7 +39,7 @@ Item {
   property string badgeText: ""
   property color badgeColor: Colors.error
   property color badgeTextColor: Colors.fgError
-  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassHighContrast
+  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassOpaque
 
   // Nothing's dot-matrix numeral font is reserved for pure numeric readouts
   // (battery/brightness/volume %), not textual states like "Muted" or
@@ -87,17 +87,6 @@ Item {
   Accessible.focusable: root.activeFocusOnTab
   Accessible.focused: root.activeFocus
 
-  Rectangle {
-    id: shadow
-    x: bgOverlay.x + Config.themeShadowOffset
-    y: bgOverlay.y + Config.themeShadowOffset
-    width: bgOverlay.width
-    height: bgOverlay.height
-    radius: bgOverlay.radius
-    color: Colors.styleShadow
-    visible: Config.neoBrutalism && root.enabled && !root.integrated
-    z: -1
-  }
 
   Keys.onPressed: function(event) {
     if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
@@ -127,13 +116,9 @@ Item {
       topMargin: root.horizontal ? 6 : 0
       bottomMargin: root.horizontal ? 6 : 0
     }
-    radius: Config.ghostTheme
-      ? 0
-      : (Config.neoBrutalism
-        ? Config.shapeMedium
-        : (Config.liquidGlassTheme
-          ? Config.shapeCompact
-          : (root.horizontal ? height / 2 : width / 2)))
+    radius: Config.ghostTheme ? 0
+      : (Config.liquidGlassTheme ? Config.shapeCompact
+        : (root.horizontal ? height / 2 : width / 2))
     clip: true
     color: {
       var overlay = mouseArea.pressed ? Colors.pressOverlay
@@ -144,7 +129,7 @@ Item {
         : (root.flatLiquidChrome
           ? (root.active ? Colors.liquidGlassClear : "transparent")
         : (root.borderOnHoverOnly
-          ? ((Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme)
+          ? ((Config.nothingDesign || Config.ghostTheme)
             ? Colors.styleSurface
             : (Config.liquidGlassTheme ? Colors.liquidGlassClear : "transparent"))
           : root.inactiveBg))
@@ -156,7 +141,7 @@ Item {
           ? Colors.styleOutline
           : "transparent"
       }
-      if (Config.neoBrutalism || Config.ghostTheme) return Colors.styleOutline
+      if (Config.ghostTheme) return Colors.styleOutline
       if (Config.nothingEvolution) {
         return root.active || mouseArea.containsMouse || root.activeFocus
           ? Colors.styleOutline
@@ -231,7 +216,7 @@ Item {
         ? (root.numericLabel ? Config.dotFontFamily : Config.monoFontFamily)
         : Config.fontFamily
       font.pixelSize: Config.typeLabelMediumSize
-      font.weight: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+      font.weight: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Config.themeFontWeight
         : Font.Medium
       font.letterSpacing: Config.nothingDesign ? 0.3 : Config.typeLabelTracking

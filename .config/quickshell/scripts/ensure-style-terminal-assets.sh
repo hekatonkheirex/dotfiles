@@ -177,20 +177,3 @@ for fixed_style in nothing ghost; do
 done
 write_ghost_btop
 
-# Neo's generator is Matugen-backed. Generate it only when one of its
-# companion files is absent; switching to Neo later refreshes both modes from
-# the active cache through sync-terminal-theme.sh.
-neo_generator="$script_dir/generate-neo-kitty-theme.sh"
-neo_kitty_light="$kitty_dir/neo-brutalism-matugen-light.conf"
-neo_kitty_dark="$kitty_dir/neo-brutalism-matugen-dark.conf"
-neo_starship_light="$starship_dir/neo-brutalism-matugen-light.toml"
-neo_starship_dark="$starship_dir/neo-brutalism-matugen-dark.toml"
-if [[ ! -f "$neo_kitty_light" || ! -f "$neo_kitty_dark" ||
-      ! -f "$neo_starship_light" || ! -f "$neo_starship_dark" ]]; then
-  if [[ -f "$neo_generator" ]]; then
-    bash "$neo_generator" light
-    bash "$neo_generator" dark
-  else
-    printf 'Neo Brutalism terminal generator not found: %s\n' "$neo_generator" >&2
-  fi
-fi

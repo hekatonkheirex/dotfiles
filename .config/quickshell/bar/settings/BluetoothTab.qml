@@ -8,14 +8,11 @@ import "../../config"
 Flickable {
   id: bluetoothTab
   property QtObject root: null
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
   anchors.fill: parent
   visible: root.currentTab === 6
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + bluetoothTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: bluetoothTab }
@@ -25,8 +22,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, bluetoothTab.width - bluetoothTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + bluetoothTab.neoShadowAllowance
+    width: Math.max(0, bluetoothTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "Bluetooth"

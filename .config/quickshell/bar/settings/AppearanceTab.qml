@@ -12,20 +12,14 @@ Flickable {
   id: appearanceTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
-  readonly property int neoControlAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset * 2
-    : 0
   readonly property bool material3Theme: Config.material3Theme
   readonly property int optionButtonGap: Config.themeOptionGap
   readonly property int segmentedButtonGap: appearanceTab.material3Theme ? 0 : appearanceTab.optionButtonGap
   // Stacked icon + label choices need a 48px hit area to keep both glyphs
   // comfortably inside the button outline at the global font scale.
-  readonly property int optionButtonHeight: Config.neoBrutalism ? 52 : 48
-  readonly property int uiStyleColumns: compactLayout ? 2 : 3
-  readonly property int uiStyleRows: Math.ceil(6 / uiStyleColumns)
+  readonly property int optionButtonHeight: 48
+  readonly property int uiStyleColumns: width < 260 ? 1 : (width < 740 ? 2 : 5)
+  readonly property int uiStyleRows: Math.ceil(5 / uiStyleColumns)
   readonly property var workspaceCountOptions: [
     { value: "active", icon: "dynamic_feed", label: "Active", description: "Show the workspaces currently known to Niri" },
     { value: "5", icon: "looks_5", label: "1–5", description: "Show workspaces one through five" },
@@ -48,11 +42,33 @@ Flickable {
   visible: root.currentTab === 2
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + appearanceTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: appearanceTab }
 
+  property string previousStyle: ""
+  property string previousNothingVariant: ""
+
+  function selectStyle(style, variant) {
+    if (Settings.themeStyle === style
+        && (style !== "nothing" || Settings.nothingVariant === variant)) return
+    previousStyle = Settings.themeStyle
+    previousNothingVariant = Settings.nothingVariant
+    Settings.themeStyle = style
+    if (style === "nothing") Settings.nothingVariant = variant
+    Settings.save()
+  }
+
+  function revertStyle() {
+    if (previousStyle === "") return
+    var style = previousStyle
+    var variant = previousNothingVariant
+    previousStyle = ""
+    Settings.themeStyle = style
+    Settings.nothingVariant = variant
+    Settings.save()
+  }
   property string themeStatus: ""
   property bool resetConfirm: false
   property string wmStatusMessage: ""
@@ -156,25 +172,14 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, appearanceTab.width - appearanceTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + appearanceTab.neoShadowAllowance
+    width: Math.max(0, appearanceTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "Appearance"
       subtitle: "Customize the shell’s visual style, colors, layout, and effects."
     }
 
-    Text {
-      Layout.fillWidth: true
-      text: "Changes preview immediately and are saved automatically. Reset restores the appearance defaults."
-      color: Colors.fgSurfaceVariant
-      font.family: Config.fontFamily
-      font.pixelSize: Config.typeBodySmallSize
-      font.letterSpacing: Config.typeBodyTracking
-      lineHeight: Config.typeBodySmallLineHeight
-      lineHeightMode: Text.FixedHeight
-      wrapMode: Text.WordWrap
-    }
 
     ColumnLayout {
       id: appearanceCardsColumn
@@ -245,63 +250,56 @@ Flickable {
           }
         }
 
-        Text {
-          Layout.fillWidth: true
-          text: "Visual style, sizing, and density"
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeLabelSmallSize
-          font.letterSpacing: Config.typeLabelTracking
-          lineHeight: Config.typeLabelSmallLineHeight
-          lineHeightMode: Text.FixedHeight
-          wrapMode: Text.WordWrap
-        }
       }
 
       // UI Style card
       StyledSurface {
         variant: "filled"
         Layout.fillWidth: true
-        Layout.preferredHeight: Math.max(184, uiStyleColumn.implicitHeight + Config.spacingPage)
-        radius: Config.shapeLarge
+        Layout.preferredHeight: uiStyleColumn.implicitHeight + Config.spacingExtraLarge * 2
+        radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
         outlineWidth: Config.themeBorderWidth
 
         ColumnLayout {
           id: uiStyleColumn
-          anchors.top: parent.top
-          anchors.left: parent.left
-          anchors.right: parent.right
-          anchors.topMargin: Config.spacingLarge
-          anchors.leftMargin: Config.spacingLarge
-          anchors.rightMargin: Config.spacingLarge
-          spacing: Config.spacingSmall
+          anchors.fill: parent
+          anchors.margins: Config.spacingExtraLarge
+          spacing: Config.spacingMedium
 
           Text {
             text: "UI Style"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyLargeSize
+            font.pixelSize: Config.typeTitleLargeSize
             font.weight: Config.typeStrongWeight
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyLargeLineHeight
+            font.letterSpacing: Config.typeTitleTracking
+            lineHeight: Config.typeTitleLargeLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.alignment: Qt.AlignHCenter
           }
 
-            Item {
-              Layout.fillWidth: true
-              Layout.alignment: Qt.AlignLeft
-              Layout.preferredWidth: 0
-              Layout.minimumWidth: 0
-              Layout.maximumWidth: parent.width
-              Layout.preferredHeight: appearanceTab.optionButtonHeight * appearanceTab.uiStyleRows
-                + appearanceTab.optionButtonGap * (appearanceTab.uiStyleRows - 1)
-              height: appearanceTab.optionButtonHeight * appearanceTab.uiStyleRows
-                + appearanceTab.optionButtonGap * (appearanceTab.uiStyleRows - 1)
+          Text {
+            text: "Choose a shell style. Changes apply and save automatically."
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeBodyMediumSize
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+          }
+
+          Item {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignLeft
+            Layout.preferredWidth: 0
+            Layout.minimumWidth: 0
+            Layout.maximumWidth: parent.width
+            Layout.preferredHeight: (appearanceTab.optionButtonHeight + 112) * appearanceTab.uiStyleRows
+              + appearanceTab.optionButtonGap * (appearanceTab.uiStyleRows - 1)
+            height: Layout.preferredHeight
 
             GridLayout {
+              id: styleGrid
               anchors.left: parent.left
               anchors.right: parent.right
               anchors.top: parent.top
@@ -316,63 +314,209 @@ Flickable {
 
               Repeater {
                 model: [
-                  { value: "material3", variant: "", icon: "auto_awesome", label: "Material" },
-                  { value: "neo-brutalism", variant: "", icon: "square", label: "Neo" },
-                  { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Nothing" },
-                  { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost" },
-                  { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution" },
-                  { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid" }
+                  { value: "material3", variant: "", icon: "auto_awesome", label: "Material", surface: "#f3eff8", panel: "#e5e0ed", ink: "#25232a", accent: "#6259a5", onAccent: "#ffffff", font: "Roboto Flex" },
+                  { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Classic", surface: "#f0f0ee", panel: "#ffffff", ink: "#1a1a1a", accent: "#d71920", onAccent: "#ffffff", font: "NType 82" },
+                  { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution", surface: "#dcdce1", panel: "#f1f1f4", ink: "#1d1d1f", accent: "#557bae", onAccent: "#ffffff", font: "Geist" },
+                  { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost", surface: "#0d1418", panel: "#152328", ink: "#cdeeea", accent: "#57d9cc", onAccent: "#0d1418", font: "JetBrains Mono" },
+                  { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid", surface: "#d9dce5", panel: "#f0f1f5", ink: "#1d1d1f", accent: "#818bb8", onAccent: "#ffffff", font: "Roboto Flex" }
                 ]
 
-                delegate: ActionButton {
+                delegate: Item {
+                  id: styleTile
                   required property var modelData
-                  Layout.fillWidth: true
-                  Layout.fillHeight: true
-                  Layout.minimumWidth: 0
-                  Layout.minimumHeight: 0
-                  iconLabel: modelData.icon
-                  iconSize: 15
-                  contentSpacing: Config.spacingSmall
-                  horizontalContent: false
-                  labelText: modelData.label
-                  selected: Settings.themeStyle === modelData.value
+                  required property int index
+                  readonly property bool centerLast: appearanceTab.uiStyleColumns === 2 && index === 4
+                  readonly property bool classic: modelData.value === "nothing" && modelData.variant === "classic"
+                  readonly property bool evolution: modelData.variant === "evolution"
+                  readonly property bool ghost: modelData.value === "ghost"
+                  readonly property bool glass: modelData.value === "liquid-glass"
+                  readonly property bool selectedStyle: Settings.themeStyle === modelData.value
                     && (modelData.value !== "nothing" || Settings.nothingVariant === modelData.variant)
-                  checkable: true
-                  grouped: true
-                  accessibleName: modelData.label + " UI style"
-                  accessibleDescription: selected ? "Selected" : "Use the " + modelData.label + " UI style"
-                  onActivated: {
-                    Settings.themeStyle = modelData.value
-                    if (modelData.value === "nothing") Settings.nothingVariant = modelData.variant
-                    Settings.save()
+                  readonly property real corner: ghost ? 0 : (classic ? 4 : (glass ? 16 : 12))
+                  Layout.fillWidth: !centerLast
+                  Layout.fillHeight: true
+                  Layout.columnSpan: centerLast ? 2 : 1
+                  Layout.preferredWidth: centerLast ? (styleGrid.width - styleGrid.columnSpacing) / 2 : -1
+                  Layout.alignment: centerLast ? Qt.AlignHCenter : Qt.AlignLeft
+                  Layout.minimumWidth: 0
+
+                  Rectangle {
+                    anchors.fill: parent
+                    radius: styleTile.ghost ? 0 : Config.shapeMedium
+                    color: styleTile.selectedStyle
+                      ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.10)
+                      : "transparent"
+                    border.width: styleTile.selectedStyle ? 2 : 0
+                    border.color: Colors.primary
+                  }
+
+                  // Previews show the system's hierarchy, not just its accent.
+                  Rectangle {
+                    id: miniature
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: Config.spacingCompact
+                    height: 96
+                    radius: corner
+                    color: modelData.surface
+                    border.color: ghost || classic ? modelData.accent : modelData.ink
+                    border.width: ghost || classic ? 1 : 0
+                    clip: true
+
+                    Rectangle {
+                      id: miniatureBar
+                      anchors.left: parent.left
+                      anchors.right: parent.right
+                      anchors.top: parent.top
+                      anchors.margins: 8
+                      height: 16
+                      radius: ghost || classic ? 0 : 8
+                      color: ghost ? modelData.panel : (glass ? "#eeeef4" : modelData.panel)
+
+                      Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: ghost ? "S9 • 09:41" : "09:41"
+                        font.family: modelData.font
+                        font.pixelSize: 9
+                        color: modelData.ink
+                      }
+
+                      Rectangle {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 7
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: ghost ? 24 : 28
+                        height: ghost ? 4 : 8
+                        radius: ghost || classic ? 0 : 5
+                        color: modelData.accent
+                      }
+                    }
+
+                    Rectangle {
+                      anchors.left: parent.left
+                      anchors.right: parent.right
+                      anchors.bottom: parent.bottom
+                      anchors.margins: 8
+                      height: 58
+                      radius: ghost ? 0 : (classic ? 4 : (glass ? 12 : (evolution ? 10 : 14)))
+                      color: modelData.panel
+                      border.color: ghost ? modelData.accent : (classic ? modelData.ink : "transparent")
+                      border.width: ghost || classic ? 1 : 0
+                      opacity: glass ? 0.86 : 1
+
+                      Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 9
+                        anchors.top: parent.top
+                        anchors.topMargin: 8
+                        text: ghost ? "SETTINGS_01" : "Settings"
+                        font.family: modelData.font
+                        font.pixelSize: ghost ? 9 : 11
+                        font.weight: ghost || classic ? Font.Medium : Font.DemiBold
+                        color: modelData.ink
+                      }
+
+                      Rectangle {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 9
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 11
+                        width: ghost ? 52 : (classic ? 46 : 64)
+                        height: ghost ? 2 : 4
+                        radius: ghost || classic ? 0 : 2
+                        color: ghost ? modelData.accent : modelData.ink
+                        opacity: ghost ? 1 : 0.45
+                      }
+
+                      Rectangle {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 8
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 8
+                        width: 48
+                        height: 20
+                        radius: ghost ? 0 : (classic ? 10 : 12)
+                        color: modelData.accent
+
+                        Text {
+                          anchors.centerIn: parent
+                          text: ghost ? "RUN" : "Apply"
+                          font.family: modelData.font
+                          font.pixelSize: 9
+                          color: modelData.onAccent
+                        }
+                      }
+                    }
+                  }
+                  MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: appearanceTab.selectStyle(styleTile.modelData.value, styleTile.modelData.variant)
+                  }
+
+                  ActionButton {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.margins: Config.spacingCompact
+                    height: appearanceTab.optionButtonHeight
+                    iconLabel: modelData.icon
+                    iconSize: 15
+                    contentSpacing: Config.spacingSmall
+                    horizontalContent: true
+                    labelText: modelData.label
+                    selected: styleTile.selectedStyle
+                    checkable: true
+                    variant: "text"
+                    accessibleName: (modelData.value === "nothing" ? "Nothing " : "") + modelData.label + " UI style"
+                    accessibleDescription: selected ? "Selected" : "Use the " + modelData.label + " UI style; revert is available below"
+                    onActivated: appearanceTab.selectStyle(modelData.value, modelData.variant)
                   }
                 }
               }
             }
           }
 
-          Text {
-            text: Settings.themeStyle === "neo-brutalism"
-              ? "Pastel fills, bold ink borders, and hard offset shadows"
-              : (Settings.themeStyle === "nothing" && Settings.nothingVariant === "evolution"
+          GridLayout {
+            Layout.fillWidth: true
+            columns: appearanceTab.uiStyleColumns === 5 ? 2 : 1
+            columnSpacing: Config.spacingMedium
+            rowSpacing: Config.spacingSmall
+
+            Text {
+              text: Settings.themeStyle === "nothing" && Settings.nothingVariant === "evolution"
                 ? "Geist type, adaptive wallpaper colour, and translucent layers"
                 : (Settings.themeStyle === "nothing"
                   ? "Neutral surfaces, rounded controls, and signal accents"
-                : (Settings.themeStyle === "ghost"
-                  ? "Void panels, cyan hairlines, and a Section 9 HUD"
-                  : (Settings.themeStyle === "liquid-glass"
-                    ? "Translucent functional surfaces, clear controls, and adaptive contrast"
-                    : "Rounded surfaces, tonal elevation, and expressive motion"))))
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
-            lineHeightMode: Text.FixedHeight
-            horizontalAlignment: Text.AlignHCenter
-            wrapMode: Text.WordWrap
-            Layout.maximumWidth: appearanceTab.compactLayout ? 220 : 260
-            Layout.alignment: Qt.AlignHCenter
+                  : (Settings.themeStyle === "ghost"
+                    ? "Void panels, cyan hairlines, and a Section 9 HUD"
+                    : (Settings.themeStyle === "liquid-glass"
+                      ? "Translucent functional surfaces, clear controls, and adaptive contrast"
+                      : "Rounded surfaces, tonal elevation, and expressive motion")))
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyMediumSize
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              wrapMode: Text.WordWrap
+              Layout.fillWidth: true
+              Layout.minimumWidth: 0
+            }
+
+            ActionButton {
+              Layout.alignment: appearanceTab.uiStyleColumns === 5 ? Qt.AlignRight : Qt.AlignLeft
+              Layout.preferredWidth: Math.min(160, uiStyleColumn.width)
+              Layout.preferredHeight: 40
+              visible: appearanceTab.previousStyle !== ""
+              labelText: "Revert style"
+              variant: "outlined"
+              accessibleName: "Revert to previous UI style"
+              onActivated: appearanceTab.revertStyle()
+            }
           }
         }
       }
@@ -418,7 +562,7 @@ Flickable {
         variant: "filled"
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(184, colorSchemeColumn.implicitHeight + Config.spacingLarge * 2)
-        radius: Config.shapeLarge
+        radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
         outlineWidth: Config.themeBorderWidth
@@ -715,7 +859,7 @@ Flickable {
             Layout.preferredHeight: Config.themeLabeledActionButtonHeight
             Layout.alignment: Qt.AlignHCenter
             enabled: !reloadThemeProc.running
-            radius: Config.neoBrutalism ? Config.shapeCompact : height / 2
+            radius: height / 2
             iconLabel: "sync"
             iconSize: Config.iconSize - 2
             contentSpacing: Config.spacingMedium
@@ -797,7 +941,7 @@ Flickable {
         Layout.fillWidth: true
         Layout.preferredWidth: 0
         Layout.preferredHeight: barPlacementColumn.implicitHeight + Config.spacingPage
-        radius: Config.shapeLarge
+        radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
         outlineWidth: Config.themeBorderWidth
@@ -874,7 +1018,7 @@ Flickable {
         Layout.fillWidth: true
         Layout.preferredWidth: 0
         Layout.preferredHeight: barPlacementColumn.implicitHeight + Config.spacingPage
-        radius: Config.shapeLarge
+        radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
         outlineWidth: Config.themeBorderWidth
@@ -977,7 +1121,7 @@ Flickable {
         Layout.fillWidth: true
         Layout.preferredWidth: 0
         Layout.preferredHeight: workspaceShapeColumn.implicitHeight + Config.spacingLarge * 2
-        radius: Config.shapeLarge
+        radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
         outlineWidth: Config.themeBorderWidth
@@ -1119,7 +1263,7 @@ Flickable {
       Layout.fillWidth: true
       Layout.preferredHeight: sizingColumn.implicitHeight + Config.spacingMedium * 2
       implicitHeight: sizingColumn.implicitHeight + Config.spacingMedium * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth
@@ -1430,7 +1574,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: mangoWmNoteText.implicitHeight + Config.spacingMedium * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth
@@ -1456,7 +1600,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: wmColumn.implicitHeight + Config.spacingMedium * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth

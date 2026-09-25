@@ -14,7 +14,7 @@ Item {
     : (Config.nothingDesign || Config.ghostTheme ? Colors.styleAccent : Colors.primary)
   property color containerColor: root.material3Style
     ? Colors.primaryContainer
-    : (Config.neoBrutalism ? Colors.styleSurface : Colors.styleControl)
+    : Colors.styleControl
   property string accessibleName: "Loading"
   property string accessibleDescription: "Work in progress"
   readonly property bool material3Style: Config.material3Theme

@@ -13,14 +13,11 @@ Flickable {
   property QtObject root: null
   property bool sessionLocked: false
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
   anchors.fill: parent
   visible: root.currentTab === 10
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + systemTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: systemTab }
@@ -248,8 +245,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, systemTab.width - systemTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + systemTab.neoShadowAllowance
+    width: Math.max(0, systemTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "System"
@@ -260,7 +257,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: statsGrid.implicitHeight + Config.spacingMedium * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth
@@ -364,8 +361,8 @@ Flickable {
     GridLayout {
       Layout.fillWidth: true
       columns: systemTab.compactLayout ? 1 : 2
-      columnSpacing: Config.spacingSmall + systemTab.neoShadowAllowance
-      rowSpacing: Config.spacingSmall + systemTab.neoShadowAllowance
+      columnSpacing: Config.spacingSmall
+      rowSpacing: Config.spacingSmall
 
       ActionButton {
         Layout.fillWidth: true

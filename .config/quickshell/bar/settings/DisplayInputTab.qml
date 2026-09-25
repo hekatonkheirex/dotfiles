@@ -28,14 +28,11 @@ Flickable {
     { value: "edge", label: "Edge" },
     { value: "on-button-down", label: "On button down" }
   ]
-  readonly property int neoShadowAllowance: Config.neoBrutalism
-    ? Config.themeShadowOffset
-    : 0
   anchors.fill: parent
   visible: root.currentTab === 4
   clip: true
   contentWidth: width
-  contentHeight: mainColumn.implicitHeight + displayInputTab.neoShadowAllowance
+  contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: displayInputTab }
@@ -73,8 +70,8 @@ Flickable {
 
   ColumnLayout {
     id: mainColumn
-    width: Math.max(0, displayInputTab.width - displayInputTab.neoShadowAllowance - Config.settingsScrollbarGutter)
-    spacing: Config.spacingLarge + displayInputTab.neoShadowAllowance
+    width: Math.max(0, displayInputTab.width - Config.settingsScrollbarGutter)
+    spacing: Config.spacingLarge
 
     SettingsPageHeader {
       pageTitle: "Display & Input"
@@ -87,7 +84,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: outputsColumn.implicitHeight + Config.spacingMedium * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth
@@ -209,7 +206,7 @@ Flickable {
       visible: Config.isMango
       Layout.fillWidth: true
       Layout.preferredHeight: mangoNoteText.implicitHeight + Config.spacingMedium * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth
@@ -234,7 +231,7 @@ Flickable {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: inputColumn.implicitHeight + Config.spacingMedium * 2
-      radius: Config.shapeLarge
+      radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
       outlineColor: Colors.styleOutline
       outlineWidth: Config.themeBorderWidth

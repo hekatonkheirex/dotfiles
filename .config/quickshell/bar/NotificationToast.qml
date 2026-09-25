@@ -18,10 +18,9 @@ PanelWindow {
   property int displayMs: Settings.notificationToastDurationMs
   property string barPosition: "top"
 
-  readonly property int neoShadowPadding: Config.neoBrutalism ? Config.themeShadowOffset : 0
 
-  implicitWidth: 280 + neoShadowPadding
-  implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge + neoShadowPadding
+  implicitWidth: 280
+  implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: Config.layerNamespace("toast")
@@ -125,33 +124,15 @@ PanelWindow {
     }
   }
 
-  Rectangle {
-    id: styleShadow
-    x: Config.themeShadowOffset
-    y: Config.themeShadowOffset
-    width: bg.width
-    height: bg.height
-    radius: bg.radius
-    color: Colors.styleShadow
-    visible: Config.neoBrutalism
-    z: -1
-  }
 
   Rectangle {
     id: bg
-    anchors {
-      left: parent.left
-      top: parent.top
-      right: parent.right
-      bottom: parent.bottom
-      rightMargin: root.neoShadowPadding
-      bottomMargin: root.neoShadowPadding
-    }
+    anchors.fill: parent
     radius: Config.popupRadius
     activeFocusOnTab: true
     color: Colors.chromeSurface
     border.width: Config.themeBorderWidth
-    border.color: Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+    border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
       ? Colors.styleOutline
       : Colors.outlineVariant
 

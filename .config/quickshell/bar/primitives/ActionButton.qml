@@ -1,13 +1,11 @@
-// Theme facade. Concrete Material 3, Neo Brutalism, Nothing, and Ghost
-// implementations live in separate folders; Liquid Glass reuses the Material
-// 3 control geometry with its own semantic surfaces.
+// Theme facade. Material 3, Nothing, and Ghost implementations live in
+// separate folders; Liquid Glass reuses Material control geometry.
 import QtQml
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../../config"
 import "../themes/material3" as Material3
-import "../themes/neo_brutalism" as NeoBrutalism
 import "../themes/nothing" as Nothing
 import "../themes/ghost" as Ghost
 
@@ -41,10 +39,8 @@ Item {
   property real contentSpacing: Config.spacingMedium
   property color iconColor: {
     if (root.segmented) return root.selected ? Colors.fgSecondaryContainer : Colors.fgSurfaceVariant
-    if (root.filled) return Config.ghostTheme || Config.neoBrutalism
-      || Config.nothingDesign || Config.liquidGlassTheme
-      ? Colors.styleAccentText
-      : Colors.fgPrimary
+    if (root.filled) return Config.ghostTheme || Config.nothingDesign || Config.liquidGlassTheme
+      ? Colors.styleAccentText : Colors.fgPrimary
     return root.material3Theme && root.variant === "tonal"
       ? Colors.fgSecondaryContainer
       : (root.material3Theme ? Colors.primary : Colors.fgSurfaceVariant)
@@ -52,16 +48,9 @@ Item {
   property real radius: root.segmented
     ? Math.max(0, root.height / 2)
     : root.grouped
-    ? (Config.ghostTheme
-      ? 0
-      : (Config.neoBrutalism
-        ? Config.shapeCompact
-        : (root.selected ? Math.max(0, root.height / 2) : Config.shapeCompact)))
-    : (Config.liquidGlassTheme
-      ? Config.shapeCompact
-      : (Config.nothingDesign
-        ? Config.shapeCompact
-        : (Config.neoBrutalism ? 4 : (root.horizontalContent ? 20 : Config.shapeMedium))))
+    ? (Config.ghostTheme ? 0 : (root.selected ? Math.max(0, root.height / 2) : Config.shapeCompact))
+    : (Config.liquidGlassTheme || Config.nothingDesign
+      ? Config.shapeCompact : (root.horizontalContent ? 20 : Config.shapeMedium))
   property color color: {
     var overlay = root.pressed ? Colors.pressOverlay
       : (root.hovered ? Colors.hoverOverlay
@@ -90,23 +79,25 @@ Item {
         ? Colors.outline
         : "transparent"
     }
-    return Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+    return Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
       ? Colors.styleOutlineStrong
       : (root.filled || root.textVariant
         ? "transparent"
         : (root.variant === "outlined" ? Colors.styleOutlineStrong
           : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)))
   }
-  property real borderWidth: Config.neoBrutalism ? Config.themeBorderWidth : 1
+  property real borderWidth: 1
 
   signal activated()
 
   activeFocusOnTab: true
-  Layout.minimumHeight: Config.themeActionButtonMinHeight > 0
-    && root.iconLabel !== ""
-    && root.labelText !== ""
-    ? Config.themeActionButtonMinHeight
-    : 0
+  Keys.onPressed: function(event) {
+    if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
+      root.activated()
+      event.accepted = true
+    }
+  }
+  Layout.minimumHeight: 0
 
   readonly property bool hovered: implementation.item ? implementation.item.hovered : false
   readonly property bool pressed: implementation.item ? implementation.item.pressed : false
@@ -114,21 +105,13 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.ghostTheme
-      ? ghostImplementation
-      : (Config.nothingDesign
-        ? nothingImplementation
-        : (Config.neoBrutalism ? neoImplementation : materialImplementation))
+    sourceComponent: Config.ghostTheme ? ghostImplementation
+      : (Config.nothingDesign ? nothingImplementation : materialImplementation)
   }
 
   Component {
     id: materialImplementation
     Material3.ActionButton {}
-  }
-
-  Component {
-    id: neoImplementation
-    NeoBrutalism.ActionButton {}
   }
 
   Component {

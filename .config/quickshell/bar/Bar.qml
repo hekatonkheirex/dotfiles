@@ -38,12 +38,7 @@ PanelWindow {
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
-  // Neo's floating full bar extends past the normal bar-sized layer reservation:
-  // reserve its inset surface and hard shadow so Niri can keep the window
-  // layout gap unchanged while still clearing the complete visual footprint.
-  readonly property int niriExclusiveZone: root.fullBar && Config.neoBrutalism
-    ? Config.barWidth + root.fullBarInset + Config.themeShadowOffset
-    : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
+  readonly property int niriExclusiveZone: root.horizontal ? Config.barWidth : root.verticalPillPanelWidth
   exclusiveZone: root.niriExclusiveZone
   WlrLayershell.namespace: Config.layerNamespace("panel")
   WlrLayershell.layer: WlrLayer.Top
@@ -140,56 +135,20 @@ PanelWindow {
   readonly property bool horizontalInlineContent: root.horizontalPillMode
     || (root.horizontal && root.fullBar)
     || root.ghostHorizontalOneLiner
-  // Keep the date visible below the horizontal clock, matching the former
-  // Hyprland bar. Ghost's one-line treatment still controls its own layout.
-  readonly property bool clockSecondaryVisible: true
-  // Give vertical Neo pills a little more room for rotated labels and their
-  // hard shadow without changing Material 3 or full-bar geometry. Nothing's
-  // dot-matrix/mono labels (e.g. "100%") need a bit more width than the bar
-  // is thick, or they clip against the pill's rounded sides.
-  readonly property int verticalPillPanelWidth: !root.horizontal
-    && root.pillsBar
-    && (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme)
-    ? Config.barWidth + (Config.neoBrutalism ? 2 : 18)
-    : Config.barWidth
-  // Keep Neo pills aligned with the visible edge of focused Niri windows.
-  // The 4px focus ring sits inside the 18px layout gap, leaving a 14px
-  // visible inset on each side.
-  readonly property int horizontalPillInset: root.horizontal
-    && root.pillsBar
-    && Config.neoBrutalism
-    ? Config.neoFullBarInset
-    : 6
-  readonly property int verticalPillInset: !root.horizontal
-    && root.pillsBar
-    && Config.neoBrutalism
-    ? Config.neoFullBarInset
-    : 6
-  readonly property int verticalWindowEdgeMargin: !root.horizontal
-    && root.pillsBar
-    && Config.neoBrutalism
-    ? 2
-    : 0
+  // Ghost's horizontal clock shows only the time. Keep the minute row in
+  // vertical bars and the date below the time in other horizontal styles.
+  readonly property bool clockSecondaryVisible: !root.ghostHorizontalOneLiner
+  // Nothing and Ghost labels need more width than the bar is thick.
+  readonly property int verticalPillPanelWidth: !root.horizontal && root.pillsBar
+    && (Config.nothingDesign || Config.ghostTheme) ? Config.barWidth + 18 : Config.barWidth
+  readonly property int horizontalPillInset: 6
+  readonly property int verticalPillInset: 6
+  readonly property int verticalWindowEdgeMargin: 0
   readonly property real expandProgress: 1.0
-  // Neo full bars need room for both the floating inset and the hard offset
-  // shadow. Pills only need the normal bar-sized layer surface, so their
-  // transparent coverage does not extend into the window gap.
-  readonly property int fullBarInset: root.fullBar && Config.neoBrutalism
-    ? Config.neoFullBarInset
-    : 0
   readonly property int normalPanelExtent: root.fullBar
     ? (Config.ghostTheme ? Config.barWidth : Config.barWidth + Config.spacingLarge)
     : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
-  // The panel must include the Neo inset and hard shadow, otherwise the
-  // shadow is clipped at the docked edge even though the surface is aligned.
-  readonly property int fullBarPanelExtent: root.fullBar && Config.neoBrutalism
-    ? Config.barWidth + root.fullBarInset + Config.themeShadowOffset
-    : root.normalPanelExtent
-  readonly property int verticalClockHeight: !root.horizontal
-    && root.pillsBar
-    && Config.neoBrutalism
-    ? root.verticalPillPanelWidth + Config.spacingSmall
-    : Math.max(Config.clockVerticalHeight, root.verticalPillLength)
+  readonly property int verticalClockHeight: Math.max(Config.clockVerticalHeight, root.verticalPillLength)
 
   // The historical Ghost bar kept a bounded negative-space region on the
   // bar axis, centered whenever the surrounding content leaves enough room.
@@ -224,72 +183,46 @@ PanelWindow {
     && Config.ghostTheme
     && root.ghostGapLength > 0
 
-  implicitHeight: root.horizontal ? root.fullBarPanelExtent : root.normalPanelExtent
-  implicitWidth: root.horizontal ? root.normalPanelExtent : root.fullBarPanelExtent
+  implicitHeight: root.normalPanelExtent
+  implicitWidth: root.normalPanelExtent
 
   mask: Region { item: barBg }
 
   Item {
     anchors.fill: parent
 
-    Rectangle {
-      id: barShadow
-      x: barBg.x + Config.themeShadowOffset
-      y: barBg.y + Config.themeShadowOffset
-      width: barBg.width
-      height: barBg.height
-      radius: barBg.radius
-      color: Colors.styleShadow
-      visible: Config.neoBrutalism && root.fullBar
-      z: -1
-    }
 
     Rectangle {
       id: barBg
-      x: root.fullBarInset > 0
-        ? root.fullBarInset
-        : (root.horizontal
-          ? (root.wSize + 6) * (1.0 - root.expandProgress)
-          : (root.dockedRight ? parent.width - root.verticalPillPanelWidth : 8 * (1.0 - root.expandProgress)))
-      y: root.fullBarInset > 0
-        ? root.fullBarInset
-        : (root.horizontal
-          ? (root.dockedBottom ? parent.height - Config.barWidth : 8 * (1.0 - root.expandProgress))
-          : (root.wSize + 6) * (1.0 - root.expandProgress))
+      x: root.horizontal
+        ? (root.wSize + 6) * (1.0 - root.expandProgress)
+        : (root.dockedRight ? parent.width - root.verticalPillPanelWidth : 8 * (1.0 - root.expandProgress))
+      y: root.horizontal
+        ? (root.dockedBottom ? parent.height - Config.barWidth : 8 * (1.0 - root.expandProgress))
+        : (root.wSize + 6) * (1.0 - root.expandProgress)
       width: root.horizontal
-        ? (root.fullBarInset > 0
-          ? parent.width - root.fullBarInset * 2
-          : (layout.implicitWidth + 12) + (parent.width - (layout.implicitWidth + 12)) * root.expandProgress)
-        : (root.fullBarInset > 0
-          ? Config.barWidth
-          : root.verticalPillPanelWidth - 8 * (1.0 - root.expandProgress))
+        ? (layout.implicitWidth + 12) + (parent.width - (layout.implicitWidth + 12)) * root.expandProgress
+        : root.verticalPillPanelWidth - 8 * (1.0 - root.expandProgress)
       height: root.horizontal
-        ? (root.fullBarInset > 0
-          ? Config.barWidth
-          : (Config.barWidth) - 8 * (1.0 - root.expandProgress))
-        : (root.fullBarInset > 0
-          ? parent.height - root.fullBarInset * 2
-          : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress)
+        ? Config.barWidth - 8 * (1.0 - root.expandProgress)
+        : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress
       radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + Config.barRadius * root.expandProgress
       // Liquid Glass keeps the menu-bar layer visually open; material is
       // reserved for transient/interactive states below it.
       color: root.fullBar
         && !root.ghostCentralGap
-        && (!Config.liquidGlassTheme || Colors.liquidGlassHighContrast)
+        && (!Config.liquidGlassTheme || Colors.liquidGlassOpaque)
         ? root.barPanelColor
         : "transparent"
-      // Normal Liquid Glass relies on material contrast rather than a
-      // continuous rule; retain an outline only for Neo or high contrast.
-      border.width: root.fullBar
-        && (Config.neoBrutalism || (Config.liquidGlassTheme && Colors.liquidGlassHighContrast))
-        ? Config.themeBorderWidth
-        : 0
+      // An opaque glass bar has a defined edge against windows.
+      border.width: root.fullBar && Config.liquidGlassTheme && Colors.liquidGlassOpaque
+        ? Config.themeBorderWidth : 0
       border.color: Colors.styleOutline
 
       GlassSheen {
         anchors.fill: parent
         radius: barBg.radius
-        glassEnabled: !Config.liquidGlassTheme || Colors.liquidGlassHighContrast
+        glassEnabled: !Config.liquidGlassTheme || Colors.liquidGlassOpaque
       }
 
       // Historical Ghost chrome: the panel edges step into the transparent
@@ -312,7 +245,7 @@ PanelWindow {
         x: root.dockedRight ? barBg.width - width : 0
         y: root.dockedBottom ? barBg.height - height : 0
         color: barBg.color
-        visible: width > 0 && root.fullBarInset === 0
+        visible: width > 0
       }
 
       // Square-off helper for the docked edge's far corner
@@ -326,7 +259,7 @@ PanelWindow {
           ? (root.dockedBottom ? barBg.height - height : 0)
           : barBg.height - height
         color: barBg.color
-        visible: width > 0 && root.fullBarInset === 0
+        visible: width > 0
       }
 
       Item {
@@ -386,12 +319,8 @@ PanelWindow {
         height: root.horizontal
           ? parent.height
           : parent.height - root.verticalPillInset * 2
-        columnSpacing: (Config.neoBrutalism
-          ? Math.max(Config.spacingSmall, Config.themeShadowOffset)
-          : Config.spacingSmall) * root.expandProgress
-        rowSpacing: (Config.neoBrutalism
-          ? Math.max(Config.spacingSmall, Config.themeShadowOffset)
-          : Config.spacingSmall) * root.expandProgress
+        columnSpacing: Config.spacingSmall * root.expandProgress
+        rowSpacing: Config.spacingSmall * root.expandProgress
 
         Item {
           id: launcherWrapper
@@ -409,7 +338,7 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowLauncher
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -474,7 +403,7 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && layoutAvailable
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -517,12 +446,9 @@ PanelWindow {
                 focusedWindowProgramText.implicitWidth,
                 focusedWindowDetailText.implicitWidth
               )
-          // Neo's rotated focused-window pill needs a little more room at
-          // both ends of its long axis than the compact Material 3 layout.
-          // Nothing matches the breathing room used for the clock/icon pills.
-          readonly property int verticalInfoPadding: Config.neoBrutalism
-            ? Config.spacingSmall + Config.spacingMedium
-            : (Config.nothingDesign ? Config.spacingMedium * 2 : Config.spacingSmall + Config.spacingCompact)
+          // Nothing gives the rotated focused-window label more breathing room.
+          readonly property int verticalInfoPadding: Config.nothingDesign
+            ? Config.spacingMedium * 2 : Config.spacingSmall + Config.spacingCompact
           readonly property real verticalInfoHeight: Math.min(
             320,
             Math.max(root.verticalPillPanelWidth, windowInfoTextWidth + verticalInfoPadding)
@@ -540,18 +466,13 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && hasWindowInfo && Settings.ccShowFocusedWindow
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
             visible: root.pillsBar
             fitContent: !root.horizontal
-            // Keep the focused-window shadow from landing directly on the
-            // vertical panel edge.
-            contentWidth: Math.max(
-              0,
-              parent.width - (Config.neoBrutalism && !root.horizontal ? 2 : 0)
-            )
+            contentWidth: Math.max(0, parent.width)
             contentHeight: focusedWindowWrapper.verticalInfoHeight
           }
 
@@ -635,11 +556,11 @@ PanelWindow {
 
         Item {
           id: gapSpacer
-          // Keep the right-side indicators against the far edge while the
-          // clock is rendered as a fixed center overlay. The vertical layout
-          // also needs a full-width gap region. Without
-          // this, the spacer gets a zero-width column and the rotated Ghost
-          // field is clipped away even though the height gap exists.
+          // Keep the right-side indicators against the far edge. The clock
+          // stays centered in other styles, while Ghost reserves its width
+          // between notifications and Quick Settings. The vertical layout
+          // also needs a full-width gap region. Without this, the spacer
+          // gets a zero-width column and the rotated Ghost field is clipped.
           Layout.fillWidth: true
           Layout.fillHeight: true
           Layout.preferredWidth: root.horizontal ? 0 : parent.width
@@ -690,7 +611,7 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowAudio
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -728,7 +649,7 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowDisplay
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -766,7 +687,7 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowMedia
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -808,7 +729,7 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowWeather
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -846,7 +767,7 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowBattery
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -884,7 +805,7 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: Settings.ccShowTray && systemTray.visibleCount > 0 && (root.expandProgress > 0)
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -915,7 +836,7 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0 && Settings.ccShowNotifications
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -936,6 +857,14 @@ PanelWindow {
         }
 
         Item {
+          id: ghostClockSlot
+          Layout.preferredWidth: clockWrapper.width
+          Layout.preferredHeight: parent.height
+          Layout.fillHeight: true
+          visible: root.ghostHorizontalOneLiner && Settings.ccShowClock
+        }
+
+        Item {
           id: menuWrapper
           Layout.preferredWidth: root.horizontal
             ? (root.pillsBar ? root.horizontalPillLength : root.wSize) * root.expandProgress
@@ -950,7 +879,7 @@ PanelWindow {
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
           opacity: root.expandProgress
           visible: root.expandProgress > 0
-          clip: !Config.neoBrutalism || root.expandProgress < 1.0
+          clip: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -973,18 +902,20 @@ PanelWindow {
 
       Item {
         id: clockWrapper
-        // This item intentionally sits outside the GridLayout. Its position
-        // is tied to the bar itself, so left-side content can appear or
-        // disappear without moving the clock or its calendar anchor.
+        // Keep the clock outside the GridLayout so its calendar anchor stays
+        // on the bar. Ghost follows a reserved right-side slot; other styles
+        // retain their centered clock independent of changing bar content.
         width: root.horizontal
-          ? Math.max(
-              112,
-              root.wSize * 2.5,
-              root.pillsBar ? root.horizontalPillLength : 0,
-              root.ghostHorizontalOneLiner
-                ? clockContent.implicitWidth + Config.spacingSmall * 2
-                : 0
-            ) * root.expandProgress
+          ? (root.ghostHorizontalOneLiner
+            ? Math.max(
+                root.pillsBar ? root.horizontalPillLength : root.wSize,
+                clockContent.implicitWidth + Config.spacingSmall * 2
+              )
+            : Math.max(
+                112,
+                root.wSize * 2.5,
+                root.pillsBar ? root.horizontalPillLength : 0
+              )) * root.expandProgress
           : parent.width
         height: root.horizontal
           ? parent.height
@@ -992,12 +923,14 @@ PanelWindow {
               root.verticalClockHeight,
               root.pillsBar ? root.verticalPillLength : 0
             ) * root.expandProgress
-        x: root.horizontal ? (parent.width - width) / 2 : 0
+        x: root.ghostHorizontalOneLiner
+          ? layout.x + ghostClockSlot.x + (ghostClockSlot.width - width) / 2
+          : (root.horizontal ? (parent.width - width) / 2 : 0)
         y: root.horizontal ? 0 : (parent.height - height) / 2
         z: 2
         opacity: root.expandProgress
         visible: root.expandProgress > 0 && Settings.ccShowClock
-        clip: !Config.neoBrutalism || root.expandProgress < 1.0
+        clip: true
 
         PillSurface {
           horizontal: root.horizontal
@@ -1083,9 +1016,7 @@ PanelWindow {
             border.width: clockWidget.activeFocus ? Config.themeFocusBorderWidth : 0
             border.color: Config.liquidGlassTheme
               ? Colors.barForeground
-              : (Config.neoBrutalism || Config.nothingDesign || Config.ghostTheme
-                ? Colors.styleOutline
-                : Colors.primary)
+              : ((Config.nothingDesign || Config.ghostTheme) ? Colors.styleOutline : Colors.primary)
           }
 
           MouseArea {

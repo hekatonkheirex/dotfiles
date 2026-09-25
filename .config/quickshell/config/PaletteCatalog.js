@@ -181,7 +181,7 @@ function catppuccinPalette(flavor) {
     s = {
       base: "#eff1f5", dim: "#dce0e8", bright: "#ffffff", lowest: "#ffffff",
       low: "#e6e9ef", container: "#ccd0da", high: "#bcc0cc", highest: "#acb0be",
-      variant: "#ccd0da", text: "#4c4f69", subtext: "#4c4f69", outline: "#8c8fa1", outlineVariant: "#bcc0cc"
+      variant: "#ccd0da", text: "#303446", subtext: "#303446", outline: "#8c8fa1", outlineVariant: "#bcc0cc"
     }
     a = {
       primary: "#8839ef", onPrimary: "#ffffff", primaryContainer: "#e6e9ef", onPrimaryContainer: "#4c4f69",
@@ -194,7 +194,7 @@ function catppuccinPalette(flavor) {
     s = {
       base: "#303446", dim: "#232634", bright: "#414559", lowest: "#232634",
       low: "#292c3c", container: "#414559", high: "#51576d", highest: "#626880",
-      variant: "#51576d", text: "#c6d0f5", subtext: "#c6d0f5", outline: "#838ba7", outlineVariant: "#626880"
+      variant: "#51576d", text: "#eff1f5", subtext: "#eff1f5", outline: "#838ba7", outlineVariant: "#626880"
     }
     a = {
       primary: "#ca9ee6", onPrimary: "#303446", primaryContainer: "#51576d", onPrimaryContainer: "#c6d0f5",
@@ -207,7 +207,7 @@ function catppuccinPalette(flavor) {
     s = {
       base: "#24273a", dim: "#181926", bright: "#363a4f", lowest: "#181926",
       low: "#1e2030", container: "#363a4f", high: "#494d64", highest: "#5b6078",
-      variant: "#494d64", text: "#cad3f5", subtext: "#cad3f5", outline: "#8087a2", outlineVariant: "#5b6078"
+      variant: "#494d64", text: "#f4dbd6", subtext: "#f4dbd6", outline: "#8087a2", outlineVariant: "#5b6078"
     }
     a = {
       primary: "#c6a0f6", onPrimary: "#24273a", primaryContainer: "#494d64", onPrimaryContainer: "#cad3f5",
@@ -243,11 +243,11 @@ function gruvboxPalette(variant) {
   var s = dark ? {
     base: base, dim: dark && hard ? "#1d2021" : "#282828", bright: "#3c3836", lowest: base,
     low: "#282828", container: "#3c3836", high: "#504945", highest: "#665c54",
-    variant: "#504945", text: "#ebdbb2", subtext: "#d5c4a1", outline: "#a89984", outlineVariant: "#665c54"
+    variant: "#504945", text: "#ebdbb2", subtext: "#ebdbb2", outline: "#a89984", outlineVariant: "#665c54"
   } : {
     base: base, dim: "#ebdbb2", bright: "#ffffff", lowest: "#ffffff",
     low: "#fbf1c7", container: "#ebdbb2", high: "#d5c4a1", highest: "#bdae93",
-    variant: "#d5c4a1", text: "#3c3836", subtext: "#504945", outline: "#7c6f64", outlineVariant: "#bdae93"
+    variant: "#d5c4a1", text: "#3c3836", subtext: "#3c3836", outline: "#7c6f64", outlineVariant: "#bdae93"
   }
   var a = dark ? {
     primary: "#d3869b", onPrimary: base, primaryContainer: "#504945", onPrimaryContainer: "#ebdbb2",
@@ -272,7 +272,7 @@ function tokyonightPalette(variant) {
     s = {
       base: "#e1e2e7", dim: "#d0d5e3", bright: "#ffffff", lowest: "#ffffff",
       low: "#d5d6db", container: "#c4c8da", high: "#a8aecb", highest: "#9699a3",
-      variant: "#a8aecb", text: "#3760bf", subtext: "#6172b0", outline: "#848cb5", outlineVariant: "#a8aecb"
+      variant: "#a8aecb", text: "#1a1b26", subtext: "#24283b", outline: "#848cb5", outlineVariant: "#a8aecb"
     }
     a = {
       primary: "#2e7de9", onPrimary: "#000000", primaryContainer: "#c4c8da", onPrimaryContainer: "#1a1b26",
@@ -285,7 +285,7 @@ function tokyonightPalette(variant) {
     s = {
       base: "#24283b", dim: "#1f2335", bright: "#292e42", lowest: "#1f2335",
       low: "#1f2335", container: "#292e42", high: "#3b4261", highest: "#414868",
-      variant: "#3b4261", text: "#c0caf5", subtext: "#a9b1d6", outline: "#7982a9", outlineVariant: "#565f89"
+      variant: "#3b4261", text: "#c0caf5", subtext: "#c0caf5", outline: "#7982a9", outlineVariant: "#565f89"
     }
     a = {
       primary: "#7aa2f7", onPrimary: "#24283b", primaryContainer: "#3b4261", onPrimaryContainer: "#c0caf5",
@@ -298,7 +298,7 @@ function tokyonightPalette(variant) {
     s = {
       base: "#222436", dim: "#1e2030", bright: "#2d3f76", lowest: "#1e2030",
       low: "#1e2030", container: "#2d3f76", high: "#3b4261", highest: "#444a73",
-      variant: "#3b4261", text: "#c8d3f5", subtext: "#828bb8", outline: "#7a88cf", outlineVariant: "#545c7e"
+      variant: "#3b4261", text: "#c8d3f5", subtext: "#c8d3f5", outline: "#7a88cf", outlineVariant: "#545c7e"
     }
     a = {
       primary: "#82aaff", onPrimary: "#222436", primaryContainer: "#3b4261", onPrimaryContainer: "#c8d3f5",
@@ -311,7 +311,7 @@ function tokyonightPalette(variant) {
     s = {
       base: "#1a1b26", dim: "#16161e", bright: "#292e42", lowest: "#16161e",
       low: "#1f2335", container: "#292e42", high: "#3b4261", highest: "#414868",
-      variant: "#3b4261", text: "#c0caf5", subtext: "#a9b1d6", outline: "#7982a9", outlineVariant: "#565f89"
+      variant: "#3b4261", text: "#c0caf5", subtext: "#c0caf5", outline: "#7982a9", outlineVariant: "#565f89"
     }
     a = {
       primary: "#7aa2f7", onPrimary: "#1a1b26", primaryContainer: "#3b4261", onPrimaryContainer: "#c0caf5",

@@ -26,7 +26,7 @@ StyledSurface {
 
   Layout.fillWidth: true
   Layout.preferredHeight: powerProfileColumn.implicitHeight + Config.spacingMedium * 2
-  radius: Config.shapeLarge
+  radius: Config.settingsCardRadius
   surfaceColor: Colors.surfaceContainer
   outlineColor: Colors.styleOutline
   outlineWidth: Config.themeBorderWidth
@@ -190,9 +190,8 @@ StyledSurface {
       columns: card.compactLayout ? 2 : 4
       columnSpacing: card.material3Theme
         ? 0
-        : Config.spacingCompact + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
+        : Config.spacingCompact
       rowSpacing: Config.spacingCompact
-        + (Config.neoBrutalism ? Config.themeShadowOffset : 0)
 
       ActionButton {
         Layout.fillWidth: true
