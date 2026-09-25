@@ -18,7 +18,7 @@ Flickable {
   // Stacked icon + label choices need a 48px hit area to keep both glyphs
   // comfortably inside the button outline at the global font scale.
   readonly property int optionButtonHeight: 48
-  readonly property int uiStyleColumns: width < 260 ? 1 : (width < 740 ? 2 : 5)
+  readonly property int uiStyleColumns: width < 260 ? 1 : (width < 720 ? 2 : 5)
   readonly property int uiStyleRows: Math.ceil(5 / uiStyleColumns)
   readonly property var workspaceCountOptions: [
     { value: "active", icon: "dynamic_feed", label: "Active", description: "Show the workspaces currently known to Niri" },
@@ -197,10 +197,10 @@ Flickable {
           Text {
             Layout.fillWidth: true
             text: "General UI"
-            color: Colors.fgSurface
+            color: Config.material3Theme ? Colors.primary : Colors.fgSurface
             font.family: Config.fontFamily
             font.pixelSize: Config.typeTitleLargeSize
-            font.weight: Config.typeStrongWeight
+            font.weight: Config.material3Theme ? Config.typeMediumWeight : Config.typeStrongWeight
             font.letterSpacing: Config.typeTitleTracking
             lineHeight: Config.typeTitleLargeLineHeight
             lineHeightMode: Text.FixedHeight
@@ -253,7 +253,7 @@ Flickable {
       }
 
       // UI Style card
-      StyledSurface {
+      SettingsCard {
         variant: "filled"
         Layout.fillWidth: true
         Layout.preferredHeight: uiStyleColumn.implicitHeight + Config.spacingExtraLarge * 2
@@ -534,10 +534,10 @@ Flickable {
 
         Text {
           text: "Color & Theme"
-          color: Colors.fgSurface
+          color: Config.material3Theme ? Colors.primary : Colors.fgSurface
           font.family: Config.fontFamily
           font.pixelSize: Config.typeTitleLargeSize
-          font.weight: Config.typeStrongWeight
+          font.weight: Config.material3Theme ? Config.typeMediumWeight : Config.typeStrongWeight
           font.letterSpacing: Config.typeTitleTracking
           lineHeight: Config.typeTitleLargeLineHeight
           lineHeightMode: Text.FixedHeight
@@ -557,7 +557,7 @@ Flickable {
       }
 
       // Color scheme card
-      StyledSurface {
+      SettingsCard {
         id: colorSchemeCard
         variant: "filled"
         Layout.fillWidth: true
@@ -904,10 +904,10 @@ Flickable {
 
       Text {
         text: "Bar"
-        color: Colors.fgSurface
+        color: Config.material3Theme ? Colors.primary : Colors.fgSurface
         font.family: Config.fontFamily
         font.pixelSize: Config.typeTitleLargeSize
-        font.weight: Config.typeStrongWeight
+        font.weight: Config.material3Theme ? Config.typeMediumWeight : Config.typeStrongWeight
         font.letterSpacing: Config.typeTitleTracking
         lineHeight: Config.typeTitleLargeLineHeight
         lineHeightMode: Text.FixedHeight
@@ -934,7 +934,7 @@ Flickable {
         rowSpacing: Config.spacingLarge
 
       // Bar Placement card
-      StyledSurface {
+      SettingsCard {
         variant: "filled"
         Layout.column: appearanceTab.compactLayout ? 0 : 1
         Layout.row: 0
@@ -1011,7 +1011,7 @@ Flickable {
       }
 
       // Full bar toggle
-      StyledSurface {
+      SettingsCard {
         variant: "filled"
         Layout.column: 0
         Layout.row: appearanceTab.compactLayout ? 1 : 0
@@ -1112,7 +1112,7 @@ Flickable {
       }
 
       // Workspace marker and range controls
-      StyledSurface {
+      SettingsCard {
         id: workspaceShapeCard
         variant: "filled"
         Layout.column: 0
@@ -1258,7 +1258,7 @@ Flickable {
     Component {
       id: sizingCardComponent
 
-      StyledSurface {
+      SettingsCard {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: sizingColumn.implicitHeight + Config.spacingMedium * 2
@@ -1569,7 +1569,7 @@ Flickable {
       }
     }
 
-    StyledSurface {
+    SettingsCard {
       visible: Config.isMango
       variant: "filled"
       Layout.fillWidth: true
@@ -1595,7 +1595,7 @@ Flickable {
     }
 
     // Niri window manager (gaps, animations, blur, cursor)
-    StyledSurface {
+    SettingsCard {
       visible: Config.isNiri
       variant: "filled"
       Layout.fillWidth: true

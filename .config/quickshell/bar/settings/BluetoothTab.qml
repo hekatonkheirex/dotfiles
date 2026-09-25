@@ -30,9 +30,17 @@ Flickable {
       subtitle: "Pair and manage nearby Bluetooth devices."
     }
 
-    BtPanel {
-      id: btPanel
+    SettingsSectionLabel { text: "Devices" }
+
+    SettingsCard {
       Layout.fillWidth: true
+      Layout.preferredHeight: btPanel.implicitHeight + Config.spacingLarge * 2
+
+      BtPanel {
+        id: btPanel
+        anchors.fill: parent
+        anchors.margins: Config.spacingLarge
+      }
     }
   }
 }

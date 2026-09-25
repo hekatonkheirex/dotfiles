@@ -46,7 +46,7 @@ Flickable {
     }
 
     // Behavior card
-    StyledSurface {
+    SettingsCard {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: behaviorCol.implicitHeight + Config.spacingSmall * 2
@@ -60,6 +60,11 @@ Flickable {
         anchors.fill: parent
         anchors.margins: Config.spacingSmall
         spacing: Config.spacingSmall
+
+        SettingsSectionLabel {
+          text: "Delivery"
+          Layout.leftMargin: Config.spacingSmall
+        }
 
           ListItem {
             Layout.fillWidth: true
@@ -183,6 +188,11 @@ Flickable {
               }
             }
           }
+        }
+
+        SettingsSectionLabel {
+          text: "Schedule"
+          Layout.leftMargin: Config.spacingSmall
         }
 
         ListItem {
@@ -327,6 +337,11 @@ Flickable {
               Settings.save()
             }
           }
+        }
+
+        SettingsSectionLabel {
+          text: "History"
+          Layout.leftMargin: Config.spacingSmall
         }
 
         RowLayout {

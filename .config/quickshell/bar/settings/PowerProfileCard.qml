@@ -6,7 +6,7 @@ import Quickshell.Services.UPower
 import "../primitives"
 import "../../config"
 
-StyledSurface {
+SettingsCard {
   id: card
   variant: "filled"
 
@@ -165,13 +165,8 @@ StyledSurface {
     RowLayout {
       Layout.fillWidth: true
 
-      Text {
-        text: "Power Profiles"
-        color: Colors.fgSurfaceVariant
-        font.family: Config.fontFamily
-        font.pixelSize: Config.textCaptionSize
-        font.weight: Font.Medium
-        Layout.fillWidth: true
+      SettingsSectionLabel {
+        text: "Power profiles"
       }
 
       Text {

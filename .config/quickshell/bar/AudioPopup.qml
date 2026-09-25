@@ -23,6 +23,12 @@ PopupBase {
   function toggleMute() { AudioService.toggleMute() }
   function setMicVolume(value) { AudioService.setMicVolume(value) }
   function toggleMicMute() { AudioService.toggleMicMute() }
+  onVisibleChanged: {
+    if (!visible) {
+      outputSlider.clearFocus()
+      microphoneSlider.clearFocus()
+    }
+  }
 
   Column {
     id: contentColumn
@@ -76,6 +82,7 @@ PopupBase {
     }
 
       SliderControl {
+      id: outputSlider
       value: root.volume
       muted: root.muted
       activeColor: Colors.primary
@@ -134,6 +141,7 @@ PopupBase {
     }
 
       SliderControl {
+      id: microphoneSlider
       value: root.micVolume
       muted: root.micMuted
       activeColor: Colors.primary

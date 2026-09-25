@@ -23,6 +23,8 @@ FileView {
   readonly property var defaults: ({
     schemaVersion: 1,
     barSize: 42,
+    barWidgetOrder: "launcher,workspaces,layout,focused,gap,center,audio,display,media,weather,battery,tray,notifications,clock",
+    barClockInFlow: false,
     calendarWeekStartsMonday: false,
     ccShowAudio: true,
     ccShowBattery: true,
@@ -116,6 +118,8 @@ FileView {
   // Keep persisted aliases paired with active consumers. Remove obsolete fields
   // from this schema and settings.json together during deliberate migrations.
   property alias barSize: adapter.barSize
+  property alias barWidgetOrder: adapter.barWidgetOrder
+  property alias barClockInFlow: adapter.barClockInFlow
   property alias calendarWeekStartsMonday: adapter.calendarWeekStartsMonday
   property alias ccShowAudio: adapter.ccShowAudio
   property alias ccShowBattery: adapter.ccShowBattery
@@ -205,6 +209,8 @@ FileView {
 
   function resetToDefaults() {
     resetAppearanceDefaults()
+    barWidgetOrder = root.defaults.barWidgetOrder
+    barClockInFlow = root.defaults.barClockInFlow
     calendarWeekStartsMonday = root.defaults.calendarWeekStartsMonday
     ccShowAudio = root.defaults.ccShowAudio
     ccShowBattery = root.defaults.ccShowBattery
@@ -256,6 +262,8 @@ FileView {
     // and migrate the stored data before writing the new schema.
     property int schemaVersion: root.defaults.schemaVersion
     property int barSize: root.defaults.barSize
+    property string barWidgetOrder: root.defaults.barWidgetOrder
+    property bool barClockInFlow: root.defaults.barClockInFlow
     property bool calendarWeekStartsMonday: root.defaults.calendarWeekStartsMonday
     property bool ccShowAudio: root.defaults.ccShowAudio
     property bool ccShowBattery: root.defaults.ccShowBattery

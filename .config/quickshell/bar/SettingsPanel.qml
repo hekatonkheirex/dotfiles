@@ -31,11 +31,13 @@ PanelWindow {
   property int focusedTab: currentTab
   property double openTime: 0
   readonly property bool compactLayout: root.implicitWidth < (Config.ghostTheme ? 800 : 760)
-  // Keep navigation readable without stealing the content column on narrow panels.
+  // The rail contracts before page controls do; long labels retain their
+  // accessible names and hover tooltips at the minimum panel width.
   readonly property int sidebarWidth: root.implicitWidth <= 480 ? 108
-    : (Config.ghostTheme ? 216 : 184)
+    : (root.implicitWidth < 700 ? 132 : (root.compactLayout ? 184 : 280))
   readonly property int sidebarRowSpacing: Config.spacingCompact
-  readonly property int contentMargin: root.implicitHeight < 540 ? Config.spacingMedium : Config.spacingExtraLarge
+  readonly property int contentMargin: root.implicitHeight < 540 ? Config.spacingMedium
+    : (Config.material3Theme ? Config.spacingLarge : Config.spacingExtraLarge)
   readonly property real centeredLeftMargin: Math.max(Config.spacingLarge, (desktopW - root.implicitWidth) / 2)
   readonly property real centeredTopMargin: Math.max(Config.spacingLarge, (desktopH - root.implicitHeight) / 2)
   property bool customPosition: false
@@ -627,6 +629,14 @@ PanelWindow {
         ? Colors.styleOutline
         : Colors.outlineVariant
 
+      Rectangle {
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        width: root.contentMargin + root.sidebarWidth + Config.spacingMedium
+        visible: Config.material3Theme
+        color: Colors.surfaceContainerLow
+      }
       GlassSheen {
         anchors.fill: parent
         radius: parent.radius
@@ -862,7 +872,7 @@ PanelWindow {
                     Accessible.selected: root.currentTab === index
                     Accessible.selectable: true
                     Accessible.focusable: true
-                    ToolTip.visible: root.sidebarWidth <= 108 && navigationRow.hovered
+                    ToolTip.visible: root.sidebarWidth < 200 && navigationRow.hovered
                     ToolTip.text: modelData.label
                     ToolTip.delay: 550
 

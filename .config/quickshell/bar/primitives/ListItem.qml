@@ -20,8 +20,8 @@ Rectangle {
   property bool selected: false
   // Active data rows need a quieter state than selected navigation or expanded rows.
   property bool statusActive: false
-  // Material 3 single-select navigation uses a filled container without an outline.
-  // Keep this opt-in so generic list rows retain their existing selection states.
+  // Settings navigation uses grouped tonal rows; regular list items keep
+  // their independent selection and focus treatment.
   property bool navigationItem: false
   property bool navigationFocused: false
   property int trailingSpacing: Config.spacingCompact
@@ -34,7 +34,7 @@ Rectangle {
     && root.material3Style
   readonly property bool stateHighlighted: root.selected || root.statusActive
   readonly property color selectedContainerColor: root.materialNavigationItem
-    ? Colors.navigationContainer
+    ? Colors.surfaceContainerHigh
     : (root.materialStatusItem
       ? Colors.surfaceContainerHighest
       : (root.material3Style
@@ -45,7 +45,7 @@ Rectangle {
             ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
             : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)))))
   readonly property color selectedContentColor: root.materialNavigationItem
-    ? Colors.navigationContent
+    ? Colors.fgSurface
     : (root.materialStatusItem
       ? Colors.fgSurface
       : (root.material3Style
@@ -65,7 +65,7 @@ Rectangle {
 
   signal clicked(var mouse)
 
-  height: 44
+  height: root.navigationItem ? 48 : 44
   radius: Config.liquidGlassTheme ? Config.shapeCompact : Config.shapeMedium
   activeFocusOnTab: root.enabled
   opacity: root.enabled ? 1.0 : 0.38
@@ -87,25 +87,27 @@ Rectangle {
     }
   }
   color: {
-    if (root.stateHighlighted) {
-      return root.selectedContainerColor
+    if (root.stateHighlighted) return root.selectedContainerColor
+    if (root.materialNavigationItem) {
+      if (root.navigationFocused || root.activeFocus) return Colors.surfaceContainerHigh
+      return itemMouse.containsMouse ? Colors.surfaceContainer : Colors.surfaceContainerLow
     }
     if (root.navigationFocused) return Qt.tint("transparent", Colors.focusOverlay)
     if (itemMouse.containsMouse) return Qt.tint("transparent", Colors.hoverOverlay)
     return root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
   }
-  border.color: root.materialNavigationItem || root.materialStatusItem
-    ? "transparent"
-    : (root.material3Style && root.stateHighlighted
+  border.color: root.materialNavigationItem
+    ? Qt.rgba(Colors.outlineVariant.r, Colors.outlineVariant.g, Colors.outlineVariant.b, 0.2)
+    : (root.materialStatusItem || (root.material3Style && root.stateHighlighted)
       ? "transparent"
       : (Config.ghostTheme
         ? Colors.styleOutlineStrong
         : (Config.nothingDesign
           ? (root.stateHighlighted ? Colors.styleOutlineStrong : "transparent")
           : (root.stateHighlighted ? Colors.primary : "transparent"))))
-  border.width: root.materialNavigationItem || root.materialStatusItem
-    || (root.material3Style && root.stateHighlighted)
-    ? 0 : Config.themeBorderWidth
+  border.width: root.materialNavigationItem ? 1
+    : (root.materialStatusItem || (root.material3Style && root.stateHighlighted)
+      ? 0 : Config.themeBorderWidth)
 
   Behavior on color {
     ColorAnimation { duration: Config.animationDuration }
@@ -131,14 +133,31 @@ Rectangle {
     anchors.rightMargin: Config.spacingSmall
     spacing: Config.spacingSmall
 
-    IconGlyph {
+    Item {
       visible: root.leadingIcon !== "" && root.leadingImageSource === ""
-      iconLabel: root.leadingIcon
-      iconColor: root.stateHighlighted ? root.selectedContentColor : root.leadingIconColor
-      iconOpacity: root.leadingIconOpacity
-      iconSize: Config.iconSize + 6
-      filled: root.stateHighlighted
+      Layout.preferredWidth: root.materialNavigationItem ? 32 : Config.iconSize + 6
+      Layout.preferredHeight: Layout.preferredWidth
       Layout.alignment: Qt.AlignVCenter
+
+      Rectangle {
+        anchors.fill: parent
+        radius: width / 2
+        visible: root.materialNavigationItem
+        color: root.selected
+          ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.22)
+          : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.10)
+      }
+
+      IconGlyph {
+        anchors.centerIn: parent
+        iconLabel: root.leadingIcon
+        iconColor: root.materialNavigationItem
+          ? (root.selected ? Colors.primary : Colors.fgSurfaceVariant)
+          : (root.stateHighlighted ? root.selectedContentColor : root.leadingIconColor)
+        iconOpacity: root.leadingIconOpacity
+        iconSize: root.materialNavigationItem ? 20 : Config.iconSize + 6
+        filled: root.stateHighlighted
+      }
     }
 
     Rectangle {

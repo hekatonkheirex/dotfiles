@@ -5,11 +5,37 @@ import Quickshell
 import "../"
 import "../primitives"
 import "../../config"
+import "../../config/BarOrder.js" as BarOrder
 
 Flickable {
   id: generalTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
+  readonly property string themeClockZone: Config.ghostTheme && root && root.isHorizontal
+    ? "end" : "middle"
+  readonly property var barWidgetInfo: ({
+    launcher: { key: "ccShowLauncher", icon: "apps", title: "Launcher" },
+    workspaces: { key: "ccShowWorkspaces", icon: "workspaces", title: "Workspaces" },
+    layout: { key: "ccShowLayout", icon: "view_quilt", title: "Layout indicator" },
+    focused: { key: "ccShowFocusedWindow", icon: "select_window", title: "Focused window" },
+    clock: { key: "ccShowClock", icon: "schedule", title: "Clock" },
+    notifications: { key: "ccShowNotifications", icon: "notifications", title: "Notifications" },
+    battery: { key: "ccShowBattery", icon: "battery_full", title: "Battery" },
+    tray: { key: "ccShowTray", icon: "extension", title: "System tray" },
+    audio: { key: "ccShowAudio", icon: "volume_up", title: "Audio" },
+    display: { key: "ccShowDisplay", icon: "brightness_medium", title: "Display brightness" },
+    media: { key: "ccShowMedia", icon: "play_circle", title: "Media" },
+    weather: { key: "ccShowWeather", icon: "cloud", title: "Weather" }
+  })
+
+  function barZone(zone) {
+    return BarOrder.group(Settings.barWidgetOrder, zone, themeClockZone,
+      Settings.barClockInFlow).map(function(id) {
+      return { id: id, zone: zone, key: barWidgetInfo[id].key,
+        icon: barWidgetInfo[id].icon, title: barWidgetInfo[id].title }
+    })
+  }
+
   anchors.fill: parent
   visible: root.currentTab === 1
   clip: true
@@ -41,10 +67,12 @@ Flickable {
       Layout.fillWidth: true
       columns: 1
       columnSpacing: Config.spacingLarge
-      rowSpacing: Config.spacingLarge
+      rowSpacing: Config.spacingSmall
+
+      SettingsSectionLabel { text: "Behavior" }
 
       // Behavior toggle group
-      StyledSurface {
+      SettingsCard {
         variant: "filled"
         Layout.fillWidth: true
         Layout.preferredHeight: behaviorCol.implicitHeight + Config.spacingSmall * 2
@@ -123,10 +151,12 @@ Flickable {
       Layout.fillWidth: true
       columns: 1
       columnSpacing: Config.spacingLarge
-      rowSpacing: Config.spacingLarge
+      rowSpacing: Config.spacingSmall
+
+      SettingsSectionLabel { text: "Clock & calendar" }
 
       // Clock & Calendar toggle group
-      StyledSurface {
+      SettingsCard {
         variant: "filled"
         Layout.fillWidth: true
         Layout.preferredHeight: clockCol.implicitHeight + Config.spacingSmall * 2
@@ -250,7 +280,7 @@ Flickable {
 
     // Compact bar contents. Settings and the power menu intentionally stay
     // outside this list so there is always a way back into the shell.
-    StyledSurface {
+    SettingsCard {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: barContentsCol.implicitHeight + Config.spacingSmall * 2
@@ -265,20 +295,13 @@ Flickable {
         anchors.margins: Config.spacingSmall
         spacing: Config.spacingCompact
 
-        Text {
-          text: "Bar Contents"
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeTitleSmallSize
-          font.weight: Config.typeMediumWeight
-          font.letterSpacing: Config.typeTitleTracking
-          lineHeight: Config.typeTitleSmallLineHeight
-          lineHeightMode: Text.FixedHeight
+        SettingsSectionLabel {
+          text: "Bar contents"
           Layout.leftMargin: Config.spacingCompact
         }
 
         Text {
-          text: "Settings and the power menu always remain available. Wi-Fi and Bluetooth stay Settings-only."
+          text: "Use the middle button to center a widget, or use arrows to order it and cross between Start, Middle, and End. Hidden widgets keep their places. Settings and power stay at the end."
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
           font.pixelSize: Config.typeLabelMediumSize
@@ -291,57 +314,49 @@ Flickable {
           Layout.rightMargin: Config.spacingCompact
         }
 
-        GridLayout {
+        ColumnLayout {
           Layout.fillWidth: true
-          columns: generalTab.compactLayout ? 1 : 2
-          columnSpacing: Config.spacingSmall
-          rowSpacing: Config.spacingCompact
+          spacing: Config.spacingCompact
 
+          SettingsSectionLabel { text: "Start" }
           Repeater {
-            model: [
-              { key: "ccShowLauncher", icon: "apps", title: "Launcher" },
-              { key: "ccShowWorkspaces", icon: "workspaces", title: "Workspaces" },
-              { key: "ccShowLayout", icon: "view_quilt", title: "Layout indicator" },
-              { key: "ccShowFocusedWindow", icon: "select_window", title: "Focused window" },
-              { key: "ccShowClock", icon: "schedule", title: "Clock" },
-              { key: "ccShowNotifications", icon: "notifications", title: "Notifications" },
-              { key: "ccShowBattery", icon: "battery_full", title: "Battery" },
-              { key: "ccShowTray", icon: "extension", title: "System tray" },
-              { key: "ccShowAudio", icon: "volume_up", title: "Audio" },
-              { key: "ccShowDisplay", icon: "brightness_medium", title: "Display brightness" },
-              { key: "ccShowMedia", icon: "play_circle", title: "Media" },
-              { key: "ccShowWeather", icon: "cloud", title: "Weather" }
-            ]
+            model: generalTab.barZone("start")
+            delegate: BarOrderRow {}
+          }
 
-            delegate: ListItem {
-              required property var modelData
-              Layout.fillWidth: true
-              leadingIcon: modelData.icon
-              title: modelData.title
-              subtitle: Settings[modelData.key] ? "Shown in the bar" : "Hidden from the bar"
-              accessibleName: "Show " + modelData.title
-              SwitchControl {
-                checked: Settings[modelData.key]
-                activeColor: Colors.primary
-                surfaceContainerHigh: Colors.surfaceContainerHigh
-                surfaceContainerHighest: Colors.surfaceContainerHighest
-                outline: Colors.styleOutlineStrong
-                motionDuration: Config.motionMedium
-                reducedMotion: Config.reducedMotion
-                accessibleName: "Show " + modelData.title
-                onToggled: {
-                  Settings[modelData.key] = !Settings[modelData.key]
-                  Settings.save()
-                }
-              }
-            }
+          SettingsSectionLabel {
+            text: "Middle"
+            Layout.topMargin: Config.spacingSmall
+          }
+          Repeater {
+            model: generalTab.barZone("middle")
+            delegate: BarOrderRow {}
+          }
+          Text {
+            visible: generalTab.barZone("middle").length === 0
+            text: "Use the middle button to place another widget here."
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeLabelMediumSize
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
+            Layout.leftMargin: Config.spacingSmall
+          }
+
+          SettingsSectionLabel {
+            text: "End"
+            Layout.topMargin: Config.spacingSmall
+          }
+          Repeater {
+            model: generalTab.barZone("end")
+            delegate: BarOrderRow {}
           }
         }
       }
     }
 
     // Weather location, privacy, and units
-    StyledSurface {
+    SettingsCard {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: weatherCol.implicitHeight + Config.spacingMedium * 2

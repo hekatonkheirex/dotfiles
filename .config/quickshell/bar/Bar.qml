@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import "../config"
+import "../config/BarOrder.js" as BarOrder
 import "primitives"
 import "themes/ghost" as Ghost
 
@@ -22,6 +23,50 @@ PanelWindow {
   readonly property bool dockedBottom: barPosition === "bottom"
   readonly property bool dockedLeft: barPosition === "left"
   readonly property bool dockedRight: barPosition === "right"
+  readonly property bool themeClockCentered: !Settings.barClockInFlow
+    && !root.ghostHorizontalOneLiner
+  readonly property var normalizedOrder: BarOrder.normalize(Settings.barWidgetOrder)
+  readonly property var activeWidgets: ({
+    launcher: Settings.ccShowLauncher,
+    workspaces: Settings.ccShowWorkspaces,
+    layout: layoutWrapper.layoutAvailable,
+    focused: Settings.ccShowFocusedWindow && focusedWindowWrapper.hasWindowInfo,
+    audio: Settings.ccShowAudio,
+    display: Settings.ccShowDisplay,
+    media: Settings.ccShowMedia,
+    weather: Settings.ccShowWeather,
+    battery: Settings.ccShowBattery,
+    tray: Settings.ccShowTray && systemTray.visibleCount > 0,
+    notifications: Settings.ccShowNotifications,
+    clock: Settings.ccShowClock
+  })
+  readonly property var barSlots: {
+    var slots = BarOrder.edgeOrder(Settings.barWidgetOrder, root.activeWidgets)
+    if (!Settings.barClockInFlow) {
+      slots = slots.filter(function(id) { return id !== "clock" })
+      if (root.ghostHorizontalOneLiner && Settings.ccShowClock) slots.push("clock")
+    }
+    return slots
+  }
+  readonly property var middleSlots: {
+    var slots = BarOrder.middleOrder(Settings.barWidgetOrder, root.activeWidgets)
+    if (!Settings.barClockInFlow) {
+      slots = slots.filter(function(id) { return id !== "clock" })
+      if (root.themeClockCentered && Settings.ccShowClock) slots.unshift("clock")
+    }
+    return slots
+  }
+  function inMiddle(id) {
+    if (id === "clock" && !Settings.barClockInFlow) return root.themeClockCentered
+    var at = root.normalizedOrder.indexOf(id)
+    return at > root.normalizedOrder.indexOf("gap")
+      && at < root.normalizedOrder.indexOf("center")
+  }
+  function barSlot(id) {
+    var slots = root.inMiddle(id) ? root.middleSlots : root.barSlots
+    return Math.max(0, slots.indexOf(id))
+  }
+
 
   readonly property real wSize: Config.widgetSize
   readonly property real horizontalPillLength: root.wSize + Config.spacingSmall
@@ -324,6 +369,9 @@ PanelWindow {
 
         Item {
           id: launcherWrapper
+          parent: root.inMiddle("launcher") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("launcher") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("launcher")
           Layout.preferredWidth: root.horizontal
             ? (root.pillsBar ? root.horizontalPillLength : root.wSize)
               * root.expandProgress * (Settings.ccShowLauncher ? 1 : 0)
@@ -359,6 +407,9 @@ PanelWindow {
 
         WorkspaceIndicator {
           id: wsIndicator
+          parent: root.inMiddle("workspaces") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("workspaces") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("workspaces")
           horizontal: root.horizontal
           integrated: root.fullBar
           Layout.preferredWidth: Settings.ccShowWorkspaces
@@ -383,6 +434,9 @@ PanelWindow {
 
         Item {
           id: layoutWrapper
+          parent: root.inMiddle("layout") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("layout") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("layout")
           readonly property bool layoutAvailable: Config.isMango
             && Settings.ccShowLayout
             && wsIndicator.mangoLayoutSymbol !== ""
@@ -435,6 +489,9 @@ PanelWindow {
 
         Item {
           id: focusedWindowWrapper
+          parent: root.inMiddle("focused") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("focused") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("focused")
           property string programText: wsIndicator.focusedWindowProgram
           property string detailText: wsIndicator.focusedWindowInfo
           readonly property bool hasWindowInfo: programText !== "" || detailText !== ""
@@ -556,13 +613,17 @@ PanelWindow {
 
         Item {
           id: gapSpacer
-          // Keep the right-side indicators against the far edge. The clock
-          // stays centered in other styles, while Ghost reserves its width
-          // between notifications and Quick Settings. The vertical layout
-          // also needs a full-width gap region. Without this, the spacer
-          // gets a zero-width column and the rotated Ghost field is clipped.
+          Layout.column: root.horizontal ? root.barSlot("gap") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("gap")
+          // The ordered divider expands so end-edge widgets stay at the far
+          // edge. Vertical bars also need a full-width spacer to keep the
+          // rotated Ghost effect from collapsing.
           Layout.fillWidth: true
           Layout.fillHeight: true
+          Layout.minimumWidth: root.horizontal
+            ? middleLayout.implicitWidth + Config.spacingLarge * 2 : 0
+          Layout.minimumHeight: root.horizontal ? 0
+            : middleLayout.implicitHeight + Config.spacingLarge * 2
           Layout.preferredWidth: root.horizontal ? 0 : parent.width
           Layout.preferredHeight: root.horizontal ? parent.height : 0
           visible: root.expandProgress > 0
@@ -596,6 +657,9 @@ PanelWindow {
 
         Item {
           id: audioWrapper
+          parent: root.inMiddle("audio") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("audio") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("audio")
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, audioIndicator.horizontalContentWidth)
@@ -634,6 +698,9 @@ PanelWindow {
 
         Item {
           id: brightnessWrapper
+          parent: root.inMiddle("display") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("display") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("display")
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, brightnessIndicator.horizontalContentWidth)
@@ -672,6 +739,9 @@ PanelWindow {
 
         Item {
           id: mediaWrapper
+          parent: root.inMiddle("media") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("media") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("media")
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, mediaIndicator.horizontalContentWidth)
@@ -714,6 +784,9 @@ PanelWindow {
 
         Item {
           id: weatherWrapper
+          parent: root.inMiddle("weather") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("weather") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("weather")
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, weatherIndicator.horizontalContentWidth)
@@ -752,6 +825,9 @@ PanelWindow {
 
         Item {
           id: batteryWrapper
+          parent: root.inMiddle("battery") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("battery") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("battery")
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, batteryIndicator.horizontalContentWidth)
@@ -789,6 +865,9 @@ PanelWindow {
 
         Item {
           id: systemTrayWrapper
+          parent: root.inMiddle("tray") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("tray") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("tray")
           Layout.preferredWidth: root.horizontal
             ? Math.max(
                 systemTray.preferredLength,
@@ -823,6 +902,9 @@ PanelWindow {
 
         Item {
           id: notifWrapper
+          parent: root.inMiddle("notifications") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("notifications") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("notifications")
           Layout.preferredWidth: root.horizontal
             ? (root.pillsBar ? root.horizontalPillLength : root.wSize) * root.expandProgress
             : parent.width
@@ -857,15 +939,20 @@ PanelWindow {
         }
 
         Item {
-          id: ghostClockSlot
-          Layout.preferredWidth: clockWrapper.width
-          Layout.preferredHeight: parent.height
-          Layout.fillHeight: true
-          visible: root.ghostHorizontalOneLiner && Settings.ccShowClock
+          id: clockSlot
+          parent: root.inMiddle("clock") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("clock") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("clock")
+          Layout.preferredWidth: root.horizontal ? clockWrapper.width : parent.width
+          Layout.preferredHeight: root.horizontal ? parent.height : clockWrapper.height
+          Layout.fillHeight: root.horizontal
+          visible: Settings.ccShowClock
         }
 
         Item {
           id: menuWrapper
+          Layout.column: root.horizontal ? root.barSlots.length : 0
+          Layout.row: root.horizontal ? 0 : root.barSlots.length
           Layout.preferredWidth: root.horizontal
             ? (root.pillsBar ? root.horizontalPillLength : root.wSize) * root.expandProgress
             : parent.width
@@ -900,11 +987,25 @@ PanelWindow {
         }
       }
 
+      // Independently centered on the bar axis: unequal start/end groups
+      // cannot pull middle widgets away from the screen midpoint.
+      GridLayout {
+        id: middleLayout
+        flow: root.horizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
+        x: root.horizontal ? (parent.width - width) / 2 : 0
+        y: root.horizontal ? 0 : (parent.height - height) / 2
+        width: root.horizontal ? implicitWidth : parent.width
+        height: root.horizontal ? parent.height : implicitHeight
+        columnSpacing: Config.spacingSmall * root.expandProgress
+        rowSpacing: Config.spacingSmall * root.expandProgress
+        z: 2
+      }
+
+
       Item {
         id: clockWrapper
-        // Keep the clock outside the GridLayout so its calendar anchor stays
-        // on the bar. Ghost follows a reserved right-side slot; other styles
-        // retain their centered clock independent of changing bar content.
+        // The clock stays outside both layouts to preserve its popup anchor,
+        // but its slot participates in whichever region owns it.
         width: root.horizontal
           ? (root.ghostHorizontalOneLiner
             ? Math.max(
@@ -923,10 +1024,11 @@ PanelWindow {
               root.verticalClockHeight,
               root.pillsBar ? root.verticalPillLength : 0
             ) * root.expandProgress
-        x: root.ghostHorizontalOneLiner
-          ? layout.x + ghostClockSlot.x + (ghostClockSlot.width - width) / 2
-          : (root.horizontal ? (parent.width - width) / 2 : 0)
-        y: root.horizontal ? 0 : (parent.height - height) / 2
+        x: (root.inMiddle("clock") ? middleLayout.x : layout.x)
+          + clockSlot.x + (clockSlot.width - width) / 2
+        y: root.horizontal ? 0
+          : (root.inMiddle("clock") ? middleLayout.y : layout.y)
+            + clockSlot.y + (clockSlot.height - height) / 2
         z: 2
         opacity: root.expandProgress
         visible: root.expandProgress > 0 && Settings.ccShowClock

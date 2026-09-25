@@ -74,7 +74,7 @@ Flickable {
     }
 
     // Lock Screen card
-    StyledSurface {
+    SettingsCard {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: lockCol.implicitHeight + Config.spacingSmall * 2
@@ -89,14 +89,9 @@ Flickable {
         anchors.margins: Config.spacingSmall
         spacing: Config.spacingSmall
 
-        Text {
-          text: "Lock Screen"
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.textCaptionSize
-          font.weight: Font.Medium
+        SettingsSectionLabel {
+          text: "Lock screen"
           Layout.leftMargin: Config.spacingSmall
-          Layout.topMargin: Config.spacingCompact
         }
 
         ListItem {
@@ -238,7 +233,7 @@ Flickable {
     }
 
     // Idle & Power card
-    StyledSurface {
+    SettingsCard {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: idleCol.implicitHeight + Config.spacingSmall * 2
@@ -253,14 +248,9 @@ Flickable {
         anchors.margins: Config.spacingSmall
         spacing: Config.spacingSmall
 
-        Text {
-          text: "Idle & Power"
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.textCaptionSize
-          font.weight: Font.Medium
+        SettingsSectionLabel {
+          text: "Idle & power"
           Layout.leftMargin: Config.spacingSmall
-          Layout.topMargin: Config.spacingCompact
         }
 
         ListItem {

@@ -504,8 +504,8 @@ QtObject {
   // current label while allowing larger type settings to preserve full text.
   readonly property int settingsRowLabelWidth: 200
   readonly property int settingsMaxWidth: 1100
-  readonly property int settingsDefaultWidth: 900
-  readonly property int settingsDefaultHeight: 680
+  readonly property int settingsDefaultWidth: 1100
+  readonly property int settingsDefaultHeight: 900
   readonly property int clockIntervalMs: 1000
   readonly property int volumeStep: 5
   readonly property int brightnessStep: 5

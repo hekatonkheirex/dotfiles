@@ -253,7 +253,9 @@ Flickable {
       subtitle: "View system usage, diagnostics, and shell actions."
     }
 
-    StyledSurface {
+    SettingsSectionLabel { text: "Diagnostics" }
+
+    SettingsCard {
       variant: "filled"
       Layout.fillWidth: true
       Layout.preferredHeight: statsGrid.implicitHeight + Config.spacingMedium * 2

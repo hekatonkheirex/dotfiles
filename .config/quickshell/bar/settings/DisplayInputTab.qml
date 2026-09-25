@@ -78,7 +78,7 @@ Flickable {
       subtitle: "Tune displays, pointer behaviour, and edge gestures from one place."
     }
 
-    StyledSurface {
+    SettingsCard {
       id: outputsSurface
       visible: Config.isNiri
       variant: "filled"
@@ -95,13 +95,8 @@ Flickable {
         anchors.margins: Config.spacingMedium
         spacing: Config.spacingSmall
 
-        Text {
-          text: "OUTPUTS"
-          color: Colors.fgSurfaceVariant
-          font.family: Config.monoFontFamily
-          font.pixelSize: Config.textCaptionSize
-          font.weight: Font.Medium
-          font.letterSpacing: 0.8
+        SettingsSectionLabel {
+          text: Config.ghostTheme ? "OUTPUTS" : "Outputs"
         }
 
         Repeater {
@@ -202,7 +197,7 @@ Flickable {
       }
     }
 
-    StyledSurface {
+    SettingsCard {
       visible: Config.isMango
       Layout.fillWidth: true
       Layout.preferredHeight: mangoNoteText.implicitHeight + Config.spacingMedium * 2
@@ -226,7 +221,7 @@ Flickable {
       }
     }
 
-    StyledSurface {
+    SettingsCard {
       visible: Config.isNiri
       variant: "filled"
       Layout.fillWidth: true
@@ -242,13 +237,8 @@ Flickable {
         anchors.margins: Config.spacingMedium
         spacing: Config.spacingMedium
 
-        Text {
-          text: "INPUT"
-          color: Colors.fgSurfaceVariant
-          font.family: Config.monoFontFamily
-          font.pixelSize: Config.textCaptionSize
-          font.weight: Font.Medium
-          font.letterSpacing: 0.8
+        SettingsSectionLabel {
+          text: Config.ghostTheme ? "INPUT" : "Input"
         }
 
         ColumnLayout {
