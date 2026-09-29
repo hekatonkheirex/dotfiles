@@ -13,6 +13,19 @@ StatusIndicator {
 
   readonly property var batteryDevice: BatteryService.batteryDevice
   readonly property real pct: BatteryService.pct
+  readonly property bool charging: batteryDevice
+    && (batteryDevice.state === UPowerDeviceState.Charging
+      || batteryDevice.state === UPowerDeviceState.PendingCharge)
+  readonly property bool discharging: batteryDevice && !charging
+    && batteryDevice.state !== UPowerDeviceState.FullyCharged
+  readonly property bool lowCharge: Config.ghostTheme && discharging && pct >= 0 && pct <= 20
+  iconColor: Config.ghostTheme && discharging && pct >= 0 && pct <= 10
+    ? Colors.destructive
+    : (lowCharge ? Colors.warning
+      : (Config.ghostTheme && charging ? Colors.success
+        : (Config.liquidGlassTheme ? Colors.barForeground
+          : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor))))
+  labelColor: iconColor
 
   iconLabel: {
     if (!batteryDevice) return "battery_unknown"

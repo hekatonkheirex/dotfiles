@@ -26,14 +26,16 @@ StatusIndicator {
     return "volume_up"
   }
   labelText: root.muted ? "Muted" : Math.round(root.volume * 100) + "%"
-  // Match the other status indicators: opening the popup does not recolor
-  // the audio indicator. Muted audio still uses the error color.
+  // Opening the popup does not recolor the indicator. Ghost treats mute as
+  // caution rather than a failure; other styles keep their error signal.
   iconColor: root.muted
-    ? Colors.error
-    : (Config.liquidGlassTheme ? Colors.barForeground : root.accentColor)
+    ? (Config.ghostTheme ? Colors.warning : Colors.error)
+    : (Config.liquidGlassTheme ? Colors.barForeground
+      : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor))
   labelColor: root.muted
-    ? Colors.error
-    : (Config.liquidGlassTheme ? Colors.barForeground : root.accentColor)
+    ? (Config.ghostTheme ? Colors.warning : Colors.error)
+    : (Config.liquidGlassTheme ? Colors.barForeground
+      : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor))
 
   onWheel: function(wheel) {
     var delta = wheel.angleDelta.y > 0 ? Config.volumeStep / 100 : -Config.volumeStep / 100

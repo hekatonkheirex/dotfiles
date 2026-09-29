@@ -4,7 +4,7 @@ environment {
   XDG_SESSION_DESKTOP "Niri"
 
   XCURSOR_SIZE "24"
-  XCURSOR_THEME "Bibata-Modern-Classic"
+  XCURSOR_THEME "ghost-section9"
 
   EDITOR "nvim"
 

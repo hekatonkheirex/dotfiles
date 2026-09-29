@@ -2,19 +2,22 @@
 layout {
     
     focus-ring {
-        width 2
-        active-color "#c7bfff"
-        inactive-color "#928f9f"
+        width 1
+        active-color "#57d9cc"
+        inactive-color "#2f6f68"
     }
     border {
         off
-        width 2
-        active-color "#c7bfff"
-        inactive-color "#928f9f"
-        urgent-color "#c7bfff"
+        width 1
+        active-color "#57d9cc"
+        inactive-color "#2f6f68"
+        urgent-color "#57d9cc"
+    }
+    shadow {
+        off
     }
 }
 window-rule {
-    geometry-corner-radius 16
+    geometry-corner-radius 0
     clip-to-geometry true
 }

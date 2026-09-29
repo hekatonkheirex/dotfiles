@@ -91,6 +91,8 @@ Item {
   function workspaceMarkerColor(item) {
     if (Config.liquidGlassTheme && !item.isFocused && !item.isOccupied)
       return Colors.barForegroundMuted
+    if (Config.ghostTheme && !item.isFocused)
+      return item.isOccupied ? Colors.fgSurfaceVariant : Colors.styleOutlineStrong
     return item.isFocused || item.isOccupied
       ? Colors.styleAccent
       : Colors.styleOutlineStrong
@@ -571,14 +573,8 @@ Item {
   Grid {
     id: grid
     columns: root.horizontal ? Math.max(1, root.visibleWorkspaces.length) : 1
-    anchors {
-      left: root.horizontal ? undefined : parent.left
-      right: root.horizontal ? undefined : parent.right
-      horizontalCenter: root.horizontal ? parent.horizontalCenter : undefined
-      top: root.horizontal ? undefined : parent.top
-      verticalCenter: root.horizontal ? parent.verticalCenter : undefined
-      topMargin: root.horizontal ? 0 : 6
-    }
+    anchors.centerIn: parent
+    width: root.horizontal ? implicitWidth : parent.width
     height: root.horizontal
       ? Math.max(0, Math.min(28, parent.height - Config.spacingSmall * 2))
       : implicitHeight
@@ -863,10 +859,13 @@ Item {
             ? ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"][modelData.idx - 1]
             : String(modelData.idx)
           color: root.workspaceMarkerColor(modelData)
-          opacity: modelData.isFocused ? 1.0 : (modelData.isOccupied ? 0.72 : 0.36)
+          opacity: Config.ghostTheme
+            ? (modelData.isFocused ? 1.0 : (modelData.isOccupied ? 0.58 : 0.25))
+            : (modelData.isFocused ? 1.0 : (modelData.isOccupied ? 0.72 : 0.36))
           font.family: "Noto Sans CJK JP"
           font.pixelSize: modelData.isFocused ? 15 : 13
           renderType: Text.NativeRendering
+          font.weight: Config.ghostTheme && modelData.isFocused ? Font.Bold : Font.Normal
         }
 
         // Frame: a stable numeral row with an outline around the focused cell.

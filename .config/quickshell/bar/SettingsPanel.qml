@@ -635,7 +635,17 @@ PanelWindow {
         anchors.left: parent.left
         width: root.contentMargin + root.sidebarWidth + Config.spacingMedium
         visible: Config.material3Theme
+        radius: bg.radius
         color: Colors.surfaceContainerLow
+
+        // The sidebar shares the panel's left corners, but its divider stays straight.
+        Rectangle {
+          anchors.top: parent.top
+          anchors.bottom: parent.bottom
+          anchors.right: parent.right
+          width: parent.radius
+          color: parent.color
+        }
       }
       GlassSheen {
         anchors.fill: parent

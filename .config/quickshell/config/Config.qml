@@ -37,11 +37,9 @@ QtObject {
 
   // Compact X390 geometry and shared spacing used by active surfaces.
   // Live-adjustable via the Appearance settings tab's Bar Size slider.
-  // Ghost keeps the recovered 34px HUD rail; the shared slider can still make
-  // it smaller, while Material, Neo, and Nothing retain the selected size.
-  readonly property int barWidth: ghostTheme
-    ? Math.min(Settings.barSize, 34)
-    : Settings.barSize
+  // Ghost uses the same selected thickness as other styles; its geometry
+  // stays square rather than capping the rail at 34px.
+  readonly property int barWidth: Settings.barSize
   readonly property int widgetSize: barWidth
   // Live-adjustable via the Appearance settings tab (single density scale);
   // mirrors Settings the same way reducedMotion below does, so every binding
@@ -506,7 +504,6 @@ QtObject {
   readonly property int settingsMaxWidth: 1100
   readonly property int settingsDefaultWidth: 1100
   readonly property int settingsDefaultHeight: 900
-  readonly property int clockIntervalMs: 1000
   readonly property int volumeStep: 5
   readonly property int brightnessStep: 5
 }

@@ -13,6 +13,8 @@ window-rule {
 window-rule {
     open-maximized true
     match app-id="brave-origin"
+    match app-id="zen"
+    match app-id="firefox"
 }
 
 // Floating rules

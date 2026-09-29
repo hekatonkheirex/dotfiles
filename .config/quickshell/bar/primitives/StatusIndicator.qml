@@ -27,8 +27,10 @@ Item {
       ? Colors.fgSurface
     : (Config.ghostTheme ? Colors.styleAccent : Colors.primary)
     )
-  property color iconColor: Config.liquidGlassTheme ? Colors.barForeground : root.accentColor
-  property color labelColor: Config.liquidGlassTheme ? Colors.barForeground : root.accentColor
+  property color iconColor: Config.liquidGlassTheme ? Colors.barForeground
+    : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor)
+  property color labelColor: Config.liquidGlassTheme ? Colors.barForeground
+    : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor)
   property color inactiveBg: Config.liquidGlassTheme ? Colors.liquidGlassClear : Colors.surfaceContainerHigh
   // Indicators stay quiet at rest and reveal their outline on hover/focus;
   // active state is conveyed by the content color and owning popup surface.
@@ -83,7 +85,7 @@ Item {
     ? "Loading"
     : (root.accessibleDescription !== ""
       ? root.accessibleDescription
-      : (root.active ? "Active" : ""))
+      : (root.labelText !== "" ? root.labelText : (root.active ? "Active" : "")))
   Accessible.focusable: root.activeFocusOnTab
   Accessible.focused: root.activeFocus
 
@@ -141,7 +143,8 @@ Item {
           ? Colors.styleOutline
           : "transparent"
       }
-      if (Config.ghostTheme) return Colors.styleOutline
+      if (Config.ghostTheme) return root.active || mouseArea.containsMouse || root.activeFocus
+        ? Colors.styleOutline : "transparent"
       if (Config.nothingEvolution) {
         return root.active || mouseArea.containsMouse || root.activeFocus
           ? Colors.styleOutline
@@ -215,11 +218,18 @@ Item {
       font.family: Config.nothingDesign
         ? (root.numericLabel ? Config.dotFontFamily : Config.monoFontFamily)
         : Config.fontFamily
-      font.pixelSize: Config.typeLabelMediumSize
-      font.weight: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-        ? Config.themeFontWeight
-        : Font.Medium
-      font.letterSpacing: Config.nothingDesign ? 0.3 : Config.typeLabelTracking
+      // Ghost values share one mono rhythm; shrink only when the selected
+      // rail thickness cannot hold a four-character reading such as 100%.
+      font.pixelSize: Config.ghostTheme && !root.inlineContent && root.numericLabel
+        ? Math.min(Config.typeLabelMediumSize,
+                   Math.max(9, Math.floor((root.width - 2) / (root.labelText.length * 0.65))))
+        : Config.typeLabelMediumSize
+      font.weight: Config.ghostTheme && root.numericLabel
+        ? Font.Medium
+        : (Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+          ? Config.themeFontWeight : Font.Medium)
+      font.letterSpacing: Config.ghostTheme && root.numericLabel ? 0
+        : (Config.nothingDesign ? 0.3 : Config.typeLabelTracking)
       lineHeight: Config.typeLabelMediumLineHeight
       lineHeightMode: Text.FixedHeight
       horizontalAlignment: Text.AlignHCenter
@@ -228,7 +238,7 @@ Item {
       Layout.preferredWidth: implicitWidth
       Layout.maximumWidth: root.inlineContent
         ? implicitWidth
-        : Math.max(0, root.width - Config.spacingSmall)
+        : Math.max(0, root.width - (Config.ghostTheme ? 2 : Config.spacingSmall))
       Layout.preferredHeight: implicitHeight
       Layout.fillHeight: root.inlineContent
       Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter

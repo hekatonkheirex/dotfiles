@@ -132,9 +132,10 @@ PanelWindow {
     activeFocusOnTab: true
     color: Colors.chromeSurface
     border.width: Config.themeBorderWidth
-    border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-      ? Colors.styleOutline
-      : Colors.outlineVariant
+    border.color: Config.ghostTheme && root.notif
+      && root.notif.urgency === NotificationUrgency.Critical ? Colors.destructive
+      : (Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
+        ? Colors.styleOutline : Colors.outlineVariant)
 
     GlassSheen {
       anchors.fill: parent
@@ -213,13 +214,15 @@ PanelWindow {
         Rectangle {
           width: 20
           height: 20
-          radius: 10
-          color: Colors.primaryContainer
+          radius: Config.ghostTheme ? 0 : 10
+          color: Config.ghostTheme && root.notif && root.notif.urgency === NotificationUrgency.Critical
+            ? Colors.destructive : Colors.primaryContainer
 
           Text {
             anchors.centerIn: parent
             text: notif ? (notif.appName.length > 0 ? notif.appName.charAt(0).toUpperCase() : "?") : "?"
-            color: Colors.fgPrimaryContainer
+            color: Config.ghostTheme && root.notif && root.notif.urgency === NotificationUrgency.Critical
+              ? Colors.fgDestructive : Colors.fgPrimaryContainer
             font.family: Config.fontFamily
             font.pixelSize: Config.typeLabelSmallSize
             font.weight: Config.typeStrongWeight

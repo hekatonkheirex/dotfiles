@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import "../config"
 import "../config/BarOrder.js" as BarOrder
+import "../config/ClockTiming.js" as ClockTiming
 import "primitives"
 import "themes/ghost" as Ghost
 
@@ -90,11 +91,36 @@ PanelWindow {
 
   property date now: new Date()
 
+  // Tick on visible clock boundaries, and resync after visibility or seconds changes.
+  function rescheduleClock() {
+    clockTimer.interval = ClockTiming.nextInterval(root.now, Settings.clockShowSeconds)
+    if (root.visible) clockTimer.restart()
+  }
+
+  onVisibleChanged: {
+    if (visible) {
+      now = new Date()
+      rescheduleClock()
+    }
+  }
+
+  Connections {
+    target: Settings
+    function onClockShowSecondsChanged() {
+      root.now = new Date()
+      root.rescheduleClock()
+    }
+  }
+
   Timer {
-    interval: Config.clockIntervalMs
+    id: clockTimer
+    interval: ClockTiming.nextInterval(root.now, Settings.clockShowSeconds)
     running: root.visible
-    repeat: true
-    onTriggered: now = new Date()
+    repeat: false
+    onTriggered: {
+      root.now = new Date()
+      root.rescheduleClock()
+    }
   }
 
   Timer {
@@ -214,11 +240,13 @@ PanelWindow {
     root.ghostGapCenter - root.ghostGapAvailableStart,
     root.ghostGapAvailableEnd - root.ghostGapCenter
   )
+  // Reserve a portion of the flexible spacer for breathing room. The cutout
+  // shrinks as widgets consume space instead of claiming a fixed 300px.
   readonly property real ghostGapLength: Math.max(
     0,
     Math.min(
       root.horizontal ? 600 : 300,
-      root.ghostGapAvailableLength,
+      root.ghostGapAvailableLength * 0.72,
       2 * root.ghostGapCenterClearance
     )
   )
@@ -1085,12 +1113,15 @@ PanelWindow {
               text: root.horizontal
                 ? root.displayNow().toLocaleString(Qt.locale(), root.clockFormat())
                 : root.displayNow().toLocaleString(Qt.locale(), Settings.clock24h ? "HH" : "h")
-              color: Config.liquidGlassTheme
-                ? Colors.barForeground
-                : (Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary))
+              color: Config.ghostTheme && root.horizontal
+                ? Colors.fgSurface
+                : (Config.liquidGlassTheme
+                  ? Colors.barForeground
+                  : (Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)))
               font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
-              font.pixelSize: Config.clockPrimarySize
-              font.weight: Config.nothingEvolution ? Font.Medium : (Config.nothingDesign ? Font.Normal : Font.Bold)
+              font.pixelSize: Config.clockPrimarySize + (Config.ghostTheme && root.horizontal ? 1 : 0)
+              font.weight: Config.ghostTheme && !root.horizontal ? Font.Medium
+                : (Config.nothingEvolution ? Font.Medium : (Config.nothingDesign ? Font.Normal : Font.Bold))
               Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             }
 
@@ -1106,7 +1137,8 @@ PanelWindow {
               font.pixelSize: root.horizontal
                 ? Config.clockSecondarySize
                 : Config.clockPrimarySize
-              font.weight: root.horizontal ? Font.Medium : Font.Bold
+              font.weight: Config.ghostTheme && !root.horizontal ? Font.Medium
+                : (root.horizontal ? Font.Medium : Font.Bold)
               Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             }
           }

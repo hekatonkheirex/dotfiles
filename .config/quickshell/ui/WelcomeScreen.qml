@@ -4,8 +4,8 @@ import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import "../config"
 
-// Transient Ghost login splash. It runs once when the Quickshell session starts
-// after SDDM, and can be replayed through the shell IPC endpoint.
+// Transient Ghost-themed welcome sequence, not a system or security diagnostic.
+// It runs once after SDDM and can be replayed through the shell IPC endpoint.
 PanelWindow {
   id: root
 
@@ -15,12 +15,10 @@ PanelWindow {
   readonly property color glow: colors_ ? colors_.ghostCyan : "#57d9cc"
   readonly property color voidBg: colors_ ? colors_.ghostVoid : "#05080a"
   readonly property color mutedColor: colors_ ? colors_.ghostMuted : "#678984"
-  readonly property color greenColor: colors_ ? colors_.ghostSuccess : "#8fe38a"
   readonly property color amberColor: colors_ ? colors_.ghostWarning : "#e0a94a"
   readonly property bool motionEnabled: !(config && config.reducedMotion)
   readonly property bool ghostSelected: !!(config && config.ghostTheme)
   readonly property bool signalFilterEngaged: Settings.doNotDisturb
-  readonly property bool thermopticCamoActive: false
   readonly property string operatorLabel: "OPERATOR NODE"
   readonly property string userName: Quickshell.env("USER") || "user"
 
@@ -30,16 +28,16 @@ PanelWindow {
   readonly property int bootTicksTotal: 34
   readonly property bool bootDone: bootTick >= bootTicksTotal
   readonly property var bootLines: [
-    { jp: "電脳起動", en: "CYBERBRAIN BOOT", status: "OK", hot: false },
-    { jp: "義体診断", en: "SHELL DIAGNOSTICS", status: "OK", hot: false },
-    { jp: "ゴースト同期", en: "GHOST SYNC", status: "LOCKED", hot: false },
-    { jp: "外部記憶", en: "EXTERNAL MEMORY", status: "MOUNTED", hot: false },
-    { jp: "攻性防壁", en: "ATTACK BARRIER", status: "ARMED", hot: true },
-    { jp: "光学迷彩", en: "THERMOPTIC CAMO", status: root.thermopticCamoActive ? "ACTIVE" : "STANDBY", hot: root.thermopticCamoActive },
-    { jp: "着信制御", en: "SIGNAL FILTER", status: root.signalFilterEngaged ? "ENGAGED" : "OPEN", hot: root.signalFilterEngaged },
-    { jp: "動作制限", en: "MOTION PROTOCOL", status: (config && config.reducedMotion) ? "REDUCED" : "FULL", hot: false },
-    { jp: "公安9課接続", en: "SECTION 9 UPLINK", status: "ESTABLISHED", hot: false },
-    { jp: "オペレーター認証", en: "OPERATOR AUTH", status: userName.toUpperCase(), hot: false }
+    { jp: "電脳起動", en: "CYBERBRAIN MOTIF", status: "VISUAL", hot: false },
+    { jp: "義体映像", en: "SHELL ILLUSTRATION", status: "FRAME 02", hot: false },
+    { jp: "ゴースト演出", en: "GHOST THEME", status: "SELECTED", hot: false },
+    { jp: "外部記憶", en: "ARCHIVE MOTIF", status: "FICTION", hot: false },
+    { jp: "攻性防壁", en: "SECTION 9 FICTION", status: "ILLUSTRATED", hot: false },
+    { jp: "光学迷彩", en: "THERMOPTIC CAMO", status: "VISUAL", hot: false },
+    { jp: "着信制御", en: "DO NOT DISTURB", status: root.signalFilterEngaged ? "ON" : "OFF", hot: root.signalFilterEngaged },
+    { jp: "動作制限", en: "REDUCE MOTION", status: (config && config.reducedMotion) ? "ON" : "OFF", hot: false },
+    { jp: "公安9課映像", en: "SECTION 9 ARTWORK", status: "DISPLAYED", hot: false },
+    { jp: "操作者表示", en: "LOCAL USER", status: userName.toUpperCase(), hot: false }
   ]
 
   color: "transparent"
@@ -220,7 +218,7 @@ PanelWindow {
       opacity: root.bootDone ? 0.45 : 1.0
 
       Text {
-        text: "SECTION 9 // BOOT TRACE"
+        text: "SECTION 9 // THEMED WELCOME"
         font.family: "IBM Plex Mono"
         font.pixelSize: 10
         font.letterSpacing: 1.5
@@ -258,7 +256,7 @@ PanelWindow {
             font.family: "IBM Plex Mono"
             font.pixelSize: 10
             font.letterSpacing: 1
-            color: traceLine.statusResolved ? (modelData.hot ? root.amberColor : root.greenColor) : root.mutedColor
+            color: traceLine.statusResolved ? (modelData.hot ? root.amberColor : root.glow) : root.mutedColor
           }
         }
       }
@@ -335,7 +333,7 @@ PanelWindow {
 
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
-          text: "SECTION 9 // CYBERBRAIN LINK ESTABLISHED"
+          text: "SECTION 9 // DISPLAY SEQUENCE COMPLETE"
           font.family: "IBM Plex Mono"
           font.pixelSize: 13
           font.letterSpacing: 1.5
@@ -344,7 +342,7 @@ PanelWindow {
 
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
-          text: root.operatorLabel + " // " + root.userName.toUpperCase() + " // GHOST ONLINE"
+          text: root.operatorLabel + " // " + root.userName.toUpperCase() + " // GHOST THEME"
           font.family: "IBM Plex Mono"
           font.pixelSize: 11
           font.letterSpacing: 1
