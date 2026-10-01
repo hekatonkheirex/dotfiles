@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
@@ -73,6 +74,21 @@ PanelWindow {
   readonly property real horizontalPillLength: root.wSize + Config.spacingSmall
   readonly property real verticalPillLength: root.wSize
   readonly property color barPanelColor: Colors.chromeSurface
+  readonly property bool glassForegroundShadowEnabled: Config.liquidGlassTheme
+    && !Colors.liquidGlassOpaque
+
+  // Shadow foreground alpha only; the persistent menu-bar surface stays open.
+  Component {
+    id: glassForegroundShadow
+    MultiEffect {
+      shadowEnabled: true
+      shadowColor: "black"
+      shadowOpacity: 0.32
+      shadowVerticalOffset: 1
+      blurMax: 4
+      shadowBlur: 0.75
+    }
+  }
 
   anchors {
     left: root.horizontal || root.dockedLeft
@@ -375,6 +391,8 @@ PanelWindow {
 
       GridLayout {
         id: layout
+        layer.enabled: root.glassForegroundShadowEnabled
+        layer.effect: glassForegroundShadow
         flow: root.horizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
         anchors {
           left: parent.left
@@ -957,7 +975,7 @@ PanelWindow {
             id: notifIndicator
             anchors.fill: parent
             notificationCount: root.notificationCount
-            active: root.openPopup === "notification" || root.notificationCount > 0
+            active: root.openPopup === "notification" || ((!Config.ghostTheme || root.horizontal) && root.notificationCount > 0)
             horizontal: root.horizontal
             integrated: root.fullBar
             onClicked: function(mouse) {
@@ -1019,6 +1037,8 @@ PanelWindow {
       // cannot pull middle widgets away from the screen midpoint.
       GridLayout {
         id: middleLayout
+        layer.enabled: root.glassForegroundShadowEnabled
+        layer.effect: glassForegroundShadow
         flow: root.horizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
         x: root.horizontal ? (parent.width - width) / 2 : 0
         y: root.horizontal ? 0 : (parent.height - height) / 2
@@ -1032,6 +1052,8 @@ PanelWindow {
 
       Item {
         id: clockWrapper
+        layer.enabled: root.glassForegroundShadowEnabled
+        layer.effect: glassForegroundShadow
         // The clock stays outside both layouts to preserve its popup anchor,
         // but its slot participates in whichever region owns it.
         width: root.horizontal

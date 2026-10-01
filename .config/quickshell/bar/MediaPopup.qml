@@ -102,8 +102,8 @@ PopupBase {
     Item {
       Layout.alignment: Qt.AlignHCenter
       width: 200
-      height: 200
-      visible: Settings.mediaShowAlbumArt
+      height: Config.ghostTheme ? 176 : 200
+      visible: Settings.mediaShowAlbumArt && (!Config.ghostTheme || root.mprisStatus !== "NoPlayer")
 
       Canvas {
         id: vizCanvas
@@ -113,12 +113,29 @@ PopupBase {
           target: root
           function onCavaBarValuesChanged() { vizCanvas.requestPaint() }
         }
+        Connections {
+          target: Config
+          function onGhostThemeChanged() { vizCanvas.requestPaint() }
+        }
 
         onPaint: {
           var ctx = getContext("2d");
           ctx.clearRect(0, 0, width, height);
           var bars = root.cavaBarValues;
           if (!bars || bars.length === 0) return;
+
+          if (Config.ghostTheme) {
+            ctx.fillStyle = Colors.styleAccent;
+            var count = Math.min(25, bars.length);
+            var step = width / count;
+            for (var i = 0; i < count; i++) {
+              var value = bars[Math.floor(i * bars.length / count)] / 100;
+              if (value <= 0) continue;
+              var barHeight = Math.max(2, Math.min(1, value) * 20);
+              ctx.fillRect(Math.floor(i * step), height - barHeight - 2, 3, barHeight);
+            }
+            return;
+          }
 
           var cx = width / 2;
           var cy = height / 2;
@@ -167,12 +184,15 @@ PopupBase {
       }
 
       Rectangle {
-        width: 100
-        height: 100
-        radius: width / 2
+        width: Config.ghostTheme ? 200 : 100
+        height: Config.ghostTheme ? 140 : 100
+        radius: Config.ghostTheme ? 0 : width / 2
         clip: true
-        anchors.centerIn: parent
-        color: Colors.surfaceContainerHighest
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: Config.ghostTheme ? 0 : (parent.height - height) / 2
+        color: Config.ghostTheme ? Colors.styleSurfaceRaised : Colors.surfaceContainerHighest
+        border.width: Config.ghostTheme ? Config.themeBorderWidth : 0
+        border.color: Colors.styleOutlineStrong
 
         Image {
           source: root.mprisArtUrl ? root.mprisArtUrl : ""
@@ -203,40 +223,44 @@ PopupBase {
         text: root.mprisTitle ? root.mprisTitle : "No Media Playing"
         color: Colors.fgSurface
         font.family: Config.fontFamily
-        font.pixelSize: Config.typeBodyLargeSize
+        font.pixelSize: Config.ghostTheme ? Config.typeTitleLargeSize : Config.typeBodyLargeSize
         font.weight: Config.typeStrongWeight
         font.letterSpacing: Config.typeBodyTracking
+        wrapMode: Config.ghostTheme ? Text.WordWrap : Text.NoWrap
+        maximumLineCount: Config.ghostTheme ? 2 : 1
         elide: Text.ElideRight
         Layout.fillWidth: true
-        horizontalAlignment: Text.AlignHCenter
+        horizontalAlignment: Config.ghostTheme ? Text.AlignLeft : Text.AlignHCenter
       }
 
       Text {
         text: root.mprisArtist ? root.mprisArtist : "Unknown Artist"
+        visible: !Config.ghostTheme || root.mprisStatus !== "NoPlayer"
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
         font.pixelSize: Config.typeLabelMediumSize
         font.letterSpacing: Config.typeLabelTracking
         elide: Text.ElideRight
         Layout.fillWidth: true
-        horizontalAlignment: Text.AlignHCenter
+        horizontalAlignment: Config.ghostTheme ? Text.AlignLeft : Text.AlignHCenter
       }
     }
 
     RowLayout {
       Layout.fillWidth: true
       spacing: Config.spacingSmall
-      visible: Settings.mediaShowProgressBar
+      visible: Settings.mediaShowProgressBar && (!Config.ghostTheme || root.mprisStatus !== "NoPlayer")
 
       Text {
         text: root.formatTime(root.elapsedSeconds)
+        font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
         color: Colors.fgSurfaceVariant
-        font.family: Config.fontFamily
         font.pixelSize: Config.typeLabelSmallSize
         font.letterSpacing: Config.typeLabelTracking
       }
 
       WaveProgressBar {
+        visible: !Config.ghostTheme
         Layout.fillWidth: true
         Layout.preferredHeight: 14
         progress: root.mprisLengthSec > 0 ? (root.elapsedSeconds / root.mprisLengthSec) : 0.0
@@ -247,10 +271,30 @@ PopupBase {
         trackLineWidth: 1.5
       }
 
+      Item {
+        visible: Config.ghostTheme
+        Layout.fillWidth: true
+        Layout.preferredHeight: 14
+
+        Rectangle {
+          anchors.verticalCenter: parent.verticalCenter
+          width: parent.width
+          height: 2
+          color: Colors.styleOutlineStrong
+
+          Rectangle {
+            width: parent.width * Math.max(0, Math.min(1,
+              root.mprisLengthSec > 0 ? root.elapsedSeconds / root.mprisLengthSec : 0))
+            height: parent.height
+            color: Colors.styleAccent
+          }
+        }
+      }
+
       Text {
         text: root.mprisLengthStr
+        font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
         color: Colors.fgSurfaceVariant
-        font.family: Config.fontFamily
         font.pixelSize: Config.typeLabelSmallSize
         font.letterSpacing: Config.typeLabelTracking
       }
@@ -259,9 +303,11 @@ PopupBase {
     RowLayout {
       Layout.alignment: Qt.AlignHCenter
       spacing: Config.spacingLarge
+      visible: !Config.ghostTheme || root.mprisStatus !== "NoPlayer"
 
       IconButton {
         size: 40
+        radius: Config.ghostTheme ? 0 : size / 2
         iconSize: 20
         iconLabel: "skip_previous"
         accessibleName: "Previous track"
@@ -271,10 +317,12 @@ PopupBase {
 
       IconButton {
         size: 48
+        radius: Config.ghostTheme ? 0 : size / 2
         iconSize: 22
         iconLabel: root.mprisStatus === "Playing" ? "pause" : "play_arrow"
         variant: "filled"
-        iconColor: Colors.fgPrimary
+        selected: Config.ghostTheme
+        iconColor: Config.ghostTheme ? Colors.styleAccentText : Colors.fgPrimary
         accessibleName: root.mprisStatus === "Playing" ? "Pause playback" : "Play playback"
         tooltipText: root.mprisStatus === "Playing" ? "Pause playback" : "Play playback"
         onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
@@ -282,6 +330,7 @@ PopupBase {
 
       IconButton {
         size: 40
+        radius: Config.ghostTheme ? 0 : size / 2
         iconSize: 20
         iconLabel: "skip_next"
         accessibleName: "Next track"
@@ -291,6 +340,7 @@ PopupBase {
 
       IconButton {
         size: 36
+        radius: Config.ghostTheme ? 0 : size / 2
         iconSize: 16
         iconLabel: "queue_music"
         variant: "outlined"

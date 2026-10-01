@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
+import "../config"
 
 PanelWindow {
   id: root
@@ -11,7 +12,7 @@ PanelWindow {
 
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
-  WlrLayershell.namespace: "quickshell-shield"
+  WlrLayershell.namespace: Config.layerNamespace("shield")
   WlrLayershell.layer: WlrLayer.Bottom
 
   anchors.left: true

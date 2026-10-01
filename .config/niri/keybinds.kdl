@@ -9,7 +9,8 @@ binds {
   // red fail-closed background; scripts/lock relaunches the custom locker or
   // falls back to swaylock when Quickshell is not running.
   Mod+Alt+L allow-when-locked=true hotkey-overlay-title="Lock the Screen" { spawn "~/.config/quickshell/scripts/lock"; }
-  Mod+B hotkey-overlay-title="Open Web Browser: Brave Browser" { spawn "brave-origin"; }
+  // Mod+B hotkey-overlay-title="Open Web Browser: Brave Browser" { spawn "brave-origin"; }
+  Mod+B hotkey-overlay-title="Open Web Browser: Firefox" { spawn "firefox"; }
   Mod+T hotkey-overlay-title="Open File Manager: Nautilus" { spawn "nautilus"; }
   Mod+Escape repeat=false hotkey-overlay-title="Open Quick Settings" { spawn "~/.config/quickshell/scripts/quickmenu"; }
   Mod+A hotkey-overlay-title="Open OpenCode" { spawn "kitty" "-e" "opencode"; }

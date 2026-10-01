@@ -28,7 +28,7 @@ PanelWindow {
 
   implicitWidth: wallpaperMode
     ? Math.min(Config.settingsMaxWidth, Math.max(Config.popupWidth, Screen.desktopAvailableWidth - Config.spacingPage))
-    : Config.popupWidth
+    : Math.min(Config.launcherWidth, Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
   visible: false
   implicitHeight: wallpaperMode
     ? Math.min(Config.settingsMaxHeight, wallpaperGridHeight + 86)

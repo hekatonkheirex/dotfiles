@@ -44,14 +44,26 @@ PopupBase {
           Text {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
-            text: root.monthNames[root.displayMonth.getMonth()] + " " + root.displayMonth.getFullYear()
+            text: Config.ghostTheme
+              ? root.monthNames[root.displayMonth.getMonth()].toUpperCase()
+              : root.monthNames[root.displayMonth.getMonth()] + " " + root.displayMonth.getFullYear()
             color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeTitleLargeSize
+            font.family: Config.ghostTheme ? Config.displayFontFamily : Config.fontFamily
+            font.pixelSize: Config.ghostTheme ? Config.typeHeadlineSmallSize : Config.typeTitleLargeSize
             font.weight: Config.typeStrongWeight
             font.letterSpacing: Config.typeTitleTracking
-            lineHeight: Config.typeTitleLargeLineHeight
+            lineHeight: Config.ghostTheme
+              ? Config.typeHeadlineSmallLineHeight : Config.typeTitleLargeLineHeight
             lineHeightMode: Text.FixedHeight
+          }
+          Text {
+            visible: Config.ghostTheme
+            Layout.alignment: Qt.AlignVCenter
+            text: root.displayMonth.getFullYear().toString()
+            color: Colors.fgSurfaceVariant
+            font.family: Config.monoFontFamily
+            font.pixelSize: Config.typeLabelMediumSize
+            font.letterSpacing: Config.typeMonoTracking
           }
 
           Row {
@@ -83,12 +95,12 @@ PopupBase {
           Repeater {
             model: root.weekDays
             Text {
-              text: modelData
+              text: Config.ghostTheme ? modelData.toUpperCase() : modelData
               color: Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeLabelLargeSize
+              font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
+              font.pixelSize: Config.ghostTheme ? Config.typeLabelMediumSize : Config.typeLabelLargeSize
               font.weight: Config.typeMediumWeight
-              font.letterSpacing: Config.typeLabelTracking
+              font.letterSpacing: Config.ghostTheme ? Config.typeMonoTracking : Config.typeLabelTracking
               lineHeight: Config.typeLabelLargeLineHeight
               lineHeightMode: Text.FixedHeight
               width: root.cellWidth
@@ -97,6 +109,12 @@ PopupBase {
               verticalAlignment: Text.AlignVCenter
             }
           }
+        }
+        Rectangle {
+          visible: Config.ghostTheme
+          width: parent.width
+          height: 1
+          color: Colors.ghostHairline
         }
 
         Item {
@@ -115,18 +133,24 @@ PopupBase {
               y: Math.floor(index / 7) * (32 + Config.spacingCompact)
               width: root.cellWidth
               height: 32
-              radius: height / 2
-              color: root.isToday(dayNum) ? (Colors.primary) : "transparent"
+              radius: Config.ghostTheme ? 0 : height / 2
+              color: root.isToday(dayNum)
+                ? (Config.ghostTheme ? Colors.styleControl : Colors.primary)
+                : "transparent"
+              border.width: Config.ghostTheme && root.isToday(dayNum) ? 1 : 0
+              border.color: Colors.ghostCyan
 
               Text {
                 anchors.centerIn: parent
                 text: dayNum > 0 ? dayNum.toString() : ""
                 color: root.isToday(dayNum)
-                  ? (Colors.fgPrimary)
-                  : (Colors.fgSurface)
-                font.family: Config.fontFamily
+                  ? (Config.ghostTheme ? Colors.ghostCyan : Colors.fgPrimary)
+                  : Colors.fgSurface
+                font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
                 font.pixelSize: Config.typeLabelLargeSize
-                font.letterSpacing: Config.typeLabelTracking
+                font.weight: Config.ghostTheme && root.isToday(dayNum)
+                  ? Config.typeStrongWeight : Config.typeRegularWeight
+                font.letterSpacing: Config.ghostTheme ? Config.typeMonoTracking : Config.typeLabelTracking
                 lineHeight: Config.typeLabelLargeLineHeight
                 lineHeightMode: Text.FixedHeight
               }

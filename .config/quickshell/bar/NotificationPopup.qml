@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Window
 import Quickshell
 import "primitives"
 import "../config"
@@ -8,6 +9,9 @@ import "../config"
 PopupBase {
   id: root
   surfaceColor: Colors.readingSurface
+  surfaceWidth: Config.ghostTheme
+    ? Math.min(400, Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
+    : Config.popupWidth
 
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500)
 
@@ -70,15 +74,14 @@ PopupBase {
     })
   }
 
-  function removeNotification(entry) {
+  function removeNotification(index) {
+    if (index < 0 || index >= notifications.length) return
     var copy = notifications.slice()
-    for (var i = 0; i < copy.length; i++) {
-      if (copy[i] !== entry) continue
-      copy.splice(i, 1)
-      notifications = copy
-      count = notifications.length
-      return
-    }
+    var live = copy[index].liveNotif
+    copy.splice(index, 1)
+    notifications = copy
+    count = copy.length
+    if (live) live.dismiss()
   }
 
   function clearAll() {
@@ -156,35 +159,27 @@ PopupBase {
           height: Math.min(400, contentHeight)
           model: root.notifications
           visible: count > 0
-          spacing: Config.spacingSmall
+          spacing: Config.ghostTheme ? Config.spacingCompact : Config.spacingSmall
           clip: true
           ScrollBar.vertical: SettingsScrollBar { scrollTarget: notifList }
 
             delegate: Item {
               id: notifDelegate
+              required property int index
+              required property var modelData
               width: parent.width
-              height: mainContainer.implicitHeight + Config.spacingSmall
+              height: mainContainer.implicitHeight + (Config.ghostTheme ? Config.spacingCompact : Config.spacingSmall)
 
               readonly property var notif: modelData
 
               Rectangle {
                 id: mainContainer
                 width: parent.width
-                implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge
+                implicitHeight: cardLayout.implicitHeight + (Config.ghostTheme ? Config.spacingLarge : Config.spacingExtraLarge)
                 radius: Config.shapeLarge
-                color: Qt.tint(Colors.surfaceContainer, notifMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
+                color: Colors.surfaceContainer
                 border.width: Config.themeBorderWidth
                 border.color: Colors.styleOutline
-
-                Behavior on color {
-                  ColorAnimation { duration: Config.animationDuration}
-                }
-
-                MouseArea {
-                  id: notifMouse
-                  anchors.fill: parent
-                  hoverEnabled: true
-                }
 
                 ColumnLayout {
                   id: cardLayout
@@ -194,7 +189,7 @@ PopupBase {
                     top: parent.top
                     leftMargin: Config.spacingLarge
                     rightMargin: Config.spacingLarge
-                    topMargin: Config.spacingMedium
+                    topMargin: Config.ghostTheme ? Config.spacingSmall : Config.spacingMedium
                   }
                   spacing: Config.spacingSmall
 
@@ -205,8 +200,10 @@ PopupBase {
                     Rectangle {
                       width: 20
                       height: 20
-                      radius: width / 2
-                      color: Colors.primaryContainer
+                      radius: Config.ghostTheme ? 0 : width / 2
+                      color: Config.ghostTheme ? Colors.styleControl : Colors.primaryContainer
+                      border.width: Config.ghostTheme ? Config.themeBorderWidth : 0
+                      border.color: Colors.styleOutlineStrong
 
                       Text {
                         anchors.centerIn: parent
@@ -214,8 +211,8 @@ PopupBase {
                           var app = notif ? (notif.appName || "") : ""
                           return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
                         }
-                        color: Colors.fgPrimaryContainer
-                        font.family: Config.fontFamily
+                        color: Config.ghostTheme ? Colors.styleAccent : Colors.fgPrimaryContainer
+                        font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
                         font.pixelSize: Config.typeLabelSmallSize
                         font.weight: Config.typeStrongWeight
                         font.letterSpacing: Config.typeLabelTracking
@@ -239,22 +236,18 @@ PopupBase {
                       font.family: Config.fontFamily
                       font.pixelSize: Config.typeLabelSmallSize
                       font.letterSpacing: Config.typeLabelTracking
-                      opacity: 0.72
+                      opacity: Config.ghostTheme ? 1 : 0.72
                       Layout.alignment: Qt.AlignVCenter
                     }
 
                     IconButton {
-                      size: 20
-                      iconSize: 12
+                      size: 36
+                      iconSize: 16
                       iconLabel: notif && notif.liveNotif !== null ? "close" : "delete"
                       iconColor: Colors.fgSurfaceVariant
                       accessibleName: notif && notif.liveNotif !== null ? "Dismiss notification" : "Remove notification"
                       tooltipText: notif && notif.liveNotif !== null ? "Dismiss notification" : "Remove notification"
-                      onClicked: {
-                        if (!notif) return
-                        if (notif.liveNotif) notif.liveNotif.tracked = false
-                        else root.removeNotification(notif)
-                      }
+                      onClicked: root.removeNotification(notifDelegate.index)
                     }
                   }
 
@@ -278,6 +271,8 @@ PopupBase {
                       font.letterSpacing: Config.typeTitleTracking
                       lineHeight: Config.typeTitleSmallLineHeight
                       lineHeightMode: Text.FixedHeight
+                      wrapMode: Config.ghostTheme ? Text.WordWrap : Text.NoWrap
+                      maximumLineCount: Config.ghostTheme ? 2 : 1
                       elide: Text.ElideRight
                       visible: text !== ""
                     }

@@ -4,14 +4,16 @@ brave-origin-bin
 chatgpt-desktop
 claude-code
 google-chrome
-herdr-bin
+helium-browser-bin
 libgnome-keyring
 localsend-bin
 onlyoffice-bin
 openai-codex-bin
 paru
 raw-thumbnailer
+sonora-bin
 timeshift-autosnap
 ttfautohint
 unimatrix-git
 xnviewmp
+zen-browser-bin

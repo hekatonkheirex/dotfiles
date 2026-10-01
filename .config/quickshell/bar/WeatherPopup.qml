@@ -7,7 +7,7 @@ import "../config"
 PopupBase {
   id: root
 
-  surfaceWidth: 620
+  surfaceWidth: Config.ghostTheme && !root.ghostHasReading ? 420 : 620
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 520)
 
   readonly property string city: WeatherService.city
@@ -24,6 +24,7 @@ PopupBase {
   readonly property string pressure: WeatherService.pressure
   readonly property string uv: WeatherService.uv
   readonly property string precipChance: WeatherService.precipChance
+  readonly property bool ghostHasReading: root.temp !== "" && root.temp.indexOf("--") !== 0
 
   Binding {
     target: WeatherService
@@ -128,25 +129,36 @@ PopupBase {
 
     // Top Row: Current Weather & Hourly Forecast
     RowLayout {
+      visible: !Config.ghostTheme || root.ghostHasReading
       Layout.fillWidth: true
       Layout.preferredHeight: 115
       spacing: Config.spacingMedium
 
       Rectangle {
-        Layout.preferredWidth: 220
+        Layout.preferredWidth: Config.ghostTheme ? 280 : 220
         Layout.fillHeight: true
         radius: Config.shapeLarge
-        color: Colors.surfaceContainer
-        border.color: Colors.styleOutline
+        color: Config.ghostTheme ? Colors.styleSurfaceRaised : Colors.surfaceContainer
+        border.color: Config.ghostTheme ? Colors.ghostHairlineStrong : Colors.styleOutline
         border.width: Config.themeBorderWidth
+
+        Rectangle {
+          visible: Config.ghostTheme
+          anchors.left: parent.left
+          anchors.top: parent.top
+          width: 38
+          height: 2
+          color: Colors.ghostCyan
+        }
 
         RowLayout {
           anchors.centerIn: parent
+          width: Config.ghostTheme ? parent.width - Config.spacingMedium * 2 : implicitWidth
           spacing: Config.spacingLarge
 
           IconGlyph {
             iconLabel: Colors.weatherIcon(root.desc)
-            iconSize: 64
+            iconSize: Config.ghostTheme ? 72 : 64
             iconColor: Colors.weatherColor(root.desc)
             Layout.alignment: Qt.AlignVCenter
           }
@@ -160,7 +172,7 @@ PopupBase {
               text: root.temp
               color: Colors.fgSurface
               font.family: Config.fontFamily
-              font.pixelSize: Config.typeHeadlineLargeSize
+              font.pixelSize: Config.ghostTheme ? Config.typeDisplaySmallSize : Config.typeHeadlineLargeSize
               font.weight: Config.typeStrongWeight
               font.letterSpacing: Config.typeHeadlineTracking
             }
@@ -168,6 +180,7 @@ PopupBase {
             Text {
               text: root.desc
               color: Colors.fgSurfaceVariant
+              Layout.fillWidth: Config.ghostTheme
               font.family: Config.fontFamily
               font.pixelSize: Config.typeBodyMediumSize
               font.weight: Config.typeMediumWeight
@@ -177,10 +190,13 @@ PopupBase {
 
             Text {
               text: root.city || (root.status === "unavailable" ? "Location not configured" : "Location unavailable")
-              color: Qt.rgba(Colors.fgSurfaceVariant.r, Colors.fgSurfaceVariant.g, Colors.fgSurfaceVariant.b, 0.5)
+              color: Config.ghostTheme ? Colors.fgSurfaceVariant
+                : Qt.rgba(Colors.fgSurfaceVariant.r, Colors.fgSurfaceVariant.g, Colors.fgSurfaceVariant.b, 0.5)
               font.family: Config.fontFamily
               font.pixelSize: Config.typeLabelSmallSize
               font.letterSpacing: Config.typeLabelTracking
+              Layout.fillWidth: Config.ghostTheme
+              elide: Text.ElideRight
             }
           }
         }
@@ -190,8 +206,8 @@ PopupBase {
         Layout.fillWidth: true
         Layout.fillHeight: true
         radius: Config.shapeLarge
-        color: Colors.surfaceContainer
-        border.color: Colors.styleOutline
+        color: Config.ghostTheme ? Colors.styleSurface : Colors.surfaceContainer
+        border.color: Config.ghostTheme ? Colors.ghostHairline : Colors.styleOutline
         border.width: Config.themeBorderWidth
 
         Text {
@@ -211,12 +227,12 @@ PopupBase {
           visible: root.hourly && root.hourly.length > 0
 
           Text {
-            text: "Hourly Forecast"
+            text: Config.ghostTheme ? "HOURLY FORECAST" : "Hourly Forecast"
             color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
+            font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
             font.pixelSize: Config.typeLabelSmallSize
             font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.typeLabelTracking
+            font.letterSpacing: Config.ghostTheme ? Config.typeMonoTracking : Config.typeLabelTracking
           }
 
           RowLayout {
@@ -270,6 +286,7 @@ PopupBase {
 
     // Details Grid
     GridLayout {
+      visible: !Config.ghostTheme || root.ghostHasReading
       columns: 3
       Layout.fillWidth: true
       columnSpacing: Config.spacingSmall
@@ -290,9 +307,18 @@ PopupBase {
           Layout.fillWidth: true
           Layout.preferredHeight: 50
           radius: Config.shapeMedium
-          color: Colors.surfaceContainer
+          color: Config.ghostTheme ? "transparent" : Colors.surfaceContainer
           border.color: Colors.styleOutline
-          border.width: Config.themeBorderWidth
+          border.width: Config.ghostTheme ? 0 : Config.themeBorderWidth
+
+          Rectangle {
+            visible: Config.ghostTheme
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            height: 1
+            color: Colors.ghostHairline
+          }
 
           RowLayout {
             anchors.centerIn: parent
@@ -333,6 +359,7 @@ PopupBase {
 
     // 5-Day Forecast
     RowLayout {
+      visible: !Config.ghostTheme || root.ghostHasReading
       Layout.fillWidth: true
       spacing: Config.spacingSmall
 
@@ -345,8 +372,9 @@ PopupBase {
           Layout.fillWidth: true
           Layout.preferredHeight: 95
           radius: Config.shapeMedium
-          color: Colors.surfaceContainer
-          border.color: Colors.styleOutline
+          color: Config.ghostTheme ? (index === 0 ? Colors.styleSurfaceRaised : Colors.styleSurface) : Colors.surfaceContainer
+          border.color: Config.ghostTheme
+            ? (index === 0 ? Colors.ghostHairlineStrong : Colors.ghostHairline) : Colors.styleOutline
           border.width: Config.themeBorderWidth
 
           ColumnLayout {

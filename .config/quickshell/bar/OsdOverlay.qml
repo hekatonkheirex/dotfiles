@@ -12,9 +12,42 @@ PanelWindow {
   property string osdType: ""
   property real value: 0
   property bool muted: false
+  readonly property bool continuous: osdType === "volume" || osdType === "brightness" || osdType === "kbdlight"
+  readonly property bool meterVisible: continuous && !(osdType === "volume" && muted)
+  readonly property string symbol: {
+    if (osdType === "volume") return muted ? "volume_off" : (value <= 0.01 ? "volume_mute" : (value <= 0.3 ? "volume_mute" : (value <= 0.7 ? "volume_down" : "volume_up")))
+    if (osdType === "mic") return muted ? "mic_off" : "mic"
+    if (osdType === "airplane") return muted ? "airplanemode_active" : "airplanemode_inactive"
+    if (osdType === "bluetooth") return muted ? "bluetooth_disabled" : "bluetooth"
+    return osdType === "kbdlight" ? "keyboard" : "brightness_high"
+  }
+  readonly property string osdTitle: {
+    if (osdType === "volume") return "Volume"
+    if (osdType === "brightness") return "Brightness"
+    if (osdType === "mic") return "Microphone"
+    if (osdType === "airplane") return "Airplane Mode"
+    if (osdType === "bluetooth") return "Bluetooth"
+    return osdType === "kbdlight" ? "Keyboard Backlight" : ""
+  }
+  readonly property string readout: {
+    if (osdType === "volume" && muted) return "Muted"
+    if (osdType === "mic") return muted ? "Muted" : "Unmuted"
+    if (osdType === "airplane") return muted ? "Enabled" : "Disabled"
+    if (osdType === "bluetooth") return muted ? "Disabled" : "Enabled"
+    return Math.round(value * 100) + "%"
+  }
+  readonly property color signalColor: {
+    if ((osdType === "volume" || osdType === "mic" || osdType === "bluetooth") && muted)
+      return Colors.error
+    if (osdType === "brightness" || osdType === "kbdlight") return Colors.brightness
+    return Colors.primary
+  }
+  readonly property color readoutColor: (osdType === "airplane" && muted)
+    || ((osdType === "volume" || osdType === "mic" || osdType === "bluetooth") && muted)
+    ? signalColor : Colors.fgSurface
 
-  implicitWidth: 300
-  implicitHeight: 120
+  implicitWidth: Config.ghostTheme ? 300 : (Config.nothingDesign ? 276 : (Config.liquidGlassTheme ? 296 : 300))
+  implicitHeight: Config.ghostTheme ? (root.meterVisible ? 108 : 94) : (Config.liquidGlassTheme ? 92 : (Config.nothingDesign ? 104 : 120))
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
   WlrLayershell.namespace: Config.layerNamespace("osd")
@@ -188,54 +221,175 @@ PanelWindow {
     radius: Config.shapeLarge
     opacity: root.osdOpacity
     color: {
+      if (Config.ghostTheme) return Colors.styleSurfaceRaised
       if (Config.liquidGlassTheme) return Colors.liquidGlassRegular
       var c = Colors.chromeSurface
       return Qt.rgba(c.r, c.g, c.b, 0.92)
     }
     border.width: Config.themeBorderWidth
-    border.color: Colors.styleOutline
+    border.color: Config.ghostTheme ? Colors.styleOutlineStrong : Colors.styleOutline
 
     GlassSheen {
       anchors.fill: parent
       radius: parent.radius
     }
 
-    Column {
+    Item {
+      visible: Config.ghostTheme
+      anchors.fill: parent
+
+      Rectangle {
+        anchors.left: parent.left
+        anchors.top: parent.top
+        width: 38
+        height: 2
+        color: Colors.ghostCyan
+      }
+      Rectangle {
+        anchors.right: parent.right
+        anchors.top: parent.top
+        width: 16
+        height: 2
+        color: Colors.ghostCyan
+      }
+      Rectangle {
+        anchors.right: parent.right
+        anchors.top: parent.top
+        width: 2
+        height: 12
+        color: Colors.ghostCyan
+      }
+      Rectangle {
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+        width: 14
+        height: 2
+        color: Colors.ghostCyan
+      }
+
+      Text {
+        anchors.left: parent.left
+        anchors.leftMargin: 16
+        anchors.top: parent.top
+        anchors.topMargin: 10
+        width: parent.width - 112
+        text: "OSD / " + root.osdTitle.toUpperCase()
+        color: Colors.fgSurfaceVariant
+        font.family: Config.monoFontFamily
+        font.pixelSize: Config.typeLabelSmallSize
+        font.letterSpacing: Config.typeMonoTracking
+        elide: Text.ElideRight
+      }
+      Text {
+        anchors.right: parent.right
+        anchors.rightMargin: 16
+        anchors.top: parent.top
+        anchors.topMargin: 10
+        text: root.meterVisible ? "LEVEL" : "STATUS"
+        color: Colors.ghostMuted
+        font.family: Config.monoFontFamily
+        font.pixelSize: Config.typeLabelSmallSize
+        font.letterSpacing: Config.typeMonoTracking
+      }
+      Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
+        y: 32
+        height: 1
+        color: Colors.ghostHairline
+      }
+
+      Rectangle {
+        x: 16
+        y: 43
+        width: 38
+        height: 38
+        color: Colors.styleControl
+        border.width: 1
+        border.color: Colors.ghostHairlineStrong
+        IconGlyph {
+          anchors.centerIn: parent
+          iconLabel: root.symbol
+          iconSize: 23
+          iconColor: root.signalColor
+        }
+      }
+      Text {
+        x: 66
+        y: 46
+        width: parent.width - 82
+        height: 36
+        verticalAlignment: Text.AlignVCenter
+        text: root.readout
+        color: root.readoutColor
+        font.family: Config.monoFontFamily
+        font.pixelSize: Config.typeHeadlineSmallSize
+        font.weight: Config.typeStrongWeight
+        elide: Text.ElideRight
+      }
+      Repeater {
+        model: 11
+        Rectangle {
+          visible: root.meterVisible
+          x: 16 + index * (osdSurface.width - 32) / 10
+          y: osdSurface.height - 19
+          width: 1
+          height: index % 5 === 0 ? 5 : 3
+          color: Colors.ghostHairlineStrong
+        }
+      }
+    }
+
+    Row {
+      visible: Config.liquidGlassTheme
       anchors.centerIn: parent
-      spacing: Config.spacingSmall
+      spacing: Config.spacingMedium
+
+      IconGlyph {
+        anchors.verticalCenter: parent.verticalCenter
+        iconLabel: root.symbol
+        iconSize: Config.ghostTheme ? 24 : 28
+        iconColor: root.signalColor
+      }
+
+      Column {
+        spacing: Config.ghostTheme ? 2 : Config.spacingCompact
+        Text {
+          text: root.osdTitle
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.typeLabelMediumSize
+          font.letterSpacing: Config.ghostTheme ? Config.typeMonoTracking : Config.typeLabelTracking
+        }
+        Text {
+          text: root.readout
+          color: root.readoutColor
+          font.family: Config.fontFamily
+          font.pixelSize: Config.ghostTheme ? Config.typeHeadlineSmallSize : Config.typeHeadlineMediumSize
+          font.weight: Config.typeStrongWeight
+        }
+      }
+    }
+
+    Column {
+      visible: !Config.ghostTheme && !Config.liquidGlassTheme
+      anchors.centerIn: parent
+      anchors.verticalCenterOffset: root.meterVisible ? -6 : 0
+      spacing: Config.nothingDesign ? Config.spacingCompact : Config.spacingSmall
 
       IconGlyph {
         anchors.horizontalCenter: parent.horizontalCenter
-        iconLabel: {
-          if (root.osdType === "volume") return root.muted ? "volume_off" : (root.value <= 0.01 ? "volume_mute" : (root.value <= 0.3 ? "volume_mute" : (root.value <= 0.7 ? "volume_down" : "volume_up")));
-          if (root.osdType === "mic") return root.muted ? "mic_off" : "mic";
-          if (root.osdType === "airplane") return root.muted ? "airplanemode_active" : "airplanemode_inactive";
-          if (root.osdType === "bluetooth") return root.muted ? "bluetooth_disabled" : "bluetooth";
-          if (root.osdType === "kbdlight") return "keyboard";
-          return "brightness_high";
-        }
-        iconSize: 28
-        iconColor: {
-          if (root.osdType === "volume") return root.muted ? (Colors.error) : (Colors.primary);
-          if (root.osdType === "mic") return root.muted ? (Colors.error) : (Colors.primary);
-          if (root.osdType === "airplane") return root.muted ? (Colors.primary) : (Colors.fgSurfaceVariant);
-          if (root.osdType === "bluetooth") return root.muted ? (Colors.error) : (Colors.primary);
-          if (root.osdType === "kbdlight") return Colors.primary;
-          return Colors.brightness;
-        }
+        iconLabel: root.symbol
+        iconSize: Config.material3Theme ? 32 : 26
+        iconColor: root.signalColor
+        filled: Config.material3Theme
       }
 
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: {
-          if (root.osdType === "volume") return "Volume";
-          if (root.osdType === "brightness") return "Brightness";
-          if (root.osdType === "mic") return "Microphone";
-          if (root.osdType === "airplane") return "Airplane Mode";
-          if (root.osdType === "bluetooth") return "Bluetooth";
-          if (root.osdType === "kbdlight") return "Keyboard Backlight";
-          return "";
-        }
+        text: root.osdTitle
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
         font.pixelSize: Config.typeLabelMediumSize
@@ -244,44 +398,32 @@ PanelWindow {
 
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: {
-          if (root.osdType === "mic") return root.muted ? "Muted" : "Unmuted";
-          if (root.osdType === "airplane") return root.muted ? "Enabled" : "Disabled";
-          if (root.osdType === "bluetooth") return root.muted ? "Disabled" : "Enabled";
-          return Math.round(root.value * 100) + "%";
-        }
-        color: {
-          if (root.osdType === "mic" && root.muted) return Colors.error;
-          if (root.osdType === "volume" && root.muted) return Colors.error;
-          if (root.osdType === "bluetooth" && root.muted) return Colors.error;
-          if (root.osdType === "airplane" && root.muted) return Colors.primary;
-          return Colors.fgSurface;
-        }
-        font.family: Config.nothingDesign && root.osdType !== "mic" && root.osdType !== "airplane" && root.osdType !== "bluetooth"
-          ? Config.dotFontFamily
-          : Config.fontFamily
-        font.pixelSize: Config.typeHeadlineSmallSize
+        text: root.readout
+        color: root.readoutColor
+        font.family: Config.nothingDesign && root.continuous ? Config.dotFontFamily : Config.fontFamily
+        font.pixelSize: Config.nothingDesign ? Config.typeHeadlineMediumSize : Config.typeHeadlineSmallSize
         font.weight: Config.typeStrongWeight
         font.letterSpacing: Config.typeHeadlineTracking
       }
+    }
+
+    Rectangle {
+      visible: root.meterVisible
+      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.bottom: parent.bottom
+      anchors.bottomMargin: Config.ghostTheme ? 10 : 14
+      width: parent.width - (Config.ghostTheme ? 32 : 48)
+      height: Config.ghostTheme ? 2 : (Config.nothingDesign ? 3 : (Config.liquidGlassTheme ? 3 : 6))
+      radius: Config.ghostTheme || Config.nothingDesign ? 0 : height / 2
+      color: Config.ghostTheme ? Colors.ghostHairlineStrong : Colors.surfaceContainerHighest
 
       Rectangle {
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: root.width * 0.6
-        height: 4
-        radius: 2
-        color: Colors.surfaceContainerHighest
-
-        Rectangle {
-          width: parent.width * root.value
-          height: parent.height
-          radius: 2
-          color: {
-            if (root.muted && (root.osdType === "volume" || root.osdType === "mic")) return Colors.error;
-            if (root.osdType === "bluetooth" && root.muted) return Colors.error;
-            if (root.osdType === "brightness" || root.osdType === "kbdlight") return Colors.brightness;
-            return Colors.primary;
-          }
+        width: parent.width * Math.max(0, Math.min(1, root.value))
+        height: parent.height
+        radius: parent.radius
+        color: root.signalColor
+        Behavior on width {
+          NumberAnimation { duration: Config.motionShort; easing.type: Easing.OutCubic }
         }
       }
     }

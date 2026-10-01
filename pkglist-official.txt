@@ -94,6 +94,7 @@ pacutils
 papers
 pavucontrol
 pipewire
+pipewire-alsa
 pipewire-jack
 pipewire-pulse
 plymouth
@@ -144,8 +145,6 @@ udiskie
 ufw
 upower
 v4l2loopback-dkms
-vivaldi
-vivaldi-ffmpeg-codecs
 vulkan-headers
 wdisplays
 webp-pixbuf-loader

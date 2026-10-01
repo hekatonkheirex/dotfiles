@@ -155,7 +155,8 @@ Rectangle {
           ? (root.selected ? Colors.primary : Colors.fgSurfaceVariant)
           : (root.stateHighlighted ? root.selectedContentColor : root.leadingIconColor)
         iconOpacity: root.leadingIconOpacity
-        iconSize: root.materialNavigationItem ? 20 : Config.iconSize + 6
+        iconSize: root.materialNavigationItem ? 20
+          : (root.navigationItem && Config.liquidGlassTheme ? Config.iconSize : Config.iconSize + 6)
         filled: root.stateHighlighted
       }
     }
@@ -215,7 +216,9 @@ Rectangle {
         Layout.fillWidth: true
         visible: root.subtitle !== ""
         text: root.subtitle
-        color: Colors.fgSurfaceVariant
+        color: Config.ghostTheme && root.selected
+          ? root.selectedContentColor
+          : Colors.fgSurfaceVariant
         font.family: Config.fontFamily
         font.pixelSize: Config.typeLabelMediumSize
         font.letterSpacing: Config.typeLabelTracking

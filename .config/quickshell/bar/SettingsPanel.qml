@@ -273,7 +273,7 @@ PanelWindow {
                            Math.max(Config.settingsMinHeight, Settings.settingsPanelHeight > 0 ? Settings.settingsPanelHeight : Config.settingsDefaultHeight))
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: Config.layerNamespace("popup")
+  WlrLayershell.namespace: Config.layerNamespace(Config.liquidGlassTheme ? "settings" : "popup")
   WlrLayershell.layer: WlrLayer.Top
 
   // Center the panel until the user moves it. A resized panel stays anchored to

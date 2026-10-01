@@ -1,10 +1,7 @@
-// Theme-aware icon primitive. Liquid Glass uses the active symbolic icon
-// theme, while the other styles retain their Material Symbols text path.
+// Liquid Glass uses installed SF Symbols; other styles use Material Symbols.
 import QtQuick
-import Qt5Compat.GraphicalEffects
-import Quickshell
-import Quickshell.Widgets
 import "../../config"
+import "../../config/SfSymbols.js" as SfSymbols
 
 Item {
   id: root
@@ -17,15 +14,11 @@ Item {
   property real iconOpacity: 1.0
   property bool filled: false
 
-  readonly property bool liquidGlass: Config.liquidGlassTheme
-  readonly property string symbolName: Config.liquidGlassIconName(root.iconLabel)
-  readonly property string symbolSource: root.liquidGlass
-    ? Quickshell.iconPath(root.symbolName, "application-x-executable-symbolic")
-    : ""
-  readonly property real symbolScale: root.liquidGlass
-    ? Config.liquidGlassIconScale(root.iconLabel)
-    : 1.0
+  readonly property string sfGlyph: Config.liquidGlassTheme
+    ? SfSymbols.glyph(root.iconLabel, root.filled) : ""
+  readonly property bool usesSfSymbol: root.sfGlyph !== ""
   readonly property real iconBoxSize: Math.max(1, Math.min(
+    root.iconSize,
     root.width > 0 ? root.width : root.iconSize,
     root.height > 0 ? root.height : root.iconSize
   ))
@@ -33,43 +26,18 @@ Item {
   implicitWidth: root.iconSize
   implicitHeight: root.iconSize
 
-  Item {
-    id: symbolFrame
-    anchors.centerIn: parent
-    width: root.iconBoxSize * root.symbolScale
-    height: width
-
-    IconImage {
-      id: symbolImage
-      anchors.fill: parent
-      implicitSize: symbolFrame.width
-      source: root.symbolSource
-      // ColorOverlay renders this item as its source. Keep the source hidden
-      // so the un-tinted SVG is not composited a second time underneath it.
-      visible: false
-    }
-
-    // MacTahoe's symbolic SVGs are intentionally monochrome. Recolor the
-    // rendered asset so semantic states (error, warning, selected) still use
-    // the same palette roles as the rest of the shell.
-    ColorOverlay {
-      anchors.fill: symbolImage
-      source: symbolImage
-      color: root.iconColor
-      opacity: root.iconOpacity
-      visible: root.liquidGlass && root.symbolSource !== ""
-    }
-  }
 
   Text {
     anchors.fill: parent
-    visible: !root.liquidGlass
-    text: root.iconLabel
+    text: root.usesSfSymbol ? root.sfGlyph : root.iconLabel
+    textFormat: Text.PlainText
     color: root.iconColor
     opacity: root.iconOpacity
-    font.family: root.iconFont
-    font.pixelSize: root.iconSize
-    font.variableAxes: root.iconVariableAxes
+    font.family: root.usesSfSymbol ? Config.sfSymbolsFont : root.iconFont
+    // SF's medium-scale glyphs occupy roughly one em, unlike Material's box.
+    font.pixelSize: root.usesSfSymbol ? root.iconBoxSize * 0.8 : root.iconSize
+    font.weight: Font.Normal
+    font.variableAxes: !root.usesSfSymbol && root.iconVariableAxes
       ? Config.iconVariableAxes(root.filled ? 1 : 0, root.iconSize)
       : ({})
     horizontalAlignment: Text.AlignHCenter

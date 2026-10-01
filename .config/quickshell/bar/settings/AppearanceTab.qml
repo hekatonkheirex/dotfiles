@@ -20,6 +20,22 @@ Flickable {
   readonly property int optionButtonHeight: 48
   readonly property int uiStyleColumns: width < 260 ? 1 : (width < 720 ? 2 : 5)
   readonly property int uiStyleRows: Math.ceil(5 / uiStyleColumns)
+  readonly property var styleChoices: [
+    { value: "material3", variant: "", icon: "auto_awesome", label: "Material", surface: "#f3eff8", panel: "#e5e0ed", ink: "#25232a", accent: "#6259a5", onAccent: "#ffffff", font: "Roboto Flex" },
+    { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Classic", surface: "#f0f0ee", panel: "#ffffff", ink: "#1a1a1a", accent: "#d71920", onAccent: "#ffffff", font: "NType 82" },
+    { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution", surface: "#dcdce1", panel: "#f1f1f4", ink: "#1d1d1f", accent: "#557bae", onAccent: "#ffffff", font: "Geist" },
+    { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost", surface: "#0d1418", panel: "#152328", ink: "#cdeeea", accent: "#57d9cc", onAccent: "#0d1418", font: "JetBrains Mono" },
+    { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid", surface: "#d9dce5", panel: "#f0f1f5", ink: "#1d1d1f", accent: "#818bb8", onAccent: "#ffffff", font: "Roboto Flex" }
+  ]
+  readonly property var selectedStylePreview: {
+    for (var i = 0; i < styleChoices.length; i++) {
+      var style = styleChoices[i]
+      if (style.value === Settings.themeStyle
+          && (style.value !== "nothing" || style.variant === Settings.nothingVariant))
+        return style
+    }
+    return styleChoices[0]
+  }
   readonly property var workspaceCountOptions: [
     { value: "active", icon: "dynamic_feed", label: "Active", description: "Show the workspaces currently known to Niri" },
     { value: "5", icon: "looks_5", label: "1–5", description: "Show workspaces one through five" },
@@ -294,7 +310,7 @@ Flickable {
             Layout.preferredWidth: 0
             Layout.minimumWidth: 0
             Layout.maximumWidth: parent.width
-            Layout.preferredHeight: (appearanceTab.optionButtonHeight + 112) * appearanceTab.uiStyleRows
+            Layout.preferredHeight: (appearanceTab.optionButtonHeight + Config.spacingSmall) * appearanceTab.uiStyleRows
               + appearanceTab.optionButtonGap * (appearanceTab.uiStyleRows - 1)
             height: Layout.preferredHeight
 
@@ -313,26 +329,16 @@ Flickable {
               rowSpacing: appearanceTab.optionButtonGap
 
               Repeater {
-                model: [
-                  { value: "material3", variant: "", icon: "auto_awesome", label: "Material", surface: "#f3eff8", panel: "#e5e0ed", ink: "#25232a", accent: "#6259a5", onAccent: "#ffffff", font: "Roboto Flex" },
-                  { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Classic", surface: "#f0f0ee", panel: "#ffffff", ink: "#1a1a1a", accent: "#d71920", onAccent: "#ffffff", font: "NType 82" },
-                  { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution", surface: "#dcdce1", panel: "#f1f1f4", ink: "#1d1d1f", accent: "#557bae", onAccent: "#ffffff", font: "Geist" },
-                  { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost", surface: "#0d1418", panel: "#152328", ink: "#cdeeea", accent: "#57d9cc", onAccent: "#0d1418", font: "JetBrains Mono" },
-                  { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid", surface: "#d9dce5", panel: "#f0f1f5", ink: "#1d1d1f", accent: "#818bb8", onAccent: "#ffffff", font: "Roboto Flex" }
-                ]
+                model: appearanceTab.styleChoices
 
                 delegate: Item {
                   id: styleTile
                   required property var modelData
                   required property int index
                   readonly property bool centerLast: appearanceTab.uiStyleColumns === 2 && index === 4
-                  readonly property bool classic: modelData.value === "nothing" && modelData.variant === "classic"
-                  readonly property bool evolution: modelData.variant === "evolution"
                   readonly property bool ghost: modelData.value === "ghost"
-                  readonly property bool glass: modelData.value === "liquid-glass"
                   readonly property bool selectedStyle: Settings.themeStyle === modelData.value
                     && (modelData.value !== "nothing" || Settings.nothingVariant === modelData.variant)
-                  readonly property real corner: ghost ? 0 : (classic ? 4 : (glass ? 16 : 12))
                   Layout.fillWidth: !centerLast
                   Layout.fillHeight: true
                   Layout.columnSpan: centerLast ? 2 : 1
@@ -348,121 +354,17 @@ Flickable {
                       : "transparent"
                     border.width: styleTile.selectedStyle ? 2 : 0
                     border.color: Colors.primary
-                  }
-
-                  // Previews show the system's hierarchy, not just its accent.
-                  Rectangle {
-                    id: miniature
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.margins: Config.spacingCompact
-                    height: 96
-                    radius: corner
-                    color: modelData.surface
-                    border.color: ghost || classic ? modelData.accent : modelData.ink
-                    border.width: ghost || classic ? 1 : 0
-                    clip: true
-
-                    Rectangle {
-                      id: miniatureBar
-                      anchors.left: parent.left
-                      anchors.right: parent.right
-                      anchors.top: parent.top
-                      anchors.margins: 8
-                      height: 16
-                      radius: ghost || classic ? 0 : 8
-                      color: ghost ? modelData.panel : (glass ? "#eeeef4" : modelData.panel)
-
-                      Text {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 8
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: ghost ? "S9 • 09:41" : "09:41"
-                        font.family: modelData.font
-                        font.pixelSize: 9
-                        color: modelData.ink
-                      }
-
-                      Rectangle {
-                        anchors.right: parent.right
-                        anchors.rightMargin: 7
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: ghost ? 24 : 28
-                        height: ghost ? 4 : 8
-                        radius: ghost || classic ? 0 : 5
-                        color: modelData.accent
-                      }
+                    Behavior on border.width {
+                      NumberAnimation { duration: Config.motionShort }
                     }
-
-                    Rectangle {
-                      anchors.left: parent.left
-                      anchors.right: parent.right
-                      anchors.bottom: parent.bottom
-                      anchors.margins: 8
-                      height: 58
-                      radius: ghost ? 0 : (classic ? 4 : (glass ? 12 : (evolution ? 10 : 14)))
-                      color: modelData.panel
-                      border.color: ghost ? modelData.accent : (classic ? modelData.ink : "transparent")
-                      border.width: ghost || classic ? 1 : 0
-                      opacity: glass ? 0.86 : 1
-
-                      Text {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 9
-                        anchors.top: parent.top
-                        anchors.topMargin: 8
-                        text: ghost ? "SETTINGS_01" : "Settings"
-                        font.family: modelData.font
-                        font.pixelSize: ghost ? 9 : 11
-                        font.weight: ghost || classic ? Font.Medium : Font.DemiBold
-                        color: modelData.ink
-                      }
-
-                      Rectangle {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 9
-                        anchors.bottom: parent.bottom
-                        anchors.bottomMargin: 11
-                        width: ghost ? 52 : (classic ? 46 : 64)
-                        height: ghost ? 2 : 4
-                        radius: ghost || classic ? 0 : 2
-                        color: ghost ? modelData.accent : modelData.ink
-                        opacity: ghost ? 1 : 0.45
-                      }
-
-                      Rectangle {
-                        anchors.right: parent.right
-                        anchors.rightMargin: 8
-                        anchors.bottom: parent.bottom
-                        anchors.bottomMargin: 8
-                        width: 48
-                        height: 20
-                        radius: ghost ? 0 : (classic ? 10 : 12)
-                        color: modelData.accent
-
-                        Text {
-                          anchors.centerIn: parent
-                          text: ghost ? "RUN" : "Apply"
-                          font.family: modelData.font
-                          font.pixelSize: 9
-                          color: modelData.onAccent
-                        }
-                      }
+                    Behavior on color {
+                      ColorAnimation { duration: Config.motionShort }
                     }
-                  }
-                  MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: appearanceTab.selectStyle(styleTile.modelData.value, styleTile.modelData.variant)
                   }
 
                   ActionButton {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
+                    anchors.fill: parent
                     anchors.margins: Config.spacingCompact
-                    height: appearanceTab.optionButtonHeight
                     iconLabel: modelData.icon
                     iconSize: 15
                     contentSpacing: Config.spacingSmall
@@ -516,6 +418,136 @@ Flickable {
               variant: "outlined"
               accessibleName: "Revert to previous UI style"
               onActivated: appearanceTab.revertStyle()
+            }
+          }
+
+          Rectangle {
+            id: surfacePreview
+            readonly property var style: appearanceTab.selectedStylePreview
+            readonly property bool ghost: style.value === "ghost"
+            readonly property bool classic: style.value === "nothing" && style.variant === "classic"
+            readonly property bool glass: style.value === "liquid-glass"
+            Layout.fillWidth: true
+            Layout.preferredHeight: 152
+            radius: ghost ? 0 : (glass ? 16 : (classic ? 4 : 12))
+            color: style.surface
+            border.width: ghost || classic ? 1 : 0
+            border.color: style.accent
+            clip: true
+
+            Rectangle {
+              anchors.left: parent.left
+              anchors.right: parent.right
+              anchors.top: parent.top
+              height: 26
+              color: surfacePreview.style.panel
+
+              Text {
+                anchors.left: parent.left
+                anchors.leftMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                text: surfacePreview.ghost ? "S9 / 01  ·  09:41" : "09:41   •   01  02  03"
+                font.family: surfacePreview.style.font
+                font.pixelSize: 11
+                color: surfacePreview.style.ink
+              }
+              Rectangle {
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                width: surfacePreview.ghost ? 26 : 38
+                height: surfacePreview.ghost ? 2 : 6
+                radius: surfacePreview.ghost || surfacePreview.classic ? 0 : 3
+                color: surfacePreview.style.accent
+              }
+            }
+
+            Row {
+              anchors.left: parent.left
+              anchors.right: parent.right
+              anchors.top: parent.top
+              anchors.bottom: parent.bottom
+              anchors.margins: 12
+              anchors.topMargin: 38
+              spacing: 12
+
+              Rectangle {
+                id: previewLauncher
+                width: Math.max(0, (parent.width - 12) * 0.55)
+                height: parent.height
+                radius: surfacePreview.ghost ? 0 : (surfacePreview.classic ? 4 : 12)
+                color: surfacePreview.style.panel
+                border.width: surfacePreview.ghost || surfacePreview.classic ? 1 : 0
+                border.color: surfacePreview.style.accent
+
+                Column {
+                  anchors.fill: parent
+                  anchors.margins: 12
+                  spacing: 9
+                  Text {
+                    text: surfacePreview.ghost ? "SEARCH_ / LAUNCHER" : "Search apps"
+                    color: surfacePreview.style.ink
+                    font.family: surfacePreview.style.font
+                    font.pixelSize: surfacePreview.ghost ? 11 : 13
+                    font.weight: Font.Medium
+                  }
+                  Rectangle {
+                    width: parent.width
+                    height: 26
+                    radius: surfacePreview.ghost || surfacePreview.classic ? 0 : 9
+                    color: surfacePreview.style.accent
+                    Text {
+                      anchors.left: parent.left
+                      anchors.leftMargin: 10
+                      anchors.verticalCenter: parent.verticalCenter
+                      text: "Files"
+                      font.family: surfacePreview.style.font
+                      font.pixelSize: 12
+                      color: surfacePreview.style.onAccent
+                    }
+                  }
+                  Text {
+                    text: "Terminal"
+                    color: surfacePreview.style.ink
+                    font.family: surfacePreview.style.font
+                    font.pixelSize: 12
+                  }
+                }
+              }
+
+              Rectangle {
+                width: Math.max(0, parent.width - previewLauncher.width - 12)
+                height: 72
+                radius: surfacePreview.ghost ? 0 : (surfacePreview.classic ? 4 : 12)
+                color: surfacePreview.style.panel
+                border.width: surfacePreview.ghost || surfacePreview.classic ? 1 : 0
+                border.color: surfacePreview.style.accent
+
+                Column {
+                  anchors.fill: parent
+                  anchors.margins: 10
+                  spacing: 7
+                  Text {
+                    text: surfacePreview.ghost ? "SIGNAL / NOTICE" : "Notification"
+                    color: surfacePreview.style.ink
+                    font.family: surfacePreview.style.font
+                    font.pixelSize: 11
+                    font.weight: Font.Medium
+                  }
+                  Rectangle {
+                    width: Math.min(90, parent.width * 0.8)
+                    height: 3
+                    radius: surfacePreview.ghost || surfacePreview.classic ? 0 : 2
+                    color: surfacePreview.style.accent
+                  }
+                  Text {
+                    text: "New message"
+                    color: surfacePreview.style.ink
+                    font.family: surfacePreview.style.font
+                    font.pixelSize: 11
+                  }
+                }
+              }
             }
           }
         }

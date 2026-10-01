@@ -334,7 +334,7 @@ QtObject {
     on_error_container: "#ffd9d5",
     on_background: "#cdeeea",
     on_surface: "#cdeeea",
-    on_surface_variant: "#729892",
+    on_surface_variant: "#98b9b3",
     outline: "#2f6f68",
     outline_variant: "#1c4d48",
     inverse_surface: "#cdeeea",

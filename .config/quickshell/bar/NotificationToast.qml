@@ -17,9 +17,13 @@ PanelWindow {
   property var heldNotif: null
   property int displayMs: Settings.notificationToastDurationMs
   property string barPosition: "top"
+  readonly property bool ghostCritical: Config.ghostTheme && notif
+    && notif.urgency === NotificationUrgency.Critical
 
 
-  implicitWidth: 280
+  implicitWidth: Config.ghostTheme
+    ? Math.min(320, Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
+    : 280
   implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
@@ -116,7 +120,7 @@ PanelWindow {
 
   MouseArea {
     anchors.fill: parent
-    hoverEnabled: true
+    enabled: !Config.ghostTheme
     cursorShape: Qt.PointingHandCursor
     onClicked: {
       bg.forceActiveFocus()
@@ -129,11 +133,10 @@ PanelWindow {
     id: bg
     anchors.fill: parent
     radius: Config.popupRadius
-    activeFocusOnTab: true
+    activeFocusOnTab: !Config.ghostTheme
     color: Colors.chromeSurface
     border.width: Config.themeBorderWidth
-    border.color: Config.ghostTheme && root.notif
-      && root.notif.urgency === NotificationUrgency.Critical ? Colors.destructive
+    border.color: root.ghostCritical ? Colors.destructive
       : (Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Colors.styleOutline : Colors.outlineVariant)
 
@@ -142,12 +145,14 @@ PanelWindow {
       radius: parent.radius
     }
 
-    Accessible.role: Accessible.Button
-    Accessible.name: notif ? ((notif.appName || "Notification") + ": " + (notif.summary || "Dismiss notification")) : "Notification"
-    Accessible.description: "Dismiss notification"
+    Accessible.role: Config.ghostTheme ? Accessible.StaticText : Accessible.Button
+    Accessible.name: notif ? ((notif.appName || "Notification") + ": "
+      + (notif.summary || (Config.ghostTheme ? "Notification" : "Dismiss notification"))) : "Notification"
+    Accessible.description: Config.ghostTheme ? (notif ? (notif.body || "") : "") : "Dismiss notification"
 
     Keys.onPressed: function(event) {
-      if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+      if (!Config.ghostTheme
+          && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
         root.dismiss()
         event.accepted = true
       }
@@ -215,15 +220,19 @@ PanelWindow {
           width: 20
           height: 20
           radius: Config.ghostTheme ? 0 : 10
-          color: Config.ghostTheme && root.notif && root.notif.urgency === NotificationUrgency.Critical
-            ? Colors.destructive : Colors.primaryContainer
+          color: Config.ghostTheme ? Colors.styleControl : Colors.primaryContainer
+          border.width: Config.ghostTheme ? Config.themeBorderWidth : 0
+          border.color: root.ghostCritical ? Colors.destructive : Colors.styleOutlineStrong
 
           Text {
             anchors.centerIn: parent
-            text: notif ? (notif.appName.length > 0 ? notif.appName.charAt(0).toUpperCase() : "?") : "?"
-            color: Config.ghostTheme && root.notif && root.notif.urgency === NotificationUrgency.Critical
-              ? Colors.fgDestructive : Colors.fgPrimaryContainer
-            font.family: Config.fontFamily
+            text: {
+              var app = notif ? (notif.appName || "") : ""
+              return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
+            }
+            color: root.ghostCritical ? Colors.destructive
+              : (Config.ghostTheme ? Colors.styleAccent : Colors.fgPrimaryContainer)
+            font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
             font.pixelSize: Config.typeLabelSmallSize
             font.weight: Config.typeStrongWeight
           }
@@ -242,11 +251,24 @@ PanelWindow {
 
         Text {
           text: "now"
+          visible: !Config.ghostTheme
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
           font.pixelSize: Config.typeLabelSmallSize
           font.letterSpacing: Config.typeLabelTracking
           opacity: 0.7
+        }
+        IconButton {
+          visible: Config.ghostTheme
+          enabled: Config.ghostTheme
+          size: 36
+          iconSize: 16
+          iconLabel: "close"
+          iconColor: Colors.fgSurfaceVariant
+          accessibleName: "Dismiss notification"
+          tooltipText: "Dismiss notification"
+          Layout.alignment: Qt.AlignVCenter
+          onClicked: root.dismiss()
         }
       }
 
@@ -270,6 +292,8 @@ PanelWindow {
           font.letterSpacing: Config.typeTitleTracking
           lineHeight: Config.typeTitleSmallLineHeight
           lineHeightMode: Text.FixedHeight
+          wrapMode: Config.ghostTheme ? Text.WordWrap : Text.NoWrap
+          maximumLineCount: Config.ghostTheme ? 2 : 1
           elide: Text.ElideRight
           visible: text !== ""
         }
