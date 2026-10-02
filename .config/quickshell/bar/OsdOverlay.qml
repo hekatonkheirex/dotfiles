@@ -84,10 +84,11 @@ PanelWindow {
   // ThinkPad keyboard backlight is cycled by the EC firmware itself (Fn+Space
   // never reaches niri/quickshell as a key event). The sysfs brightness value
   // is EC-polled on read rather than push-notified, so inotify never fires;
-  // we poll it ourselves inside one persistent process instead.
+  // we poll it ourselves inside one persistent process instead. The wait is a
+  // bash `read -t` timeout, not `sleep`, so each tick forks nothing.
   Process {
     id: kbdlightWatcher
-    command: ["sh", "-c", "f=/sys/class/leds/tpacpi::kbd_backlight/brightness; read -r prev < \"$f\"; while true; do sleep 0.2; read -r cur < \"$f\"; if [ \"$cur\" != \"$prev\" ]; then echo \"$cur\"; prev=$cur; fi; done"]
+    command: ["bash", "-c", "f=/sys/class/leds/tpacpi::kbd_backlight/brightness; exec {w}<> <(:); read -r prev < \"$f\"; while true; do read -t 0.4 -u $w; read -r cur < \"$f\"; if [ \"$cur\" != \"$prev\" ]; then echo \"$cur\"; prev=$cur; fi; done"]
     running: true
     stdout: SplitParser {
       onRead: function(data) {
