@@ -25,8 +25,8 @@ Item {
   property real accessibleMaximumValue: 100
   property string accessibleUnit: "%"
 
-  readonly property int segmentCount: 18
-  readonly property real segmentGap: 2
+  readonly property int segmentCount: theme.segmentCount
+  readonly property real segmentGap: theme.segmentGap
   readonly property real normalizedValue: Math.max(0, Math.min(1, root.value))
   readonly property real segmentWidth: root.segmentCount > 0
     ? Math.max(1, (root.width - root.segmentGap * (root.segmentCount - 1)) / root.segmentCount)
@@ -90,7 +90,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     anchors.margins: -4
-    radius: theme.controlRadius + 4
+    radius: theme.square ? 0 : theme.controlRadius + 4
     color: root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
     border.width: root.activeFocus ? theme.focusBorderWidth : 0
     border.color: root.focusColor
@@ -131,7 +131,7 @@ Item {
     y: 3
     width: 2
     height: root.height - 6
-    radius: 1
+    radius: theme.segmentRadius
     color: root.enabled ? (root.muted ? root.outline : root.activeColor) : root.outline
     visible: root.active || root.normalizedValue > 0
     Behavior on x { NumberAnimation { duration: root.animateDuration(120); easing.type: Easing.OutCubic } }

@@ -67,7 +67,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     anchors.margins: -4
-    radius: theme.controlRadius + 4
+    radius: theme.square ? 0 : theme.controlRadius + 4
     color: root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
     border.width: root.activeFocus ? theme.focusBorderWidth : 0
     border.color: root.focusColor

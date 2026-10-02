@@ -67,10 +67,10 @@ Item {
   Rectangle {
     anchors.fill: parent
     anchors.margins: -2
-    radius: 0
+    radius: theme.square ? 0 : root.radius + theme.focusBorderWidth
     color: "transparent"
     border.width: root.activeFocus ? theme.focusBorderWidth : 0
-    border.color: theme.accent
+    border.color: theme.focusRing
     visible: root.activeFocus
     z: 1
   }

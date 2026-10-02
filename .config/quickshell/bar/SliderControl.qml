@@ -4,8 +4,7 @@ import QtQml
 import QtQuick
 import "../config"
 import "themes/material3" as Material3
-import "themes/nothing" as Nothing
-import "themes/ghost" as Ghost
+import "themes/styled" as Styled
 
 Item {
   id: root
@@ -47,8 +46,7 @@ Item {
     id: implementation
     anchors.fill: parent
     sourceComponent: Config.liquidGlassTheme ? liquidImplementation
-      : (Config.ghostTheme ? ghostImplementation
-        : (Config.nothingDesign ? nothingImplementation : materialImplementation))
+      : ((Config.ghostTheme || Config.nothingDesign) ? styledImplementation : materialImplementation)
   }
 
   Component {
@@ -63,13 +61,8 @@ Item {
 
 
   Component {
-    id: nothingImplementation
-    Nothing.SliderControl {}
-  }
-
-  Component {
-    id: ghostImplementation
-    Ghost.SliderControl {}
+    id: styledImplementation
+    Styled.SliderControl {}
   }
 
   Binding { target: implementation.item; property: "value"; value: root.value }

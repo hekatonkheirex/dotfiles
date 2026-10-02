@@ -4,8 +4,7 @@ import QtQml
 import QtQuick
 import "../config"
 import "themes/material3" as Material3
-import "themes/nothing" as Nothing
-import "themes/ghost" as Ghost
+import "themes/styled" as Styled
 
 Item {
   id: root
@@ -40,8 +39,7 @@ Item {
     id: implementation
     anchors.fill: parent
     sourceComponent: Config.liquidGlassTheme ? liquidImplementation
-      : (Config.ghostTheme ? ghostImplementation
-        : (Config.nothingDesign ? nothingImplementation : materialImplementation))
+      : ((Config.ghostTheme || Config.nothingDesign) ? styledImplementation : materialImplementation)
   }
 
   Component {
@@ -56,13 +54,8 @@ Item {
 
 
   Component {
-    id: nothingImplementation
-    Nothing.SwitchControl {}
-  }
-
-  Component {
-    id: ghostImplementation
-    Ghost.SwitchControl {}
+    id: styledImplementation
+    Styled.SwitchControl {}
   }
 
   Binding { target: implementation.item; property: "checked"; value: root.checked }

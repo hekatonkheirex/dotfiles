@@ -5,8 +5,7 @@ import QtQuick
 import QtQuick.Controls
 import "../../config"
 import "../themes/material3" as Material3
-import "../themes/nothing" as Nothing
-import "../themes/ghost" as Ghost
+import "../themes/styled" as Styled
 
 Item {
   id: root
@@ -59,8 +58,8 @@ Item {
   Loader {
     id: implementation
     anchors.fill: parent
-    sourceComponent: Config.ghostTheme ? ghostImplementation
-      : (Config.nothingDesign ? nothingImplementation : materialImplementation)
+    sourceComponent: (Config.ghostTheme || Config.nothingDesign)
+      ? styledImplementation : materialImplementation
   }
 
   Component {
@@ -70,13 +69,8 @@ Item {
 
 
   Component {
-    id: nothingImplementation
-    Nothing.IconButton {}
-  }
-
-  Component {
-    id: ghostImplementation
-    Ghost.IconButton {}
+    id: styledImplementation
+    Styled.IconButton {}
   }
 
   Binding { target: implementation.item; property: "iconLabel"; value: root.iconLabel }

@@ -120,8 +120,9 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   │   └── TextFieldControl.qml
 │   └── themes/                 # Separate UI-style implementations
 │       ├── material3/          # Material 3 controls and ThemeTokens.qml
-│       ├── nothing/             # Nothing controls, Evolution clock face, and ThemeTokens.qml
-│       └── ghost/               # Ghost (GITS) controls and ThemeTokens.qml
+│       ├── styled/              # Shared Nothing + Ghost controls; ThemeTokens.qml holds every per-theme difference
+│       ├── nothing/             # Evolution clock face
+│       └── ghost/               # Ghost gap/trace effects
 ├── scripts/
 │   ├── launcher                # Launcher trigger (private runtime trigger)
 │   ├── quickmenu                # Quick menu trigger (private runtime trigger)
@@ -439,3 +440,11 @@ This theme suite and shell configuration was generated and vibe-coded using **An
 ## License
 
 This project is licensed under the terms of the GNU General Public License v3.0 (GPL-3.0). See the [LICENSE](file:///home/mura/.config/quickshell/LICENSE) file for details.
+
+## Control golden test
+
+`scripts/controls-golden.sh <root> <out>` renders every themed control state
+in all five styles under a throwaway `$HOME` (`tests/controls-golden/shell.qml`).
+Run it before and after a control refactor, then
+`scripts/controls-golden-compare.py <before> <after>` fails if any style moves
+by more than a few pixels.

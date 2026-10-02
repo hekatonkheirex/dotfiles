@@ -44,6 +44,7 @@ Item {
 
   readonly property bool hovered: mouseArea.containsMouse
   readonly property bool pressed: mouseArea.pressed
+  readonly property bool active: root.hovered || root.pressed || root.selected || root.activeFocus
 
   Accessible.role: root.grouped && root.checkable
     ? Accessible.RadioButton
@@ -73,6 +74,21 @@ Item {
     height: 2
     color: theme.signalColor
     visible: root.selected && root.labelText === ""
+  }
+
+  // Registration ticks: the recovered GITS panel's corner-bracket motif,
+  // surfaced on active/selected state as a live-console readout cue.
+  Item {
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    anchors.margins: root.borderWidth + 1
+    width: 8
+    height: 8
+    visible: theme.registrationTicks && root.active
+    opacity: 0.85
+
+    Rectangle { anchors.left: parent.left; anchors.bottom: parent.bottom; width: 8; height: 1; color: theme.accent }
+    Rectangle { anchors.left: parent.left; anchors.bottom: parent.bottom; width: 1; height: 8; color: theme.accent }
   }
 
   Behavior on color {
