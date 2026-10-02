@@ -166,13 +166,13 @@ QtObject {
 
   // Nothing uses soft corners; Liquid Glass uses restrained macOS-like
   // geometry. Ghost keeps its square HUD panels.
-  readonly property int shapeCompact: ghostTheme ? 0 : (liquidGlassTheme ? 6 : (nothingEvolution ? 10 : (nothingDesign ? 8 : 8)))
-  readonly property int shapeMedium: ghostTheme ? 0 : (liquidGlassTheme ? 10 : (nothingEvolution ? 18 : (nothingDesign ? 14 : 12)))
-  readonly property int shapeLarge: ghostTheme ? 0 : (liquidGlassTheme ? 16 : (nothingEvolution ? 24 : (nothingDesign ? 20 : 16)))
+  readonly property int shapeCompact: ghostTheme ? 0 : (liquidGlassTheme ? 10 : (nothingEvolution ? 10 : (nothingDesign ? 8 : 8)))
+  readonly property int shapeMedium: ghostTheme ? 0 : (liquidGlassTheme ? 14 : (nothingEvolution ? 18 : (nothingDesign ? 14 : 12)))
+  readonly property int shapeLarge: ghostTheme ? 0 : (liquidGlassTheme ? 22 : (nothingEvolution ? 24 : (nothingDesign ? 20 : 16)))
   // Keep Settings cards nested within the Evolution window's larger corners.
   readonly property int settingsCardRadius: nothingEvolution ? shapeMedium : shapeLarge
   readonly property int borderRadius: shapeLarge
-  readonly property int popupRadius: liquidGlassTheme ? 10 : borderRadius
+  readonly property int popupRadius: liquidGlassTheme ? 20 : borderRadius
   readonly property int barRadius: liquidGlassTheme
     ? shapeLarge
     : (nothingEvolution ? shapeMedium : ((nothingDesign || ghostTheme) ? 0 : borderRadius))

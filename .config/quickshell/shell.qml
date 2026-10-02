@@ -229,7 +229,9 @@ ShellRoot {
 
   function popupMarginLeft(w, screenW) {
     if (bar.horizontal) {
-      return Math.max(0, Math.min(bar.popupAnchorX - w / 2, screenW - w))
+      // Float popups off the screen edge instead of clamping flush to it.
+      var gap = Config.spacingMedium
+      return Math.max(gap, Math.min(bar.popupAnchorX - w / 2, screenW - w - gap))
     }
     return bar.dockedRight
       ? Math.max(0, screenW - w - popupBarInset())
