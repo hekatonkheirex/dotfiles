@@ -947,7 +947,7 @@ PanelWindow {
               ? "Run a shell action..."
               : (root.wallpaperMode
                 ? "Search wallpapers..."
-                : (root.clipboardMode ? "Search clipboard history..." : "Search apps · > actions · ; clipboard · @ walls"))))
+                : (root.clipboardMode ? "Search clipboard history..." : "Search apps"))))
         showPlaceholderOnFocus: true
         captureHorizontalArrows: root.wallpaperMode
         accessibleName: "Search applications and launcher providers"
@@ -1004,6 +1004,52 @@ PanelWindow {
         }
       }
 
+      // Prefix shortcuts live under the field instead of crowding the placeholder.
+      Row {
+        id: prefixChips
+        Layout.fillWidth: true
+        Layout.leftMargin: Config.spacingSmall
+        spacing: Config.spacingSmall
+        visible: root.searchText === "" && !root.voiceRecording && !root.voiceTranscribing
+
+        Repeater {
+          model: [
+            { key: ">", label: "actions" },
+            { key: ";", label: "clipboard" },
+            { key: "@", label: "wallpapers" }
+          ]
+          delegate: Rectangle {
+            required property var modelData
+            height: 26
+            width: chipText.implicitWidth + Config.spacingMedium * 2
+            radius: height / 2
+            color: chipMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
+            border.width: 1
+            border.color: Colors.outlineVariant
+
+            Text {
+              id: chipText
+              anchors.centerIn: parent
+              text: modelData.key + "  " + modelData.label
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeLabelMediumSize
+            }
+
+            MouseArea {
+              id: chipMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: {
+                searchInputControl.text = modelData.key
+                searchInputControl.input.forceActiveFocus()
+              }
+            }
+          }
+        }
+      }
+
       Connections {
         target: searchInputControl.input
         function onTextChanged() {
@@ -1030,13 +1076,13 @@ PanelWindow {
           width: Math.max(0, appList.width - Config.spacingMedium)
           height: root.clipboardMode ? 54 : 44
           radius: Config.nothingDesign || Config.ghostTheme ? Config.shapeMedium : 22
+          // Apps without a resolvable icon get a generic glyph, not a letter avatar.
           leadingIcon: model.kind === "action" || model.kind === "wallpaper"
-            || model.kind === "clipboard-action" || model.kind === "clipboard" ? model.icon : ""
+            || model.kind === "clipboard-action" || model.kind === "clipboard" ? model.icon
+            : (model.icon === "" ? "apps" : "")
           leadingImageSource: model.kind !== "action" && model.kind !== "wallpaper" && model.icon !== ""
             && model.kind !== "clipboard-action" && model.kind !== "clipboard"
             ? "file://" + model.icon : ""
-          leadingFallbackText: model.kind !== "action" && model.kind !== "wallpaper" && model.icon === ""
-            ? model.name.charAt(0).toUpperCase() : ""
           title: model.name
           subtitle: model.comment || ""
           selected: root.selectedIndex === index

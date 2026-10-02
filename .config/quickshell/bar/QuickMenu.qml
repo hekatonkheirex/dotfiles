@@ -39,14 +39,22 @@ PanelWindow {
 
   readonly property int actionGap: Config.ghostTheme ? Config.spacingCompact
     : (Config.nothingDesign ? Config.spacingMedium : Config.spacingSmall)
-  property string controlHint: ""
+  // The hint reads live state. Storing the formatted string at hover time
+  // left it stale when the async state probes finished after the popup opened.
+  property string controlHintKey: ""
+  readonly property string controlHint: {
+    var k = root.controlHintKey
+    if (k === "") return ""
+    var on = k === "Caffeine" ? root.caffeineOn
+      : (k === "Airplane mode" ? root.airplaneOn
+        : (k === "Bluetooth" ? root.bluetoothOn
+          : (k === "Do Not Disturb" ? Settings.doNotDisturb : null)))
+    return k + (on === null ? "" : (on ? " · On" : " · Off"))
+  }
 
   function showControlHint(label, enabled, active) {
-    if (active) {
-      root.controlHint = label + (enabled === null ? "" : (enabled ? " · On" : " · Off"))
-    } else if (root.controlHint === label || root.controlHint.indexOf(label + " · ") === 0) {
-      root.controlHint = ""
-    }
+    if (active) root.controlHintKey = label
+    else if (root.controlHintKey === label) root.controlHintKey = ""
   }
   Process {
     id: idleCheck
@@ -279,7 +287,7 @@ PanelWindow {
       } else {
         entryAnimation.start()
       }
-      root.controlHint = ""
+      root.controlHintKey = ""
       root.activePowerIndex = -1
       root.pendingPowerIndex = -1
       root.focusWindowId = ""
@@ -465,7 +473,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: "coffee"
-          labelText: ""
+          labelText: "Caffeine"
           tooltipText: "Caffeine mode"
           selected: root.caffeineOn
           checkable: true
@@ -484,7 +492,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: root.airplaneOn ? "airplanemode_active" : "airplanemode_inactive"
-          labelText: ""
+          labelText: "Airplane"
           tooltipText: "Airplane mode"
           selected: root.airplaneOn
           checkable: true
@@ -503,7 +511,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: root.bluetoothOn ? "bluetooth_connected" : "bluetooth_disabled"
-          labelText: ""
+          labelText: "Bluetooth"
           tooltipText: "Bluetooth"
           selected: root.bluetoothOn
           checkable: true
@@ -522,7 +530,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: "do_not_disturb_on"
-          labelText: ""
+          labelText: "DND"
           tooltipText: "Do Not Disturb"
           selected: Settings.doNotDisturb
           checkable: true
@@ -544,7 +552,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: "settings"
-          labelText: ""
+          labelText: "Settings"
           tooltipText: "Settings"
           horizontalContent: false
           accessibleName: "Settings"
@@ -604,7 +612,7 @@ PanelWindow {
             width: (parent.width - 4 * root.actionGap) / 5
             height: width
             iconLabel: root.powerIcon(modelData.label)
-            labelText: ""
+            labelText: modelData.label === "Shut Down" ? "Power off" : modelData.label
             selected: index === root.activePowerIndex
             horizontalContent: false
             tooltipText: modelData.label
@@ -629,7 +637,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: "lock"
-          labelText: ""
+          labelText: "Lock"
           selected: root.activePowerIndex === root.lockPowerIndex
           horizontalContent: false
           tooltipText: "Lock screen"

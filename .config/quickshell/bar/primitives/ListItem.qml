@@ -136,7 +136,7 @@ Rectangle {
 
     Item {
       visible: root.leadingIcon !== "" && root.leadingImageSource === ""
-      Layout.preferredWidth: root.materialNavigationItem ? 32 : Config.iconSize + 6
+      Layout.preferredWidth: root.materialNavigationItem ? 32 : Math.max(30, Config.iconSize + 6)
       Layout.preferredHeight: Layout.preferredWidth
       Layout.alignment: Qt.AlignVCenter
 

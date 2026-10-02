@@ -39,7 +39,11 @@ PanelWindow {
   readonly property int contentMargin: root.implicitHeight < 540 ? Config.spacingMedium
     : (Config.material3Theme ? Config.spacingLarge : Config.spacingExtraLarge)
   readonly property real centeredLeftMargin: Math.max(Config.spacingLarge, (desktopW - root.implicitWidth) / 2)
-  readonly property real centeredTopMargin: Math.max(Config.spacingLarge, (desktopH - root.implicitHeight) / 2)
+  // Float the panel the same gap off the bar that popups use instead of
+  // letting a tall panel sit flush against it.
+  readonly property real topClearance: root.isHorizontal && root.barPosition === "top"
+    ? Config.barWidth + Config.spacingMedium : Config.spacingLarge
+  readonly property real centeredTopMargin: Math.max(root.topClearance, (desktopH - root.implicitHeight) / 2)
   property bool customPosition: false
   property real panelLeft: 0
   property real panelTop: 0
@@ -269,7 +273,7 @@ PanelWindow {
   implicitWidth: Math.min(Math.min(Config.settingsMaxWidth, desktopW - Config.spacingPage),
                           Math.max(Config.settingsMinWidth, Settings.settingsPanelWidth > 0 ? Settings.settingsPanelWidth : Config.settingsDefaultWidth))
   visible: false
-  implicitHeight: Math.min(desktopH - Config.spacingPage,
+  implicitHeight: Math.min(desktopH - root.topClearance - Config.spacingMedium,
                            Math.max(Config.settingsMinHeight, Settings.settingsPanelHeight > 0 ? Settings.settingsPanelHeight : Config.settingsDefaultHeight))
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
@@ -285,9 +289,9 @@ PanelWindow {
     if (!root.customPosition) return
 
     var maxLeft = Math.max(Config.spacingLarge, root.desktopW - root.implicitWidth - Config.spacingLarge)
-    var maxTop = Math.max(Config.spacingLarge, root.desktopH - root.implicitHeight - Config.spacingLarge)
+    var maxTop = Math.max(root.topClearance, root.desktopH - root.implicitHeight - Config.spacingLarge)
     root.panelLeft = Math.max(Config.spacingLarge, Math.min(maxLeft, root.panelLeft))
-    root.panelTop = Math.max(Config.spacingLarge, Math.min(maxTop, root.panelTop))
+    root.panelTop = Math.max(root.topClearance, Math.min(maxTop, root.panelTop))
   }
 
   anchors.left: true
