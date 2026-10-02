@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import QtQml
 import QtQuick.Layouts
 import Quickshell
@@ -200,6 +201,21 @@ PopupBase {
           fillMode: Image.PreserveAspectCrop
           asynchronous: true
           sourceSize: Qt.size(width * 2, height * 2)
+          // Item.clip only clips to the bounding rectangle, so round the art
+          // with a mask. Ghost keeps its square art.
+          layer.enabled: !Config.ghostTheme
+          layer.effect: MultiEffect {
+            maskEnabled: true
+            maskSource: artMask
+          }
+        }
+
+        Rectangle {
+          id: artMask
+          anchors.fill: parent
+          radius: width / 2
+          visible: false
+          layer.enabled: true
         }
 
         Rectangle {
@@ -267,10 +283,10 @@ PopupBase {
         Layout.preferredHeight: 14
         progress: root.mprisLengthSec > 0 ? (root.elapsedSeconds / root.mprisLengthSec) : 0.0
         activeColor: Colors.primary
-        trackColor: Colors.surfaceContainerHighest
+        trackColor: Colors.outline
         lineWidth: 2.5
         dotRadius: 4
-        trackLineWidth: 1.5
+        trackLineWidth: 2
       }
 
       Item {
@@ -322,9 +338,10 @@ PopupBase {
         radius: Config.ghostTheme ? 0 : size / 2
         iconSize: 22
         iconLabel: root.mprisStatus === "Playing" ? "pause" : "play_arrow"
+        // selected gives the accent fill and its matching glyph colour in every
+        // style; the filled variant alone left a dark glyph on a dark disc.
         variant: "filled"
-        selected: Config.ghostTheme
-        iconColor: Config.ghostTheme ? Colors.styleAccentText : Colors.fgPrimary
+        selected: true
         accessibleName: root.mprisStatus === "Playing" ? "Pause playback" : "Play playback"
         tooltipText: root.mprisStatus === "Playing" ? "Pause playback" : "Play playback"
         onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
