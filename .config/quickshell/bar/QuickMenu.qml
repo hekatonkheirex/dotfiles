@@ -473,7 +473,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: "coffee"
-          labelText: "Caffeine"
+          labelText: ""
           tooltipText: "Caffeine mode"
           selected: root.caffeineOn
           checkable: true
@@ -492,7 +492,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: root.airplaneOn ? "airplanemode_active" : "airplanemode_inactive"
-          labelText: "Airplane"
+          labelText: ""
           tooltipText: "Airplane mode"
           selected: root.airplaneOn
           checkable: true
@@ -511,7 +511,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: root.bluetoothOn ? "bluetooth_connected" : "bluetooth_disabled"
-          labelText: "Bluetooth"
+          labelText: ""
           tooltipText: "Bluetooth"
           selected: root.bluetoothOn
           checkable: true
@@ -530,7 +530,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: "do_not_disturb_on"
-          labelText: "DND"
+          labelText: ""
           tooltipText: "Do Not Disturb"
           selected: Settings.doNotDisturb
           checkable: true
@@ -552,7 +552,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: "settings"
-          labelText: "Settings"
+          labelText: ""
           tooltipText: "Settings"
           horizontalContent: false
           accessibleName: "Settings"
@@ -612,7 +612,7 @@ PanelWindow {
             width: (parent.width - 4 * root.actionGap) / 5
             height: width
             iconLabel: root.powerIcon(modelData.label)
-            labelText: modelData.label === "Shut Down" ? "Power off" : modelData.label
+            labelText: ""
             selected: index === root.activePowerIndex
             horizontalContent: false
             tooltipText: modelData.label
@@ -637,7 +637,7 @@ PanelWindow {
           width: (parent.width - 4 * root.actionGap) / 5
           height: width
           iconLabel: "lock"
-          labelText: "Lock"
+          labelText: ""
           selected: root.activePowerIndex === root.lockPowerIndex
           horizontalContent: false
           tooltipText: "Lock screen"

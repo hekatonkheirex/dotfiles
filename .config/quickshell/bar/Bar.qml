@@ -213,6 +213,19 @@ PanelWindow {
     }
   }
 
+  // IPC entry point: open (or toggle closed) a bar popup by name, anchored to
+  // its indicator exactly as a click would. Returns false for unknown names.
+  function togglePopupByName(name) {
+    var widgets = {
+      audio: audioIndicator, brightness: brightnessIndicator, media: mediaIndicator,
+      weather: weatherIndicator, battery: batteryIndicator, notification: notifIndicator,
+      calendar: clockWidget, quickmenu: menuIndicator, launcher: launcherWidget
+    }
+    if (!(name in widgets)) return false
+    togglePopup(name, widgets[name])
+    return true
+  }
+
   property bool fullBar: false
   readonly property bool pillsBar: !root.fullBar
   readonly property bool horizontalPillMode: root.horizontal && root.pillsBar

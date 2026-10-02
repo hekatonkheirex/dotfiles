@@ -322,6 +322,16 @@ ShellRoot {
       bar.openPopup = bar.openPopup === "settings" ? "" : "settings"
     }
 
+    // popup("audio" | "brightness" | "media" | "weather" | "battery" |
+    // "notification" | "calendar" | "quickmenu" | "launcher"): toggle a bar popup.
+    function popup(name: string): bool {
+      return bar.togglePopupByName(name)
+    }
+
+    function currentPopup(): string {
+      return bar.openPopup
+    }
+
     function dismissPopups() {
       bar.openPopup = ""
     }
