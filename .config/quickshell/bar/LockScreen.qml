@@ -111,6 +111,8 @@ Item {
     id: wallpaperProbe
     source: root.wallpaperSource
     asynchronous: true
+    // Probe only reports readiness; decode tiny.
+    sourceSize: Qt.size(64, 64)
     visible: false
     onStatusChanged: {
       if (status === Image.Ready) root.wallpaperReady = true
@@ -421,6 +423,7 @@ Item {
                 source: "file://" + root.home + "/Pictures/profile.jpg"
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
+                sourceSize: Qt.size(256, 256)
                 visible: status === Image.Ready
               }
 
@@ -585,6 +588,7 @@ Item {
           source: root.wallpaperSource
           fillMode: Image.PreserveAspectCrop
           asynchronous: true
+          sourceSize: Qt.size(width * Screen.devicePixelRatio, height * Screen.devicePixelRatio)
           // MultiEffect renders the source into its own texture. Leaving the
           // raw image visible would let the unblurred edge bleed through.
           visible: false
@@ -650,6 +654,7 @@ Item {
                 source: "file://" + root.home + "/Pictures/profile.jpg"
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
+                sourceSize: Qt.size(256, 256)
                 visible: false
               }
 
@@ -963,6 +968,7 @@ Item {
         source: root.wallpaperSource
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
+        sourceSize: Qt.size(width * Screen.devicePixelRatio, height * Screen.devicePixelRatio)
         visible: false
       }
 
@@ -1078,6 +1084,7 @@ Item {
                   source: "file://" + root.home + "/Pictures/profile.jpg"
                   fillMode: Image.PreserveAspectCrop
                   asynchronous: true
+                  sourceSize: Qt.size(256, 256)
                   visible: status === Image.Ready
                 }
 

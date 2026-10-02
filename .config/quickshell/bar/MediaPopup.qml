@@ -198,6 +198,8 @@ PopupBase {
           source: root.mprisArtUrl ? root.mprisArtUrl : ""
           anchors.fill: parent
           fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          sourceSize: Qt.size(width * 2, height * 2)
         }
 
         Rectangle {

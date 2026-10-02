@@ -24,7 +24,7 @@ if [ -n "$quickshell_bin" ] \
     if /usr/bin/timeout --foreground 1s "$quickshell_bin" ipc call shell lock >/dev/null 2>&1; then
       attempt=0
       while [ "$attempt" -lt 30 ]; do
-        if [ "$(/usr/bin/timeout --foreground 1s "$quickshell_bin" ipc prop get shell lockSecure 2>/dev/null)" = "true" ]; then
+        if [ "$(/usr/bin/timeout --foreground 1s "$quickshell_bin" ipc call shell lockSecure 2>/dev/null)" = "true" ]; then
           exit 0
         fi
         sleep 0.05

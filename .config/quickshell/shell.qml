@@ -280,7 +280,6 @@ ShellRoot {
   IpcHandler {
     id: ipc
     target: "shell"
-    readonly property bool lockSecure: lockScreen.secure
 
     function launcher() {
       if (bar.horizontal) {
@@ -289,6 +288,10 @@ ShellRoot {
         bar.popupAnchorY = 0
       }
       bar.openPopup = bar.openPopup === "launcher" ? "" : "launcher"
+    }
+
+    function lockSecure(): bool {
+      return lockScreen.secure
     }
 
     function lock() {

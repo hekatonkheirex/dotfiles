@@ -168,6 +168,8 @@ Flickable {
             source: "file://" + Quickshell.env("HOME") + "/.face.icon"
             anchors.fill: parent
             fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            sourceSize: Qt.size(256, 256)
             visible: false
           }
 
