@@ -328,6 +328,15 @@ ShellRoot {
       return bar.togglePopupByName(name)
     }
 
+    // Dev/testing: switch UI style in memory only (never saved). Use
+    // style("material3", "") to return. Persisted style stays whatever
+    // settings.json says until the next explicit change in the UI.
+    function style(name: string, variant: string): string {
+      Settings.themeStyle = name
+      if (name === "nothing") Settings.nothingVariant = variant
+      return Settings.themeStyle
+    }
+
     function currentPopup(): string {
       return bar.openPopup
     }

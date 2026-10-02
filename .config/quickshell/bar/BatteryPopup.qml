@@ -109,7 +109,7 @@ PopupBase {
         spacing: Config.spacingCompact
         Text {
           text: root.stateLabel
-          color: (root.charging ? Colors.primary : Colors.fgSurfaceVariant)
+          color: (root.state === UPowerDeviceState.Charging ? Colors.primary : Colors.fgSurfaceVariant)
           font.family: Config.fontFamily
           font.pixelSize: Config.typeTitleSmallSize
           font.weight: Config.typeMediumWeight

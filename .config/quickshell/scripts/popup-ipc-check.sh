@@ -11,4 +11,7 @@ done
 qs ipc call shell dismissPopups >/dev/null
 [ "$(qs ipc call shell popup nope)" = false ] && echo "ok   unknown -> false" || { echo "FAIL unknown name"; fail=1; }
 [ -z "$(qs ipc call shell currentPopup)" ] && echo "ok   dismissed" || { echo "FAIL not dismissed"; fail=1; }
+# In-memory style switch (never saved) round-trips.
+[ "$(qs ipc call shell style ghost "")" = ghost ] && echo "ok   style ghost" || { echo "FAIL style ghost"; fail=1; }
+[ "$(qs ipc call shell style material3 "")" = material3 ] && echo "ok   style material3" || { echo "FAIL style material3"; fail=1; }
 exit $fail

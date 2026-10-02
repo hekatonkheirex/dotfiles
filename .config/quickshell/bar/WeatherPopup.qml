@@ -135,7 +135,8 @@ PopupBase {
       visible: root.status === "unavailable"
       Layout.alignment: Qt.AlignLeft
       Layout.preferredWidth: 220
-      Layout.preferredHeight: 40
+      // Nothing and Ghost stack icon over label, which needs the extra height.
+      Layout.preferredHeight: Config.material3Theme || Config.liquidGlassTheme ? 40 : 60
       iconLabel: "settings"
       labelText: "Open weather settings"
       horizontalContent: true

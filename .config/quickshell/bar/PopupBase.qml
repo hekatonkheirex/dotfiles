@@ -21,7 +21,9 @@ PanelWindow {
   // Child popups provide the surface dimensions.
   property real surfaceWidth: Config.popupWidth
   property real surfaceHeight: 0
-  property color surfaceColor: Colors.chromeSurface
+  // readingSurface is opaque in Nothing Evolution; the translucent chrome
+  // surface let terminal text show through popup titles.
+  property color surfaceColor: Colors.readingSurface
   readonly property alias bg: bg
   default property alias content: bg.data
 
