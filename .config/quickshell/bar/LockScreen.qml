@@ -334,6 +334,10 @@ Item {
       focus: root.locked
       activeFocusOnTab: true
 
+      // Without this the lock surface has no active-focus item until the
+      // first click, so keystrokes never reach the handler below.
+      Component.onCompleted: forceActiveFocus()
+
       Keys.onPressed: function(event) {
         if (!root.liquidGlassLoginPrompted
             && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
