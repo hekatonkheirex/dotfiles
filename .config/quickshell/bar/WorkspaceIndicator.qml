@@ -664,7 +664,7 @@ Item {
             var base = modelData.isOccupied
               ? (Config.nothingEvolution
                 ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.72)
-                : (Config.liquidGlassTheme ? Colors.liquidGlassControl : Colors.surfaceContainerHighest))
+                : (Config.liquidGlassTheme ? Colors.barForegroundMuted : Colors.surfaceContainerHighest))
               : (Config.nothingEvolution
                 ? Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.45)
                 : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.2))
