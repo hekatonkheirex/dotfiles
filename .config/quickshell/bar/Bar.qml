@@ -558,7 +558,7 @@ PanelWindow {
           )
           Layout.preferredWidth: root.horizontal
             ? (hasWindowInfo
-              ? Math.min(320, Math.max(140, windowInfoTextWidth + Config.spacingLarge)) * root.expandProgress
+              ? Math.min(Math.max(320, root.width * 0.28), Math.max(140, windowInfoTextWidth + Config.spacingLarge)) * root.expandProgress
               : 0) * (Settings.ccShowFocusedWindow ? 1 : 0)
             : (hasWindowInfo ? parent.width : 0) * (Settings.ccShowFocusedWindow ? 1 : 0)
           Layout.preferredHeight: (root.horizontal

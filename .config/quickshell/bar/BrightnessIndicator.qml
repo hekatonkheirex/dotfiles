@@ -25,7 +25,7 @@ StatusIndicator {
     if (root.pct <= 10) return "brightness_empty"
     if (root.pct <= 40) return "brightness_low"
     if (root.pct <= 70) return "brightness_medium"
-    return "brightness_high"
+    return "light_mode"
   }
   labelText: root.initialized ? Math.round(root.pct) + "%" : ""
 

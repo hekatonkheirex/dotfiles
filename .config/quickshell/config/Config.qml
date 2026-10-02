@@ -153,7 +153,7 @@ QtObject {
   // Bar clock typography is independently adjustable from global UI sizing.
   readonly property int labelSmallSize: typeLabelMediumSize
   readonly property int clockPrimarySize: Settings.clockFontSize
-  readonly property int clockSecondarySize: Math.max(8, Settings.clockFontSize - 5)
+  readonly property int clockSecondarySize: Math.max(10, Settings.clockFontSize - 3)
   // Tight on purpose: the vertical bar stacks HH/MM at the same clockPrimarySize
   // and should read as one digital-clock block, not two separated labels.
   readonly property int clockLineSpacing: 2

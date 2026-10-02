@@ -180,7 +180,7 @@ Item {
     rows: root.inlineContent ? 1 : (root.labelText !== "" ? 2 : 1)
     flow: root.inlineContent ? GridLayout.LeftToRight : GridLayout.TopToBottom
     columnSpacing: root.inlineContent && root.labelText !== ""
-      ? Config.spacingCompact
+      ? Math.round(Config.spacingSmall * 0.75)
       : 0
     rowSpacing: !root.inlineContent ? root.stackedContentSpacing : 0
 

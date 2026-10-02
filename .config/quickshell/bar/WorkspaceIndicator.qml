@@ -21,7 +21,10 @@ Item {
   property string focusedWindowAppId: ""
   property string mangoLayoutSymbol: ""
   readonly property string mangoLayoutName: layoutNameForMangoToken(mangoLayoutSymbol)
-  readonly property string focusedWindowInfo: focusedWindowTitle !== "" ? focusedWindowTitle : focusedWindowAppId
+  // Terminals prefix titles with status glyphs (spinners, ◑); they read as
+  // stray marks in the bar, so strip leading symbols from the title.
+  readonly property string focusedWindowCleanTitle: focusedWindowTitle.replace(/^[←-⯿\uD800-\uDFFF\s]+/, "")
+  readonly property string focusedWindowInfo: focusedWindowCleanTitle !== "" ? focusedWindowCleanTitle : focusedWindowAppId
   readonly property string focusedWindowProgram: formatProgramName(focusedWindowAppId)
   readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassOpaque
   readonly property color workspaceGroupColor: root.flatLiquidChrome

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
@@ -121,6 +122,9 @@ Item {
           }
         }
 
+        // Input-method indicators (fcitx5, ibus) ship white monochrome glyphs
+        // that clash with the bar palette, so recolor them to the accent.
+        readonly property bool tintIcon: /fcitx|ibus/i.test(modelData.id + " " + modelData.title)
         readonly property bool isPixmapIcon: modelData.icon.indexOf("image://qspixmap/") === 0
 
         IconImage {
@@ -130,6 +134,11 @@ Item {
           width: (Config.iconSize + 2)
           height: width
           visible: !isPixmapIcon
+          layer.enabled: trayIconDelegate.tintIcon
+          layer.effect: MultiEffect {
+            colorization: 1.0
+            colorizationColor: Config.liquidGlassTheme ? Colors.barForeground : Colors.primary
+          }
         }
 
         Image {
@@ -140,6 +149,11 @@ Item {
           height: width
           fillMode: Image.PreserveAspectFit
           visible: isPixmapIcon
+          layer.enabled: trayIconDelegate.tintIcon
+          layer.effect: MultiEffect {
+            colorization: 1.0
+            colorizationColor: Config.liquidGlassTheme ? Colors.barForeground : Colors.primary
+          }
         }
 
         Rectangle {
