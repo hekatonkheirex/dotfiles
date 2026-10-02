@@ -23,9 +23,9 @@ Flickable {
   readonly property var styleChoices: [
     { value: "material3", variant: "", icon: "auto_awesome", label: "Material", surface: Colors.surfaceContainerLow, panel: Colors.surfaceContainerHigh, ink: Colors.fgSurface, accent: Colors.primary, onAccent: Colors.fgPrimary, font: "Roboto Flex" },
     { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Classic", surface: "#f0f0ee", panel: "#ffffff", ink: "#1a1a1a", accent: "#d71920", onAccent: "#ffffff", font: "NType 82" },
-    { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution", surface: "#dcdce1", panel: "#f1f1f4", ink: "#1d1d1f", accent: "#557bae", onAccent: "#ffffff", font: "Geist" },
+    { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution", surface: Colors.styleSurface, panel: Colors.styleSurfaceRaised, ink: Colors.styleInk, accent: Colors.styleAccent, onAccent: Colors.styleAccentText, font: "Geist" },
     { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost", surface: "#0d1418", panel: "#152328", ink: "#cdeeea", accent: "#57d9cc", onAccent: "#0d1418", font: "JetBrains Mono" },
-    { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid", surface: "#d9dce5", panel: "#f0f1f5", ink: "#1d1d1f", accent: "#818bb8", onAccent: "#ffffff", font: "Roboto Flex" }
+    { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid", surface: Colors.styleSurface, panel: Colors.styleSurfaceRaised, ink: Colors.styleInk, accent: Colors.styleAccent, onAccent: Colors.styleAccentText, font: "Roboto Flex" }
   ]
   readonly property var selectedStylePreview: {
     for (var i = 0; i < styleChoices.length; i++) {
@@ -1332,7 +1332,8 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: appearanceTab.compactLayout ? 64 : 90
+            // Ghost's mono face is wider; keep the label clear of the track.
+            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
           }
 
           SliderControl {
@@ -1382,7 +1383,8 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: appearanceTab.compactLayout ? 64 : 90
+            // Ghost's mono face is wider; keep the label clear of the track.
+            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
           }
 
           SliderControl {
@@ -1432,7 +1434,8 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: appearanceTab.compactLayout ? 64 : 90
+            // Ghost's mono face is wider; keep the label clear of the track.
+            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
           }
 
           SliderControl {
@@ -1482,7 +1485,8 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: appearanceTab.compactLayout ? 64 : 90
+            // Ghost's mono face is wider; keep the label clear of the track.
+            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
           }
 
           SliderControl {
@@ -1532,7 +1536,8 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: appearanceTab.compactLayout ? 64 : 90
+            // Ghost's mono face is wider; keep the label clear of the track.
+            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
           }
 
           SliderControl {
