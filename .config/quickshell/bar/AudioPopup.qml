@@ -54,7 +54,20 @@ PopupBase {
         anchors.verticalCenter: parent.verticalCenter
       }
 
+      Text {
+        anchors.right: volumeSwitch.left
+        anchors.rightMargin: Config.spacingMedium
+        anchors.verticalCenter: parent.verticalCenter
+        text: root.muted ? "Muted" : Math.round(root.volume * 100) + "%"
+        color: root.muted ? Colors.fgSurfaceVariant : Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeTitleMediumSize
+        font.weight: Config.typeMediumWeight
+        font.letterSpacing: Config.typeTitleTracking
+      }
+
       SwitchControl {
+        id: volumeSwitch
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         checked: !root.muted
@@ -70,16 +83,6 @@ PopupBase {
     }
 
     PopupDivider {}
-
-    Text {
-      text: muted ? "Muted" : Math.round(volume * 100) + "%"
-      color: muted ? (Colors.error) : (Colors.fgSurfaceVariant)
-      font.family: Config.fontFamily
-      font.pixelSize: Config.typeTitleMediumSize
-      font.letterSpacing: Config.typeTitleTracking
-      lineHeight: Config.typeTitleMediumLineHeight
-      lineHeightMode: Text.FixedHeight
-    }
 
       SliderControl {
       id: outputSlider
@@ -115,7 +118,20 @@ PopupBase {
         anchors.verticalCenter: parent.verticalCenter
       }
 
+      Text {
+        anchors.right: micSwitch.left
+        anchors.rightMargin: Config.spacingMedium
+        anchors.verticalCenter: parent.verticalCenter
+        text: root.micMuted ? "Muted" : Math.round(root.micVolume * 100) + "%"
+        color: root.micMuted ? Colors.fgSurfaceVariant : Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeTitleMediumSize
+        font.weight: Config.typeMediumWeight
+        font.letterSpacing: Config.typeTitleTracking
+      }
+
       SwitchControl {
+        id: micSwitch
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         checked: !root.micMuted
@@ -128,16 +144,6 @@ PopupBase {
         accessibleName: "Microphone enabled"
         onToggled: root.toggleMicMute()
       }
-    }
-
-    Text {
-      text: micMuted ? "Muted" : Math.round(micVolume * 100) + "%"
-      color: micMuted ? (Colors.error) : (Colors.fgSurfaceVariant)
-      font.family: Config.fontFamily
-      font.pixelSize: Config.typeTitleMediumSize
-      font.letterSpacing: Config.typeTitleTracking
-      lineHeight: Config.typeTitleMediumLineHeight
-      lineHeightMode: Text.FixedHeight
     }
 
       SliderControl {

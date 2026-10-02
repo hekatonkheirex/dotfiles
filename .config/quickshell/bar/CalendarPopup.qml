@@ -25,6 +25,10 @@ PopupBase {
   function isToday(dayNum) {
     return CalendarLogic.isToday(dayNum, root.displayMonth, root.currentDate)
   }
+  function isWeekend(dayNum) {
+    var dow = new Date(root.displayMonth.getFullYear(), root.displayMonth.getMonth(), dayNum).getDay()
+    return dow === 0 || dow === 6
+  }
   function buildDayModel(date) { return CalendarLogic.buildDayModel(date, root.weekStartsMonday) }
 
   property var dayModel: CalendarLogic.buildDayModel(root.displayMonth, root.weekStartsMonday)
@@ -74,8 +78,8 @@ PopupBase {
               model: ["chevron_left", "chevron_right"]
               IconButton {
                 iconLabel: modelData
-                size: 32
-                iconSize: 18
+                size: 36
+                iconSize: 24
                 accessibleName: index === 0 ? "Previous month" : "Next month"
                 tooltipText: accessibleName
                 onClicked: {
@@ -145,7 +149,7 @@ PopupBase {
                 text: dayNum > 0 ? dayNum.toString() : ""
                 color: root.isToday(dayNum)
                   ? (Config.ghostTheme ? Colors.ghostCyan : Colors.fgPrimary)
-                  : Colors.fgSurface
+                  : (root.isWeekend(dayNum) ? Colors.fgSurfaceVariant : Colors.fgSurface)
                 font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
                 font.pixelSize: Config.typeLabelLargeSize
                 font.weight: Config.ghostTheme && root.isToday(dayNum)

@@ -1,13 +1,14 @@
 import QtQuick
 import QtQml
 import QtQuick.Layouts
+import Quickshell
 import "primitives"
 import "../config"
 
 PopupBase {
   id: root
 
-  surfaceWidth: Config.ghostTheme && !root.ghostHasReading ? 420 : 620
+  surfaceWidth: root.hasReading ? 620 : 420
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 520)
 
   readonly property string city: WeatherService.city
@@ -24,7 +25,10 @@ PopupBase {
   readonly property string pressure: WeatherService.pressure
   readonly property string uv: WeatherService.uv
   readonly property string precipChance: WeatherService.precipChance
-  readonly property bool ghostHasReading: root.temp !== "" && root.temp.indexOf("--") !== 0
+  // Without a reading every tile would show "--", so the popup collapses to
+  // the status banner (and a shortcut to fix it) in all themes.
+  readonly property bool hasReading: root.temp !== "" && root.temp.indexOf("--") !== 0
+  readonly property bool ghostHasReading: root.hasReading
 
   Binding {
     target: WeatherService
@@ -127,9 +131,26 @@ PopupBase {
       }
     }
 
+    ActionButton {
+      visible: root.status === "unavailable"
+      Layout.alignment: Qt.AlignLeft
+      Layout.preferredWidth: 220
+      Layout.preferredHeight: 40
+      iconLabel: "settings"
+      labelText: "Open weather settings"
+      horizontalContent: true
+      variant: "tonal"
+      accessibleName: "Open weather settings"
+      accessibleDescription: "Opens Settings on the General page to set a location"
+      onActivated: {
+        Settings.lastSettingsTab = 1
+        Quickshell.execDetached(["qs", "ipc", "call", "shell", "settings"])
+      }
+    }
+
     // Top Row: Current Weather & Hourly Forecast
     RowLayout {
-      visible: !Config.ghostTheme || root.ghostHasReading
+      visible: root.hasReading
       Layout.fillWidth: true
       Layout.preferredHeight: 115
       spacing: Config.spacingMedium
@@ -286,7 +307,7 @@ PopupBase {
 
     // Details Grid
     GridLayout {
-      visible: !Config.ghostTheme || root.ghostHasReading
+      visible: root.hasReading
       columns: 3
       Layout.fillWidth: true
       columnSpacing: Config.spacingSmall
@@ -327,7 +348,7 @@ PopupBase {
             IconGlyph {
               iconLabel: modelData.icon
               iconSize: 20
-              iconColor: modelData.color
+              iconColor: Colors.primary
               Layout.alignment: Qt.AlignVCenter
             }
 
@@ -359,7 +380,7 @@ PopupBase {
 
     // 5-Day Forecast
     RowLayout {
-      visible: !Config.ghostTheme || root.ghostHasReading
+      visible: root.hasReading
       Layout.fillWidth: true
       spacing: Config.spacingSmall
 

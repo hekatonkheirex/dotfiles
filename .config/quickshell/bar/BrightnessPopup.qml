@@ -26,28 +26,35 @@ PopupBase {
     }
     spacing: Config.spacingLarge
 
-    Text {
-      text: "Brightness"
-      color: Colors.fgSurface
-      font.family: Config.fontFamily
-      font.pixelSize: Config.typeHeadlineSmallSize
-      font.weight: Config.typeStrongWeight
-      font.letterSpacing: Config.typeHeadlineTracking
-      lineHeight: Config.typeHeadlineSmallLineHeight
-      lineHeightMode: Text.FixedHeight
+    Item {
+      width: parent.width
+      height: 32
+
+      Text {
+        text: "Brightness"
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeHeadlineSmallSize
+        font.weight: Config.typeStrongWeight
+        font.letterSpacing: Config.typeHeadlineTracking
+        lineHeight: Config.typeHeadlineSmallLineHeight
+        lineHeightMode: Text.FixedHeight
+        anchors.verticalCenter: parent.verticalCenter
+      }
+
+      Text {
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        text: Math.round(root.pct) + "%"
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeTitleMediumSize
+        font.weight: Config.typeMediumWeight
+        font.letterSpacing: Config.typeTitleTracking
+      }
     }
 
     PopupDivider {}
-
-    Text {
-      text: Math.round(root.pct) + "%"
-      color: Colors.fgSurfaceVariant
-      font.family: Config.fontFamily
-      font.pixelSize: Config.typeTitleMediumSize
-      font.letterSpacing: Config.typeTitleTracking
-      lineHeight: Config.typeTitleMediumLineHeight
-      lineHeightMode: Text.FixedHeight
-    }
 
     SliderControl {
       value: root.pct / 100

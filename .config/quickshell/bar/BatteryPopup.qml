@@ -34,7 +34,11 @@ PopupBase {
       root.state = dev.state
       var ch = dev.state === UPowerDeviceState.Charging || dev.state === UPowerDeviceState.PendingCharge
       root.charging = ch
-      if (ch) root.stateLabel = "Charging"
+      // UPower reports pending-charge while a charge threshold holds the
+      // battery; it is plugged in but drawing nothing, so "Charging" and a
+      // 0.0 W rate contradicted each other.
+      if (dev.state === UPowerDeviceState.PendingCharge) root.stateLabel = "Plugged in, holding charge"
+      else if (ch) root.stateLabel = "Charging"
       else if (dev.state === UPowerDeviceState.FullyCharged) root.stateLabel = "Fully charged"
       else if (dev.state === UPowerDeviceState.Discharging) root.stateLabel = "Discharging"
       else if (dev.state === UPowerDeviceState.PendingDischarge) root.stateLabel = "Pending discharge"

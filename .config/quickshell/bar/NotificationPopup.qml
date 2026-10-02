@@ -128,7 +128,7 @@ PopupBase {
           Item { Layout.fillWidth: true }
 
           Text {
-            text: count === 0 ? "None" : count.toString()
+            text: count === 0 ? "" : count.toString()
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
             font.pixelSize: Config.typeTitleLargeSize
