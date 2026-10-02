@@ -339,6 +339,16 @@ Item {
             && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
           root.liquidGlassLoginPrompted = true
           event.accepted = true
+        } else if (!root.liquidGlassLoginPrompted
+            && event.text.length === 1
+            && event.text.charCodeAt(0) > 32 && event.text.charCodeAt(0) !== 127
+            && !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))) {
+          // Typing without clicking the avatar opens the password field and
+          // keeps the first character instead of dropping it.
+          root.lockInputText = event.text
+          root.lockPassword = event.text
+          root.liquidGlassLoginPrompted = true
+          event.accepted = true
         }
       }
 
@@ -520,6 +530,8 @@ Item {
                 cursorVisible: true
                 verticalAlignment: Qt.AlignVCenter
                 selectByMouse: true
+                // A seeded first keystroke must not leave the cursor before it.
+                Component.onCompleted: cursorPosition = text.length
 
                 onTextChanged: {
                   root.lockPassword = text
