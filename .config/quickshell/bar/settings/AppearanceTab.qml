@@ -21,7 +21,7 @@ Flickable {
   readonly property int uiStyleColumns: width < 260 ? 1 : (width < 720 ? 2 : 5)
   readonly property int uiStyleRows: Math.ceil(5 / uiStyleColumns)
   readonly property var styleChoices: [
-    { value: "material3", variant: "", icon: "auto_awesome", label: "Material", surface: "#f3eff8", panel: "#e5e0ed", ink: "#25232a", accent: "#6259a5", onAccent: "#ffffff", font: "Roboto Flex" },
+    { value: "material3", variant: "", icon: "auto_awesome", label: "Material", surface: Colors.surfaceContainerLow, panel: Colors.surfaceContainerHigh, ink: Colors.fgSurface, accent: Colors.primary, onAccent: Colors.fgPrimary, font: "Roboto Flex" },
     { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Classic", surface: "#f0f0ee", panel: "#ffffff", ink: "#1a1a1a", accent: "#d71920", onAccent: "#ffffff", font: "NType 82" },
     { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution", surface: "#dcdce1", panel: "#f1f1f4", ink: "#1d1d1f", accent: "#557bae", onAccent: "#ffffff", font: "Geist" },
     { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost", surface: "#0d1418", panel: "#152328", ink: "#cdeeea", accent: "#57d9cc", onAccent: "#0d1418", font: "JetBrains Mono" },
@@ -352,7 +352,9 @@ Flickable {
                     color: styleTile.selectedStyle
                       ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.10)
                       : "transparent"
-                    border.width: styleTile.selectedStyle ? 2 : 0
+                    // The filled button is the selection cue; only Ghost's square
+                    // chrome keeps an extra outline.
+                    border.width: styleTile.selectedStyle && styleTile.ghost ? 2 : 0
                     border.color: Colors.primary
                     Behavior on border.width {
                       NumberAnimation { duration: Config.motionShort }
@@ -1359,11 +1361,11 @@ Flickable {
             text: Settings.fontPixelSize + "px"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
+            font.pixelSize: Config.typeLabelMediumSize
             font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
+            lineHeight: Config.typeLabelMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 34
+            Layout.preferredWidth: 44
           }
         }
 
@@ -1409,11 +1411,11 @@ Flickable {
             text: Settings.clockFontSize + "px"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
+            font.pixelSize: Config.typeLabelMediumSize
             font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
+            lineHeight: Config.typeLabelMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 34
+            Layout.preferredWidth: 44
           }
         }
 
@@ -1459,11 +1461,11 @@ Flickable {
             text: Settings.iconSize + "px"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
+            font.pixelSize: Config.typeLabelMediumSize
             font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
+            lineHeight: Config.typeLabelMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 34
+            Layout.preferredWidth: 44
           }
         }
 
@@ -1509,11 +1511,11 @@ Flickable {
             text: Math.round(Settings.spacingScale * 100) + "%"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
+            font.pixelSize: Config.typeLabelMediumSize
             font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
+            lineHeight: Config.typeLabelMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 34
+            Layout.preferredWidth: 44
           }
         }
 
@@ -1559,11 +1561,11 @@ Flickable {
             text: Settings.barSize + "px"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
+            font.pixelSize: Config.typeLabelMediumSize
             font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
+            lineHeight: Config.typeLabelMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 34
+            Layout.preferredWidth: 44
           }
         }
 

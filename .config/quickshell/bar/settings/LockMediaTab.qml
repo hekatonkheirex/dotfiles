@@ -225,8 +225,8 @@ Flickable {
             text: Math.round(Settings.lockClockSize) + "px"
             color: Colors.fgSurface
             font.family: Config.fontFamily
-            font.pixelSize: Config.textCaptionSize
-            Layout.preferredWidth: 34
+            font.pixelSize: Config.typeLabelMediumSize
+            Layout.preferredWidth: 44
           }
         }
       }

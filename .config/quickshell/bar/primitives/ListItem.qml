@@ -34,7 +34,7 @@ Rectangle {
     && root.material3Style
   readonly property bool stateHighlighted: root.selected || root.statusActive
   readonly property color selectedContainerColor: root.materialNavigationItem
-    ? Colors.surfaceContainerHigh
+    ? Colors.secondaryContainer
     : (root.materialStatusItem
       ? Colors.surfaceContainerHighest
       : (root.material3Style
@@ -45,7 +45,7 @@ Rectangle {
             ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
             : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)))))
   readonly property color selectedContentColor: root.materialNavigationItem
-    ? Colors.fgSurface
+    ? Colors.fgSecondaryContainer
     : (root.materialStatusItem
       ? Colors.fgSurface
       : (root.material3Style
@@ -66,7 +66,8 @@ Rectangle {
   signal clicked(var mouse)
 
   height: root.navigationItem ? 48 : 44
-  radius: Config.liquidGlassTheme ? Config.shapeCompact : Config.shapeMedium
+  radius: root.materialNavigationItem ? height / 2
+    : (Config.liquidGlassTheme ? Config.shapeCompact : Config.shapeMedium)
   activeFocusOnTab: root.enabled
   opacity: root.enabled ? 1.0 : 0.38
 
@@ -89,15 +90,15 @@ Rectangle {
   color: {
     if (root.stateHighlighted) return root.selectedContainerColor
     if (root.materialNavigationItem) {
-      if (root.navigationFocused || root.activeFocus) return Colors.surfaceContainerHigh
-      return itemMouse.containsMouse ? Colors.surfaceContainer : Colors.surfaceContainerLow
+      if (root.navigationFocused || root.activeFocus) return Qt.tint("transparent", Colors.focusOverlay)
+      return itemMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
     }
     if (root.navigationFocused) return Qt.tint("transparent", Colors.focusOverlay)
     if (itemMouse.containsMouse) return Qt.tint("transparent", Colors.hoverOverlay)
     return root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
   }
   border.color: root.materialNavigationItem
-    ? Qt.rgba(Colors.outlineVariant.r, Colors.outlineVariant.g, Colors.outlineVariant.b, 0.2)
+    ? "transparent"
     : (root.materialStatusItem || (root.material3Style && root.stateHighlighted)
       ? "transparent"
       : (Config.ghostTheme
@@ -105,7 +106,7 @@ Rectangle {
         : (Config.nothingDesign
           ? (root.stateHighlighted ? Colors.styleOutlineStrong : "transparent")
           : (root.stateHighlighted ? Colors.primary : "transparent"))))
-  border.width: root.materialNavigationItem ? 1
+  border.width: root.materialNavigationItem ? 0
     : (root.materialStatusItem || (root.material3Style && root.stateHighlighted)
       ? 0 : Config.themeBorderWidth)
 

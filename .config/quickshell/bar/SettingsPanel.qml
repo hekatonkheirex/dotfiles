@@ -622,9 +622,11 @@ PanelWindow {
         return Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surface
       }
       clip: true
+      // Material gets a hairline too: the panel floats over arbitrary
+      // windows and has no room for a shadow inside its own surface.
       border.width: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Config.themeBorderWidth
-        : 0
+        : 1
       border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Colors.styleOutline
         : Colors.outlineVariant
@@ -756,7 +758,8 @@ PanelWindow {
         IconButton {
           anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
-          size: 36
+          size: 40
+          iconSize: 22
           iconLabel: "close"
           accessibleName: "Close settings"
           accessibleDescription: "Close the settings panel"
@@ -857,10 +860,10 @@ PanelWindow {
                     text: modelData.group.toUpperCase()
                     color: Colors.fgSurfaceVariant
                     font.family: Config.monoFontFamily
-                    font.pixelSize: Config.typeLabelSmallSize
+                    font.pixelSize: Config.typeLabelMediumSize
                     font.weight: Config.typeMediumWeight
                     font.letterSpacing: Config.typeMonoTracking
-                    lineHeight: Config.typeLabelSmallLineHeight
+                    lineHeight: Config.typeLabelMediumLineHeight
                     lineHeightMode: Text.FixedHeight
                   }
 
