@@ -16,7 +16,11 @@ Item {
   // Read the compositor-owned state directly as well as the local mirror so
   // bar surfaces stay hidden while the protocol state is changing.
   readonly property bool compositorLocked: Config.isNiri && sessionLock.locked
-  readonly property bool secure: Config.isNiri && sessionLock.locked && sessionLock.secure
+  // Read `secure` before `locked`: WlSessionLock emits no change signal for
+  // `locked` when a lock starts, so with `locked` first the && short-circuits
+  // on a stale false, never subscribes to `secure`, and the binding stays
+  // false after niri confirms. scripts/lock then falls back to swaylock.
+  readonly property bool secure: Config.isNiri && sessionLock.secure && sessionLock.locked
   onLockedChanged: {
     updateReloadWatchState()
     if (locked) {
