@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 import "../config"
@@ -114,7 +115,10 @@ Item {
           }
         }
 
-        Component.onCompleted: updateCount()
+        Component.onCompleted: {
+          updateCount()
+          if (fcitx) imQuery.running = true
+        }
         Component.onDestruction: {
           if (counted) {
             systemTrayAreaRoot.visibleCount--;
@@ -122,9 +126,42 @@ Item {
           }
         }
 
-        // Input-method indicators (fcitx5, ibus) ship white monochrome glyphs
-        // that clash with the bar palette, so recolor them to the accent.
+        // Input-method indicators (fcitx5, ibus) ship a 16px white pixmap of
+        // the layout code with a dark outline that clashes with the bar. For
+        // fcitx5, draw the code as bar text instead, refreshed whenever the
+        // item swaps its icon. Any failure falls back to the tinted pixmap.
         readonly property bool tintIcon: /fcitx|ibus/i.test(modelData.id + " " + modelData.title)
+        readonly property bool fcitx: /fcitx/i.test(modelData.id)
+        property string imName: ""
+        readonly property string imLabel: {
+          var n = imName.replace(/^keyboard-/, "")
+          return n === "us" || n === "gb" ? "en" : n.slice(0, 3)
+        }
+        readonly property bool showImLabel: fcitx && imLabel !== ""
+
+        Process {
+          id: imQuery
+          command: ["fcitx5-remote", "-n"]
+          stdout: StdioCollector {
+            onStreamFinished: trayIconDelegate.imName = text.trim()
+          }
+        }
+        Connections {
+          target: trayIconDelegate.modelData
+          function onIconChanged() { if (trayIconDelegate.fcitx) imQuery.running = true }
+        }
+
+        Text {
+          anchors.centerIn: parent
+          visible: trayIconDelegate.showImLabel
+          text: trayIconDelegate.imLabel
+          color: Config.liquidGlassTheme ? Colors.barForeground : Colors.primary
+          font.family: Config.fontFamily
+          font.pixelSize: Config.typeLabelMediumSize
+          font.weight: Font.Medium
+          font.letterSpacing: Config.typeLabelTracking
+        }
+
         readonly property bool isPixmapIcon: modelData.icon.indexOf("image://qspixmap/") === 0
 
         IconImage {
@@ -133,7 +170,7 @@ Item {
           source: modelData.icon
           width: (Config.iconSize + 2)
           height: width
-          visible: !isPixmapIcon
+          visible: !isPixmapIcon && !showImLabel
           layer.enabled: trayIconDelegate.tintIcon
           layer.effect: MultiEffect {
             colorization: 1.0
@@ -148,7 +185,7 @@ Item {
           width: (Config.iconSize + 2)
           height: width
           fillMode: Image.PreserveAspectFit
-          visible: isPixmapIcon
+          visible: isPixmapIcon && !showImLabel
           layer.enabled: trayIconDelegate.tintIcon
           layer.effect: MultiEffect {
             colorization: 1.0
