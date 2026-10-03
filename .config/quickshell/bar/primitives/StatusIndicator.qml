@@ -14,6 +14,8 @@ Item {
   property bool inlineContent: false
   property bool integrated: false
   property bool active: false
+  // Filled glyph; defaults to active, overridable when the pill fill must not follow it.
+  property bool iconFilled: root.active
   property bool loading: false
   property string iconLabel: ""
   property string iconFont: Config.iconFont
@@ -201,7 +203,7 @@ Item {
       iconColor: root.iconColor
       iconSize: Config.iconSize
       iconOpacity: root.iconOpacity
-      filled: root.active
+      filled: root.iconFilled
       iconFont: root.iconFont
       iconVariableAxes: root.iconVariableAxes
       Layout.preferredWidth: Config.iconSize

@@ -13,6 +13,7 @@ StatusIndicator {
     ? Colors.styleAccent
     : (Config.liquidGlassTheme ? Colors.barForeground
       : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor))
+  iconFilled: root.active || root.hasNotifications
   inactiveBg: "transparent"
   borderOnHoverOnly: true
   accessibleName: "Notifications"

@@ -988,7 +988,7 @@ PanelWindow {
             id: notifIndicator
             anchors.fill: parent
             notificationCount: root.notificationCount
-            active: root.openPopup === "notification" || ((!Config.ghostTheme || root.horizontal) && root.notificationCount > 0)
+            active: root.openPopup === "notification" || (!Config.liquidGlassTheme && (!Config.ghostTheme || root.horizontal) && root.notificationCount > 0)
             horizontal: root.horizontal
             integrated: root.fullBar
             onClicked: function(mouse) {
