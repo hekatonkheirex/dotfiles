@@ -389,7 +389,8 @@ Item {
       ListView {
         id: listView
         Layout.fillWidth: true
-        Layout.preferredHeight: Math.min(300, contentHeight)
+        Layout.preferredHeight: contentHeight
+        interactive: false // the Settings page scrolls, not the list
         model: btListModel
         clip: true
         spacing: 0
@@ -446,7 +447,8 @@ Item {
       ListView {
         id: scanListView
         Layout.fillWidth: true
-        Layout.preferredHeight: Math.min(240, contentHeight)
+        Layout.preferredHeight: contentHeight
+        interactive: false // the Settings page scrolls, not the list
         model: scanListModel
         clip: true
         spacing: 0
@@ -537,7 +539,7 @@ Item {
         id: itemRow
         width: parent.width
         leadingIcon: "bluetooth"
-        leadingIconColor: Colors.primary
+        leadingIconColor: Config.nothingDesign && !Config.nothingEvolution ? Colors.fgSurface : Colors.primary
         title: model.name
         subtitle: model.mac
         accessibleName: model.name + " Bluetooth device"
@@ -556,7 +558,7 @@ Item {
 
             Text {
               text: model.battery + "%"
-              color: Colors.primary
+              color: parseInt(model.battery) <= 20 ? Colors.error : Colors.fgSurfaceVariant
               font.family: Config.fontFamily
               font.pixelSize: Config.typeBodyMediumSize
               font.weight: Config.typeStrongWeight
@@ -578,7 +580,7 @@ Item {
                 if (b <= 95) return "battery_5_bar"
                 return "battery_full"
               }
-              iconColor: Colors.primary
+              iconColor: parseInt(model.battery) <= 20 ? Colors.error : Colors.fgSurfaceVariant
               iconSize: 18
               anchors.verticalCenter: parent.verticalCenter
             }

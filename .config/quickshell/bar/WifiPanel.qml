@@ -494,7 +494,8 @@ Item {
       ListView {
         id: listView
         Layout.fillWidth: true
-        Layout.preferredHeight: Math.min(300, contentHeight)
+        Layout.preferredHeight: contentHeight
+        interactive: false // the Settings page scrolls, not the list
         model: wifiListModel
         clip: true
         spacing: 0
@@ -536,7 +537,8 @@ Item {
       ListView {
         id: savedListView
         Layout.fillWidth: true
-        Layout.preferredHeight: Math.min(240, contentHeight)
+        Layout.preferredHeight: contentHeight
+        interactive: false // the Settings page scrolls, not the list
         model: savedListModel
         clip: true
         spacing: 0
@@ -589,7 +591,7 @@ Item {
                 size: 32
                 iconSize: 18
                 iconLabel: "delete"
-                iconColor: Colors.error
+                iconColor: forgetButton.hovered || forgetButton.activeFocus ? Colors.error : Colors.fgSurfaceVariant
                 accessibleName: "Forget " + model.name
                 tooltipText: "Forget saved network"
                 onClicked: root.requestForget(model.name)
