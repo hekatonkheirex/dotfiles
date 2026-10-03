@@ -10,6 +10,8 @@ ActionButtonBase {
   ThemeTokens { id: theme }
 
   property bool horizontalContent: false
+  // Small mono labels vanish at the shared 0.38; keep disabled legible.
+  opacity: root.enabled ? 1.0 : 0.55
   property color iconColor: root.filled ? theme.accentText : theme.mutedInk
   property real radius: theme.controlRadius
   property color color: {
