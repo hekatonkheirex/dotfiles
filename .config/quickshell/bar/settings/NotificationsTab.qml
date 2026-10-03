@@ -99,7 +99,7 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : 110
+            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : (Config.ghostTheme ? 132 : 110)
             Layout.leftMargin: Config.spacingSmall
           }
 
@@ -151,7 +151,7 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: notificationsTab.compactLayout ? 82 : 110
+            Layout.preferredWidth: notificationsTab.compactLayout ? 82 : (Config.ghostTheme ? 132 : 110)
             Layout.leftMargin: Config.spacingSmall
           }
 
@@ -356,7 +356,7 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : 110
+            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : (Config.ghostTheme ? 132 : 110)
             Layout.leftMargin: Config.spacingCompact
           }
 

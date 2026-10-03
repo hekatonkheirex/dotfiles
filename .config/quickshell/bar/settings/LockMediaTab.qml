@@ -138,6 +138,8 @@ Flickable {
         ListItem {
           Layout.fillWidth: true
           visible: Config.nothingEvolution
+          // Stacked icon + label buttons need 48px; 36px clipped the label.
+          height: 60
           leadingIcon: "schedule"
           title: "Clock face"
           subtitle: Settings.lockClockFace === "gooey"
@@ -148,7 +150,7 @@ Flickable {
 
           Item {
             width: lockMediaTab.compactLayout ? 144 : 184
-            height: 36
+            height: 48
 
             Row {
               anchors.fill: parent
