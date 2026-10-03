@@ -261,10 +261,8 @@ PanelWindow {
           opacity: 0.7
         }
         IconButton {
-          visible: Config.ghostTheme
-          enabled: Config.ghostTheme
-          size: 36
-          iconSize: 16
+          size: Config.ghostTheme ? 36 : 28
+          iconSize: Config.ghostTheme ? 16 : 14
           iconLabel: "close"
           iconColor: Colors.fgSurfaceVariant
           accessibleName: "Dismiss notification"
