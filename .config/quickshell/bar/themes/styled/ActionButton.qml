@@ -12,7 +12,8 @@ ActionButtonBase {
   property bool horizontalContent: false
   // Small mono labels vanish at the shared 0.38; keep disabled legible.
   opacity: root.enabled ? 1.0 : 0.55
-  property color iconColor: root.filled ? theme.accentText : theme.mutedInk
+  // Full-strength ink: the muted tone made small mono labels hard to read.
+  property color iconColor: root.filled ? theme.accentText : theme.ink
   property real radius: theme.controlRadius
   property color color: {
     var overlay = root.pressed ? Colors.pressOverlay
@@ -91,7 +92,8 @@ ActionButtonBase {
       text: root.labelText
       color: root.iconColor
       font.family: theme.monoFontFamily
-      font.pixelSize: Config.typeLabelMediumSize
+      // NType 82 Mono is light and small at the shared label size.
+      font.pixelSize: Config.typeLabelMediumSize + (Config.nothingDesign && !Config.nothingEvolution ? 1 : 0)
       font.weight: Config.typeMediumWeight
       font.letterSpacing: Config.typeMonoTracking
       lineHeight: Config.typeLabelMediumLineHeight

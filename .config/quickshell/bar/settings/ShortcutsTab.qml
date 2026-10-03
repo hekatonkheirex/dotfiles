@@ -111,7 +111,7 @@ Flickable {
 
     SettingsPageHeader {
       pageTitle: "Shortcuts"
-      subtitle: "Curated common bindings. The source of truth is " + shortcutsTab.keybindsPath + "."
+      subtitle: "Curated common bindings. Source: " + shortcutsTab.keybindsPath
     }
 
     RowLayout {
