@@ -69,7 +69,9 @@ Item {
         ? Colors.styleAccent
         : (root.textVariant
           ? (Config.liquidGlassTheme && root.variant === "text" ? "transparent" : Colors.styleSurface)
-          : (Config.liquidGlassTheme ? Colors.liquidGlassClear : Colors.styleSurfaceRaised))
+          : (Config.liquidGlassTheme
+            ? (Colors.liquidGlassOpaque ? Colors.liquidGlassClear : Qt.rgba(1, 1, 1, Colors.darkMode ? 0.10 : 0.40))
+            : Colors.styleSurfaceRaised))
     }
     return Qt.tint(base, overlay)
   }

@@ -27,7 +27,8 @@ Item {
   property color backgroundColor: {
     if (!root.material3Theme) {
       if (root.selected) return Colors.styleAccent
-      if (Config.liquidGlassTheme) return Colors.liquidGlassClear
+      if (Config.liquidGlassTheme)
+        return Colors.liquidGlassOpaque ? Colors.liquidGlassClear : Qt.rgba(1, 1, 1, Colors.darkMode ? 0.10 : 0.40)
       return "transparent"
     }
     if (root.selected) return Colors.primary
