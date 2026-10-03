@@ -351,6 +351,13 @@ ShellRoot {
       return settingsPanel.devForgetName
     }
 
+    // Dev/testing: pick the Nothing Evolution lock clock face ("gooey" or
+    // "micrographics") in memory only; settings.json is not touched.
+    function lockFace(name: string): string {
+      Settings.lockClockFace = name
+      return Settings.lockClockFace
+    }
+
     function currentPopup(): string {
       return bar.openPopup
     }
