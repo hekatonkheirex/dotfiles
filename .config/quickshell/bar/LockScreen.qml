@@ -563,7 +563,8 @@ Item {
                 }
                 color: root.textColor
                 font.family: Config.fontFamily
-                font.pixelSize: Config.typeBodyLargeSize
+                font.pixelSize: Config.typeBodyLargeSize + 4
+                font.letterSpacing: 4
                 text: root.lockInputText
                 echoMode: TextInput.Password
                 passwordCharacter: "\u25CF"
@@ -867,8 +868,8 @@ Item {
               }
               color: textColor
               font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyLargeSize
-              font.letterSpacing: Config.typeBodyTracking
+              font.pixelSize: Config.typeBodyLargeSize + 4
+              font.letterSpacing: 4
               text: root.lockInputText
               echoMode: TextInput.Password
               passwordCharacter: "\u25CF"
@@ -1237,8 +1238,8 @@ Item {
             }
             color: root.textColor
             font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyLargeSize
-            font.letterSpacing: Config.typeBodyTracking
+            font.pixelSize: Config.typeBodyLargeSize + 4
+            font.letterSpacing: 4
             text: root.lockInputText
             echoMode: TextInput.Password
             passwordCharacter: "\u25CF"
