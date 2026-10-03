@@ -406,6 +406,29 @@ Item {
           font.letterSpacing: -1.2
           style: Text.Normal
         }
+
+        Row {
+          anchors.horizontalCenter: parent.horizontalCenter
+          spacing: Config.spacingSmall
+          visible: Settings.lockShowMedia && root.lockMprisTitle !== ""
+
+          IconGlyph {
+            iconLabel: root.lockMprisStatus === "Playing" ? "pause" : "play_arrow"
+            iconSize: 16
+            iconColor: Qt.rgba(root.textColor.r, root.textColor.g, root.textColor.b, 0.7)
+            anchors.verticalCenter: parent.verticalCenter
+          }
+
+          Text {
+            text: root.lockMprisTitle + (root.lockMprisArtist ? " - " + root.lockMprisArtist : "")
+            color: Qt.rgba(root.textColor.r, root.textColor.g, root.textColor.b, 0.7)
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeBodyMediumSize
+            elide: Text.ElideRight
+            width: Math.min(implicitWidth, 320)
+            anchors.verticalCenter: parent.verticalCenter
+          }
+        }
       }
 
       Column {
@@ -817,7 +840,7 @@ Item {
               font.family: Config.fontFamily
               font.pixelSize: Config.typeBodyLargeSize
               font.letterSpacing: Config.typeBodyTracking
-              visible: Config.liquidGlassTheme && root.lockInputText === ""
+              visible: root.lockInputText === ""
               z: 1
             }
 
@@ -1187,7 +1210,7 @@ Item {
             font.family: Config.fontFamily
             font.pixelSize: Config.typeBodyLargeSize
             font.letterSpacing: Config.typeBodyTracking
-            visible: Config.liquidGlassTheme && root.lockInputText === ""
+            visible: root.lockInputText === ""
             z: 1
           }
 
