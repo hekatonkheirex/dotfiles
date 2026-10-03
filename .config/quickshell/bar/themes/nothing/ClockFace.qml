@@ -13,13 +13,16 @@ Item {
   property string face: "micrographics"
   property date now: new Date()
   property real clockSize: 72
+  // Width of the column the face sits in (the lock screen passes its password
+  // field width so the face lines up with it). 0 keeps the intrinsic width.
+  property real faceWidth: 0
   property color primaryColor: Colors.styleAccent
   property color secondaryColor: Colors.fgSurfaceVariant
   property string eventText: ""
   property string weatherText: ""
   property string weatherCity: ""
 
-  implicitWidth: Math.max(260, root.clockSize * 3.5)
+  implicitWidth: root.faceWidth > 0 ? root.faceWidth : Math.max(260, root.clockSize * 3.5)
   implicitHeight: root.face === "gooey"
     ? root.clockSize * 1.9
     : root.clockSize * 1.75
@@ -175,6 +178,7 @@ Item {
 
     Text {
       Layout.fillWidth: true
+      horizontalAlignment: Text.AlignHCenter
       text: root.timeText()
       color: root.primaryColor
       font.family: Config.monoFontFamily

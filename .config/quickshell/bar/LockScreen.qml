@@ -741,6 +741,7 @@ Item {
             face: Settings.lockClockFace
             now: root.now
             clockSize: Settings.lockClockSize
+            faceWidth: root.lockFieldWidth
             primaryColor: root.accentColor
             secondaryColor: root.mutedText
           }
@@ -1057,6 +1058,7 @@ Item {
           face: Settings.lockClockFace
           now: root.now
           clockSize: Settings.lockClockSize
+          faceWidth: root.lockFieldWidth
           primaryColor: root.accentColor
           secondaryColor: root.mutedText
         }
