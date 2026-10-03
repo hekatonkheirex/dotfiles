@@ -334,26 +334,33 @@ Flickable {
           wrapMode: Text.WordWrap
         }
 
-        ActionButton {
+        ListItem {
           Layout.fillWidth: true
-          Layout.preferredHeight: Config.themeLabeledActionButtonHeight
-          iconLabel: "coffee"
-          iconSize: 24
-          contentSpacing: Config.spacingMedium
-          labelText: "Caffeine"
-          selected: root.caffeineOn
-          checkable: true
-          accessibleName: "Caffeine mode"
-          accessibleDescription: root.caffeineOn
-            ? "Enabled; idle lock, display off, and suspend timers are paused; lid-close suspend still locks"
-            : "Disabled; idle lock, display off, and suspend timers are active; lid-close suspend still locks"
-          onActivated: {
-            if (root.caffeineOn) {
-              Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
-              root.caffeineOn = false
-            } else {
-              Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh", "stop"])
-              root.caffeineOn = true
+          leadingIcon: "coffee"
+          title: "Caffeine"
+          subtitle: root.caffeineOn
+            ? "Idle lock, display off, and suspend timers are paused"
+            : "Idle lock, display off, and suspend timers are active"
+          SwitchControl {
+            checked: root.caffeineOn
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.styleOutlineStrong
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Caffeine mode"
+            accessibleDescription: root.caffeineOn
+              ? "Enabled; idle lock, display off, and suspend timers are paused; lid-close suspend still locks"
+              : "Disabled; idle lock, display off, and suspend timers are active; lid-close suspend still locks"
+            onToggled: {
+              if (root.caffeineOn) {
+                Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh"])
+                root.caffeineOn = false
+              } else {
+                Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/idle.sh", "stop"])
+                root.caffeineOn = true
+              }
             }
           }
         }

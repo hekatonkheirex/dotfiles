@@ -40,7 +40,9 @@ Rectangle {
       : (root.material3Style
         ? Colors.secondaryContainer
         : (Config.ghostTheme
-          ? Colors.styleAccent
+          ? (root.statusActive && !root.selected
+            ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
+            : Colors.styleAccent)
           : (Config.nothingDesign
             ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
             : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)))))
@@ -51,7 +53,7 @@ Rectangle {
       : (root.material3Style
         ? Colors.fgSecondaryContainer
         : (Config.ghostTheme
-          ? Colors.styleAccentText
+          ? (root.statusActive && !root.selected ? Colors.fgSurface : Colors.styleAccentText)
           : (Config.nothingEvolution
             ? Colors.styleSelectedText
             : (Config.nothingDesign ? Colors.styleInk : Colors.primary)))))

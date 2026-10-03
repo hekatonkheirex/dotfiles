@@ -124,10 +124,10 @@ Item {
       text: root.labelText
       color: root.iconColor
       font.family: theme.monoFontFamily
-      font.pixelSize: Config.typeLabelSmallSize
+      font.pixelSize: Config.typeLabelMediumSize
       font.weight: Config.typeMediumWeight
       font.letterSpacing: Config.typeMonoTracking
-      lineHeight: Config.typeLabelSmallLineHeight
+      lineHeight: Config.typeLabelMediumLineHeight
       lineHeightMode: Text.FixedHeight
       elide: Text.ElideRight
       maximumLineCount: 1
