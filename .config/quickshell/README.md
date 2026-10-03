@@ -120,6 +120,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   │   └── TextFieldControl.qml
 │   └── themes/                 # Separate UI-style implementations
 │       ├── material3/          # Material 3 controls and ThemeTokens.qml
+│       ├── shared/              # Base types (input, focus, accessibility) every control implementation extends
 │       ├── styled/              # Shared Nothing + Ghost controls; ThemeTokens.qml holds every per-theme difference
 │       ├── nothing/             # Evolution clock face
 │       └── ghost/               # Ghost gap/trace effects
@@ -454,3 +455,12 @@ The baseline lives outside the repo, in `~/.local/state/quickshell-golden/contro
 (override with `QS_GOLDEN_DIR`), because fonts and Qt version change pixels per
 machine. Run `update` on a clean tree first, then `check` after a control
 change. After a deliberate visual change, review the result and run `update`.
+
+## Control behaviour test
+
+`scripts/controls-behavior.sh` runs `tests/controls-behavior/shell.qml` (QtTest)
+once per style: keyboard and mouse activation, disabled controls ignoring
+input, and slider keys, for ActionButton, IconButton, SwitchControl and
+SliderControl. It needs no baseline. Input, focus, and accessibility code lives
+once in `bar/themes/shared/*Base.qml`; the material3 and styled implementations
+extend those and only add theme-specific properties and visuals.

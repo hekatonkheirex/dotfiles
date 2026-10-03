@@ -1,13 +1,13 @@
 import QtQuick
 import "../../../config"
 import "."
+import "../shared"
 
-Item {
+SwitchBase {
   id: root
 
   ThemeTokens { id: theme }
 
-  property bool checked: false
   property color activeColor: theme.accent
   property color activeContentColor: theme.accentText
   property color checkmarkColor: activeColor
@@ -15,40 +15,11 @@ Item {
   property color surfaceContainerHighest: theme.controlSurface
   property color outline: theme.outline
   property color focusColor: theme.focus
-  property color hoverOverlay: Colors.hoverOverlay
-  property color pressOverlay: Colors.pressOverlay
-  property int motionDuration: 150
-  property bool reducedMotion: false
-  property string accessibleName: "Switch"
-  property string accessibleDescription: "Toggle setting"
 
-  Accessible.role: Accessible.CheckBox
-  Accessible.name: root.accessibleName
-  Accessible.description: root.accessibleDescription + (root.checked ? " On" : " Off")
-  Accessible.checkable: true
-  Accessible.checked: root.checked
-  Accessible.focusable: true
-  Accessible.focused: root.activeFocus
-
-  signal toggled()
-
-  width: 52
   height: 28
-  activeFocusOnTab: true
 
-  readonly property bool hovered: switchMouse.containsMouse
-  readonly property bool pressed: switchMouse.pressed
-  readonly property bool active: root.hovered || root.pressed || root.activeFocus
   readonly property real targetX: root.checked ? root.width - 20 : 6
   property real thumbX: 6
-
-  function animateDuration(base) {
-    return root.reducedMotion ? 0 : Math.max(0, root.motionDuration || base)
-  }
-
-  function activate() {
-    if (root.enabled) root.toggled()
-  }
 
   Behavior on thumbX {
     NumberAnimation { duration: root.animateDuration(150); easing.type: Easing.OutCubic }
@@ -56,13 +27,6 @@ Item {
 
   Component.onCompleted: thumbX = targetX
   onTargetXChanged: thumbX = targetX
-
-  Keys.onPressed: function(event) {
-    if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-      activate()
-      event.accepted = true
-    }
-  }
 
   Rectangle {
     anchors.fill: parent
@@ -100,14 +64,5 @@ Item {
       : root.outline
 
     Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
-  }
-
-  MouseArea {
-    id: switchMouse
-    anchors.fill: parent
-    hoverEnabled: true
-    enabled: root.enabled
-    cursorShape: Qt.PointingHandCursor
-    onClicked: root.activate()
   }
 }

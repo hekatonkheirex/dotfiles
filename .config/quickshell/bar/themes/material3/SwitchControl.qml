@@ -1,9 +1,10 @@
 import QtQuick
 import "../../../config"
 import "."
+import "../shared"
 import "../../primitives"
 
-Item {
+SwitchBase {
   id: root
 
   ThemeTokens { id: theme }
@@ -12,7 +13,6 @@ Item {
   // behavior, but uses the compact macOS switch geometry and flat neutral
   // thumb.
   property bool liquidGlass: false
-  property bool checked: false
   property color activeColor: theme.primary
   property color activeContentColor: Colors.fgPrimary
   property color checkmarkColor: activeColor
@@ -20,33 +20,12 @@ Item {
   property color surfaceContainerHighest: theme.surfaceContainerHighest
   property color outline: theme.outline
   property color focusColor: theme.focus
-  property color hoverOverlay: Colors.hoverOverlay
-  property color pressOverlay: Colors.pressOverlay
   readonly property color stateOverlay: root.pressed
     ? root.pressOverlay
     : (root.hovered || root.activeFocus ? root.hoverOverlay : Qt.rgba(0, 0, 0, 0))
-  property int motionDuration: 150
-  property bool reducedMotion: false
-  property string accessibleName: "Switch"
-  property string accessibleDescription: "Toggle setting"
 
-  Accessible.role: Accessible.CheckBox
-  Accessible.name: root.accessibleName
-  Accessible.description: root.accessibleDescription + (root.checked ? " On" : " Off")
-  Accessible.checkable: true
-  Accessible.checked: root.checked
-  Accessible.focusable: true
-  Accessible.focused: root.activeFocus
-
-  signal toggled()
-
-  width: 52
   height: 32
-  activeFocusOnTab: true
 
-  readonly property bool hovered: switchMouse.containsMouse
-  readonly property bool pressed: switchMouse.pressed
-  readonly property bool active: hovered || pressed || activeFocus
   readonly property real liquidTrackWidth: Math.min(38, root.width)
   readonly property real liquidTrackHeight: Math.min(22, root.height)
   readonly property real liquidTrackX: (root.width - root.liquidTrackWidth) / 2
@@ -65,14 +44,6 @@ Item {
 
   property real thumbSize: root.liquidGlass ? 20 : 16
   property real thumbX: root.liquidGlass ? root.targetX : 8
-
-  function animateDuration(base) {
-    return root.reducedMotion ? 0 : Math.max(0, root.motionDuration || base)
-  }
-
-  function activate() {
-    if (root.enabled) root.toggled()
-  }
 
   Behavior on thumbSize {
     enabled: Config.spatialMotion && !root.reducedMotion
@@ -100,13 +71,6 @@ Item {
 
   onTargetThumbSizeChanged: thumbSize = targetThumbSize
   onTargetXChanged: thumbX = targetX
-
-  Keys.onPressed: function(event) {
-    if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-      activate()
-      event.accepted = true
-    }
-  }
 
   Rectangle {
     anchors.fill: parent
@@ -178,14 +142,5 @@ Item {
       visible: root.checked && !root.liquidGlass
       Behavior on iconOpacity { NumberAnimation { duration: root.animateDuration(150) } }
     }
-  }
-
-  MouseArea {
-    id: switchMouse
-    anchors.fill: parent
-    hoverEnabled: true
-    enabled: root.enabled
-    cursorShape: Qt.PointingHandCursor
-    onClicked: root.activate()
   }
 }

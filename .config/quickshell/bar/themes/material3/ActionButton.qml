@@ -2,33 +2,20 @@ import QtQuick
 import QtQuick.Controls
 import "../../../config"
 import "."
+import "../shared"
 import "../../primitives"
 
-Item {
+ActionButtonBase {
   id: root
 
   ThemeTokens { id: theme }
 
-  property string iconLabel: ""
-  property bool selected: false
-  property bool checkable: false
-  property bool grouped: false
-  property string groupPosition: "single"
-  property string labelText: ""
-  property string variant: "tonal"
   property bool horizontalContent: true
-  property string accessibleName: ""
-  property string accessibleDescription: ""
-  property string tooltipText: ""
-  property bool expressiveSelectedShape: false
   readonly property bool segmented: root.grouped && root.groupPosition !== "single"
   readonly property bool textVariant: root.variant === "text" || root.variant === "quiet"
-  readonly property bool filled: root.selected || root.variant === "filled"
   readonly property string renderedIconLabel: root.segmented && root.selected && root.checkable
     ? "check"
     : root.iconLabel
-  property real iconSize: Config.iconSize + 4
-  property real contentSpacing: Config.spacingMedium
   // Button content always uses the paired role of its container. This keeps
   // filled, tonal, segmented, and text/outlined variants readable when a
   // palette changes its accent tones.
@@ -39,8 +26,8 @@ Item {
       : (root.variant === "tonal" ? Colors.fgSecondaryContainer : Colors.primary))
   property real radius: theme.controlRadius
   property color color: {
-    var overlay = mouseArea.pressed ? Colors.pressOverlay
-      : (mouseArea.containsMouse ? Colors.hoverOverlay
+    var overlay = root.pressed ? Colors.pressOverlay
+      : (root.hovered ? Colors.hoverOverlay
         : (root.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
     var base = root.segmented
       ? (root.selected ? Colors.secondaryContainer : Colors.surfaceContainerLow)
@@ -56,22 +43,7 @@ Item {
     : "transparent"
   property real borderWidth: theme.borderWidth
 
-  signal activated()
 
-  activeFocusOnTab: true
-  opacity: root.enabled ? 1.0 : 0.38
-
-  readonly property bool hovered: mouseArea.containsMouse
-  readonly property bool pressed: mouseArea.pressed
-
-  Accessible.role: root.grouped && root.checkable
-    ? Accessible.RadioButton
-    : (root.checkable ? Accessible.CheckBox : Accessible.Button)
-  Accessible.checkable: root.checkable
-  Accessible.checked: root.checkable && root.selected
-  Accessible.name: root.accessibleName !== ""
-    ? root.accessibleName
-    : (root.labelText !== "" ? root.labelText : (root.tooltipText !== "" ? root.tooltipText : root.iconLabel))
   Accessible.description: root.accessibleDescription !== ""
     ? root.accessibleDescription
     : (root.selected ? (root.grouped ? "Selected option" : "Selected")
@@ -190,13 +162,6 @@ Item {
     ColorAnimation { duration: Config.animationDuration }
   }
 
-  Keys.onPressed: function(event) {
-    if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
-      root.activated()
-      event.accepted = true
-    }
-  }
-
   Row {
     id: horizontalContentRow
     visible: root.horizontalContent
@@ -259,18 +224,6 @@ Item {
       font.letterSpacing: Config.typeLabelTracking
       lineHeight: Config.typeLabelMediumLineHeight
       lineHeightMode: Text.FixedHeight
-    }
-  }
-
-  MouseArea {
-    id: mouseArea
-    anchors.fill: parent
-    hoverEnabled: true
-    enabled: root.enabled
-    cursorShape: Qt.PointingHandCursor
-    onClicked: {
-      root.forceActiveFocus()
-      root.activated()
     }
   }
 }

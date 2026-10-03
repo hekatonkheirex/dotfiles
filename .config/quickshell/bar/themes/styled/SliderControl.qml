@@ -1,29 +1,18 @@
 import QtQuick
 import "../../../config"
 import "."
+import "../shared"
 
-Item {
+SliderBase {
   id: root
 
   ThemeTokens { id: theme }
 
-  property real value: 0.5
-  property bool muted: false
   property color activeColor: theme.accent
   property color surfaceContainerHigh: theme.surfaceRaised
   property color surfaceContainerHighest: theme.controlSurface
   property color outline: theme.outline
   property color focusColor: theme.focus
-  property color hoverOverlay: Colors.hoverOverlay
-  property color pressOverlay: Colors.pressOverlay
-  property int motionDuration: 150
-  property bool reducedMotion: false
-  property real stepSize: 0.05
-  property string accessibleName: "Slider"
-  property string accessibleDescription: "Adjust value"
-  property real accessibleMinimumValue: 0
-  property real accessibleMaximumValue: 100
-  property string accessibleUnit: "%"
 
   readonly property int segmentCount: theme.segmentCount
   readonly property real segmentGap: theme.segmentGap
@@ -35,57 +24,7 @@ Item {
   readonly property bool pressed: sliderMouse.pressed
   readonly property bool active: root.hovered || root.pressed || root.activeFocus
 
-  Accessible.role: Accessible.Slider
-  Accessible.name: root.accessibleName
-  Accessible.description: root.accessibleDescription
-    + " Current value " + Math.round(root.accessibleMinimumValue
-      + root.value * (root.accessibleMaximumValue - root.accessibleMinimumValue))
-    + (root.accessibleUnit !== "" ? " " + root.accessibleUnit : "")
-    + ". Range " + root.accessibleMinimumValue + " to " + root.accessibleMaximumValue
-    + (root.accessibleUnit !== "" ? " " + root.accessibleUnit : "")
-  Accessible.focusable: true
-  Accessible.focused: root.activeFocus
-
-  signal changed(real value)
-  signal interactionFinished()
-
-  width: parent ? parent.width : 240
   height: 40
-  activeFocusOnTab: true
-
-  function animateDuration(base) {
-    return root.reducedMotion ? 0 : Math.max(0, root.motionDuration || base)
-  }
-
-  function setValue(nextValue) {
-    root.changed(Math.max(0, Math.min(1, nextValue)))
-  }
-
-  Keys.onPressed: function(event) {
-    var delta = root.stepSize
-    if (event.key === Qt.Key_PageUp) delta *= 5
-    if (event.key === Qt.Key_PageDown) delta *= -5
-    if (event.key === Qt.Key_Left || event.key === Qt.Key_Down) delta *= -1
-    if (event.key === Qt.Key_Right || event.key === Qt.Key_Up || event.key === Qt.Key_PageUp || event.key === Qt.Key_PageDown) {
-      root.setValue(root.value + delta)
-      event.accepted = true
-    } else if (event.key === Qt.Key_Home) {
-      root.setValue(0)
-      event.accepted = true
-    } else if (event.key === Qt.Key_End) {
-      root.setValue(1)
-      event.accepted = true
-    }
-  }
-
-  Keys.onReleased: function(event) {
-    if (event.key === Qt.Key_PageUp || event.key === Qt.Key_PageDown
-        || event.key === Qt.Key_Left || event.key === Qt.Key_Right
-        || event.key === Qt.Key_Up || event.key === Qt.Key_Down
-        || event.key === Qt.Key_Home || event.key === Qt.Key_End) {
-      root.interactionFinished()
-    }
-  }
 
   Rectangle {
     anchors.fill: parent
