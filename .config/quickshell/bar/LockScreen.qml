@@ -466,6 +466,21 @@ Item {
                 asynchronous: true
                 sourceSize: Qt.size(256, 256)
                 visible: status === Image.Ready
+                // Item.clip only clips to the bounding rectangle, so round the
+                // photo with a mask.
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                  maskEnabled: true
+                  maskSource: liquidGlassAvatarMask
+                }
+              }
+
+              Rectangle {
+                id: liquidGlassAvatarMask
+                anchors.fill: parent
+                radius: width / 2
+                visible: false
+                layer.enabled: true
               }
 
               Text {
