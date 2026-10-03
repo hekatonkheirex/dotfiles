@@ -45,6 +45,9 @@ PanelWindow {
     ? Config.barWidth + Config.spacingMedium : Config.spacingLarge
   readonly property real centeredTopMargin: Math.max(root.topClearance, (desktopH - root.implicitHeight) / 2)
   property bool customPosition: false
+  // Dev/testing hook (shell IPC forgetPrompt): asks the Network tab to show its
+  // "Forget <name>?" confirmation. Never forgets anything by itself.
+  property string devForgetName: ""
   property real panelLeft: 0
   property real panelTop: 0
 

@@ -17,6 +17,14 @@ Flickable {
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: networkTab }
 
+  Connections {
+    target: networkTab.root
+    function onDevForgetNameChanged() {
+      if (networkTab.root.devForgetName !== "") wifiPanel.requestForget(networkTab.root.devForgetName)
+      else wifiPanel.pendingDeleteConnection = ""
+    }
+  }
+
   onVisibleChanged: if (visible) wifiPanel.refresh()
   Component.onCompleted: if (visible) wifiPanel.refresh()
 

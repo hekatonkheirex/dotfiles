@@ -116,6 +116,18 @@ Rectangle {
     ColorAnimation { duration: Config.animationDuration }
   }
 
+  // Keyboard focus ring: the 8% tint alone is invisible on selected or
+  // status rows. Navigation rows keep their own focus treatment.
+  Rectangle {
+    anchors.fill: parent
+    radius: root.radius
+    color: "transparent"
+    border.width: root.activeFocus && !root.navigationItem ? 2 : 0
+    border.color: Config.ghostTheme || Config.nothingDesign ? Colors.styleOutlineStrong : Colors.primary
+    visible: border.width > 0
+    z: 5
+  }
+
   // Keep the row hit target below its content so trailing controls can still
   // receive clicks. Non-interactive text falls through to this MouseArea.
   MouseArea {

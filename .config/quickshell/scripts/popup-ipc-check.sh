@@ -18,4 +18,5 @@ qs ipc call shell dismissPopups >/dev/null
 orig=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.config/quickshell/settings.json')))['lastSettingsTab'])")
 [ "$(qs ipc call shell settingsTab 5)" = 5 ] && echo "ok   settingsTab" || { echo "FAIL settingsTab"; fail=1; }
 qs ipc call shell settingsTab "$orig" >/dev/null
+[ "$(qs ipc call shell forgetPrompt "")" = "" ] && echo "ok   forgetPrompt clears" || { echo "FAIL forgetPrompt"; fail=1; }
 exit $fail

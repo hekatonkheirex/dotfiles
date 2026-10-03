@@ -344,6 +344,13 @@ ShellRoot {
       return Settings.lastSettingsTab
     }
 
+    // Dev/testing: show the Wi-Fi "Forget <name>?" confirmation without
+    // touching the keyboard. Only opens the prompt; "" cancels it.
+    function forgetPrompt(name: string): string {
+      settingsPanel.devForgetName = name
+      return settingsPanel.devForgetName
+    }
+
     function currentPopup(): string {
       return bar.openPopup
     }

@@ -29,7 +29,7 @@ ColumnLayout {
     lineHeightMode: Text.FixedHeight
     // NType 82 Headline draws a very narrow space, so "Display & Input" reads
     // "Display&Input".
-    wordSpacing: Config.nothingDesign && !Config.nothingEvolution ? 8 : 0
+    font.wordSpacing: Config.nothingDesign && !Config.nothingEvolution ? 8 : 0
     wrapMode: Text.WordWrap
   }
 
