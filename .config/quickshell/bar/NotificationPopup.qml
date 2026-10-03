@@ -181,6 +181,22 @@ PopupBase {
                 border.width: Config.themeBorderWidth
                 border.color: Colors.styleOutline
 
+                // Click-through for the app's "default" action while the
+                // notification is live (open the chat, the file, ...).
+                MouseArea {
+                  anchors.fill: parent
+                  readonly property var defaultAction: {
+                    var live = notifDelegate.notif ? notifDelegate.notif.liveNotif : null
+                    var list = live && live.actions ? live.actions : []
+                    for (var i = 0; i < list.length; i++)
+                      if (list[i].identifier === "default") return list[i]
+                    return null
+                  }
+                  enabled: defaultAction !== null
+                  cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                  onClicked: defaultAction.invoke()
+                }
+
                 ColumnLayout {
                   id: cardLayout
                   anchors {

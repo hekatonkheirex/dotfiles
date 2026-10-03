@@ -18,6 +18,14 @@ PanelWindow {
   property int displayMs: Settings.notificationToastDurationMs
   property string barPosition: "top"
   // Critical toasts get an error-colored border and avatar in every style.
+  // The "default" action is the click-through apps expect when the notification
+  // body is clicked (open the chat, the file, ...). It has no button of its own.
+  readonly property var defaultAction: {
+    var list = notif && notif.actions ? notif.actions : []
+    for (var i = 0; i < list.length; i++)
+      if (list[i].identifier === "default") return list[i]
+    return null
+  }
   readonly property bool critical: !!notif && notif.urgency === NotificationUrgency.Critical
 
 
@@ -120,11 +128,16 @@ PanelWindow {
 
   MouseArea {
     anchors.fill: parent
-    enabled: !Config.ghostTheme
+    enabled: !Config.ghostTheme || root.defaultAction !== null
     cursorShape: Qt.PointingHandCursor
     onClicked: {
       bg.forceActiveFocus()
-      root.dismiss()
+      if (root.defaultAction) {
+        root.defaultAction.invoke()
+        root.clearCurrent()
+      } else {
+        root.dismiss()
+      }
     }
   }
 
