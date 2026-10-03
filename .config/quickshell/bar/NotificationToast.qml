@@ -315,6 +315,43 @@ PanelWindow {
           visible: text !== ""
         }
       }
+
+      // App-defined actions (e.g. "Reply", "Open"). The server advertises
+      // action support, so each non-default action gets a button. The
+      // "default" action is the click-through the toast already replaces with
+      // dismiss, so it is not listed.
+      Row {
+        id: actionRow
+        Layout.fillWidth: true
+        spacing: Config.spacingSmall
+        visible: actionRepeater.count > 0
+
+        Repeater {
+          id: actionRepeater
+          model: {
+            var out = []
+            var list = notif && notif.actions ? notif.actions : []
+            for (var i = 0; i < list.length && out.length < 3; i++)
+              if (list[i].identifier !== "default") out.push(list[i])
+            return out
+          }
+
+          delegate: ActionButton {
+            required property var modelData
+            height: 32
+            width: Math.max(72, (actionRow.width - actionRow.spacing * (actionRepeater.count - 1)) / actionRepeater.count)
+            labelText: modelData.text
+            horizontalContent: true
+            variant: "tonal"
+            accessibleName: modelData.text
+            accessibleDescription: "Notification action"
+            onActivated: {
+              modelData.invoke()
+              root.clearCurrent()
+            }
+          }
+        }
+      }
     }
   }
 }
