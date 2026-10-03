@@ -177,7 +177,9 @@ PopupBase {
                 width: parent.width
                 implicitHeight: cardLayout.implicitHeight + (Config.ghostTheme ? Config.spacingLarge : Config.spacingExtraLarge)
                 radius: Config.shapeLarge
-                color: Colors.surfaceContainer
+                color: Config.liquidGlassTheme && !Colors.liquidGlassOpaque
+                  ? Qt.rgba(1, 1, 1, Colors.darkMode ? 0.07 : 0.30)
+                  : Colors.surfaceContainer
                 border.width: Config.themeBorderWidth
                 border.color: Colors.styleOutline
 

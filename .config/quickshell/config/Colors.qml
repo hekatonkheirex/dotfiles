@@ -722,15 +722,15 @@ QtObject {
     ? surfaceContainer
     : Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b,
         // Retain glass while keeping text readable over black wallpaper.
-        darkMode ? 0.85 : 0.80)
+        darkMode ? 0.55 : 0.60)
   readonly property color liquidGlassClear: liquidGlassOpaque
     ? surfaceContainerHigh
     : Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b,
-        darkMode ? 0.85 : 0.80)
+        darkMode ? 0.45 : 0.50)
   readonly property color liquidGlassRaised: liquidGlassOpaque
     ? surfaceContainerHigh
     : Qt.rgba(surfaceContainer.r, surfaceContainer.g, surfaceContainer.b,
-        darkMode ? 0.90 : 0.85)
+        darkMode ? 0.60 : 0.65)
   readonly property color liquidGlassControl: liquidGlassOpaque
     ? surfaceContainerHighest
     : Qt.rgba(surfaceContainerHigh.r, surfaceContainerHigh.g, surfaceContainerHigh.b,
@@ -749,6 +749,9 @@ QtObject {
   readonly property color liquidGlassShade: liquidGlassOpaque
     ? Qt.rgba(0, 0, 0, 0)
     : Qt.rgba(0, 0, 0, darkMode ? 0.16 : 0.05)
+  readonly property color liquidGlassRim: liquidGlassOpaque
+    ? Qt.rgba(1, 1, 1, 0)
+    : Qt.rgba(1, 1, 1, darkMode ? 0.55 : 0.85)
   readonly property color liquidGlassEdge: liquidGlassOpaque
     ? outline
     : Qt.rgba(1, 1, 1, darkMode ? 0.18 : 0.30)

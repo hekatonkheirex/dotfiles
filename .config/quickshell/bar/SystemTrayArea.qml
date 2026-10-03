@@ -26,6 +26,7 @@ Item {
 
   Rectangle {
     id: traySurface
+    visible: false // no pill behind tray icons
     anchors {
       fill: parent
       leftMargin: horizontal ? 0 : 6

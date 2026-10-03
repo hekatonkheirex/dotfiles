@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import "../../config"
 
 // A restrained specular layer for Liquid Glass surfaces. The compositor owns
@@ -31,6 +32,33 @@ Item {
         position: 1.0
         color: Colors.liquidGlassShade
       }
+    }
+  }
+
+  // Specular rim: a 1px white edge that is bright at the top and fades out
+  // toward the bottom, as on Apple's Liquid Glass. Masked ring, no shader.
+  Rectangle {
+    id: rimFade
+    anchors.fill: parent
+    visible: false
+    layer.enabled: true
+    gradient: Gradient {
+      GradientStop { position: 0.0; color: "#ffffffff" }
+      GradientStop { position: 0.5; color: "#55ffffff" }
+      GradientStop { position: 1.0; color: "#22ffffff" }
+    }
+  }
+
+  Rectangle {
+    anchors.fill: parent
+    radius: root.radius
+    color: "transparent"
+    border.width: 1
+    border.color: Colors.liquidGlassRim
+    layer.enabled: true
+    layer.effect: MultiEffect {
+      maskEnabled: true
+      maskSource: rimFade
     }
   }
 
