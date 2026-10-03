@@ -292,6 +292,40 @@ PopupBase {
                       visible: text !== ""
                     }
                   }
+
+                  // Actions only work while the app's notification is still
+                  // live; once it closes, liveNotif is null and the row hides.
+                  Row {
+                    id: historyActionRow
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: Config.spacingSmall
+                    spacing: Config.spacingSmall
+                    visible: historyActionRepeater.count > 0
+
+                    Repeater {
+                      id: historyActionRepeater
+                      model: {
+                        var out = []
+                        var live = notif ? notif.liveNotif : null
+                        var list = live && live.actions ? live.actions : []
+                        for (var i = 0; i < list.length && out.length < 3; i++)
+                          if (list[i].identifier !== "default") out.push(list[i])
+                        return out
+                      }
+
+                      delegate: ActionButton {
+                        required property var modelData
+                        height: 32
+                        width: Math.max(72, (historyActionRow.width - historyActionRow.spacing * (historyActionRepeater.count - 1)) / historyActionRepeater.count)
+                        labelText: modelData.text
+                        horizontalContent: true
+                        variant: "tonal"
+                        accessibleName: modelData.text
+                        accessibleDescription: "Notification action"
+                        onActivated: modelData.invoke()
+                      }
+                    }
+                  }
                 }
               }
             }
