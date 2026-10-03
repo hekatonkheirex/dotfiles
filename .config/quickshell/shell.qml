@@ -337,6 +337,13 @@ ShellRoot {
       return Settings.themeStyle
     }
 
+    // Dev/testing: select a Settings tab (0-11) in memory. Not saved unless
+    // something else calls Settings.save().
+    function settingsTab(index: int): int {
+      Settings.lastSettingsTab = index
+      return Settings.lastSettingsTab
+    }
+
     function currentPopup(): string {
       return bar.openPopup
     }

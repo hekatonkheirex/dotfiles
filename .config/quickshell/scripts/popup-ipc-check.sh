@@ -14,4 +14,8 @@ qs ipc call shell dismissPopups >/dev/null
 # In-memory style switch (never saved) round-trips.
 [ "$(qs ipc call shell style ghost "")" = ghost ] && echo "ok   style ghost" || { echo "FAIL style ghost"; fail=1; }
 [ "$(qs ipc call shell style material3 "")" = material3 ] && echo "ok   style material3" || { echo "FAIL style material3"; fail=1; }
+# In-memory Settings tab selection round-trips (restores the persisted value).
+orig=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.config/quickshell/settings.json')))['lastSettingsTab'])")
+[ "$(qs ipc call shell settingsTab 5)" = 5 ] && echo "ok   settingsTab" || { echo "FAIL settingsTab"; fail=1; }
+qs ipc call shell settingsTab "$orig" >/dev/null
 exit $fail
