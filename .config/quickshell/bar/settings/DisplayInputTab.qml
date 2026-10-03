@@ -166,9 +166,11 @@ Flickable {
               cliFile: "outputs"; cliField: "transform"; extraArgs: [modelData]
               label: "Transform"
               leadingIcon: "screen_rotation"
+              // Ghost's mono face and Evolution's Geist cut "Flipped 270°" at
+              // three columns.
               optionColumns: displayInputTab.compactLayout
                 ? 1
-                : 3
+                : (Config.ghostTheme || Config.nothingEvolution ? 2 : 3)
               options: displayInputTab.transformOptions
               onWriteFailed: displayInputTab.onFieldFailed(message)
             }

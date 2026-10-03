@@ -47,7 +47,9 @@ Flickable {
   readonly property real statsBattPct: batteryDevice ? batteryDevice.percentage * 100 : -1
   readonly property string statsBattStatus: {
     if (!batteryDevice) return "Unavailable"
-    if (batteryDevice.state === UPowerDeviceState.Charging || batteryDevice.state === UPowerDeviceState.PendingCharge) return "Charging"
+    // pending-charge means plugged in but held by a charge threshold.
+    if (batteryDevice.state === UPowerDeviceState.PendingCharge) return "Plugged in, holding charge"
+    if (batteryDevice.state === UPowerDeviceState.Charging) return "Charging"
     if (batteryDevice.state === UPowerDeviceState.FullyCharged) return "Fully charged"
     if (batteryDevice.state === UPowerDeviceState.Discharging || batteryDevice.state === UPowerDeviceState.PendingDischarge) return "Discharging"
     return "Unknown"

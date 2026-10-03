@@ -247,7 +247,8 @@ Item {
           savedListModel.append({
             name: parts[0],
             autoconnect: parts[2] === "yes",
-            active: parts[3] !== "--"
+            // nmcli -t prints an empty DEVICE (not "--") for inactive profiles.
+            active: parts[3] !== "" && parts[3] !== "--"
           })
         }
       }
