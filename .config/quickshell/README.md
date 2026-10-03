@@ -445,6 +445,12 @@ This project is licensed under the terms of the GNU General Public License v3.0 
 
 `scripts/controls-golden.sh <root> <out>` renders every themed control state
 in all five styles under a throwaway `$HOME` (`tests/controls-golden/shell.qml`).
-Run it before and after a control refactor, then
-`scripts/controls-golden-compare.py <before> <after>` fails if any style moves
-by more than a few pixels.
+`scripts/controls-golden-baseline.sh` wraps it:
+
+- `update` renders the current tree and replaces the baseline.
+- `check` renders again and fails if any style moves by more than a few pixels.
+
+The baseline lives outside the repo, in `~/.local/state/quickshell-golden/controls`
+(override with `QS_GOLDEN_DIR`), because fonts and Qt version change pixels per
+machine. Run `update` on a clean tree first, then `check` after a control
+change. After a deliberate visual change, review the result and run `update`.
