@@ -31,7 +31,7 @@ PanelWindow {
     : Math.min(Config.launcherWidth, Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
   visible: false
   implicitHeight: wallpaperMode
-    ? Math.min(Config.settingsMaxHeight, wallpaperGridHeight + 86)
+    ? Math.min(screenH - Config.spacingPage, wallpaperGridHeight + 86)
     : Math.min(clipItem.implicitHeight + Config.spacingPage, clipboardMode ? 560 : 500)
 
   Behavior on implicitWidth {
