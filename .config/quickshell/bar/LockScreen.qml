@@ -566,6 +566,7 @@ Item {
                 font.pixelSize: Config.typeBodyLargeSize + 4
                 font.letterSpacing: 4
                 text: root.lockInputText
+                clip: true
                 echoMode: TextInput.Password
                 passwordCharacter: "\u25CF"
                 focus: true
@@ -871,6 +872,7 @@ Item {
               font.pixelSize: Config.typeBodyLargeSize + 4
               font.letterSpacing: 4
               text: root.lockInputText
+              clip: true
               echoMode: TextInput.Password
               passwordCharacter: "\u25CF"
               focus: root.locked
@@ -1241,6 +1243,7 @@ Item {
             font.pixelSize: Config.typeBodyLargeSize + 4
             font.letterSpacing: 4
             text: root.lockInputText
+            clip: true
             echoMode: TextInput.Password
             passwordCharacter: "\u25CF"
             focus: true
