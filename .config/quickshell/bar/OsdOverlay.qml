@@ -19,7 +19,7 @@ PanelWindow {
     if (osdType === "mic") return muted ? "mic_off" : "mic"
     if (osdType === "airplane") return muted ? "airplanemode_active" : "airplanemode_inactive"
     if (osdType === "bluetooth") return muted ? "bluetooth_disabled" : "bluetooth"
-    return osdType === "kbdlight" ? "keyboard" : "brightness_high"
+    return osdType === "kbdlight" ? "keyboard" : "light_mode"
   }
   readonly property string osdTitle: {
     if (osdType === "volume") return "Volume"
@@ -385,7 +385,8 @@ PanelWindow {
         iconLabel: root.symbol
         iconSize: Config.material3Theme ? 32 : 26
         iconColor: root.signalColor
-        filled: Config.material3Theme
+        // The outline sun matches the bar indicator; the filled one is a solid disc.
+        filled: Config.material3Theme && osdType !== "brightness"
       }
 
       Text {

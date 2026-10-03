@@ -17,8 +17,8 @@ PanelWindow {
   property var heldNotif: null
   property int displayMs: Settings.notificationToastDurationMs
   property string barPosition: "top"
-  readonly property bool ghostCritical: Config.ghostTheme && notif
-    && notif.urgency === NotificationUrgency.Critical
+  // Critical toasts get an error-colored border and avatar in every style.
+  readonly property bool critical: !!notif && notif.urgency === NotificationUrgency.Critical
 
 
   implicitWidth: Config.ghostTheme
@@ -135,8 +135,8 @@ PanelWindow {
     radius: Config.popupRadius
     activeFocusOnTab: !Config.ghostTheme
     color: Colors.chromeSurface
-    border.width: Config.themeBorderWidth
-    border.color: root.ghostCritical ? Colors.destructive
+    border.width: root.critical ? Math.max(2, Config.themeBorderWidth) : Config.themeBorderWidth
+    border.color: root.critical ? (Config.ghostTheme ? Colors.destructive : Colors.error)
       : (Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
         ? Colors.styleOutline : Colors.outlineVariant)
 
@@ -220,9 +220,10 @@ PanelWindow {
           width: 20
           height: 20
           radius: Config.ghostTheme ? 0 : 10
-          color: Config.ghostTheme ? Colors.styleControl : Colors.primaryContainer
+          color: root.critical && !Config.ghostTheme ? Colors.errorContainer
+            : (Config.ghostTheme ? Colors.styleControl : Colors.primaryContainer)
           border.width: Config.ghostTheme ? Config.themeBorderWidth : 0
-          border.color: root.ghostCritical ? Colors.destructive : Colors.styleOutlineStrong
+          border.color: root.critical ? Colors.destructive : Colors.styleOutlineStrong
 
           Text {
             anchors.centerIn: parent
@@ -230,7 +231,8 @@ PanelWindow {
               var app = notif ? (notif.appName || "") : ""
               return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
             }
-            color: root.ghostCritical ? Colors.destructive
+            color: root.critical
+              ? (Config.ghostTheme ? Colors.destructive : Colors.fgErrorContainer)
               : (Config.ghostTheme ? Colors.styleAccent : Colors.fgPrimaryContainer)
             font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
             font.pixelSize: Config.typeLabelSmallSize
