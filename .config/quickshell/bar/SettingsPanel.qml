@@ -624,7 +624,7 @@ PanelWindow {
         if (Config.nothingEvolution) return Colors.readingSurface
         if (Config.liquidGlassTheme) {
           var glass = Colors.chromeSurface
-          return Qt.rgba(glass.r, glass.g, glass.b, Math.max(glass.a, 0.94))
+          return Qt.rgba(glass.r, glass.g, glass.b, Math.max(glass.a, 0.68))
         }
         return Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surface
       }
