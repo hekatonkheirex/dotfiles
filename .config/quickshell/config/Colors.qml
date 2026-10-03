@@ -749,9 +749,6 @@ QtObject {
   readonly property color liquidGlassShade: liquidGlassOpaque
     ? Qt.rgba(0, 0, 0, 0)
     : Qt.rgba(0, 0, 0, darkMode ? 0.16 : 0.05)
-  readonly property color liquidGlassRim: liquidGlassOpaque
-    ? Qt.rgba(1, 1, 1, 0)
-    : Qt.rgba(1, 1, 1, darkMode ? 0.55 : 0.85)
   readonly property color liquidGlassEdge: liquidGlassOpaque
     ? outline
     : Qt.rgba(1, 1, 1, darkMode ? 0.18 : 0.30)
