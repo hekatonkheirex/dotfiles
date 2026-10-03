@@ -341,7 +341,10 @@ ShellRoot {
     // something else calls Settings.save().
     function settingsTab(index: int): int {
       Settings.lastSettingsTab = index
-      return Settings.lastSettingsTab
+      // currentTab loses its binding to the setting once the panel assigns it
+      // (any tab click), so set it directly too.
+      settingsPanel.currentTab = index
+      return settingsPanel.currentTab
     }
 
     // Dev/testing: show the Wi-Fi "Forget <name>?" confirmation without
