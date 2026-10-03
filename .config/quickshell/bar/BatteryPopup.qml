@@ -37,7 +37,7 @@ PopupBase {
       // UPower reports pending-charge while a charge threshold holds the
       // battery; it is plugged in but drawing nothing, so "Charging" and a
       // 0.0 W rate contradicted each other.
-      if (dev.state === UPowerDeviceState.PendingCharge) root.stateLabel = "Plugged in, holding charge"
+      if (dev.state === UPowerDeviceState.PendingCharge) root.stateLabel = BatteryService.heldLabel
       else if (ch) root.stateLabel = "Charging"
       else if (dev.state === UPowerDeviceState.FullyCharged) root.stateLabel = "Fully charged"
       else if (dev.state === UPowerDeviceState.Discharging) root.stateLabel = "Discharging"
@@ -64,6 +64,11 @@ PopupBase {
         }
       }
     }
+  }
+
+  Connections {
+    target: BatteryService
+    function onChargeLimitChanged() { root.updateBattery() }
   }
 
   onShown: {
