@@ -154,26 +154,17 @@ Item {
     visible: root.face !== "gooey"
     spacing: Config.spacingCompact
 
-    RowLayout {
+    // Date centered over the centered time: the old label-left / date-right
+    // row did not line up with the centered clock below it.
+    Text {
       Layout.fillWidth: true
-
-      Text {
-        text: "MICROGRAPHICS"
-        color: root.secondaryColor
-        font.family: Config.monoFontFamily
-        font.pixelSize: Math.max(9, Config.fontPixelSize - 1)
-        font.weight: Font.Medium
-        font.letterSpacing: 1.2
-      }
-
-      Item { Layout.fillWidth: true }
-
-      Text {
-        text: root.now.toLocaleDateString(Qt.locale(), "MMM dd")
-        color: root.secondaryColor
-        font.family: Config.monoFontFamily
-        font.pixelSize: Math.max(10, Config.fontPixelSize)
-      }
+      horizontalAlignment: Text.AlignHCenter
+      text: root.now.toLocaleDateString(Qt.locale(), "MMM dd")
+      color: root.secondaryColor
+      font.family: Config.monoFontFamily
+      font.pixelSize: Math.max(16, Config.fontPixelSize + 5)
+      font.weight: Font.Medium
+      font.letterSpacing: 1.2
     }
 
     Text {
