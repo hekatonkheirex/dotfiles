@@ -18,6 +18,7 @@ Item {
   property bool iconFilled: root.active
   property bool loading: false
   property string iconLabel: ""
+  property Component iconComponent: null
   property string iconFont: Config.iconFont
   property bool iconVariableAxes: true
   property real iconOpacity: 1.0
@@ -198,7 +199,7 @@ Item {
 
     IconGlyph {
       id: iconText
-      visible: !root.loading
+      visible: !root.loading && root.iconComponent === null
       iconLabel: root.iconLabel
       iconColor: root.iconColor
       iconSize: Config.iconSize
@@ -206,6 +207,16 @@ Item {
       filled: root.iconFilled
       iconFont: root.iconFont
       iconVariableAxes: root.iconVariableAxes
+      Layout.preferredWidth: Config.iconSize
+      Layout.preferredHeight: Config.iconSize
+      Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+    }
+
+    Loader {
+      active: root.iconComponent !== null
+      visible: !root.loading && active
+      sourceComponent: root.iconComponent
+      opacity: root.iconOpacity
       Layout.preferredWidth: Config.iconSize
       Layout.preferredHeight: Config.iconSize
       Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter

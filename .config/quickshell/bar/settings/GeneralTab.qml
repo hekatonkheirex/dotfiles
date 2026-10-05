@@ -21,6 +21,7 @@ Flickable {
     clock: { key: "ccShowClock", icon: "schedule", title: "Clock" },
     notifications: { key: "ccShowNotifications", icon: "notifications", title: "Notifications" },
     battery: { key: "ccShowBattery", icon: "battery_full", title: "Battery" },
+    llm: { key: "ccShowLlm", icon: "auto_awesome", title: "LLM usage" },
     tray: { key: "ccShowTray", icon: "extension", title: "System tray" },
     audio: { key: "ccShowAudio", icon: "volume_up", title: "Audio" },
     display: { key: "ccShowDisplay", icon: "brightness_medium", title: "Display brightness" },

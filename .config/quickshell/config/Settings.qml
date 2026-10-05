@@ -5,6 +5,7 @@ pragma Singleton
 import QtQml
 import Quickshell
 import Quickshell.Io
+import "BarOrder.js" as BarOrder
 
 FileView {
   id: root
@@ -21,13 +22,14 @@ FileView {
   // Keep persisted defaults in one place. JsonAdapter needs these values for
   // missing keys, while the reset actions reuse the same snapshot below.
   readonly property var defaults: ({
-    schemaVersion: 1,
+    schemaVersion: 2,
     barSize: 42,
-    barWidgetOrder: "launcher,workspaces,layout,focused,gap,center,audio,display,media,weather,battery,tray,notifications,clock",
+    barWidgetOrder: "launcher,workspaces,layout,focused,gap,center,audio,display,media,weather,llm,battery,tray,notifications,clock",
     barClockInFlow: false,
     calendarWeekStartsMonday: false,
     ccShowAudio: true,
     ccShowBattery: true,
+    ccShowLlm: true,
     ccShowDisplay: true,
     ccShowFocusedWindow: true,
     ccShowLayout: true,
@@ -103,11 +105,23 @@ FileView {
   // read. Use FileView's load signal so surfaces that depend on persisted
   // settings are created with the loaded values.
   onLoaded: {
+    var stored = JSON.parse(root.text())
+    var needsSave = stored.schemaVersion !== root.defaults.schemaVersion
+      || stored.ccShowCodex !== undefined || stored.ccShowClaude !== undefined
+    if (needsSave) {
+      if (typeof stored.ccShowLlm !== "boolean") {
+        ccShowLlm = (typeof stored.ccShowCodex === "boolean" ? stored.ccShowCodex : true)
+          || (typeof stored.ccShowClaude === "boolean" ? stored.ccShowClaude : true)
+      }
+      barWidgetOrder = BarOrder.normalize(barWidgetOrder).join(",")
+      adapter.schemaVersion = root.defaults.schemaVersion
+    }
     if (themeStyle === "neo-brutalism") {
       themeStyle = "nothing"
       nothingVariant = "evolution"
-      root.save()
+      needsSave = true
     }
+    if (needsSave) root.save()
     initialLoadComplete = true
   }
 
@@ -123,6 +137,7 @@ FileView {
   property alias calendarWeekStartsMonday: adapter.calendarWeekStartsMonday
   property alias ccShowAudio: adapter.ccShowAudio
   property alias ccShowBattery: adapter.ccShowBattery
+  property alias ccShowLlm: adapter.ccShowLlm
   property alias ccShowDisplay: adapter.ccShowDisplay
   property alias ccShowFocusedWindow: adapter.ccShowFocusedWindow
   property alias ccShowLayout: adapter.ccShowLayout
@@ -214,6 +229,7 @@ FileView {
     calendarWeekStartsMonday = root.defaults.calendarWeekStartsMonday
     ccShowAudio = root.defaults.ccShowAudio
     ccShowBattery = root.defaults.ccShowBattery
+    ccShowLlm = root.defaults.ccShowLlm
     ccShowDisplay = root.defaults.ccShowDisplay
     ccShowFocusedWindow = root.defaults.ccShowFocusedWindow
     ccShowLayout = root.defaults.ccShowLayout
@@ -267,6 +283,7 @@ FileView {
     property bool calendarWeekStartsMonday: root.defaults.calendarWeekStartsMonday
     property bool ccShowAudio: root.defaults.ccShowAudio
     property bool ccShowBattery: root.defaults.ccShowBattery
+    property bool ccShowLlm: root.defaults.ccShowLlm
     property bool ccShowDisplay: root.defaults.ccShowDisplay
     property bool ccShowFocusedWindow: root.defaults.ccShowFocusedWindow
     property bool ccShowLayout: root.defaults.ccShowLayout

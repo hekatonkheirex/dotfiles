@@ -69,19 +69,25 @@ PanelWindow {
     }
   }
 
+  function dismissIfApplicationInactive() {
+    if (root.dismissOnAppInactive && popupFocus.focusAcquired
+        && !Qt.application.active && root.visible) root.dismissed()
+  }
+
   Connections {
     target: Qt.application
     function onActiveChanged() {
-      if (root.dismissOnAppInactive && !Qt.application.active && root.visible) root.dismissed()
+      if (!Qt.application.active) Qt.callLater(root.dismissIfApplicationInactive)
     }
   }
 
-  Item {
+  FocusScope {
     anchors.fill: parent
     focus: true
     Keys.onEscapePressed: root.dismissed()
 
     FocusDismiss {
+      id: popupFocus
       target: root
       onDismissed: root.dismissed()
     }

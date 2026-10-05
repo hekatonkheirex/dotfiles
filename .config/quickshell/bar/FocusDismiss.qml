@@ -7,6 +7,8 @@ Item {
   property var target: parent
   signal dismissed()
   readonly property var popupWindow: Window.window
+  property bool focusAcquired: false
+  onPopupWindowChanged: focusAcquired = false
 
   function focusIsInsidePopup() {
     if (!focusDismiss.popupWindow || focusDismiss.popupWindow.active === false) return false
@@ -20,16 +22,33 @@ Item {
     return false
   }
 
-  function dismissIfFocusLeft() {
+  function dismissIfFocusStillOutside() {
     if (focusDismiss.target && focusDismiss.target.visible
-        && !focusDismiss.focusIsInsidePopup()) {
+        && focusDismiss.focusAcquired && !focusDismiss.focusIsInsidePopup()) {
+      focusDismiss.focusAcquired = false
       focusDismiss.dismissed()
+    }
+  }
+
+  function dismissIfFocusLeft() {
+    if (!focusDismiss.target || !focusDismiss.target.visible) return
+    if (focusDismiss.focusIsInsidePopup()) {
+      focusDismiss.focusAcquired = true
+    } else if (focusDismiss.focusAcquired && (Config.isNiri || Config.isMango)) {
+      // Focus can briefly be null while a popup maps or changes controls.
+      Qt.callLater(focusDismiss.dismissIfFocusStillOutside)
+    }
+  }
+
+  Connections {
+    target: focusDismiss.target
+    function onVisibleChanged() {
+      if (!focusDismiss.target.visible) focusDismiss.focusAcquired = false
     }
   }
 
   Connections {
     target: focusDismiss.popupWindow
-    enabled: Config.isNiri || Config.isMango
 
     function onActiveFocusItemChanged() {
       focusDismiss.dismissIfFocusLeft()

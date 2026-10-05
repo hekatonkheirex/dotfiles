@@ -1,6 +1,9 @@
 singleton AudioService 1.0 AudioService.qml
 singleton BatteryService 1.0 BatteryService.qml
 singleton BrightnessService 1.0 BrightnessService.qml
+singleton CodexUsageService 1.0 CodexUsageService.qml
+singleton ClaudeUsageService 1.0 ClaudeUsageService.qml
+LlmUsageService 1.0 LlmUsageService.qml
 singleton Colors 1.0 Colors.qml
 singleton Config 1.0 Config.qml
 singleton MediaService 1.0 MediaService.qml

@@ -61,6 +61,33 @@ TestCase {
     compare(BarOrder.middleOrder(saved, { audio: true, display: true }), [])
   }
 
+  function test_llmMigrationPreservesExistingOrderAndZones() {
+    var saved = "launcher,audio,workspaces,layout,gap,clock,focused,center,display,media,weather,battery,tray,notifications"
+    var order = BarOrder.normalize(saved)
+    compare(order.filter(function(id) { return id !== "llm" }).join(","), saved)
+    compare(order.filter(function(id) { return id === "llm" }).length, 1)
+    compare(BarOrder.zone(order.join(","), "clock"), "middle")
+    compare(BarOrder.zone(order.join(","), "audio"), "start")
+    compare(BarOrder.normalize(order.join(",")).join(","), order.join(","))
+  }
+
+  function test_singleProviderOrderMigratesInPlace() {
+    var saved = "launcher,audio,workspaces,layout,gap,codex,clock,focused,center,display,media,weather,battery,tray,notifications"
+    var order = BarOrder.normalize(saved)
+    compare(order.join(","), saved.replace("codex", "llm"))
+    compare(BarOrder.zone(order.join(","), "llm"), "middle")
+    compare(BarOrder.normalize(order.join(",")).join(","), order.join(","))
+  }
+
+  function test_separateProviderOrdersCollapseAtFirstPosition() {
+    var saved = "launcher,claude,audio,workspaces,layout,gap,codex,clock,focused,center,display,media,weather,battery,tray,notifications"
+    var order = BarOrder.normalize(saved)
+    compare(order.join(","), saved.replace("claude", "llm").replace(",codex", ""))
+    compare(order.filter(function(id) { return id === "llm" }).length, 1)
+    compare(BarOrder.zone(order.join(","), "llm"), "start")
+    compare(BarOrder.normalize(order.join(",")).join(","), order.join(","))
+  }
+
   function test_arrowsCrossBothMiddleBoundaries() {
     var original = BarOrder.normalize("").join(",")
     var middle = BarOrder.move(original, "focused", 1, false)

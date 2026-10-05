@@ -2,25 +2,30 @@
 
 var defaultOrder = [
   "launcher", "workspaces", "layout", "focused", "gap", "center",
-  "audio", "display", "media", "weather", "battery", "tray",
+  "audio", "display", "media", "weather", "llm", "battery", "tray",
   "notifications", "clock"
 ]
 
 function normalize(value) {
   if (typeof value !== "string") return defaultOrder.slice()
-  var items = value.split(",")
-  var previousOrder = items.length === defaultOrder.length - 1
-    && items.indexOf("center") === -1
-  if (!previousOrder && items.length !== defaultOrder.length) return defaultOrder.slice()
+  var saved = value.split(",")
   var seen = {}
-  for (var i = 0; i < items.length; i++) {
-    if (defaultOrder.indexOf(items[i]) === -1 || seen[items[i]]) return defaultOrder.slice()
-    seen[items[i]] = true
+  var items = []
+  for (var i = 0; i < saved.length; i++) {
+    var id = saved[i]
+    if (seen[id] || (defaultOrder.indexOf(id) === -1 && id !== "codex" && id !== "claude"))
+      return defaultOrder.slice()
+    seen[id] = true
+    // Collapse former provider widgets at the first saved provider position.
+    if (id === "codex" || id === "claude") id = "llm"
+    if (items.indexOf(id) === -1) items.push(id)
   }
-  if (previousOrder) {
-    if (items.indexOf("gap") === -1) return defaultOrder.slice()
-    items.splice(items.indexOf("gap") + 1, 0, "center")
-  }
+  var missingCenter = items.indexOf("center") === -1
+  var missingLlm = items.indexOf("llm") === -1
+  if (items.length !== defaultOrder.length - (missingCenter ? 1 : 0) - (missingLlm ? 1 : 0))
+    return defaultOrder.slice()
+  if (missingCenter) items.splice(items.indexOf("gap") + 1, 0, "center")
+  if (missingLlm) items.splice(items.indexOf("battery"), 0, "llm")
   return items
 }
 

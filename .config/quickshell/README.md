@@ -16,6 +16,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
 - **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, local offline **voice search**, shell actions via `>` (including capture), clipboard history via `;`, and wallpaper search via `@`.
 - **On-Screen Display (OSD)** overlay for volume, brightness, mic mute, airplane mode, bluetooth, and keyboard backlight (polled from sysfs since the EC never emits a key event for it).
+- **LLM usage**: One read-only bar widget whose popup displays Codex and Claude side by side, including five-hour and weekly usage, reset countdowns, and available reset credits. Enabled by default; visibility and position are configurable in General → Bar Contents.
 - **Settings panel**: A multi-functional, resizable and draggable panel launched via `XF86Tools` with twelve tabs:
   - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
   - **General**: Motion, reduced transparency, uptime, clock, calendar week start, timezone, bar widget visibility and order, and weather location/refresh/privacy/unit settings
@@ -53,6 +54,9 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── BatteryService.qml     # Shared UPower battery-device selection
 │   ├── MediaService.qml       # Shared MPRIS monitor state
 │   ├── WeatherService.qml     # Shared weather fetch/cache state
+│   ├── LlmUsageService.qml    # Shared quota polling and stale-reading state
+│   ├── CodexUsageService.qml  # Codex quota singleton
+│   ├── ClaudeUsageService.qml # Claude quota singleton
 │   └── cava.ini               # cava config for the real-time audio visualizer
 ├── bar/
 │   ├── Bar.qml                 # The panel itself — full-bar/pills-bar styles, orientation-aware active indicators
@@ -85,6 +89,10 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── MediaPopup.qml          # Media controls and circular cava visualizer
 │   ├── WeatherIndicator.qml    # Current weather indicator
 │   ├── WeatherPopup.qml        # Current conditions and forecast
+│   ├── LlmUsageIndicator.qml   # Single combined LLM usage indicator
+│   ├── LlmUsageIcon.qml        # Theme-specific LLM shapes using the shared bar-widget icon color
+│   ├── LlmUsagePopup.qml       # Combined Codex and Claude usage popup
+│   ├── LlmUsageSection.qml     # Provider usage, resets, and refresh state
 │   ├── WifiPanel.qml            # Wi-Fi controls used by the Settings Network tab
 │   ├── BtPanel.qml              # Bluetooth controls used by the Settings Bluetooth tab
 │   ├── SystemTrayArea.qml      # StatusNotifier tray icons (orientation-aware)
@@ -105,7 +113,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── FileTrigger.qml         # Private runtime trigger-file watcher (single inotifywait for all triggers)
 │   ├── SliderControl.qml       # Theme-selected slider facade (volume/brightness/etc.)
 │   ├── SwitchControl.qml       # Theme-selected switch/toggle facade
-│   ├── WaveProgressBar.qml     # Reusable wavy progress bar canvas (progress, lineWidth, dotRadius, trackLineWidth)
+│   ├── WaveProgressBar.qml     # Theme-aware progress canvas: Material wave, Liquid Glass capsule, Nothing dot matrix
 │   ├── primitives/             # Shared buttons, list items, and text fields
 │   │   ├── ActionButton.qml
 │   │   ├── GlassSheen.qml
@@ -155,6 +163,8 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── mpris_monitor.py         # Active MPRIS state broadcaster (DBus + private FIFO listener)
 │   ├── mpris_control.py         # MPRIS play/pause/stop/next/prev control for the active player
 │   ├── weather.py               # Open-Meteo weather fetcher script
+│   ├── codex-usage.py           # Read-only OpenAI subscription usage/reset inventory
+│   ├── claude-usage.py          # Read-only Anthropic subscription usage/reset inventory
 │   └── voice-search.py          # Local speech transcription via python-vosk (downloads its model to ~/.local/share/vosk-model on first use)
 └── bin/
     └── desktop-parser.py        # .desktop → JSON for launcher
@@ -315,7 +325,7 @@ Popup positioning follows the active bar placement (computed in `shell.qml`'s `p
 
 All bar-owned popups, the shield, Settings, notifications, and power confirmation use the bar's display. Placement and wallpaper-launcher sizing are clamped in that display's local coordinates rather than the primary monitor's dimensions.
 
-Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` watches the popup window's active focus item so moving focus between controls inside a popup does not dismiss it, while application deactivation closes transient popups. The full-page Settings surface remains open through Mango's transient layer-focus changes so switching tags or clients does not dismiss it. `PopupBase.qml` supplies the shared M3 background/border/entry-animation chrome that most popups build on; Liquid Glass adds translucent functional surfaces and a restrained sheen to that same path. Actual backdrop blur remains compositor-owned and is optional when the compositor has background effects enabled.
+Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` arms dismissal after the popup acquires focus, ignoring initial inactive/null-focus events while it maps. The popup content uses a `FocusScope` so moving between controls or disabling a focused refresh button does not dismiss it; genuine focus loss is rechecked on the next event-loop turn. The full-page Settings surface remains open through Mango's transient layer-focus changes so switching tags or clients does not dismiss it. `PopupBase.qml` supplies the shared M3 background/border/entry-animation chrome that most popups build on; Liquid Glass adds translucent functional surfaces and a restrained sheen to that same path. Actual backdrop blur remains compositor-owned and is optional when the compositor has background effects enabled.
 
 | Popup | Trigger | Content |
 |---|---|---|
@@ -323,6 +333,7 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 | Audio | `AudioIndicator` click | Volume + mic sliders (M3 switches; active check = sound enabled, unchecked = muted). Pointer adjustments do not leave a focus outline; keyboard focus stays visible while adjusting and resets when the popup closes. |
 | Brightness | `BrightnessIndicator` click | Brightness slider (M3 bordered) |
 | Battery | `BatteryIndicator` click | Percentage, energy capacity, status, rate, cycles, model (M3 bordered) |
+| LLM usage | Themed LLM indicator / `qs ipc call shell popup llm` | Codex and Claude five-hour/weekly usage, reset countdowns, available reset credits, and per-provider refresh |
 | Calendar | Clock click | Month grid with navigation (M3 bordered) |
 | Notifications | `NotificationIndicator` click | M3-compliant card layout list tracked via `modelData` |
 | Quick Menu | `MenuIndicator` click / `Mod+Escape` | Caffeine, airplane mode, DND, Settings, lock, and confirmed power actions (M3 bordered) |
@@ -337,9 +348,21 @@ Build-time layout, typography, shape, and motion tokens: `barWidth`, `widgetSize
 
 Popup and toast entrances share a style-specific motion grammar: Material settles elastically, Nothing is crisp, Ghost uses short precise translation, and Liquid Glass is fluid. Workspace selection uses matching spring damping. Reduced Motion suppresses spatial transitions; Liquid Glass retains its existing short opacity acknowledgement.
 
+### Codex and Claude subscription usage
+
+One themed indicator opens a single **LLM usage** popup with Codex and Claude sections. Liquid Glass uses a six-loop mark, Material 3 a four-point sparkle, Nothing Classic and Evolution a six-arm asterisk, and Ghost an angular circuit core. Every shape uses the owning `StatusIndicator.iconColor`, matching other bar widgets: Liquid Glass bar foreground, Material 3 accent, Nothing Classic foreground, Nothing Evolution adaptive accent, and Ghost muted ink at rest with cyan when active. The marks have transparent backdrops rather than the reference screenshots' tiles. The custom icon uses `StatusIndicator.iconComponent`, preserving the shared hit target, keyboard activation, loading spinner, tooltip, and error badge. The indicator is icon-only rather than combining unrelated quotas into one percentage; its tooltip summarizes both providers. Each section shows five-hour and weekly **percent used**, reset countdowns, available reset credits, and its own refresh button and status. The sections sit side by side on wide displays and stack on narrow displays; short displays can scroll. Codex full resets cover both weekly and five-hour limits; Claude reports saved usage-limit reset credits. The nearest reset-credit expiry is displayed in local time. Reset credits are never redeemed by the widget.
+
+Usage bars follow the selected UI style: Liquid Glass uses a luminous rounded fill over a muted capsule track; Material 3 uses a thick rounded wave, a separated remaining track, and a terminal stop dot; Nothing Classic and Evolution use three rows of bright/dim dots inside a capsule; Ghost uses a square 24-cell scanline meter with taller active cells, matching its slider tokens. Nothing uses foreground ink and Ghost uses its cyan accent for normal usage; all styles retain the error color at 90% used and above. The shared progress renderer also styles the media progress bar, except Ghost media retains its existing thin straight meter. Theme changes repaint the bars without changing quota values or reset times.
+
+`scripts/codex-usage.py` reads the existing OAuth sign-in from `$CODEX_HOME/auth.json`, or `~/.codex/auth.json` when unset. Sign in with `codex login`; API keys cannot report ChatGPT-plan Codex quota. The helper calls OpenAI's `wham/usage` and `wham/rate-limit-reset-credits` endpoints using Python's standard library. These account endpoints can change independently of the public API. Credentials are not passed through QML, written to settings, logged, refreshed, or modified. The helper emits quota data only, without account identifiers.
+
+`scripts/claude-usage.py` reads the existing Claude Code OAuth sign-in from `$CLAUDE_CONFIG_DIR/.credentials.json`, or `~/.claude/.credentials.json` when unset. The sign-in needs `user:profile` scope; an inference-only token or API key is not a subscription reporting credential. It reads Anthropic's OAuth usage endpoint with the optional `cedar_ember` reset inventory. Reset eligibility requires a supported installed Claude Code version: the helper runs only `claude --version` to identify that version, never an interactive session or login. Missing or ineligible inventory remains unavailable. Supported, active, unpaused grants contribute their remaining resets; exhausted, future, and expired grants do not.
+
+Both providers poll every five minutes while the single indicator or popup is visible; opening the popup reuses readings or failed attempts younger than five minutes. Each section's refresh button only refreshes that provider. Scheduled polling makes at most 12 refreshes per provider per hour, with two OpenAI reads per Codex refresh and one Anthropic read per Claude refresh. These are account endpoints, not public reporting APIs with a guaranteed polling allowance. A Claude HTTP 429 starts a cooldown of at least five minutes, honoring longer `Retry-After` delays in seconds or HTTP-date form; automatic and manual refreshes are blocked until it expires, and the section shows a countdown. Provider failures are independent: a failed refresh retains its usage as explicitly **stale**, but clears its reset inventory. The indicator's red `!` means a provider failed or has stale data, including failures before its first successful reading. Missing windows or unreadable reset inventory show **Unavailable**, not zero; valid empty inventory shows zero. Expired cached inventory is hidden until refreshed. `ccShowLlm` controls visibility; the `llm` entry in `barWidgetOrder` controls placement. Former `codex` and `claude` entries collapse to `llm` at the first saved provider position without reordering other widgets. The old visibility preferences migrate to one toggle, enabled if either provider was enabled.
+
 ### `config/Settings.qml`
 
-Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs bar layout, motion, independent `reduceTransparency`, clock/calendar/timezone, indicator visibility, workspaces, color source/palette/contrast, UI style (`material3`, `nothing`, `ghost`, or `liquid-glass`), Nothing variant, lock screen, notifications, idle timeouts, and weather. A saved `neo-brutalism` selection migrates to Nothing Evolution on load. The persisted format remains `schemaVersion: 1`. Preferences update through `watchChanges: true`; call `Settings.save()` after mutating an alias. The Appearance tab restores appearance-owned defaults; the confirmed System reset restores all settings and top bar placement.
+Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs bar layout, motion, independent `reduceTransparency`, clock/calendar/timezone, indicator visibility, workspaces, color source/palette/contrast, UI style (`material3`, `nothing`, `ghost`, or `liquid-glass`), Nothing variant, lock screen, notifications, idle timeouts, and weather. A saved `neo-brutalism` selection migrates to Nothing Evolution on load. The persisted format is `schemaVersion: 2`; version 1 preferences migrate the separate Codex/Claude toggles and order entries to the combined LLM widget and remove obsolete keys. Preferences update through `watchChanges: true`; call `Settings.save()` after mutating an alias. The Appearance tab restores appearance-owned defaults; the confirmed System reset restores all settings and top bar placement.
 
 ### `config/Colors.qml`
 
@@ -369,7 +392,7 @@ Full-screen transparent surface on `WlrLayer.Bottom` that catches clicks outside
 
 ### `bar/FocusDismiss.qml`
 
-Handles popup dismissal on app focus loss with target null checks. On Niri and Mango, it observes the popup window's active focus item, preserving focus transitions between popup controls while dismissing when focus leaves the window. The `Qt.application.activeChanged` check runs on all WMs and closes the popup when the user switches to another application.
+Handles popup dismissal on app focus loss with target null checks. It observes focus acquisition on all compositors and arms dismissal only after focus enters the popup, resetting when it hides or its native window changes. On Niri and Mango, it also observes native focus loss, deferring the outside-focus check so transient changes can settle. `PopupBase` wraps its content in a `FocusScope`, preserving focus when a focused control becomes disabled. The guarded `Qt.application.activeChanged` check runs on all WMs and closes an already-focused popup when the user switches to another application.
 
 ## Widget Details
 

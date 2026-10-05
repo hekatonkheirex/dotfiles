@@ -3,7 +3,7 @@
 # an unknown name returns false, and dismissPopups clears the state.
 set -u
 fail=0
-for n in audio brightness media weather battery notification calendar quickmenu launcher; do
+for n in audio brightness media weather llm battery notification calendar quickmenu launcher; do
   qs ipc call shell dismissPopups >/dev/null; sleep 0.4
   r=$(qs ipc call shell popup "$n"); c=$(qs ipc call shell currentPopup)
   if [ "$r" = true ] && [ "$c" = "$n" ]; then echo "ok   $n"; else echo "FAIL $n (popup=$r current=$c)"; fail=1; fi

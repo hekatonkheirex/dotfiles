@@ -37,6 +37,7 @@ PanelWindow {
     display: Settings.ccShowDisplay,
     media: Settings.ccShowMedia,
     weather: Settings.ccShowWeather,
+    llm: Settings.ccShowLlm,
     battery: Settings.ccShowBattery,
     tray: Settings.ccShowTray && systemTray.visibleCount > 0,
     notifications: Settings.ccShowNotifications,
@@ -219,6 +220,7 @@ PanelWindow {
     var widgets = {
       audio: audioIndicator, brightness: brightnessIndicator, media: mediaIndicator,
       weather: weatherIndicator, battery: batteryIndicator, notification: notifIndicator,
+      llm: llmUsageIndicator,
       calendar: clockWidget, quickmenu: menuIndicator, launcher: launcherWidget
     }
     if (!(name in widgets)) return false
@@ -878,6 +880,47 @@ PanelWindow {
             integrated: root.fullBar
             onClicked: function(mouse) {
               root.togglePopup("weather", weatherIndicator)
+            }
+          }
+        }
+
+        Item {
+          id: llmUsageWrapper
+          parent: root.inMiddle("llm") ? middleLayout : layout
+          Layout.column: root.horizontal ? root.barSlot("llm") : 0
+          Layout.row: root.horizontal ? 0 : root.barSlot("llm")
+          Layout.preferredWidth: root.horizontal
+            ? (root.horizontalInlineContent
+              ? Math.max(root.horizontalPillLength, llmUsageIndicator.horizontalContentWidth)
+              : root.wSize) * root.expandProgress
+            : parent.width
+          Layout.preferredHeight: root.horizontal
+            ? parent.height
+            : Math.max(
+                root.pillsBar ? root.verticalPillLength : 0,
+                llmUsageIndicator.verticalLayoutHeight
+              ) * root.expandProgress
+          Layout.fillHeight: root.horizontal
+          Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
+          opacity: root.expandProgress
+          visible: root.expandProgress > 0 && Settings.ccShowLlm
+          clip: true
+
+          PillSurface {
+            horizontal: root.horizontal
+            visible: root.pillsBar
+          }
+
+          LlmUsageIndicator {
+            id: llmUsageIndicator
+            anchors.fill: parent
+            visible: llmUsageWrapper.visible
+            active: root.openPopup === "llm"
+            horizontal: root.horizontal
+            inlineContent: root.horizontalInlineContent
+            integrated: root.fullBar
+            onClicked: function(mouse) {
+              root.togglePopup("llm", llmUsageIndicator)
             }
           }
         }

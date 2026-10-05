@@ -322,7 +322,7 @@ ShellRoot {
       bar.openPopup = bar.openPopup === "settings" ? "" : "settings"
     }
 
-    // popup("audio" | "brightness" | "media" | "weather" | "battery" |
+    // popup("audio" | "brightness" | "media" | "weather" | "llm" | "battery" |
     // "notification" | "calendar" | "quickmenu" | "launcher"): toggle a bar popup.
     function popup(name: string): bool {
       return bar.togglePopupByName(name)
@@ -520,6 +520,18 @@ ShellRoot {
   WeatherPopup {
     id: weatherPopup
     visible: bar.openPopup === "weather" && !lockScreen.locked
+    anchorY: bar.popupAnchorY
+    screen: bar.screen
+    onDismissed: bar.openPopup = ""
+
+    anchors.left: true
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
+    anchors.top: true
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
+  }
+
+  LlmUsagePopup {
+    visible: bar.openPopup === "llm" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     screen: bar.screen
     onDismissed: bar.openPopup = ""
