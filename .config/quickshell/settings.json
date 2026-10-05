@@ -25,7 +25,7 @@
     "colorVariant": "auto",
     "doNotDisturb": false,
     "fontPixelSize": 12,
-    "fullBar": false,
+    "fullBar": true,
     "iconSize": 20,
     "idleLockTimeoutSeconds": 300,
     "idleSuspendTimeoutSeconds": 900,

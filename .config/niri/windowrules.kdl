@@ -98,7 +98,7 @@ layer-rule {
 // Match QML glass corners and blur the actual backdrop, not the wallpaper.
 layer-rule {
   match namespace="^quickshell-liquid-glass-(popup|toast)$"
-  geometry-corner-radius 10
+  geometry-corner-radius 20
   background-effect {
     xray false
   }

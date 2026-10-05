@@ -93,7 +93,7 @@ PanelWindow {
     { tab: 1, category: "Clock", icon: "schedule", title: "24-hour clock", subtitle: "Use a 24-hour clock format" },
     { tab: 1, category: "Clock", icon: "timer", title: "Show seconds", subtitle: "Display seconds in the bar clock" },
     { tab: 1, category: "Calendar", icon: "calendar_view_week", title: "Week starts Monday", subtitle: "Set the first day of the calendar week" },
-    { tab: 1, category: "Bar contents", icon: "apps", title: "Bar item visibility", anchor: "Bar Contents", subtitle: "Launcher, workspaces, clock, tray, audio, weather, and more" },
+    { tab: 1, category: "Bar contents", icon: "apps", title: "Bar item visibility", anchor: "Bar Contents", subtitle: "Launcher, workspaces, clock, tray, audio, weather, LLM usage (Codex and Claude), and more" },
     { tab: 1, category: "Weather and location", icon: "my_location", title: "Use IP geolocation", subtitle: "Use your network location for weather" },
     { tab: 1, category: "Weather and location", icon: "location_on", title: "Weather location", anchor: "Manual weather location", subtitle: "Set a city or town for weather" },
     { tab: 1, category: "Weather and location", icon: "update", title: "Weather refresh interval", subtitle: "Choose how often weather refreshes" },

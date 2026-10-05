@@ -425,8 +425,8 @@ PanelWindow {
         height: root.horizontal
           ? parent.height
           : parent.height - root.verticalPillInset * 2
-        columnSpacing: Config.spacingSmall * root.expandProgress
-        rowSpacing: Config.spacingSmall * root.expandProgress
+        columnSpacing: Config.spacingCompact * root.expandProgress
+        rowSpacing: Config.spacingCompact * root.expandProgress
 
         Item {
           id: launcherWrapper
@@ -1100,8 +1100,8 @@ PanelWindow {
         y: root.horizontal ? 0 : (parent.height - height) / 2
         width: root.horizontal ? implicitWidth : parent.width
         height: root.horizontal ? parent.height : implicitHeight
-        columnSpacing: Config.spacingSmall * root.expandProgress
-        rowSpacing: Config.spacingSmall * root.expandProgress
+        columnSpacing: Config.spacingCompact * root.expandProgress
+        rowSpacing: Config.spacingCompact * root.expandProgress
         z: 2
       }
 
