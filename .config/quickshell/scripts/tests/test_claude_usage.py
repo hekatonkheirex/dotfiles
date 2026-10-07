@@ -55,8 +55,10 @@ def test_reset_unknown_and_ineligible_are_not_zero():
 
 
 @pytest.mark.parametrize("header,expected", [
-    ("900", 900),
-    ("Mon, 05 Oct 2026 00:15:00 GMT", 900),
+    ("400", 400),
+    ("Mon, 05 Oct 2026 00:07:00 GMT", 420),
+    ("3600", 600),
+    ("Mon, 05 Oct 2026 01:00:00 GMT", 600),
     ("0", 300),
     ("Mon, 05 Oct 2026 00:00:00 GMT", 300),
     ("invalid", 300),

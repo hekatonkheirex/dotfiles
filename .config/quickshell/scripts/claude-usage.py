@@ -91,13 +91,14 @@ def fetch(headers, include_resets):
 
 
 def rate_limit_delay(header, now):
-    # Never retry faster than ordinary polling, even without a usable header.
+    # Never retry faster than 5 min; cap at 10 min because this endpoint's
+    # Retry-After runs far past the real limit (manual refresh also bypasses it).
     try:
         if header is not None and header.strip().isdigit():
-            return max(300, int(header))
+            return min(600, max(300, int(header)))
         deadline = parsedate_to_datetime(header)
         if deadline.tzinfo is not None:
-            return max(300, math.ceil((deadline - now).total_seconds()))
+            return min(600, max(300, math.ceil((deadline - now).total_seconds())))
     except (TypeError, ValueError, OverflowError, AttributeError):
         pass
     return 300

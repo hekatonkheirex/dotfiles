@@ -17,6 +17,7 @@ QtObject {
   property string updatedAt: ""
   property bool indicatorActive: false
   property bool popupActive: false
+  property int pollMinutes: 5
   property double now: Date.now()
   property double lastAttemptAt: 0
   property double retryAt: 0
@@ -33,12 +34,13 @@ QtObject {
   }
 
   function refreshIfDue() {
-    if (Date.now() - root.lastAttemptAt >= 5 * 60000) root.refresh()
+    if (Date.now() - root.lastAttemptAt >= root.pollMinutes * 60000) root.refresh()
   }
 
-  function refresh() {
+  // force: a manual click skips the cooldown; timers never do.
+  function refresh(force) {
     root.now = Date.now()
-    if (usageProcess.running || root.rateLimited) return
+    if (usageProcess.running || (root.rateLimited && force !== true)) return
     root.lastAttemptAt = root.now
     usageProcess.running = true
   }
@@ -103,7 +105,7 @@ QtObject {
   }
 
   property var refreshTimer: Timer {
-    interval: 5 * 60000
+    interval: root.pollMinutes * 60000
     running: root.indicatorActive || root.popupActive
     repeat: true
     triggeredOnStart: true

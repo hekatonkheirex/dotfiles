@@ -36,10 +36,10 @@ ColumnLayout {
         size: 32
         iconSize: 20
         iconLabel: "refresh"
-        enabled: !root.service.loading && !root.service.rateLimited
+        enabled: !root.service.loading
         accessibleName: "Refresh " + root.providerName + " usage"
         tooltipText: accessibleName
-        onClicked: root.service.refresh()
+        onClicked: root.service.refresh(true)
       }
     }
 
@@ -147,7 +147,7 @@ ColumnLayout {
       Layout.fillWidth: true
       text: root.service.updatedAt !== ""
         ? "Updated " + Qt.formatDateTime(new Date(root.service.updatedAt), "hh:mm")
-          + " · Checks every 5 minutes"
+          + " · Checks every " + root.service.pollMinutes + " minutes"
         : "Uses your existing " + root.providerName + " sign-in · Read-only"
       color: Colors.fgSurfaceVariant
       font.family: Config.fontFamily
