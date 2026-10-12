@@ -52,9 +52,10 @@ Item {
     "expressive", "pill", "rounded", "circle", "dots", "numbers",
     "magic", "kanji", "rings", "aurora", "pacman"
   ]
-  readonly property string workspaceStyle: workspaceStyleValues.indexOf(Settings.workspaceShape) >= 0
-    ? Settings.workspaceShape
-    : "expressive"
+  readonly property string workspaceStyle: Config.dwmTheme ? "numbers"
+    : (workspaceStyleValues.indexOf(Settings.workspaceShape) >= 0
+      ? Settings.workspaceShape
+      : "expressive")
   // Compatibility name for the original four shape bindings.
   readonly property string workspaceShape: workspaceStyle
   readonly property string workspaceCount: ["active", "5", "10"].indexOf(Settings.workspaceCount) >= 0
@@ -125,7 +126,7 @@ Item {
   function numberedWorkspaceTextColor(item) {
     if (item.isFocused)
       return Colors.styleAccentText
-    return Colors.fgSurfaceVariant
+    return Config.dwmTheme ? Colors.fgSurface : Colors.fgSurfaceVariant
   }
 
   function numberedWorkspaceWidth(item) {
@@ -769,12 +770,13 @@ Item {
           visible: root.workspaceStyle === "numbers"
             && modelData.isFocused
             && !Config.ghostTheme
+            && !Config.dwmTheme
           anchors.centerIn: parent
           anchors.verticalCenterOffset: root.horizontal ? 2 : 0
           anchors.horizontalCenterOffset: 0
           width: root.horizontal ? root.numberedWorkspaceWidth(modelData) : root.numberedVerticalWidth
           height: root.horizontal ? grid.height : root.numberedWorkspaceHeight(modelData)
-          radius: Config.ghostTheme ? 0 : Math.min(width, height) / 2
+          radius: Config.ghostTheme || Config.dwmTheme ? 0 : Math.min(width, height) / 2
           color: Qt.rgba(Colors.shadow.r, Colors.shadow.g, Colors.shadow.b, 0.14)
           z: 0
         }
@@ -787,7 +789,7 @@ Item {
             ? root.numberedWorkspaceWidth(modelData)
             : root.numberedVerticalWidth
           height: root.horizontal ? grid.height : root.numberedWorkspaceHeight(modelData)
-          radius: Config.ghostTheme ? 0 : Math.min(width, height) / 2
+          radius: Config.ghostTheme || Config.dwmTheme ? 0 : Math.min(width, height) / 2
           color: root.numberedWorkspaceFill(modelData)
           border.width: wsMouse.containsMouse && !modelData.isFocused ? Config.themeBorderWidth : 0
           border.color: Colors.styleOutline
@@ -811,7 +813,7 @@ Item {
             }
 
             Rectangle {
-              visible: modelData.isOccupied && !modelData.isFocused
+              visible: modelData.isOccupied && !modelData.isFocused && !Config.dwmTheme
               width: 6
               height: 6
               radius: 3
@@ -819,6 +821,16 @@ Item {
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: Config.nothingDesign && !Config.nothingEvolution ? -5 : -1
             }
+          }
+
+          // dwm marks occupied tags with a small square in the top-left corner.
+          Rectangle {
+            visible: Config.dwmTheme && modelData.isOccupied
+            x: 2
+            y: 2
+            width: 4
+            height: 4
+            color: modelData.isFocused ? Colors.styleAccentText : Colors.fgSurface
           }
 
           Text {

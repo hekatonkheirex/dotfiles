@@ -43,13 +43,13 @@ PanelWindow {
   readonly property bool dockedLeft: barPosition === "left"
   readonly property bool dockedRight: barPosition === "right"
   readonly property bool themeClockCentered: !Settings.barClockInFlow
-    && !root.ghostHorizontalOneLiner
+    && !root.oneLiner
   readonly property var normalizedOrder: BarOrder.normalize(Settings.barWidgetOrder)
   readonly property var activeWidgets: ({
     launcher: Settings.ccShowLauncher,
     workspaces: Settings.ccShowWorkspaces,
     layout: layoutWrapper.layoutAvailable,
-    focused: Settings.ccShowFocusedWindow && focusedWindowWrapper.hasWindowInfo,
+    focused: root.focusedShown && focusedWindowWrapper.hasWindowInfo,
     audio: Settings.ccShowAudio,
     display: Settings.ccShowDisplay,
     media: Settings.ccShowMedia,
@@ -64,7 +64,7 @@ PanelWindow {
     var slots = BarOrder.edgeOrder(Settings.barWidgetOrder, root.activeWidgets)
     if (!Settings.barClockInFlow) {
       slots = slots.filter(function(id) { return id !== "clock" })
-      if (root.ghostHorizontalOneLiner && Settings.ccShowClock) slots.push("clock")
+      if (root.oneLiner && Settings.ccShowClock) slots.push("clock")
     }
     return slots
   }
@@ -265,14 +265,20 @@ PanelWindow {
   readonly property bool glassEdge: root.continuousBar && Config.liquidGlassTheme && Colors.liquidGlassOpaque
   readonly property bool horizontalPillMode: root.horizontal && root.pillsBar
   readonly property bool ghostHorizontalOneLiner: Config.ghostTheme && root.horizontal
+  readonly property bool dwmHorizontal: Config.dwmTheme && root.horizontal
+  // Ghost and dwm both render a single left-to-right row with the clock in
+  // the status run and no stacked date line.
+  readonly property bool oneLiner: root.ghostHorizontalOneLiner || root.dwmHorizontal
+  // dwm always shows the focused window title; other styles follow the setting.
+  readonly property bool focusedShown: Settings.ccShowFocusedWindow || Config.dwmTheme
   // The horizontal full bar follows the Hyprland layout's compact icon-plus
   // label controls. Vertical bars and stacked clock content stay unchanged.
   readonly property bool horizontalInlineContent: root.horizontalPillMode
     || (root.horizontal && root.continuousBar)
-    || root.ghostHorizontalOneLiner
+    || root.oneLiner
   // Ghost's horizontal clock shows only the time. Keep the minute row in
   // vertical bars and the date below the time in other horizontal styles.
-  readonly property bool clockSecondaryVisible: !root.ghostHorizontalOneLiner
+  readonly property bool clockSecondaryVisible: !root.oneLiner
   // Nothing and Ghost labels need more width than the bar is thick.
   readonly property int verticalPillPanelWidth: !root.horizontal && root.pillsBar
     && (Config.nothingDesign || Config.ghostTheme) ? Config.barWidth + 18 : Config.barWidth
@@ -702,15 +708,15 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal
             ? (hasWindowInfo
               ? Math.min(Math.max(320, root.width * 0.28), Math.max(140, windowInfoTextWidth + Config.spacingLarge))
-              : 0) * (Settings.ccShowFocusedWindow ? 1 : 0)
-            : (hasWindowInfo ? parent.width : 0) * (Settings.ccShowFocusedWindow ? 1 : 0)
+              : 0) * (root.focusedShown ? 1 : 0)
+            : (hasWindowInfo ? parent.width : 0) * (root.focusedShown ? 1 : 0)
           Layout.preferredHeight: (root.horizontal
             ? parent.height
             : (hasWindowInfo ? verticalInfoHeight : 0))
-            * (Settings.ccShowFocusedWindow ? 1 : 0)
+            * (root.focusedShown ? 1 : 0)
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          visible: hasWindowInfo && Settings.ccShowFocusedWindow
+          visible: hasWindowInfo && root.focusedShown
           clip: true
 
           PillSurface {

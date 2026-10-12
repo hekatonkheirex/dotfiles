@@ -30,10 +30,12 @@ Item {
       ? Colors.fgSurface
     : (Config.ghostTheme ? Colors.styleAccent : Colors.primary)
     )
-  property color iconColor: Config.liquidGlassTheme ? Colors.barForeground
-    : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor)
-  property color labelColor: Config.liquidGlassTheme ? Colors.barForeground
-    : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor)
+  property color iconColor: Config.dwmTheme ? Colors.fgSurface
+    : (Config.liquidGlassTheme ? Colors.barForeground
+    : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor))
+  property color labelColor: Config.dwmTheme ? Colors.fgSurface
+    : (Config.liquidGlassTheme ? Colors.barForeground
+    : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor))
   property color inactiveBg: Config.liquidGlassTheme ? Colors.liquidGlassClear : Colors.surfaceContainerHigh
   // Indicators stay quiet at rest and reveal their outline on hover/focus;
   // active state is conveyed by the content color and owning popup surface.
@@ -121,7 +123,7 @@ Item {
       topMargin: root.horizontal ? 6 : 0
       bottomMargin: root.horizontal ? 6 : 0
     }
-    radius: Config.ghostTheme ? 0
+    radius: Config.ghostTheme || Config.dwmTheme ? 0
       : (Config.liquidGlassTheme ? Config.shapeCompact
         : (root.horizontal ? height / 2 : width / 2))
     clip: true
