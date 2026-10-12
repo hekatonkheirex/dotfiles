@@ -48,12 +48,13 @@ window-rule {
 
 window-rule {
     match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    // match app-id="brave-origin"
     match app-id="zen"
     match app-id="firefox"
     match app-id="kitty"
     match app-id="org.gnome.Nautilus"
     draw-border-with-background false
-    opacity 0.90
+    opacity 0.80
 }
 
 window-rule {

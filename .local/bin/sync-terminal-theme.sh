@@ -340,9 +340,8 @@ EOF
     mv -f "$colors_tmp" "$colors_file"
     echo "niri colors.kdl -> style=$UI_STYLE gaps=${neo_gap:-default} width=$focus_width radius=$niri_corner_radius active=$focus_active inactive=$focus_inactive shadow=${shadow_color:-default} offset=${neo_shadow_offset:-default}"
 
-    # Ghost is the only style with its own cursor pack (the recovered
-    # ghost-section9 set, no light/dark split). Every other style keeps the
-    # default Bibata cursors.
+    # Ghost uses ghost-section9; the shared fallback is Bibata. Liquid Glass
+    # applies its mode-specific MacTahoe cursor after this synchronizer.
     cursor_theme="Bibata-Modern-Classic"
     if [ "$UI_STYLE" = "ghost" ]; then
       if [ -f "$HOME/.icons/ghost-section9/index.theme" ]; then
@@ -352,6 +351,11 @@ EOF
       fi
     fi
     gsettings set org.gnome.desktop.interface cursor-theme "$cursor_theme"
+    for ini in "$HOME/.config/gtk-3.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini"; do
+      if [ -f "$ini" ]; then
+        sed -i "s/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=$cursor_theme/" "$ini"
+      fi
+    done
     decorations_file="$HOME/.config/niri/decorations.kdl"
     [ -f "$decorations_file" ] && sed -i "s/xcursor-theme \".*\"/xcursor-theme \"$cursor_theme\"/" "$decorations_file"
     environments_file="$HOME/.config/niri/environments.kdl"
