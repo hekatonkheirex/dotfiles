@@ -842,7 +842,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             anchors.verticalCenterOffset: modelData.isFocused
               ? 1
-              : (modelData.isOccupied && !Config.dwmTheme ? 4 : 0)
+              : (modelData.isOccupied ? 4 : 0)
             text: String(modelData.idx)
             color: root.numberedWorkspaceTextColor(modelData)
             font.family: Config.monoFontFamily
@@ -854,7 +854,7 @@ Item {
           }
 
           Rectangle {
-            visible: !root.horizontal && modelData.isOccupied && !modelData.isFocused && !Config.dwmTheme
+            visible: !root.horizontal && modelData.isOccupied && !modelData.isFocused
             width: 6
             height: 6
             radius: 3
