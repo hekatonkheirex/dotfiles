@@ -86,27 +86,49 @@ Flickable {
 
   property string previousStyle: ""
   property string previousNothingVariant: ""
-  property string previousColorSource: ""
-  property string previousColorPalette: ""
-  property string previousColorVariant: ""
+  // Palette the user had before elena applied its own; empty when elena did
+  // not change it.
+  property string paletteBeforeElenaSource: ""
+  property string paletteBeforeElenaPalette: ""
+  property string paletteBeforeElenaVariant: ""
+
+  // Call after themeStyle has left elena. Puts the user's palette back unless
+  // they picked another one while in elena. Returns true when it changed.
+  function leaveElena() {
+    if (paletteBeforeElenaPalette === "") return false
+    var restore = Settings.colorSource === "fixed" && Settings.colorPalette === "elenapam"
+    if (restore) {
+      Settings.colorSource = paletteBeforeElenaSource
+      Settings.colorPalette = paletteBeforeElenaPalette
+      Settings.colorVariant = paletteBeforeElenaVariant
+    }
+    paletteBeforeElenaSource = ""
+    paletteBeforeElenaPalette = ""
+    paletteBeforeElenaVariant = ""
+    return restore
+  }
 
   function selectStyle(style, variant) {
     if (Settings.themeStyle === style
         && (style !== "nothing" || Settings.nothingVariant === variant)) return
+    var wasElena = Settings.themeStyle === "elena"
     previousStyle = Settings.themeStyle
     previousNothingVariant = Settings.nothingVariant
-    previousColorSource = Settings.colorSource
-    previousColorPalette = Settings.colorPalette
-    previousColorVariant = Settings.colorVariant
     Settings.themeStyle = style
     if (style === "nothing") Settings.nothingVariant = variant
-    // elena ships its own fixed palette. The palette controls can still
-    // switch it to Live (wallpaper) afterwards.
-    var paletteChanged = style === "elena" && Settings.colorPalette !== "elenapam"
-    if (paletteChanged) {
+    var paletteChanged = false
+    if (wasElena && style !== "elena") {
+      paletteChanged = appearanceTab.leaveElena()
+    } else if (style === "elena" && Settings.colorPalette !== "elenapam") {
+      // elena ships its own fixed palette. The palette controls can still
+      // switch it to Live (wallpaper) afterwards.
+      paletteBeforeElenaSource = Settings.colorSource
+      paletteBeforeElenaPalette = Settings.colorPalette
+      paletteBeforeElenaVariant = Settings.colorVariant
       Settings.colorSource = "fixed"
       Settings.colorPalette = "elenapam"
       Settings.colorVariant = "auto"
+      paletteChanged = true
     }
     Settings.save()
     if (paletteChanged) appearanceTab.requestPaletteSync()
@@ -116,17 +138,13 @@ Flickable {
     if (previousStyle === "") return
     var style = previousStyle
     var variant = previousNothingVariant
-    var restorePalette = Settings.themeStyle === "elena" && previousColorPalette !== ""
+    var wasElena = Settings.themeStyle === "elena"
     previousStyle = ""
     Settings.themeStyle = style
     Settings.nothingVariant = variant
-    if (restorePalette) {
-      Settings.colorSource = previousColorSource
-      Settings.colorPalette = previousColorPalette
-      Settings.colorVariant = previousColorVariant
-    }
+    var paletteChanged = wasElena && style !== "elena" && appearanceTab.leaveElena()
     Settings.save()
-    if (restorePalette) appearanceTab.requestPaletteSync()
+    if (paletteChanged) appearanceTab.requestPaletteSync()
   }
   property string themeStatus: ""
   property bool resetConfirm: false

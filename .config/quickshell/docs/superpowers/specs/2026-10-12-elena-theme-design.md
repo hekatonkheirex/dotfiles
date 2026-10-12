@@ -18,8 +18,8 @@ the block row only.
 - Stays inside `Config.material3Theme` (the facades in `bar/SliderControl.qml`, `bar/primitives/ActionButton.qml` pick Material controls from it). `Config.elenaTheme` is an extra flag only.
 - New tile in `bar/settings/AppearanceTab.qml` `styleChoices`; selector math
   moves from 6 to 7 choices.
-- Shape tokens stay Material (rounded). No change to bar, launcher or popups
-  layout.
+- Only the shape tokens stay Material (rounded). The bar itself becomes the
+  block row (see Tag strip); launcher and popups keep their layout.
 
 ## Palette
 - New fixed family `elenapam` in `PaletteCatalog`: navy surface ~#1a1f2b,
