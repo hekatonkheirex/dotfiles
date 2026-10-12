@@ -15,6 +15,10 @@ import "ui" as Ui
 ShellRoot {
   id: shell
 
+  // Full-width wallpaper filmstrip (bar/WallpaperFilmstrip.qml); toggled by
+  // `qs ipc call shell wallpapers`.
+  property bool wallpaperFilmstripOpen: false
+
   // Battery low alert — Warning at 20%, Alert at 10%. Persists until manually
   // dismissed or the charger is plugged in (see checkLevel + notifServer capture below).
   QtObject {
@@ -381,6 +385,12 @@ ShellRoot {
 
     function dismissPopups() {
       bar.openPopup = ""
+      shell.wallpaperFilmstripOpen = false
+    }
+
+    function wallpapers() {
+      bar.openPopup = ""
+      shell.wallpaperFilmstripOpen = !shell.wallpaperFilmstripOpen
     }
 
     // Compatibility alias for existing scripts and external IPC callers.
@@ -663,6 +673,13 @@ ShellRoot {
 
   OsdOverlay {
     id: osd
+  }
+
+  WallpaperFilmstrip {
+    id: wallpaperFilmstrip
+    screen: bar.screen
+    open: shell.wallpaperFilmstripOpen && !lockScreen.locked
+    onDismissed: shell.wallpaperFilmstripOpen = false
   }
 
   LauncherPopup {
