@@ -1,7 +1,9 @@
-// Liquid Glass uses installed SF Symbols; other styles use Material Symbols.
+// Liquid Glass uses installed SF Symbols, dwm uses the Siji bitmap font;
+// other styles (and unmapped labels) use Material Symbols.
 import QtQuick
 import "../../config"
 import "../../config/SfSymbols.js" as SfSymbols
+import "../../config/BitmapIcons.js" as BitmapIcons
 
 Item {
   id: root
@@ -17,6 +19,9 @@ Item {
   readonly property string sfGlyph: Config.liquidGlassTheme
     ? SfSymbols.glyph(root.iconLabel, root.filled) : ""
   readonly property bool usesSfSymbol: root.sfGlyph !== ""
+  readonly property string bitmapGlyph: Config.dwmTheme
+    ? BitmapIcons.glyph(root.iconLabel) : ""
+  readonly property bool usesBitmap: root.bitmapGlyph !== ""
   readonly property real iconBoxSize: Math.max(1, Math.min(
     root.iconSize,
     root.width > 0 ? root.width : root.iconSize,
@@ -32,7 +37,7 @@ Item {
   // and repeatedly resolve fallback fonts on the GUI thread.
   Text {
     anchors.fill: parent
-    visible: !root.usesSfSymbol
+    visible: !root.usesSfSymbol && !root.usesBitmap
     text: root.iconLabel
     textFormat: Text.PlainText
     color: root.iconColor
@@ -58,6 +63,21 @@ Item {
     // SF's medium-scale glyphs occupy roughly one em, unlike Material's box.
     font.pixelSize: root.iconBoxSize * 0.8
     font.weight: Font.Normal
+    horizontalAlignment: Text.AlignHCenter
+    verticalAlignment: Text.AlignVCenter
+  }
+
+  // The installed Siji OTB has a single 12px strike; keep it fixed so it is never scaled.
+  Text {
+    anchors.fill: parent
+    visible: root.usesBitmap
+    text: root.bitmapGlyph
+    textFormat: Text.PlainText
+    color: root.iconColor
+    opacity: root.iconOpacity
+    font.family: Config.bitmapIconFont
+    font.pixelSize: 12
+    renderType: Text.NativeRendering
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
   }

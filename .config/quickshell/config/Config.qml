@@ -98,6 +98,7 @@ QtObject {
   }
 
   readonly property string sfSymbolsFont: "SF Pro Text"
+  readonly property string bitmapIconFont: "Siji"
 
   property int iconSize: Settings.iconSize
   property int fontPixelSize: Settings.fontPixelSize
