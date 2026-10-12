@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import "../config"
+import "../config/Fullscreen.js" as Fullscreen
 import "primitives"
 
 Item {
@@ -19,6 +20,12 @@ Item {
   property bool focusedWindowRefreshPending: false
   property string focusedWindowTitle: ""
   property string focusedWindowAppId: ""
+  // The focused window's size, matched against the screen to spot fullscreen.
+  property var focusedWindowSize: null
+  property real screenWidth: 0
+  property real screenHeight: 0
+  readonly property bool focusedWindowFullscreen: Fullscreen.fillsScreen(
+    focusedWindowSize, screenWidth, screenHeight)
   property string mangoLayoutSymbol: ""
   readonly property string mangoLayoutName: layoutNameForMangoToken(mangoLayoutSymbol)
   // Terminals prefix titles with status glyphs (spinners, ◑); they read as
@@ -180,6 +187,7 @@ Item {
         if (!raw || raw === "null") {
           root.focusedWindowTitle = ""
           root.focusedWindowAppId = ""
+          root.focusedWindowSize = null
           return
         }
 
@@ -190,9 +198,11 @@ Item {
           root.focusedWindowAppId = data && typeof data.app_id === "string"
             ? data.app_id
             : (data && typeof data.appid === "string" ? data.appid : "")
+          root.focusedWindowSize = Fullscreen.windowSize(data)
         } catch (e) {
           root.focusedWindowTitle = ""
           root.focusedWindowAppId = ""
+          root.focusedWindowSize = null
         }
       }
     }
@@ -254,6 +264,7 @@ Item {
     root.focusedWindowAppId = typeof data.app_id === "string"
       ? data.app_id
       : (typeof data.appid === "string" ? data.appid : "")
+    root.focusedWindowSize = Fullscreen.windowSize(data)
     return true
   }
 
@@ -302,6 +313,7 @@ Item {
           var focusedWindowStateChanged = event && (
             event.WindowFocusChanged
             || event.WindowFocusTimestampChanged
+            || event.WindowLayoutsChanged
             || event.WindowsChanged
             || event.WindowClosed
           )

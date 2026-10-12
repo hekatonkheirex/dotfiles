@@ -25,9 +25,12 @@ PanelWindow {
   property bool surfaceReady: false
   // Set by shell.qml: the lock screen covers the bar.
   property bool sessionLocked: false
-  // Decorative motion pauses on battery and while locked; the bar repaints at
-  // 60fps otherwise. ponytail: no fullscreen signal exists yet, add if one does.
+  // Decorative motion pauses on battery, while locked and under a fullscreen
+  // window; the bar repaints at 60fps otherwise. Fullscreen comes from the
+  // workspace widget's focused-window stream, so it is unknown (animating)
+  // while that widget is hidden.
   readonly property bool ambientMotion: !UPower.onBattery && !root.sessionLocked
+    && !wsIndicator.focusedWindowFullscreen
   readonly property bool horizontal: barPosition === "top" || barPosition === "bottom"
   readonly property bool dockedTop: barPosition === "top"
   readonly property bool dockedBottom: barPosition === "bottom"
@@ -573,6 +576,8 @@ PanelWindow {
 
         WorkspaceIndicator {
           id: wsIndicator
+          screenWidth: root.screen ? root.screen.width : 0
+          screenHeight: root.screen ? root.screen.height : 0
           parent: root.inMiddle("workspaces") ? middleLayout : layout
           Layout.column: root.horizontal ? root.barSlot("workspaces") : 0
           Layout.row: root.horizontal ? 0 : root.barSlot("workspaces")
