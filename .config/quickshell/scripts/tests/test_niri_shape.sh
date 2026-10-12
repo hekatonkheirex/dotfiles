@@ -15,7 +15,7 @@ before="$(stat -c %i "$tmp/niri/style.kdl")"
 run dwm
 [ "$before" = "$(stat -c %i "$tmp/niri/style.kdl")" ] || { echo "FAIL dwm rewrote unchanged file"; exit 1; }
 
-for s in material3 nothing ghost liquid-glass ""; do
+for s in material3 nothing ghost liquid-glass elena ""; do
   run "$s"
   if grep -q 'window-rule' "$tmp/niri/style.kdl"; then echo "FAIL '$s' left a window-rule"; exit 1; fi
 done

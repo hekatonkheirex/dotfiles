@@ -4,7 +4,7 @@
 # $HOME and writes <out-dir>/<style>.png.
 set -euo pipefail
 root=$(realpath "$1"); out=$(mkdir -p "$2" && realpath "$2")
-styles=("material3:classic" "nothing:classic" "nothing:evolution" "ghost:classic" "liquid-glass:classic")
+styles=("material3:classic" "nothing:classic" "nothing:evolution" "ghost:classic" "liquid-glass:classic" "elena:classic")
 for s in "${styles[@]}"; do
   style=${s%%:*}; variant=${s##*:}
   home=$(mktemp -d); mkdir -p "$home/.config/quickshell" "$home/cfg"

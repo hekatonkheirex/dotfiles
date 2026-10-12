@@ -31,8 +31,8 @@ Flickable {
   // Stacked icon + label choices keep breathing room at the global type scale.
   readonly property int optionButtonHeight: material3Theme
     ? Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + (Config.materialCompact ? 16 : 24)) : 48
-  readonly property int uiStyleColumns: width < 260 ? 1 : (width < 720 ? 2 : 6)
-  readonly property int uiStyleRows: Math.ceil(6 / uiStyleColumns)
+  readonly property int uiStyleColumns: width < 260 ? 1 : (width < 720 ? 2 : 7)
+  readonly property int uiStyleRows: Math.ceil(7 / uiStyleColumns)
   // Keep the selector model independent of palette roles: a new JS array
   // recreates every button, including the one handling the style change.
   readonly property var styleChoices: [
@@ -41,7 +41,8 @@ Flickable {
     { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution" },
     { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost" },
     { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid" },
-    { value: "dwm", variant: "", icon: "terminal", label: "dwm" }
+    { value: "dwm", variant: "", icon: "terminal", label: "dwm" },
+    { value: "elena", variant: "", icon: "palette", label: "Elena" }
   ]
   readonly property var selectedStylePreview: {
     var value = Settings.themeStyle
@@ -85,25 +86,47 @@ Flickable {
 
   property string previousStyle: ""
   property string previousNothingVariant: ""
+  property string previousColorSource: ""
+  property string previousColorPalette: ""
+  property string previousColorVariant: ""
 
   function selectStyle(style, variant) {
     if (Settings.themeStyle === style
         && (style !== "nothing" || Settings.nothingVariant === variant)) return
     previousStyle = Settings.themeStyle
     previousNothingVariant = Settings.nothingVariant
+    previousColorSource = Settings.colorSource
+    previousColorPalette = Settings.colorPalette
+    previousColorVariant = Settings.colorVariant
     Settings.themeStyle = style
     if (style === "nothing") Settings.nothingVariant = variant
+    // elena ships its own fixed palette. The palette controls can still
+    // switch it to Live (wallpaper) afterwards.
+    var paletteChanged = style === "elena" && Settings.colorPalette !== "elenapam"
+    if (paletteChanged) {
+      Settings.colorSource = "fixed"
+      Settings.colorPalette = "elenapam"
+      Settings.colorVariant = "auto"
+    }
     Settings.save()
+    if (paletteChanged) appearanceTab.requestPaletteSync()
   }
 
   function revertStyle() {
     if (previousStyle === "") return
     var style = previousStyle
     var variant = previousNothingVariant
+    var restorePalette = Settings.themeStyle === "elena" && previousColorPalette !== ""
     previousStyle = ""
     Settings.themeStyle = style
     Settings.nothingVariant = variant
+    if (restorePalette) {
+      Settings.colorSource = previousColorSource
+      Settings.colorPalette = previousColorPalette
+      Settings.colorVariant = previousColorVariant
+    }
     Settings.save()
+    if (restorePalette) appearanceTab.requestPaletteSync()
   }
   property string themeStatus: ""
   property bool resetConfirm: false
@@ -483,7 +506,7 @@ Flickable {
 
           GridLayout {
             Layout.fillWidth: true
-            columns: appearanceTab.uiStyleColumns === 6 ? 2 : 1
+            columns: appearanceTab.uiStyleColumns === 7 ? 2 : 1
             columnSpacing: Config.spacingMedium
             rowSpacing: Config.spacingSmall
 
@@ -498,7 +521,9 @@ Flickable {
                       ? "Translucent functional surfaces, clear controls, and adaptive contrast"
                       : (Settings.themeStyle === "dwm"
                         ? "Flat tag bar, plain status text, and a one-line dmenu strip in wallpaper colours"
-                        : "Rounded surfaces, tonal elevation, and expressive motion"))))
+                        : (Settings.themeStyle === "elena"
+                          ? "Navy cards, pink, purple and cyan accents, and a colour-block workspace strip"
+                          : "Rounded surfaces, tonal elevation, and expressive motion")))))
               color: Colors.fgSurfaceVariant
               font.family: Config.fontFamily
               font.pixelSize: Config.typeBodyMediumSize
@@ -511,7 +536,7 @@ Flickable {
             }
 
             ActionButton {
-              Layout.alignment: appearanceTab.uiStyleColumns === 6 ? Qt.AlignRight : Qt.AlignLeft
+              Layout.alignment: appearanceTab.uiStyleColumns === 7 ? Qt.AlignRight : Qt.AlignLeft
               Layout.preferredWidth: Math.min(160, uiStyleColumn.width)
               Layout.preferredHeight: 40
               visible: appearanceTab.previousStyle !== ""

@@ -5,7 +5,7 @@
 set -u
 root=$(realpath "${1:-$(dirname "$0")/..}")
 fail=0
-for s in material3:classic nothing:classic nothing:evolution ghost:classic liquid-glass:classic dwm:classic; do
+for s in material3:classic nothing:classic nothing:evolution ghost:classic liquid-glass:classic dwm:classic elena:classic; do
   style=${s%%:*}; variant=${s##*:}
   home=$(mktemp -d); mkdir -p "$home/.config/quickshell" "$home/cfg"
   cp -r "$root/config" "$root/bar" "$root/resources" "$home/cfg/"

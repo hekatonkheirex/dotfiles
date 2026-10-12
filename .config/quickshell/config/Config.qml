@@ -23,6 +23,11 @@ QtObject {
   readonly property bool nothingEvolution: nothingDesign && Settings.nothingVariant === "evolution"
   readonly property bool ghostTheme: Settings.themeStyle === "ghost"
   readonly property bool dwmTheme: Settings.themeStyle === "dwm"
+  // elena rides the Material control path (material3Theme stays true); this
+  // flag only gates its palette default and the top-edge tag strip.
+  readonly property bool elenaTheme: Settings.themeStyle === "elena"
+  readonly property int tagStripHeight: 8
+  readonly property int tagStripOffset: elenaTheme ? tagStripHeight : 0
   readonly property bool liquidGlassTheme: Settings.themeStyle === "liquid-glass"
   readonly property bool material3Theme: !nothingDesign && !ghostTheme && !liquidGlassTheme && !dwmTheme
 
