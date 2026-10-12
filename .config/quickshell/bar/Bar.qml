@@ -638,7 +638,7 @@ PanelWindow {
             : 0
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          visible: Settings.ccShowWorkspaces
+          visible: Settings.ccShowWorkspaces || Config.elenaTheme
 
           PillSurface {
             horizontal: root.horizontal
