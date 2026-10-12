@@ -7,6 +7,7 @@ import "../"
 import "../primitives"
 import "../../config"
 import "../../config/PaletteCatalog.js" as PaletteCatalog
+import "../../config/BarScale.js" as BarScale
 
 Flickable {
   id: appearanceTab
@@ -1531,6 +1532,61 @@ Flickable {
 
           Text {
             text: Math.round(Settings.spacingScale * 100) + "%"
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeLabelMediumSize
+            font.letterSpacing: Config.typeLabelTracking
+            lineHeight: Config.typeLabelMediumLineHeight
+            lineHeightMode: Text.FixedHeight
+            Layout.preferredWidth: 44
+          }
+        }
+
+        // Bar scale: drives bar size, font, icon and spacing together
+        RowLayout {
+          Layout.fillWidth: true
+          spacing: Config.spacingMedium
+          readonly property real scale: BarScale.fromBarSize(Settings.barSize)
+
+          Text {
+            text: "Bar Scale"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeBodyMediumSize
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyMediumLineHeight
+            lineHeightMode: Text.FixedHeight
+            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
+          }
+
+          SliderControl {
+            Layout.fillWidth: true
+            value: (parent.scale - BarScale.MIN) / (BarScale.MAX - BarScale.MIN)
+            stepSize: BarScale.STEP / (BarScale.MAX - BarScale.MIN)
+            accessibleMinimumValue: Math.round(BarScale.MIN * 100)
+            accessibleMaximumValue: Math.round(BarScale.MAX * 100)
+            accessibleUnit: "%"
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.styleOutlineStrong
+            focusColor: Colors.primary
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Bar scale"
+            accessibleDescription: "Scale the bar thickness, text, icons and spacing together"
+            onChanged: function(val) {
+              var v = BarScale.values(BarScale.MIN + val * (BarScale.MAX - BarScale.MIN))
+              Settings.barSize = v.barSize
+              Settings.fontPixelSize = v.fontPixelSize
+              Settings.iconSize = v.iconSize
+              Settings.spacingScale = v.spacingScale
+            }
+            onInteractionFinished: Settings.save()
+          }
+
+          Text {
+            text: Math.round(parent.scale * 100) + "%"
             color: Colors.fgSurface
             font.family: Config.fontFamily
             font.pixelSize: Config.typeLabelMediumSize
