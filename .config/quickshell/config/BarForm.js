@@ -58,3 +58,13 @@ function shoulderPath(s, g) {
       + (c[0] + u[0] * s) + " " + (c[1] + u[1] * s) + " Z"
   }).join(" ")
 }
+
+// SVG path of a sine-like wave, `periods` full periods long, centred on y=mid.
+// Built from quadratic segments (Q then T) so it tiles every `period` px,
+// which lets the caller slide it by one period for a seamless loop.
+function wavePath(period, periods, amp, mid) {
+  var half = period / 2
+  var d = "M 0 " + mid + " Q " + (half / 2) + " " + (mid - 2 * amp) + " " + half + " " + mid
+  for (var i = 2; i <= periods * 2; i++) d += " T " + (half * i) + " " + mid
+  return d
+}

@@ -233,6 +233,7 @@ PanelWindow {
 
   readonly property bool pillsBar: Config.barFormMetrics.pills
   readonly property bool fullBar: !root.pillsBar
+  readonly property bool groupedPills: root.pillsBar && root.horizontal && !Config.ghostTheme
   // Geometry for the selected form (see config/BarForm.js).
   readonly property int edgeGap: Config.barFormMetrics.edgeGap
   readonly property int sideInset: Config.barFormMetrics.sideInset
@@ -428,6 +429,64 @@ PanelWindow {
         hoverEnabled: true
         onClicked: root.openPopup = ""
         enabled: !root.openPopup
+      }
+
+      // Pill form, horizontal: an outlined capsule around each widget group
+      // (start, middle, end) and a signal wave across the open space between
+      // them. Geometry follows the layouts, so hidden widgets collapse a group.
+      Item {
+        id: groupChrome
+        anchors.fill: parent
+        visible: root.groupedPills
+        z: -2
+
+        readonly property real pad: Config.spacingCompact
+        readonly property real startW: Math.max(0, gapSpacer.x - layout.columnSpacing)
+        readonly property real endX: gapSpacer.x + gapSpacer.width + layout.columnSpacing
+        readonly property real endW: Math.max(0, layout.width - endX)
+        readonly property real midW: middleLayout.implicitWidth
+        readonly property real startRight: startW > 0 ? layout.x + startW + pad : layout.x
+        readonly property real endLeft: endW > 0 ? layout.x + endX - pad : layout.x + layout.width
+        readonly property real midLeft: middleLayout.x - pad
+        readonly property real midRight: middleLayout.x + midW + pad
+
+        GroupCapsule {
+          visible: groupChrome.startW > 0
+          x: layout.x - groupChrome.pad
+          width: groupChrome.startW + groupChrome.pad * 2
+        }
+        GroupCapsule {
+          visible: groupChrome.midW > 0
+          x: groupChrome.midLeft
+          width: groupChrome.midW + groupChrome.pad * 2
+        }
+        GroupCapsule {
+          visible: groupChrome.endW > 0
+          x: groupChrome.endLeft
+          width: groupChrome.endW + groupChrome.pad * 2
+        }
+
+        SignalWave {
+          readonly property real from: groupChrome.startRight + Config.spacingSmall
+          readonly property real to: (groupChrome.midW > 0 ? groupChrome.midLeft : groupChrome.endLeft)
+            - Config.spacingSmall
+          x: from
+          width: Math.max(0, to - from)
+          height: parent.height
+          visible: width > Config.spacingLarge * 2
+          color: Colors.primary
+        }
+        SignalWave {
+          readonly property real from: groupChrome.midW > 0
+            ? groupChrome.midRight + Config.spacingSmall
+            : groupChrome.startRight + Config.spacingSmall
+          readonly property real to: groupChrome.endLeft - Config.spacingSmall
+          x: from
+          width: groupChrome.midW > 0 ? Math.max(0, to - from) : 0
+          height: parent.height
+          visible: width > Config.spacingLarge * 2
+          color: Colors.primary
+        }
       }
 
       GridLayout {

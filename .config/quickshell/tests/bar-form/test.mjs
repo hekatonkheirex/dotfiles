@@ -5,7 +5,7 @@ import assert from "node:assert/strict"
 
 const src = readFileSync(fileURLToPath(new URL("../../config/BarForm.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
-const B = new Function(src + "; return { FORMS, normalize, metrics, shoulderPath }")()
+const B = new Function(src + "; return { FORMS, normalize, metrics, shoulderPath, wavePath }")()
 const o = { barWidth: 42, spacingSmall: 8, spacingLarge: 16 }
 
 assert.deepEqual(B.FORMS, ["full", "fit", "dock", "notch", "pill"])
@@ -47,4 +47,7 @@ for (const edge of ["top", "bottom", "left", "right"]) {
     assert.ok(pts[0][0] === pts[3][0] && pts[0][1] === pts[3][1], edge)
   }
 }
+assert.equal(B.wavePath(40, 2, 4, 10),
+  "M 0 10 Q 10 2 20 10 T 40 10 T 60 10 T 80 10")
+assert.equal(B.wavePath(40, 1, 4, 10).split(" T ").length, 2)
 console.log("PASS bar-form")

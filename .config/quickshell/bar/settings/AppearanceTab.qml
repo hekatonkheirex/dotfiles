@@ -1099,7 +1099,7 @@ Flickable {
                     { value: "fit", icon: "web_asset", label: "Fit", description: "Inset rounded frame" },
                     { value: "dock", icon: "bottom_app_bar", label: "Dock", description: "Open desktop edge" },
                     { value: "notch", icon: "flip_to_front", label: "Notch", description: "Flowing shoulders" },
-                    { value: "pill", icon: "pill", label: "Pill", description: "Floating pill per widget" }
+                    { value: "pill", icon: "pill", label: "Pill", description: "Grouped pills and signal line" }
                   ]
 
                   delegate: ActionButton {
@@ -1129,7 +1129,7 @@ Flickable {
               text: {
                 var forms = { full: "Edge to edge", fit: "Inset rounded frame",
                   dock: "Open desktop edge", notch: "Flowing shoulders",
-                  pill: "Floating pill per widget" }
+                  pill: "Grouped pills and signal line" }
                 return forms[Settings.barForm] || forms.full
               }
               color: Colors.fgSurfaceVariant
