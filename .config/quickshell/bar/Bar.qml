@@ -514,8 +514,7 @@ PanelWindow {
           height: parent.height
           visible: width > Config.spacingLarge * 2
           running: root.ambientMotion
-          lowLevel: AudioLevelService.low
-          highLevel: AudioLevelService.high
+          active: AudioLevelService.active
           color: Colors.primary
         }
         SignalWave {
@@ -528,8 +527,7 @@ PanelWindow {
           height: parent.height
           visible: width > Config.spacingLarge * 2
           running: root.ambientMotion
-          lowLevel: AudioLevelService.low
-          highLevel: AudioLevelService.high
+          active: AudioLevelService.active
           color: Colors.primary
         }
       }

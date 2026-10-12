@@ -5,23 +5,24 @@ import Quickshell
 import Quickshell.Io
 import "AudioLevel.js" as AudioLevel
 
-// Audio level for the bar's signal wave. cava runs only while a player reports
-// Playing and the bar asks for it; silence and idle both read as level 0.
+// Whether there is sound, for the bar's signal wave. cava runs only while a
+// player reports Playing and the bar asks for it. `active` turns on with the
+// first sound and off after a short stretch of silence, so quiet passages
+// between notes do not make the wave stutter.
 QtObject {
   id: root
 
   // Set by the bar while a wave is on screen and motion is allowed.
   property bool wanted: false
-  property real low: 0
-  property real high: 0
+  property bool active: false
 
   readonly property bool running: root.wanted && MediaService.status === "Playing"
   property bool processEnabled: true
 
   onRunningChanged: {
     if (!root.running) {
-      root.low = 0
-      root.high = 0
+      root.active = false
+      hush.stop()
       retry.stop()
     }
   }
@@ -31,16 +32,19 @@ QtObject {
     running: root.running && root.processEnabled
     stdout: SplitParser {
       onRead: function(data) {
-        var vals = AudioLevel.parse(data)
-        if (vals.length === 0) return
-        var b = AudioLevel.bands(vals)
-        root.low = AudioLevel.follow(root.low, b.low)
-        root.high = AudioLevel.follow(root.high, b.high)
+        if (!AudioLevel.hasSound(AudioLevel.parse(data))) return
+        root.active = true
+        hush.restart()
       }
     }
     onRunningChanged: {
       if (!running && root.running) retry.start()
     }
+  }
+
+  property var hush: Timer {
+    interval: 700
+    onTriggered: root.active = false
   }
 
   property var retry: Timer {
