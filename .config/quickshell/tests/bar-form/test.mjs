@@ -61,3 +61,8 @@ assert.ok(!/Spring\.stop\(\)/.test(read("../../bar/primitives/ColorSpring.qml"))
 assert.ok(/fillColor: barBg\.color/.test(read("../../bar/Bar.qml")), "notch shoulders must follow the body fill")
 assert.ok(/BarForm\.fromLegacy/.test(read("../../config/Settings.qml")), "Settings must migrate fullBar")
 console.log("PASS source-guards")
+
+const bar = read("../../bar/Bar.qml")
+assert.equal((bar.match(/running: root\.ambientMotion/g) || []).length, 2, "both SignalWaves must be gated on ambientMotion")
+assert.ok(/ambientMotion: !UPower\.onBattery && !root\.sessionLocked/.test(bar.replace(/readonly property bool /, "")), "ambientMotion gates on battery and lock")
+console.log("PASS wave-gating")

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Services.UPower
 import Quickshell.Wayland._WlrLayerShell
 import "../config"
 import "../config/BarForm.js" as BarForm
@@ -22,6 +23,11 @@ PanelWindow {
   // after one event-loop turn so a reloaded instance drops the old surface
   // before creating the new one.
   property bool surfaceReady: false
+  // Set by shell.qml: the lock screen covers the bar.
+  property bool sessionLocked: false
+  // Decorative motion pauses on battery and while locked; the bar repaints at
+  // 60fps otherwise. ponytail: no fullscreen signal exists yet, add if one does.
+  readonly property bool ambientMotion: !UPower.onBattery && !root.sessionLocked
   readonly property bool horizontal: barPosition === "top" || barPosition === "bottom"
   readonly property bool dockedTop: barPosition === "top"
   readonly property bool dockedBottom: barPosition === "bottom"
@@ -474,6 +480,7 @@ PanelWindow {
           width: Math.max(0, to - from)
           height: parent.height
           visible: width > Config.spacingLarge * 2
+          running: root.ambientMotion
           color: Colors.primary
         }
         SignalWave {
@@ -485,6 +492,7 @@ PanelWindow {
           width: groupChrome.midW > 0 ? Math.max(0, to - from) : 0
           height: parent.height
           visible: width > Config.spacingLarge * 2
+          running: root.ambientMotion
           color: Colors.primary
         }
       }

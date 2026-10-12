@@ -469,6 +469,7 @@ ShellRoot {
     id: bar
     barPosition: shell.barPosition
     notificationCount: notificationPopup.count
+    sessionLocked: lockScreen.locked || lockScreen.compositorLocked
     // Wait for persisted settings before exposing the panel so the first
     // mapped surface uses the final bar geometry and style.
     visible: bar.surfaceReady
