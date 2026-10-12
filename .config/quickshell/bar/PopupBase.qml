@@ -46,7 +46,7 @@ PanelWindow {
   property int screenH: Screen.desktopAvailableHeight
 
   anchors.top: true
-  margins.top: Math.max(topMarginFloor, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight - bottomMarginPad))
+  margins.top: Math.max(topMarginFloor + Config.tagStripOffset, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight - bottomMarginPad))
 
   onVisibleChanged: {
     if (visible) {

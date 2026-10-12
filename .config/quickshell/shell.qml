@@ -247,7 +247,7 @@ ShellRoot {
     if (bar.horizontal) {
       return bar.dockedBottom
         ? Math.max(0, screenH - h - popupBarInset())
-        : popupBarInset()
+        : popupBarInset() + Config.tagStripOffset
     }
     return Math.round(Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h)))
   }
@@ -513,6 +513,14 @@ ShellRoot {
       && Settings.initialLoadComplete
       && !lockScreen.locked
       && !lockScreen.compositorLocked
+  }
+
+  TagStrip {
+    screen: bar.screen
+    visible: Config.elenaTheme && bar.visible
+    workspaces: bar.tagWorkspaces
+    reserveZone: !(bar.horizontal && bar.dockedTop)
+    onActivated: function(idx) { bar.focusTagWorkspace(idx) }
   }
 
   AudioPopup {

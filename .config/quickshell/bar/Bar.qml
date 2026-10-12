@@ -121,6 +121,14 @@ PanelWindow {
   readonly property int niriExclusiveZone: (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
     + root.edgeGap
   exclusiveZone: root.niriExclusiveZone
+  // elena: the tag strip owns the top 8 px of the screen; shifting the whole
+  // bar surface keeps the strip and the bar from fighting over exclusive-zone
+  // order. Layer-shell counts the edge margin in the exclusive zone.
+  margins.top: Config.tagStripOffset
+
+  // Read by shell.qml for the elena tag strip.
+  readonly property var tagWorkspaces: wsIndicator.visibleWorkspaces
+  function focusTagWorkspace(idx) { wsIndicator.focusWorkspace(idx) }
   WlrLayershell.namespace: Config.layerNamespace("panel")
   WlrLayershell.layer: WlrLayer.Top
 
@@ -224,9 +232,9 @@ PanelWindow {
     } else {
       if (root.horizontal) {
         popupAnchorX = x + w / 2
-        popupAnchorY = root.height - Config.spacingLarge // sit exactly at the bottom of the barBg
+        popupAnchorY = root.height - Config.spacingLarge + Config.tagStripOffset // sit exactly at the bottom of the barBg
       } else {
-        popupAnchorY = y
+        popupAnchorY = y + Config.tagStripOffset
       }
       openPopup = name
     }
@@ -608,12 +616,14 @@ PanelWindow {
           Layout.row: root.horizontal ? 0 : root.barSlot("workspaces")
           horizontal: root.horizontal
           integrated: root.continuousBar
-          Layout.preferredWidth: Settings.ccShowWorkspaces
+          opacity: Config.elenaTheme ? 0 : 1
+          enabled: !Config.elenaTheme
+          Layout.preferredWidth: (Settings.ccShowWorkspaces && !Config.elenaTheme)
             ? (root.horizontal
               ? Math.max(implicitWidth, root.pillsBar ? root.horizontalPillLength : 0)
               : parent.width)
             : 0
-          Layout.preferredHeight: Settings.ccShowWorkspaces
+          Layout.preferredHeight: (Settings.ccShowWorkspaces && !Config.elenaTheme)
             ? (root.horizontal
               ? parent.height
               : Math.max(implicitHeight, root.pillsBar ? root.verticalPillLength : 0))
