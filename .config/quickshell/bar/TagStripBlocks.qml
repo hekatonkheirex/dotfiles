@@ -23,19 +23,21 @@ Item {
     anchors.fill: parent
 
     Repeater {
-      model: root.blocks
+      model: root.blocks.length
 
       delegate: Rectangle {
-        required property var modelData
+        required property int index
+        // Stable delegates (integer model) so Behavior on color animates.
+        readonly property var block: index < root.blocks.length ? root.blocks[index] : null
         width: root.blocks.length > 0 ? root.width / root.blocks.length : 0
         height: parent.height
-        color: root.fill(modelData)
+        color: block ? root.fill(block) : "transparent"
         Behavior on color { ColorAnimation { duration: Config.motionShort } }
 
         MouseArea {
           anchors.fill: parent
           cursorShape: Qt.PointingHandCursor
-          onClicked: root.activated(modelData.idx)
+          onClicked: if (block) root.activated(block.idx)
         }
       }
     }
