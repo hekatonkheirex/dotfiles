@@ -697,12 +697,8 @@ ShellRoot {
     }
 
     anchors.left: true
-    margins.left: launcherPopup.wallpaperMode
-      ? Math.max(0, (bar.screen.width - launcherPopup.implicitWidth) / 2)
-      : shell.popupMarginLeft(implicitWidth, bar.screen.width)
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
     anchors.top: true
-    margins.top: launcherPopup.wallpaperMode
-      ? Math.max(0, (bar.screen.height - launcherPopup.implicitHeight) / 2)
-      : shell.popupMarginTop(implicitHeight, bar.screen.height)
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 }

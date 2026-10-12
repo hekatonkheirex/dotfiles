@@ -20,9 +20,12 @@ PanelWindow {
   property string query: ""
   readonly property bool noMatch: root.query !== "" && Film.find(root.names(), root.query) < 0
   signal dismissed()
+  signal previewReady(string name)
 
   readonly property string wallsDir: Quickshell.env("HOME") + "/Pictures/Walls"
   readonly property string thumbDir: Quickshell.env("HOME") + "/.cache/quickshell/wallpaper-thumbs"
+  readonly property string previewDir: Quickshell.env("HOME") + "/.cache/quickshell/wallpaper-previews"
+  readonly property string previewScript: Quickshell.env("HOME") + "/.config/quickshell/scripts/generate-previews.sh"
   readonly property var geo: Film.geometry(root.screen ? root.screen.width : 1920)
   readonly property int captionHeight: 56
 
@@ -40,6 +43,36 @@ PanelWindow {
   margins.top: Math.max(0, ((root.screen ? root.screen.height : 1080) - root.implicitHeight) / 2)
 
   ListModel { id: walls }
+
+  // Previews are made on demand for the selected card, one at a time; a
+  // niced bulk run fills in the rest once per session so browsing stays sharp.
+  property var previewQueue: []
+  property bool bulkStarted: false
+
+  function requestPreview(name) {
+    if (!name || root.previewQueue.indexOf(name) >= 0 || previewProc.target === name) return
+    root.previewQueue = root.previewQueue.concat([name])
+    root.nextPreview()
+  }
+
+  function nextPreview() {
+    if (previewProc.running || root.previewQueue.length === 0) return
+    previewProc.target = root.previewQueue[0]
+    root.previewQueue = root.previewQueue.slice(1)
+    previewProc.running = true
+  }
+
+  Process {
+    id: previewProc
+    property string target: ""
+    command: ["nice", "-n", "5", "bash", root.previewScript, previewProc.target]
+    onRunningChanged: {
+      if (running) return
+      root.previewReady(previewProc.target)
+      previewProc.target = ""
+      root.nextPreview()
+    }
+  }
 
   function apply(name) {
     if (!name) return
@@ -97,6 +130,10 @@ PanelWindow {
       root.query = root.initialQuery
       lister.running = false
       lister.running = true
+      if (!root.bulkStarted) {
+        root.bulkStarted = true
+        Quickshell.execDetached(["nice", "-n", "15", "bash", root.previewScript])
+      }
       keys.forceActiveFocus()
     }
   }
@@ -184,7 +221,7 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width
             height: slot.geom.h
-            clip: true
+            antialiasing: true
 
             // Lean the whole slice, picture included, about its vertical centre.
             transform: Matrix4x4 {
@@ -194,7 +231,7 @@ PanelWindow {
                                    0, 0, 0, 1)
             }
 
-            Rectangle { anchors.fill: parent; color: Colors.surfaceContainer }
+            Rectangle { anchors.fill: parent; antialiasing: true; color: Colors.surfaceContainer }
 
             Image {
               anchors.fill: parent
@@ -203,25 +240,56 @@ PanelWindow {
               fillMode: Image.PreserveAspectCrop
               asynchronous: true
               cache: false
+              smooth: true
+              mipmap: true
+              antialiasing: true
               onStatusChanged: if (status === Image.Error) slot.thumbMissing = true
             }
 
-            // Full picture only for the selected card; the thumbnail stays
-            // under it until the decode finishes.
+            // Sharp preview (1600 px) for the selected card once it rests; the
+            // thumbnail stays under it until the decode finishes. If the
+            // preview is missing it is generated, then loaded; if that fails
+            // the original is used.
             Image {
+              id: hero
               anchors.fill: parent
               visible: slot.current
-              source: slot.current && slot.valid && strip.rested ? "file://" + root.wallsDir + "/" + slot.name : ""
-              sourceSize: Qt.size(1280, 720)
+              readonly property string previewUrl: "file://" + root.previewDir + "/" + slot.name + ".jpg"
+              readonly property string originalUrl: "file://" + root.wallsDir + "/" + slot.name
+              property bool previewFailed: false
+              property bool asked: false
+              source: slot.current && slot.valid && strip.rested
+                ? (hero.previewFailed ? hero.originalUrl : hero.previewUrl) : ""
+              sourceSize: Qt.size(1600, 900)
               fillMode: Image.PreserveAspectCrop
               asynchronous: true
               cache: false
+              smooth: true
+              mipmap: true
+              antialiasing: true
               opacity: status === Image.Ready ? 1 : 0
               Behavior on opacity { NumberAnimation { duration: Config.reducedMotion ? 0 : 140 } }
+
+              onStatusChanged: {
+                if (status !== Image.Error || hero.previewFailed) return
+                if (hero.asked) hero.previewFailed = true
+                else { hero.asked = true; root.requestPreview(slot.name) }
+              }
+
+              Connections {
+                target: root
+                function onPreviewReady(name) {
+                  if (name !== slot.name || !hero.asked || hero.previewFailed) return
+                  var url = hero.source
+                  hero.source = ""
+                  hero.source = url
+                }
+              }
             }
 
             Rectangle {
               anchors.fill: parent
+              antialiasing: true
               color: "transparent"
               border.width: slot.current ? 2 : 0
               border.color: Colors.primary

@@ -29,15 +29,11 @@ PanelWindow {
   signal wallpapersRequested(string query)
 
 
-  implicitWidth: wallpaperMode
-    ? Math.min(Config.settingsMaxWidth, Math.max(Config.popupWidth, Screen.desktopAvailableWidth - Config.spacingPage))
-    : Math.min(Config.launcherWidth,
-      Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
+  implicitWidth: Math.min(Config.launcherWidth,
+    Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
   visible: false
-  implicitHeight: wallpaperMode
-    ? Math.min(screenH - Config.spacingPage, wallpaperGridHeight + 86)
-    : Math.min(screenH - Config.spacingPage, clipItem.implicitHeight + Config.spacingPage,
-      clipboardMode ? 620 : 500)
+  implicitHeight: Math.min(screenH - Config.spacingPage, clipItem.implicitHeight + Config.spacingPage,
+    clipboardMode ? 620 : 500)
 
   Behavior on implicitWidth {
     NumberAnimation {
@@ -74,7 +70,6 @@ PanelWindow {
     if (!root.selectedResult) return
     var result = root.selectedResult
     if (result.kind === "action" || result.kind === "clipboard-action") root.runAction(result.actionId)
-    else if (result.kind === "wallpaper") root.applyWallpaper(result.path)
     else if (result.kind === "clipboard") root.restoreClipboardEntry(result.clipboardLine)
     else root.launchApp(result.argv, result.terminal)
   }
@@ -190,7 +185,6 @@ PanelWindow {
       icon: "crop"
     }
   }
-  ListModel { id: wallpaperModel }
   ListModel { id: clipboardModel }
 
   property string searchText: ""
@@ -211,56 +205,6 @@ PanelWindow {
     root.wallpapersRequested(root.searchText.trim().substring(1).trim())
     root.dismissed()
   }
-  readonly property int wallpaperCellWidth: 180
-  readonly property int wallpaperCellHeight: 124
-  readonly property int wallpaperCardWidth: 164
-  readonly property int wallpaperCardHeight: 108
-  readonly property int wallpaperImageInset: 1
-  readonly property int wallpaperCellGap: wallpaperCellWidth - wallpaperCardWidth
-  // The grid has two horizontal margins from clipItem and the frame.
-  readonly property int wallpaperGridAvailableWidth: Math.max(1,
-    implicitWidth - Config.spacingMedium * 4)
-  readonly property int wallpaperColumns: Math.max(1,
-    Math.floor((wallpaperGridAvailableWidth + wallpaperCellGap) / wallpaperCellWidth))
-  // Center the visible cards, rather than the larger cells that contain them.
-  readonly property int wallpaperRowWidth:
-    wallpaperColumns * wallpaperCellWidth - wallpaperCellGap
-  readonly property int wallpaperRows: wallpaperMode
-    ? Math.max(1, Math.ceil(Math.max(1, filteredModel.count) / wallpaperColumns))
-    : 1
-  readonly property int wallpaperGridHeight:
-    Math.min(480, Math.max(220, wallpaperRows * wallpaperCellHeight + Config.spacingLarge))
-
-  Process {
-    id: wallpaperProc
-    command: [
-      "find", Quickshell.env("HOME") + "/Pictures/Walls", "-maxdepth", "1", "-type", "f",
-      "(", "-iname", "*.jpg", "-o", "-iname", "*.jpeg", "-o", "-iname", "*.png", "-o", "-iname", "*.webp", ")",
-      "-printf", "%f\\n"
-    ]
-    running: false
-
-    stdout: StdioCollector {
-      onStreamFinished: {
-        wallpaperModel.clear()
-        var lines = text.trim().split("\n")
-        for (var i = 0; i < lines.length; i++) {
-          var filename = lines[i].trim()
-          if (!filename) continue
-          wallpaperModel.append({
-            kind: "wallpaper",
-            name: filename,
-            path: filename,
-            comment: "Apply wallpaper",
-            keywords: filename.replace(/[._-]+/g, " "),
-            icon: "wallpaper"
-          })
-        }
-        if (root.visible) root.filterApps()
-      }
-    }
-  }
-
   Process {
     id: desktopProc
     command: ["python3", Quickshell.env("HOME") + "/.config/quickshell/bin/desktop-parser.py"]
@@ -482,11 +426,6 @@ PanelWindow {
     clipboardProc.running = true
   }
 
-  function refreshWallpapers() {
-    if (wallpaperProc.running) return
-    wallpaperProc.running = true
-  }
-
   function requestClipboardWipe() {
     if (root.clipboardWipeRunning) return
 
@@ -622,16 +561,6 @@ PanelWindow {
     dismissed()
   }
 
-  function applyWallpaper(filename) {
-    if (!filename) return
-    Quickshell.execDetached([
-      "bash",
-      Quickshell.env("HOME") + "/.config/quickshell/scripts/apply-wallpaper.sh",
-      filename
-    ])
-    dismissed()
-  }
-
   function runCaptureScript(mode) {
     Quickshell.execDetached([
       "bash",
@@ -688,10 +617,6 @@ PanelWindow {
     var q = searchText.toLowerCase().trim()
     if (q.startsWith(">")) {
       filterSpecialResults(actionModel, q.substring(1).trim())
-      return
-    }
-    if (q.startsWith("@")) {
-      filterSpecialResults(wallpaperModel, q.substring(1).trim())
       return
     }
     if (q.startsWith(";")) {
@@ -995,7 +920,7 @@ PanelWindow {
       Shortcut {
         sequences: ["Shift+F10", "Menu"]
         context: Qt.WindowShortcut
-        enabled: root.visible && root.selectedResult !== null && !root.wallpaperMode
+        enabled: root.visible && root.selectedResult !== null
         onActivated: resultMenu.popup(appList, appList.width / 2, appList.height / 2)
       }
 
@@ -1041,25 +966,14 @@ PanelWindow {
             ? "Transcribing..."
             : (root.actionMode
               ? "Run a shell action..."
-              : (root.wallpaperMode
-                ? "Search wallpapers..."
-                : (root.clipboardMode ? "Search clipboard history..." : "Search apps"))))
+              : (root.clipboardMode ? "Search clipboard history..." : "Search apps")))
         showPlaceholderOnFocus: true
-        captureHorizontalArrows: root.wallpaperMode
         accessibleName: "Search applications and launcher providers"
 
         onAccepted: root.activateSelection()
         onEscapePressed: root.dismissed()
-        onUpPressed: {
-          if (root.wallpaperMode) root.moveWallpaperSelection(Qt.Key_Up)
-          else root.moveSelection(-1)
-        }
-        onDownPressed: {
-          if (root.wallpaperMode) root.moveWallpaperSelection(Qt.Key_Down)
-          else root.moveSelection(1)
-        }
-        onLeftPressed: root.moveWallpaperSelection(Qt.Key_Left)
-        onRightPressed: root.moveWallpaperSelection(Qt.Key_Right)
+        onUpPressed: root.moveSelection(-1)
+        onDownPressed: root.moveSelection(1)
 
         IconButton {
           id: micIcon
@@ -1140,7 +1054,7 @@ PanelWindow {
       ListView {
         id: appList
         Layout.fillWidth: true
-        Layout.preferredHeight: root.wallpaperMode ? 0 : Math.min(contentHeight, 380)
+        Layout.preferredHeight: Math.min(contentHeight, 380)
         Layout.fillHeight: true
         Layout.minimumHeight: 0
         activeFocusOnTab: true
@@ -1148,7 +1062,6 @@ PanelWindow {
         Keys.onDownPressed: root.moveSelection(1)
         Keys.onReturnPressed: root.activateSelection()
         Keys.onEnterPressed: root.activateSelection()
-        visible: !root.wallpaperMode
         model: filteredModel
         clip: true
         currentIndex: root.selectedIndex
@@ -1167,10 +1080,10 @@ PanelWindow {
           height: Config.material3Theme ? implicitHeight : (root.clipboardMode ? 54 : 44)
           radius: Config.nothingDesign || Config.ghostTheme ? Config.shapeMedium : 22
           // Apps without a resolvable icon get a generic glyph, not a letter avatar.
-          leadingIcon: model.kind === "action" || model.kind === "wallpaper"
+          leadingIcon: model.kind === "action"
             || model.kind === "clipboard-action" || model.kind === "clipboard" ? model.icon
             : (model.icon === "" ? "apps" : "")
-          leadingImageSource: model.kind !== "action" && model.kind !== "wallpaper" && model.icon !== ""
+          leadingImageSource: model.kind !== "action" && model.icon !== ""
             && model.kind !== "clipboard-action" && model.kind !== "clipboard"
             ? "file://" + model.icon : ""
           title: model.name
@@ -1206,7 +1119,7 @@ PanelWindow {
 
       Text {
         Layout.fillWidth: true
-        visible: !root.wallpaperMode && !root.clipboardMode && filteredModel.count === 0
+        visible: !root.clipboardMode && filteredModel.count === 0
         text: "No matching results"
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
@@ -1252,191 +1165,6 @@ PanelWindow {
         }
       }
 
-      Rectangle {
-        id: wallpaperFrame
-        Layout.fillWidth: true
-        Layout.preferredHeight: root.wallpaperMode ? root.wallpaperGridHeight : 0
-        visible: root.wallpaperMode
-        radius: Config.shapeMedium
-        color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-          ? Colors.styleSurface
-          : Colors.surfaceContainerLow
-        border.color: Colors.styleOutline
-        border.width: Config.themeBorderWidth
-        clip: true
-
-        GridView {
-          id: wallpaperGrid
-          anchors.fill: parent
-          anchors.margins: Config.spacingMedium
-          leftMargin: Math.max(0, (width - root.wallpaperRowWidth) / 2)
-          cellWidth: root.wallpaperCellWidth
-          cellHeight: root.wallpaperCellHeight
-          model: filteredModel
-          currentIndex: root.selectedIndex
-          clip: true
-          boundsBehavior: Flickable.StopAtBounds
-          activeFocusOnTab: true
-          ScrollBar.vertical: SettingsScrollBar { scrollTarget: wallpaperGrid }
-
-          Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Left || event.key === Qt.Key_Right
-                || event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
-              root.moveWallpaperSelection(event.key)
-              event.accepted = true
-              return
-            }
-            if ((event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)
-                && root.selectedIndex >= 0 && root.selectedIndex < filteredModel.count) {
-              root.applyWallpaper(filteredModel.get(root.selectedIndex).path)
-              event.accepted = true
-            }
-          }
-
-          delegate: Rectangle {
-            id: wallpaperDelegate
-            width: root.wallpaperCardWidth
-            height: root.wallpaperCardHeight
-            radius: Config.shapeMedium
-            color: Colors.surfaceContainerHigh
-            clip: true
-
-            readonly property bool isSelected: GridView.isCurrentItem
-            readonly property bool isFocused: isSelected && wallpaperGrid.activeFocus
-            readonly property string thumbnailSource:
-              "file://" + Quickshell.env("HOME") + "/.cache/quickshell/wallpaper-thumbs/" + model.path
-            readonly property string originalSource:
-              "file://" + Quickshell.env("HOME") + "/Pictures/Walls/" + model.path
-
-            Accessible.role: Accessible.Button
-            Accessible.name: model.name
-            Accessible.description: "Apply wallpaper"
-
-            Image {
-              id: wallpaperThumb
-              anchors.fill: parent
-              anchors.margins: root.wallpaperImageInset
-              source: model.path ? wallpaperDelegate.thumbnailSource : ""
-              sourceSize.width: 200
-              sourceSize.height: 130
-              fillMode: Image.PreserveAspectCrop
-              asynchronous: true
-              smooth: true
-              visible: false
-
-              onStatusChanged: {
-                if (model.path && status === Image.Error && source !== wallpaperDelegate.originalSource) {
-                  source = wallpaperDelegate.originalSource
-                }
-              }
-            }
-
-            // Rectangle.clip is rectangular even when the Rectangle has a
-            // radius. Use the same Qt Quick mask pattern as the profile images
-            // so light wallpaper pixels cannot show through square corners.
-            Rectangle {
-              id: wallpaperMask
-              anchors.fill: parent
-              anchors.margins: root.wallpaperImageInset
-              radius: Math.max(0, wallpaperDelegate.radius - root.wallpaperImageInset)
-              color: "black"
-              visible: false
-              layer.enabled: true
-            }
-
-            MultiEffect {
-              id: wallpaperThumbEffect
-              anchors.fill: parent
-              anchors.margins: root.wallpaperImageInset
-              source: wallpaperThumb
-              maskEnabled: true
-              maskSource: wallpaperMask
-            }
-
-            Rectangle {
-              anchors.fill: parent
-              radius: parent.radius
-              color: {
-                if (wallpaperMouse.pressed) {
-                  return Qt.tint("transparent", Colors.pressOverlay)
-                }
-                if (wallpaperDelegate.isFocused) {
-                  return Qt.tint("transparent", Colors.focusOverlay)
-                }
-                if (wallpaperMouse.containsMouse) {
-                  return Qt.tint("transparent", Colors.hoverOverlay)
-                }
-                if (wallpaperDelegate.isSelected) {
-                  return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)
-                }
-                return "transparent"
-              }
-              border.width: wallpaperDelegate.isSelected || wallpaperMouse.containsMouse
-                ? Config.themeFocusBorderWidth
-                : Config.themeBorderWidth
-              border.color: wallpaperDelegate.isSelected || wallpaperMouse.containsMouse
-                ? Colors.primary : Colors.styleOutline
-
-              Behavior on color {
-                ColorAnimation { duration: Config.animationDuration }
-              }
-              Behavior on border.width {
-                NumberAnimation { duration: Config.animationDuration }
-              }
-            }
-
-            Rectangle {
-              anchors.left: parent.left
-              anchors.right: parent.right
-              anchors.bottom: parent.bottom
-              height: 26
-              color: Qt.rgba(Colors.surfaceContainerLowest.r, Colors.surfaceContainerLowest.g,
-                Colors.surfaceContainerLowest.b, 0.78)
-
-              Text {
-                anchors.fill: parent
-                anchors.leftMargin: Config.spacingSmall
-                anchors.rightMargin: Config.spacingSmall
-                verticalAlignment: Text.AlignVCenter
-                text: model.name
-                color: Colors.fgSurface
-                font.family: Config.fontFamily
-                font.pixelSize: Config.typeLabelMediumSize
-                font.letterSpacing: Config.typeLabelTracking
-                lineHeight: Config.typeLabelMediumLineHeight
-                lineHeightMode: Text.FixedHeight
-                elide: Text.ElideRight
-              }
-            }
-
-            MouseArea {
-              id: wallpaperMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-
-              onClicked: {
-                wallpaperGrid.currentIndex = index
-                wallpaperGrid.forceActiveFocus()
-                root.applyWallpaper(model.path)
-              }
-            }
-          }
-
-          Text {
-            anchors.centerIn: parent
-            visible: filteredModel.count === 0
-            text: "No wallpapers found"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeTitleSmallSize
-            font.letterSpacing: Config.typeTitleTracking
-            lineHeight: Config.typeTitleSmallLineHeight
-            lineHeightMode: Text.FixedHeight
-          }
-        }
-      }
-
     }
   }
 
@@ -1446,35 +1174,7 @@ PanelWindow {
     ensureVisible(selectedIndex)
   }
 
-  function moveWallpaperSelection(key) {
-    if (!root.wallpaperMode || filteredModel.count === 0) return
-
-    var columns = Math.max(1, wallpaperColumns)
-    var current = Math.max(0, Math.min(filteredModel.count - 1, selectedIndex))
-    var row = Math.floor(current / columns)
-    var column = current % columns
-    var next = current
-
-    if (key === Qt.Key_Left && column > 0) {
-      next = current - 1
-    } else if (key === Qt.Key_Right && column < columns - 1 && current + 1 < filteredModel.count) {
-      next = current + 1
-    } else if (key === Qt.Key_Up && row > 0) {
-      var previousRowStart = (row - 1) * columns
-      next = Math.min(previousRowStart + column, Math.min(filteredModel.count - 1, previousRowStart + columns - 1))
-    } else if (key === Qt.Key_Down) {
-      var nextRowStart = (row + 1) * columns
-      if (nextRowStart < filteredModel.count) {
-        next = Math.min(nextRowStart + column, filteredModel.count - 1)
-      }
-    }
-
-    selectedIndex = next
-    ensureVisible(next)
-  }
-
   function ensureVisible(idx) {
-    if (root.wallpaperMode) wallpaperGrid.positionViewAtIndex(idx, GridView.Contain)
-    else appList.positionViewAtIndex(idx, ListView.Contain)
+    appList.positionViewAtIndex(idx, ListView.Contain)
   }
 }
