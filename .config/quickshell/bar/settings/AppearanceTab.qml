@@ -1098,13 +1098,14 @@ Flickable {
                     { value: "full", icon: "dock_to_bottom", label: "Full", description: "Edge to edge" },
                     { value: "fit", icon: "web_asset", label: "Fit", description: "Inset rounded frame" },
                     { value: "dock", icon: "bottom_app_bar", label: "Dock", description: "Open desktop edge" },
-                    { value: "notch", icon: "flip_to_front", label: "Notch", description: "Flowing shoulders" }
+                    { value: "notch", icon: "flip_to_front", label: "Notch", description: "Flowing shoulders" },
+                    { value: "pill", icon: "pill", label: "Pill", description: "Floating pill per widget" }
                   ]
 
                   delegate: ActionButton {
                     required property var modelData
                     required property int index
-                    width: (parent.width - appearanceTab.segmentedButtonGap * 3) / 4
+                    width: (parent.width - appearanceTab.segmentedButtonGap * 4) / 5
                     height: parent.height
                     iconLabel: modelData.icon
                     iconSize: 15
@@ -1114,7 +1115,7 @@ Flickable {
                     selected: Settings.barForm === modelData.value
                     checkable: true
                     grouped: true
-                    groupPosition: index === 0 ? "first" : (index === 3 ? "last" : "middle")
+                    groupPosition: index === 0 ? "first" : (index === 4 ? "last" : "middle")
                     accessibleName: modelData.label + " bar form"
                     accessibleDescription: modelData.description
                     onActivated: root.setBarForm(modelData.value)
@@ -1127,7 +1128,8 @@ Flickable {
               Layout.fillWidth: true
               text: {
                 var forms = { full: "Edge to edge", fit: "Inset rounded frame",
-                  dock: "Open desktop edge", notch: "Flowing shoulders" }
+                  dock: "Open desktop edge", notch: "Flowing shoulders",
+                  pill: "Floating pill per widget" }
                 return forms[Settings.barForm] || forms.full
               }
               color: Colors.fgSurfaceVariant

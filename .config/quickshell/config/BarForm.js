@@ -6,7 +6,8 @@
 //   fit   inset rounded frame, floating off the edge
 //   dock  narrower body flush with the edge, open desktop at both ends
 //   notch dock body with concave shoulders flowing into the edge
-var FORMS = ["full", "fit", "dock", "notch"]
+//   pill  no bar surface, each widget floats in its own pill
+var FORMS = ["full", "fit", "dock", "notch", "pill"]
 
 function normalize(value) {
   return FORMS.indexOf(value) >= 0 ? value : "full"
@@ -17,16 +18,19 @@ function normalize(value) {
 // shoulder: size of each concave flare (notch only).
 // roundNear: round the corners on the screen-edge side too.
 // flat: no rounding at all (full).
+// pills: per-widget pills instead of one continuous surface.
 function metrics(form, o) {
   switch (normalize(form)) {
   case "fit":
-    return { edgeGap: o.spacingSmall, sideInset: o.spacingSmall, shoulder: 0, roundNear: true, flat: false }
+    return { edgeGap: o.spacingSmall, sideInset: o.spacingSmall, shoulder: 0, roundNear: true, flat: false, pills: false }
   case "dock":
-    return { edgeGap: 0, sideInset: o.barWidth, shoulder: 0, roundNear: false, flat: false }
+    return { edgeGap: 0, sideInset: o.barWidth, shoulder: 0, roundNear: false, flat: false, pills: false }
   case "notch":
-    return { edgeGap: 0, sideInset: o.barWidth, shoulder: o.spacingLarge, roundNear: false, flat: false }
+    return { edgeGap: 0, sideInset: o.barWidth, shoulder: o.spacingLarge, roundNear: false, flat: false, pills: false }
+  case "pill":
+    return { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: false, pills: true }
   default:
-    return { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: true }
+    return { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: true, pills: false }
   }
 }
 

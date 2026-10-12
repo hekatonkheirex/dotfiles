@@ -231,9 +231,8 @@ PanelWindow {
     return true
   }
 
-  // Every bar form is one continuous surface; per-widget pills are gone.
-  readonly property bool fullBar: true
-  readonly property bool pillsBar: false
+  readonly property bool pillsBar: Config.barFormMetrics.pills
+  readonly property bool fullBar: !root.pillsBar
   // Geometry for the selected form (see config/BarForm.js).
   readonly property int edgeGap: Config.barFormMetrics.edgeGap
   readonly property int sideInset: Config.barFormMetrics.sideInset

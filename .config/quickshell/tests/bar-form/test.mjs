@@ -8,14 +8,15 @@ const src = readFileSync(fileURLToPath(new URL("../../config/BarForm.js", import
 const B = new Function(src + "; return { FORMS, normalize, metrics, shoulderPath }")()
 const o = { barWidth: 42, spacingSmall: 8, spacingLarge: 16 }
 
-assert.deepEqual(B.FORMS, ["full", "fit", "dock", "notch"])
+assert.deepEqual(B.FORMS, ["full", "fit", "dock", "notch", "pill"])
 for (const bad of [undefined, null, "", "pills", "FULL"]) assert.equal(B.normalize(bad), "full")
 for (const f of B.FORMS) assert.equal(B.normalize(f), f)
 
-assert.deepEqual(B.metrics("full", o), { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: true })
-assert.deepEqual(B.metrics("fit", o), { edgeGap: 8, sideInset: 8, shoulder: 0, roundNear: true, flat: false })
-assert.deepEqual(B.metrics("dock", o), { edgeGap: 0, sideInset: 42, shoulder: 0, roundNear: false, flat: false })
-assert.deepEqual(B.metrics("notch", o), { edgeGap: 0, sideInset: 42, shoulder: 16, roundNear: false, flat: false })
+assert.deepEqual(B.metrics("full", o), { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: true, pills: false })
+assert.deepEqual(B.metrics("fit", o), { edgeGap: 8, sideInset: 8, shoulder: 0, roundNear: true, flat: false, pills: false })
+assert.deepEqual(B.metrics("dock", o), { edgeGap: 0, sideInset: 42, shoulder: 0, roundNear: false, flat: false, pills: false })
+assert.deepEqual(B.metrics("notch", o), { edgeGap: 0, sideInset: 42, shoulder: 16, roundNear: false, flat: false, pills: false })
+assert.deepEqual(B.metrics("pill", o), { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: false, pills: true })
 assert.deepEqual(B.metrics("junk", o), B.metrics("full", o))
 
 assert.equal(B.shoulderPath(0, { edge: "top", x: 0, y: 0, w: 100, h: 42 }), "")

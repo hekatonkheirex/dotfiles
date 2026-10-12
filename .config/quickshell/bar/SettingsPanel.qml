@@ -104,7 +104,7 @@ PanelWindow {
     { tab: 2, category: "Color and theme", icon: "palette", title: "Color palette", anchor: "Palette family", subtitle: "Material 3, Catppuccin, Gruvbox, or TokyoNight" },
     { tab: 2, category: "Color and theme", icon: "contrast", title: "Contrast", subtitle: "Standard, medium, or high contrast" },
     { tab: 2, category: "Bar", icon: "dock_to_bottom", title: "Bar placement", subtitle: "Top, bottom, left, or right" },
-    { tab: 2, category: "Bar", icon: "view_week", title: "Bar form", subtitle: "Full, fit, dock, or notch" },
+    { tab: 2, category: "Bar", icon: "view_week", title: "Bar form", subtitle: "Full, fit, dock, notch, or pill" },
     { tab: 2, category: "Workspaces", icon: "looks_5", title: "Visible workspaces", subtitle: "Show active workspaces, one through five, or one through ten" },
     { tab: 2, category: "Workspaces", icon: "shapes", title: "Workspace marker style", anchor: "Workspace buttons", subtitle: "Choose expressive, pill, rounded, circle, dots, glyph, or other shapes" },
     { tab: 2, category: "Sizing", icon: "format_size", title: "UI Font Size", subtitle: "Adjust the shell's base text size" },
