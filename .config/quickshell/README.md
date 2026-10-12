@@ -407,6 +407,12 @@ Liquid Glass popups and notification toasts use a matching 20px QML and composit
 
 `ensure-style-terminal-assets.sh` supplies fixed Nothing/Ghost Starship prompts and the recovered dark Ghost btop palette. Material 3 retains Roboto Flex and tonal surfaces. Nothing Classic retains NType display labels, neutral surfaces, and red accents, with Noto Sans for readable body copy; Evolution uses Geist and adaptive colors. Ghost uses its cyan HUD palette and square controls.
 
+### dwm style
+
+`dwm` is a flat, square UI style modelled on dwm and dmenu: a one-line bar with square workspace tags and flat status text, and a launcher that becomes a dmenu-style strip drawn over the bar. Select it in Settings > Appearance > dwm, or try it without saving with `qs ipc call shell style dwm ""`. The palette follows the wallpaper through Matugen, like Material 3.
+
+Strip keys, documented from the code in `bar/LauncherPopup.qml`: Left/Right move through results, Up/Down also move the selection, Enter launches, Esc closes. The `>`, `;` and `@` provider prefixes work as in the normal launcher. The strip has no voice button. On vertical bars the launcher stays a regular popup.
+
 ### `bar/PopupShield.qml`
 
 Full-screen transparent surface on `WlrLayer.Bottom` that catches clicks outside popups and dismisses them via `onShieldClicked`. The shield sits behind popups (which are on `WlrLayer.Top`) so clicks on popup content work normally while clicks outside reach the shield.
