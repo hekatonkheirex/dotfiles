@@ -66,6 +66,38 @@ function shoulderPath(s, g) {
   }).join(" ")
 }
 
+// Open SVG path of the notch silhouette's outline: the concave shoulder arcs
+// plus the body's far side and rounded far corners. The edge on the screen
+// side is left open. Same g as shoulderPath; r is the body's far-corner radius.
+// Built in a frame where u runs along the bar and v is depth from the screen
+// edge, then mapped to the edge; mirrored frames flip every arc sweep.
+function outlinePath(s, r, g) {
+  if (!(s > 0)) return ""
+  var h = g.edge === "top" || g.edge === "bottom"
+  var len = h ? g.w : g.h
+  var depth = h ? g.h : g.w
+  r = Math.max(0, Math.min(r, depth - s, len / 2))
+  var flip = g.edge === "bottom" || g.edge === "left"
+  function pt(u, v) {
+    switch (g.edge) {
+    case "top": return [g.x + u, g.y + v]
+    case "bottom": return [g.x + u, g.y + g.h - v]
+    case "left": return [g.x + v, g.y + u]
+    default: return [g.x + g.w - v, g.y + u]
+    }
+  }
+  function sw(n) { return flip ? 1 - n : n }
+  function P(u, v) { var q = pt(u, v); return q[0] + " " + q[1] }
+  return "M " + P(-s, 0)
+    + " A " + s + " " + s + " 0 0 " + sw(1) + " " + P(0, s)
+    + " L " + P(0, depth - r)
+    + " A " + r + " " + r + " 0 0 " + sw(0) + " " + P(r, depth)
+    + " L " + P(len - r, depth)
+    + " A " + r + " " + r + " 0 0 " + sw(0) + " " + P(len, depth - r)
+    + " L " + P(len, s)
+    + " A " + s + " " + s + " 0 0 " + sw(1) + " " + P(len + s, 0)
+}
+
 // SVG path of a sine-like wave, `periods` full periods long, centred on y=mid.
 // Built from quadratic segments (Q then T) so it tiles every `period` px,
 // which lets the caller slide it by one period for a seamless loop.

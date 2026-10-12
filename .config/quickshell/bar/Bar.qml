@@ -246,6 +246,7 @@ PanelWindow {
   readonly property int shoulder: Config.barFormMetrics.shoulder
   readonly property bool flat: Config.barFormMetrics.flat
   readonly property bool roundNear: Config.barFormMetrics.roundNear
+  readonly property bool glassEdge: root.continuousBar && Config.liquidGlassTheme && Colors.liquidGlassOpaque
   readonly property bool horizontalPillMode: root.horizontal && root.pillsBar
   readonly property bool ghostHorizontalOneLiner: Config.ghostTheme && root.horizontal
   // The horizontal full bar follows the Hyprland layout's compact icon-plus
@@ -314,6 +315,8 @@ PanelWindow {
     // Notch form: concave shoulders flow from the screen edge into the body.
     Shape {
       anchors.fill: parent
+      // Above the body so its edge stroke is not half covered by the fill.
+      z: 1
       visible: root.shoulder > 0
       ShapePath {
         // Follow the body: transparent for Liquid Glass and Ghost central gap.
@@ -322,6 +325,18 @@ PanelWindow {
         strokeWidth: 0
         PathSvg {
           path: BarForm.shoulderPath(root.shoulder, {
+            edge: root.barPosition, x: barBg.x, y: barBg.y, w: barBg.width, h: barBg.height
+          })
+        }
+      }
+      // The body's own border would cut a line across each shoulder joint, so
+      // the notch strokes one continuous outline around body and shoulders.
+      ShapePath {
+        fillColor: "transparent"
+        strokeColor: root.glassEdge ? Colors.styleOutline : "transparent"
+        strokeWidth: Config.themeBorderWidth
+        PathSvg {
+          path: BarForm.outlinePath(root.shoulder, Config.barRadius, {
             edge: root.barPosition, x: barBg.x, y: barBg.y, w: barBg.width, h: barBg.height
           })
         }
@@ -351,8 +366,7 @@ PanelWindow {
         ? root.barPanelColor
         : "transparent"
       // An opaque glass bar has a defined edge against windows.
-      border.width: root.continuousBar && Config.liquidGlassTheme && Colors.liquidGlassOpaque
-        ? Config.themeBorderWidth : 0
+      border.width: root.glassEdge && root.shoulder === 0 ? Config.themeBorderWidth : 0
       border.color: Colors.styleOutline
 
       GlassSheen {
