@@ -269,8 +269,8 @@ PanelWindow {
   // Ghost and dwm both render a single left-to-right row with the clock in
   // the status run and no stacked date line.
   readonly property bool oneLiner: root.ghostHorizontalOneLiner || root.dwmHorizontal
-  // dwm always shows the focused window title; other styles follow the setting.
-  readonly property bool focusedShown: Settings.ccShowFocusedWindow || Config.dwmTheme
+  // Horizontal dwm always shows the focused window title; other styles follow the setting.
+  readonly property bool focusedShown: Settings.ccShowFocusedWindow || root.dwmHorizontal
   // The horizontal full bar follows the Hyprland layout's compact icon-plus
   // label controls. Vertical bars and stacked clock content stay unchanged.
   readonly property bool horizontalInlineContent: root.horizontalPillMode

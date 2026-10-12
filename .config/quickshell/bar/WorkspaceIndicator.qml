@@ -827,7 +827,7 @@ Item {
 
           // dwm marks occupied tags with a small square in the top-left corner.
           Rectangle {
-            visible: Config.dwmTheme && modelData.isOccupied
+            visible: Config.dwmTheme && root.horizontal && modelData.isOccupied
             x: 2
             y: 2
             width: 4
@@ -842,7 +842,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             anchors.verticalCenterOffset: modelData.isFocused
               ? 1
-              : (modelData.isOccupied ? 4 : 0)
+              : (modelData.isOccupied && !Config.dwmTheme ? 4 : 0)
             text: String(modelData.idx)
             color: root.numberedWorkspaceTextColor(modelData)
             font.family: Config.monoFontFamily
@@ -854,7 +854,7 @@ Item {
           }
 
           Rectangle {
-            visible: !root.horizontal && modelData.isOccupied && !modelData.isFocused
+            visible: !root.horizontal && modelData.isOccupied && !modelData.isFocused && !Config.dwmTheme
             width: 6
             height: 6
             radius: 3
