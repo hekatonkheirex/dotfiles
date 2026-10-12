@@ -14,6 +14,9 @@ PanelWindow {
   id: root
 
   property int anchorY: 0
+  // dwm theme: the launcher becomes a one-line strip drawn over a horizontal bar.
+  property bool barHorizontal: true
+  readonly property bool dmenu: Config.dwmTheme && root.barHorizontal
 
   readonly property string runtimeDirectory: {
     var xdgRuntime = Quickshell.env("XDG_RUNTIME_DIR")
@@ -29,11 +32,12 @@ PanelWindow {
   signal wallpapersRequested(string query)
 
 
-  implicitWidth: Math.min(Config.launcherWidth,
+  implicitWidth: root.dmenu ? 0 : Math.min(Config.launcherWidth,
     Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
   visible: false
-  implicitHeight: Math.min(screenH - Config.spacingPage, clipItem.implicitHeight + Config.spacingPage,
-    clipboardMode ? 620 : 500)
+  implicitHeight: root.dmenu ? Config.barWidth
+    : Math.min(screenH - Config.spacingPage, clipItem.implicitHeight + Config.spacingPage,
+        clipboardMode ? 620 : 500)
 
   Behavior on implicitWidth {
     NumberAnimation {
@@ -50,15 +54,10 @@ PanelWindow {
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: Config.layerNamespace("popup")
-  WlrLayershell.layer: WlrLayer.Top
+  WlrLayershell.layer: root.dmenu ? WlrLayer.Overlay : WlrLayer.Top
   WlrLayershell.focusable: true
 
-  anchors.left: true
-  margins.left: Config.barWidth + Config.spacingCompact
   property int screenH: Screen.desktopAvailableHeight
-
-  anchors.top: true
-  margins.top: Math.max(Config.spacingSmall, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
 
   readonly property var selectedResult: filteredModel.count > 0
     && selectedIndex >= 0 && selectedIndex < filteredModel.count ? filteredModel.get(selectedIndex) : null
@@ -772,7 +771,7 @@ PanelWindow {
           appendFilteredResult(appModel.get(i), "app")
         }
       }
-      if (Config.reducedMotion) {
+      if (Config.reducedMotion || root.dmenu) {
         entryAnimation.stop()
         materialEntryAnimation.stop()
         reducedMotionEntryAnimation.stop()
@@ -829,14 +828,15 @@ PanelWindow {
   Rectangle {
     id: bg
     anchors.fill: parent
-    color: Config.nothingEvolution ? Colors.readingSurface
+    color: root.dmenu ? Colors.styleSurface
+      : (Config.nothingEvolution ? Colors.readingSurface
       : (Config.liquidGlassTheme
         ? Colors.chromeSurface
         : ((Config.nothingDesign || Config.ghostTheme)
-          ? Colors.styleSurfaceRaised : Colors.surfaceContainer))
-    radius: Config.popupRadius
+          ? Colors.styleSurfaceRaised : Colors.surfaceContainer)))
+    radius: root.dmenu ? 0 : Config.popupRadius
     border.color: Colors.styleOutline
-    border.width: Config.themeBorderWidth
+    border.width: root.dmenu ? 0 : Config.themeBorderWidth
 
     GlassSheen {
       anchors.fill: parent
@@ -891,6 +891,98 @@ PanelWindow {
       to: 1.0
       duration: Config.reducedMotionFadeDuration
       easing.type: Easing.OutCubic
+    }
+
+    // dmenu strip: prompt, input, then results inline. The search field is the
+    // same TextFieldControl the list view uses; it is reparented here so focus,
+    // filtering and launch logic stay in one place.
+    RowLayout {
+      id: dmenuRow
+      visible: root.dmenu
+      anchors.fill: parent
+      spacing: 0
+
+      Text {
+        id: dmenuPrompt
+        Layout.fillHeight: true
+        Layout.preferredWidth: implicitWidth + Config.spacingMedium * 2
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        text: root.actionMode ? "run" : (root.clipboardMode ? "clip" : "run")
+        color: Colors.fgPrimary
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeLabelMediumSize
+        Rectangle {
+          anchors.fill: parent
+          z: -1
+          color: Colors.primary
+        }
+      }
+
+      // searchInputControl is reparented here when root.dmenu is true.
+      Item {
+        id: dmenuInputSlot
+        Layout.preferredWidth: Math.min(280, Math.round(root.width / 3))
+        Layout.fillHeight: true
+      }
+
+      Text {
+        visible: !appStrip.atXBeginning && filteredModel.count > 0
+        text: "<"
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeLabelMediumSize
+        Layout.leftMargin: Config.spacingSmall
+        Layout.rightMargin: Config.spacingCompact
+      }
+
+      ListView {
+        id: appStrip
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        orientation: ListView.Horizontal
+        clip: true
+        interactive: false
+        model: root.dmenu ? filteredModel : null
+        currentIndex: root.selectedIndex
+        onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
+
+        delegate: Rectangle {
+          required property int index
+          required property var model
+          readonly property bool current: root.selectedIndex === index
+          height: appStrip.height
+          width: stripLabel.implicitWidth + Config.spacingMedium * 2
+          color: current ? Colors.primary : "transparent"
+
+          Text {
+            id: stripLabel
+            anchors.centerIn: parent
+            text: model.name
+            color: parent.current ? Colors.fgPrimary : Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeLabelMediumSize
+          }
+
+          MouseArea {
+            anchors.fill: parent
+            onClicked: {
+              root.selectedIndex = index
+              root.activateSelection()
+            }
+          }
+        }
+      }
+
+      Text {
+        visible: !appStrip.atXEnd && filteredModel.count > 0
+        text: ">"
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeLabelMediumSize
+        Layout.leftMargin: Config.spacingCompact
+        Layout.rightMargin: Config.spacingSmall
+      }
     }
 
     ColumnLayout {
@@ -954,11 +1046,35 @@ PanelWindow {
       }
       spacing: Config.spacingMedium
 
+      // List-view slot for searchInputControl. It sizes like the field did as a
+      // direct layout child: preferred = implicitHeight, minimum = Material's.
+      Item {
+        id: listInputSlot
+        visible: !root.dmenu
+        Layout.fillWidth: true
+        Layout.preferredHeight: searchInputControl.implicitHeight
+        Layout.minimumHeight: Config.material3Theme ? searchInputControl.implicitHeight : 0
+      }
+
       TextFieldControl {
         id: searchInputControl
-        Layout.fillWidth: true
-        height: Config.material3Theme ? implicitHeight : (Config.nothingEvolution ? 48 : 46)
-        leadingIcon: "search"
+        // Reparenting appends to the new parent's children and layouts place
+        // children in that order, so the field lives in a plain slot Item in
+        // each layout instead of being a layout child itself.
+        parent: root.dmenu ? dmenuInputSlot : listInputSlot
+        width: parent.width
+        // Strip: fixed third-width input, no icon, no frame, arrows move selection.
+        height: parent.height
+        // Reproduces TextFieldControl's own color binding for every non-dmenu style.
+        color: root.dmenu ? "transparent"
+          : (Config.material3Theme ? Colors.surface
+            : (Config.liquidGlassTheme ? Colors.liquidGlassControl : Colors.styleSurface))
+        border.width: root.dmenu ? 0
+          : (searchInputControl.input.activeFocus ? Config.themeFocusBorderWidth : Config.themeBorderWidth)
+        leadingIcon: root.dmenu ? "" : "search"
+        captureHorizontalArrows: root.dmenu
+        onLeftPressed: root.moveSelection(-1)
+        onRightPressed: root.moveSelection(1)
         leadingIconSize: 22
         placeholder: root.voiceRecording
           ? "Listening... Click mic to stop."
@@ -977,6 +1093,7 @@ PanelWindow {
 
         IconButton {
           id: micIcon
+          visible: !root.dmenu
           size: 32
           iconSize: 22
           iconLabel: root.voiceRecording ? "stop" : (root.voiceTranscribing ? "sync" : "mic")
@@ -1011,7 +1128,7 @@ PanelWindow {
         Layout.fillWidth: true
         Layout.leftMargin: Config.spacingSmall
         spacing: Config.spacingSmall
-        visible: root.searchText === "" && !root.voiceRecording && !root.voiceTranscribing
+        visible: !root.dmenu && root.searchText === "" && !root.voiceRecording && !root.voiceTranscribing
 
         Repeater {
           model: [
@@ -1053,6 +1170,7 @@ PanelWindow {
 
       ListView {
         id: appList
+        visible: !root.dmenu
         Layout.fillWidth: true
         Layout.preferredHeight: Math.min(contentHeight, 380)
         Layout.fillHeight: true
@@ -1119,7 +1237,7 @@ PanelWindow {
 
       Text {
         Layout.fillWidth: true
-        visible: !root.clipboardMode && filteredModel.count === 0
+        visible: !root.dmenu && !root.clipboardMode && filteredModel.count === 0
         text: "No matching results"
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
@@ -1129,7 +1247,7 @@ PanelWindow {
 
       Rectangle {
         id: clipboardPreview
-        visible: root.clipboardMode
+        visible: !root.dmenu && root.clipboardMode
         Layout.fillWidth: true
         Layout.preferredHeight: 70
         radius: Config.shapeMedium
@@ -1175,6 +1293,7 @@ PanelWindow {
   }
 
   function ensureVisible(idx) {
-    appList.positionViewAtIndex(idx, ListView.Contain)
+    if (root.dmenu) appStrip.positionViewAtIndex(idx, ListView.Contain)
+    else appList.positionViewAtIndex(idx, ListView.Contain)
   }
 }

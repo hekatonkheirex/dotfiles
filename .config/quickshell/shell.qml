@@ -696,6 +696,7 @@ ShellRoot {
     screen: bar.screen
     visible: bar.openPopup === "launcher" && !lockScreen.locked
     anchorY: bar.popupAnchorY
+    barHorizontal: bar.horizontal
     onDismissed: bar.openPopup = ""
     onWallpapersRequested: function(query) {
       shell.wallpaperFilmstripQuery = query
@@ -703,8 +704,10 @@ ShellRoot {
     }
 
     anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
+    anchors.right: dmenu
+    anchors.top: !dmenu || !bar.dockedBottom
+    anchors.bottom: dmenu && bar.dockedBottom
+    margins.left: dmenu ? 0 : shell.popupMarginLeft(implicitWidth, bar.screen.width)
+    margins.top: dmenu ? 0 : shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 }
