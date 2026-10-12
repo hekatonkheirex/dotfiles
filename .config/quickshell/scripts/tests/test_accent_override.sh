@@ -34,4 +34,10 @@ accent_args_given=1 accent_palette_arg=tertiary accent_active_arg=tertiary
 printf '%s' "$fixture" >"$cache_file"
 apply_accent_override
 check args-only "$(jq -r '."scheme-expressive".dark.primary' "$cache_file")" "#cc0000"
+# --activate-only (shell startup / hot reload) must keep the accent too.
+mkdir -p "$HOME/.cache/matugen"
+printf '%s' "$fixture" >"$HOME/.cache/matugen/live_palette.json"
+printf '{"accentPalette":"tertiary","accentActive":"tertiary","colorSource":"live"}' >"$HOME/.config/quickshell/settings.json"
+bash "$repo/scripts/sync-active-palette.sh" --source live --activate-only
+check activate-only "$(jq -r '."scheme-expressive".dark.primary' "$HOME/.cache/matugen/current_palette.json")" "#cc0000"
 echo "accent override: ok"

@@ -583,6 +583,10 @@ fi
 activate_palette_cache
 
 if (( activate_only )); then
+  # Shell startup and hot reload land here. Without this the activation
+  # copies the pristine source over the cache and drops the accent until the
+  # next full sync.
+  apply_accent_override
   exit 0
 fi
 
