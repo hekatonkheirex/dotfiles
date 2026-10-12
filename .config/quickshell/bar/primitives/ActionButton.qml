@@ -47,8 +47,8 @@ FocusScope {
   property real radius: root.segmented
     ? Math.max(0, root.height / 2)
     : root.grouped
-    ? (Config.ghostTheme ? 0 : (root.selected ? Math.max(0, root.height / 2) : Config.shapeCompact))
-    : (Config.ghostTheme ? 0
+    ? ((Config.ghostTheme || Config.dwmTheme) ? 0 : (root.selected ? Math.max(0, root.height / 2) : Config.shapeCompact))
+    : ((Config.ghostTheme || Config.dwmTheme) ? 0
       : (Config.liquidGlassTheme || Config.nothingDesign
         ? Config.shapeCompact : (root.horizontalContent ? 20 : Config.shapeMedium)))
   property color color: {

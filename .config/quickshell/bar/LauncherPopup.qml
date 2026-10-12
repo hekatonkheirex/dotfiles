@@ -17,6 +17,7 @@ PanelWindow {
   // dwm theme: the launcher becomes a one-line strip drawn over a horizontal bar.
   property bool barHorizontal: true
   readonly property bool dmenu: Config.dwmTheme && root.barHorizontal
+  onDmenuChanged: if (visible) focusTimer.restart()
 
   readonly property string runtimeDirectory: {
     var xdgRuntime = Quickshell.env("XDG_RUNTIME_DIR")
@@ -56,6 +57,7 @@ PanelWindow {
   WlrLayershell.namespace: Config.layerNamespace("popup")
   WlrLayershell.layer: root.dmenu ? WlrLayer.Overlay : WlrLayer.Top
   WlrLayershell.focusable: true
+  WlrLayershell.keyboardFocus: root.dmenu ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
 
   property int screenH: Screen.desktopAvailableHeight
 
@@ -908,7 +910,7 @@ PanelWindow {
         Layout.preferredWidth: implicitWidth + Config.spacingMedium * 2
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        text: root.actionMode ? "run" : (root.clipboardMode ? "clip" : "run")
+        text: root.clipboardMode ? "clip" : "run"
         color: Colors.fgPrimary
         font.family: Config.fontFamily
         font.pixelSize: Config.typeLabelMediumSize
@@ -1012,7 +1014,7 @@ PanelWindow {
       Shortcut {
         sequences: ["Shift+F10", "Menu"]
         context: Qt.WindowShortcut
-        enabled: root.visible && root.selectedResult !== null
+        enabled: root.visible && root.selectedResult !== null && !root.dmenu
         onActivated: resultMenu.popup(appList, appList.width / 2, appList.height / 2)
       }
 

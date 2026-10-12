@@ -223,7 +223,7 @@ refresh_matugen_terminal_assets() {
 
   [[ "$scheme" == "matugen" ]] || return 0
   case "$ui_style" in
-    material3|liquid-glass) ;;
+    material3|liquid-glass|dwm) ;;
     *) return 0 ;;
   esac
 
@@ -502,7 +502,7 @@ EOF
   fi
   [[ "$active_mode" == "light" || "$active_mode" == "dark" ]] || active_mode=dark
 
-  if [[ "$ui_style" == "material3" || "$ui_style" == "liquid-glass" ]]; then
+  if [[ "$ui_style" == "material3" || "$ui_style" == "liquid-glass" || "$ui_style" == "dwm" ]]; then
     write_kitty_theme light
     write_kitty_theme dark
     write_starship_theme light

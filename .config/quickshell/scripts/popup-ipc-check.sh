@@ -13,8 +13,15 @@ qs ipc call shell dismissPopups >/dev/null
 [ -z "$(qs ipc call shell currentPopup)" ] && echo "ok   dismissed" || { echo "FAIL not dismissed"; fail=1; }
 # In-memory style switch (never saved) round-trips.
 [ "$(qs ipc call shell style ghost "")" = ghost ] && echo "ok   style ghost" || { echo "FAIL style ghost"; fail=1; }
-[ "$(qs ipc call shell style dwm "")" = dwm ] && echo "ok   style dwm" || { echo "FAIL style dwm"; fail=1; }
-[ "$(qs ipc call shell style material3 "")" = material3 ] && echo "ok   style material3" || { echo "FAIL style material3"; fail=1; }
+# dwm turns the launcher into the strip; material3 restores the list.
+qs ipc call shell style dwm "" >/dev/null; sleep 0.5
+[ "$(qs ipc call shell launcherMode)" = strip ] && echo "ok   dwm launcherMode strip" || { echo "FAIL dwm launcherMode"; fail=1; }
+qs ipc call shell dismissPopups >/dev/null; sleep 0.4
+r=$(qs ipc call shell popup launcher); c=$(qs ipc call shell currentPopup)
+[ "$r" = true ] && [ "$c" = launcher ] && echo "ok   dwm popup launcher" || { echo "FAIL dwm popup launcher (popup=$r current=$c)"; fail=1; }
+qs ipc call shell dismissPopups >/dev/null
+qs ipc call shell style material3 "" >/dev/null; sleep 0.5
+[ "$(qs ipc call shell launcherMode)" = list ] && echo "ok   material3 launcherMode list" || { echo "FAIL material3 launcherMode"; fail=1; }
 # In-memory Settings tab selection round-trips (restores the persisted value).
 orig=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.config/quickshell/settings.json')))['lastSettingsTab'])")
 [ "$(qs ipc call shell settingsTab 5)" = 5 ] && echo "ok   settingsTab" || { echo "FAIL settingsTab"; fail=1; }

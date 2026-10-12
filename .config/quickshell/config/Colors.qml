@@ -765,7 +765,7 @@ QtObject {
   readonly property color styleOutline: ghostTheme ? ghostHairline
     : (liquidGlassTheme ? liquidGlassEdge
       : (nothingEvolution ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.30)
-        : (nothingDesign ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.38) : outlineVariant)))
+        : (nothingDesign ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.38) : (dwmTheme ? outline : outlineVariant))))
   readonly property color styleOutlineStrong: ghostTheme ? ghostHairlineStrong
     : (liquidGlassTheme ? liquidGlassEdgeStrong
       : (nothingEvolution ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.58)

@@ -380,6 +380,11 @@ ShellRoot {
       return Settings.lockClockFace
     }
 
+    // Dev/testing: "strip" under dwm (dmenu strip), else "list".
+    function launcherMode(): string {
+      return launcherPopup.dmenu ? "strip" : "list"
+    }
+
     function currentPopup(): string {
       return bar.openPopup
     }

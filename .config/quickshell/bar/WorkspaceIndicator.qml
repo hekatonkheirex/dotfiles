@@ -128,7 +128,9 @@ Item {
   function numberedWorkspaceTextColor(item) {
     if (item.isFocused)
       return Colors.styleAccentText
-    return Config.dwmTheme ? Colors.fgSurface : Colors.fgSurfaceVariant
+    if (Config.dwmTheme)
+      return item.isOccupied ? Colors.fgSurface : Colors.fgSurfaceVariant
+    return Colors.fgSurfaceVariant
   }
 
   function numberedWorkspaceWidth(item) {

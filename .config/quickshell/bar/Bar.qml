@@ -762,7 +762,7 @@ PanelWindow {
             Text {
               id: focusedWindowProgramText
               text: focusedWindowWrapper.programText
-              color: Config.liquidGlassTheme
+              color: Config.dwmTheme ? Colors.fgSurface : Config.liquidGlassTheme
                 ? Colors.barForeground
                 : (Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary))
               font.family: Config.fontFamily
@@ -1323,7 +1323,7 @@ PanelWindow {
               text: root.horizontal
                 ? root.displayNow().toLocaleString(Qt.locale(), root.clockFormat())
                 : root.displayNow().toLocaleString(Qt.locale(), Settings.clock24h ? "HH" : "h")
-              color: Config.ghostTheme && root.horizontal
+              color: (Config.ghostTheme || Config.dwmTheme) && root.horizontal
                 ? Colors.fgSurface
                 : (Config.liquidGlassTheme
                   ? Colors.barForeground
@@ -1331,7 +1331,7 @@ PanelWindow {
               font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
               font.pixelSize: Config.clockPrimarySize + (Config.ghostTheme && root.horizontal ? 1 : 0)
               font.weight: Config.ghostTheme && !root.horizontal ? Font.Medium
-                : (Config.nothingEvolution ? Font.Medium : (Config.nothingDesign ? Font.Normal : Font.Bold))
+                : (Config.dwmTheme ? Font.Normal : Config.nothingEvolution ? Font.Medium : (Config.nothingDesign ? Font.Normal : Font.Bold))
               Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             }
 

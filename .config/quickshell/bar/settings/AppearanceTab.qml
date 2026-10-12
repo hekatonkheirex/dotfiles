@@ -524,9 +524,10 @@ Flickable {
             readonly property bool ghost: style.value === "ghost"
             readonly property bool classic: style.value === "nothing" && style.variant === "classic"
             readonly property bool glass: style.value === "liquid-glass"
+            readonly property bool dwm: style.value === "dwm"
             Layout.fillWidth: true
             Layout.preferredHeight: 152
-            radius: ghost ? 0 : (glass ? 16 : (classic ? 4 : 12))
+            radius: (ghost || dwm) ? 0 : (glass ? 16 : (classic ? 4 : 12))
             color: style.surface
             border.width: ghost || classic ? 1 : 0
             border.color: style.accent
@@ -1179,6 +1180,8 @@ Flickable {
               Layout.alignment: Qt.AlignHCenter
               Layout.preferredHeight: appearanceTab.optionButtonHeight
               height: appearanceTab.optionButtonHeight
+              enabled: !Config.dwmTheme
+              opacity: Config.dwmTheme ? 0.45 : 1
 
               Row {
                 anchors.fill: parent
@@ -1218,6 +1221,7 @@ Flickable {
             Text {
               Layout.fillWidth: true
               text: {
+                if (Config.dwmTheme) return "dwm uses a full bar"
                 var forms = { full: "Edge to edge", fit: "Inset rounded frame",
                   dock: "Open desktop edge", notch: "Flowing shoulders",
                   pill: "Grouped pills and signal line" }
@@ -1346,6 +1350,8 @@ Flickable {
             columns: appearanceTab.compactLayout ? 2 : 4
             columnSpacing: appearanceTab.optionButtonGap
             rowSpacing: appearanceTab.optionButtonGap
+            enabled: !Config.dwmTheme
+            opacity: Config.dwmTheme ? 0.45 : 1
 
             Repeater {
               model: appearanceTab.workspaceStyleOptions
@@ -1370,6 +1376,17 @@ Flickable {
                 }
               }
             }
+          }
+
+          Text {
+            visible: Config.dwmTheme
+            text: "dwm shows tag numbers"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeLabelSmallSize
+            font.letterSpacing: Config.typeLabelTracking
+            horizontalAlignment: Text.AlignHCenter
+            Layout.fillWidth: true
           }
         }
       }
