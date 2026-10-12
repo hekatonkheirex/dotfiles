@@ -417,7 +417,7 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 
 ## Widget Details
 
-- **Bar.qml**: Single component for all four placements and five bar forms (Full, Fit, Dock, Notch, Pill; Pill draws outlined group capsules and a signal wave in the gaps; geometry in `config/BarForm.js`, tested by `node tests/bar-form/test.mjs`). Widgets follow a saved Start/Middle/End order in either orientation: a flexible divider separates the edge groups, while the Middle group is anchored independently to the bar midpoint. Settings and power remain at the far edge. The clock defaults to its theme position (centered in most styles, right-side slot in horizontal Ghost) and can join any ordered region.
+- **Bar.qml**: Single component for all four placements and five bar forms (Full, Fit, Dock, Notch, Pill; Pill draws outlined group capsules and a signal wave in the gaps that reacts only to music: two counter-travelling sine layers swell with the low and high cava bands while a player reports Playing, and sit flat and still otherwise, on battery, under fullscreen and with reduced motion; geometry in `config/BarForm.js`, tested by `node tests/bar-form/test.mjs`). Widgets follow a saved Start/Middle/End order in either orientation: a flexible divider separates the edge groups, while the Middle group is anchored independently to the bar midpoint. Settings and power remain at the far edge. The clock defaults to its theme position (centered in most styles, right-side slot in horizontal Ghost) and can join any ordered region.
 - **Clock scheduling**: The visible bar clock updates at minute boundaries unless seconds are enabled, in which case it updates at second boundaries. Showing the bar or changing the seconds preference resynchronizes it; timezone formatting remains independent. The local bar preference hides the focused-window label and centers the clock; both can be changed under General → Bar contents.
 - **Calendar**: The Ghost popup uses an uppercase month with a quieter separate year, mono weekday labels and a fine rule above the dates. Today has a square cyan outline and raised fill instead of the circular filled badge used by the other styles. Month navigation and the Sunday/Monday week-start preference are unchanged.
 - **WorkspaceIndicator**: Streams workspaces from Niri (`niri msg event-stream`) using `SplitParser` and runs only when visible. Moves as one widget when reordered. Horizontal markers center within their allocated track, including Classic's numbered controls.
@@ -468,7 +468,7 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **ImageMagick** (`magick`/`convert`) — wallpaper thumbnail generation
 - **Matugen** — wallpaper-derived Material You palette generation
 - **awww** — wallpaper daemon
-- **cava** — real-time audio visualizer (raw ASCII output consumed by the Settings waveform)
+- **cava** — real-time audio visualizer (raw ASCII output consumed by the Settings waveform and the Pill bar's signal wave)
 - **swayidle** — idle timeout handling (dim/lock/DPMS/suspend), configured by Lock & Power settings
 - **inotify-tools** (`inotifywait`) — trigger-file and brightness-file watching
 - **cliphist**, **wl-clipboard** (`wl-copy`) — clipboard history provider and restore/capture copy

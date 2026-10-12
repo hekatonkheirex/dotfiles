@@ -79,12 +79,31 @@ assert.equal((bar.match(/running: root\.ambientMotion/g) || []).length, 2, "both
 assert.ok(/ambientMotion: !UPower\.onBattery && !root\.sessionLocked/.test(bar.replace(/readonly property bool /, "")), "ambientMotion gates on battery and lock")
 {
   const wave = read("../../bar/primitives/SignalWave.qml")
-  const layers = [...wave.matchAll(/Layer \{ period: (\d+); amp: ([\d.]+);.*?loopMs: (\d+); direction: (-?1) \}/g)]
+  const layers = [...wave.matchAll(/Layer \{ period: (\d+); amp: ([\d.]+);.*?loopMs: (\d+); direction: (-?1); level: root\.(\w+) \}/g)]
   assert.equal(layers.length, 2, "two wave layers")
   assert.deepEqual(layers.map(l => +l[4]).sort(), [-1, 1], "layers travel in opposite directions")
+  assert.deepEqual(layers.map(l => l[5]).sort(), ["highLevel", "lowLevel"], "each layer follows its own band")
   const speeds = layers.map(l => +l[1] / (+l[3] / 1000))
   assert.ok(speeds.every(v => v > 40 && v < 60), "slide speed matches reference (~44-51 px/s): " + speeds)
+  assert.ok(/running: root\.live && layer\.drawAmp > 0/.test(wave), "no sound means no motion")
+  assert.ok(/drawAmp: layer\.amp \* \(root\.live \? layer\.level : 0\)/.test(wave), "amplitude comes only from the level")
+  assert.ok(/property: "wanted"; value: root\.waveWanted/.test(bar) && /waveWanted: root\.pillsBar && root\.horizontal && root\.ambientMotion/.test(bar.replace(/\n\s+/g, " ").replace(/readonly property bool /, "")), "cava only runs for a visible, allowed wave")
+  const svc = read("../../config/AudioLevelService.qml")
+  assert.ok(/MediaService\.status === "Playing"/.test(svc), "cava runs only while a player is Playing")
 }
+const L = new Function(read("../../config/AudioLevel.js").replace(/^\.pragma library$/m, "") + "; return { parse, bands, follow }")()
+assert.deepEqual(L.parse("10;20;x;30\n"), [10, 20, 30])
+assert.deepEqual(L.parse(""), [])
+assert.deepEqual(L.bands([]), { low: 0, high: 0 })
+assert.deepEqual(L.bands([0, 0, 0, 0]), { low: 0, high: 0 }, "silence is level 0")
+assert.deepEqual(L.bands([100, 0, 0, 100]), { low: 1, high: 0 }, "bass sits at both ends of the mirrored array")
+assert.deepEqual(L.bands([0, 100, 100, 0]), { low: 0, high: 1 }, "treble sits in the middle")
+assert.equal(L.bands([100, 0, 0, 0]).low, Math.sqrt(0.5 * 2.5 > 1 ? 1 : 0.5 * 2.5), "one channel counts for half")
+const quiet = L.bands([15, 28, 24, 15, 17, 9, 6, 5, 3, 2, 2, 23, 23, 2, 2, 3, 5, 6, 9, 17, 15, 24, 28, 15])
+assert.ok(quiet.low > 0.5 && quiet.low < 1 && quiet.high > 0.3 && quiet.low > quiet.high, "sampled tone: both layers move, bass stronger: " + JSON.stringify(quiet))
+assert.ok(L.follow(0, 1) > 1 - L.follow(1, 0), "attack is faster than release")
+let v = 1; for (let i = 0; i < 80; i++) v = L.follow(v, 0)
+assert.equal(v, 0, "level decays to exactly 0 in silence")
 console.log("PASS wave-gating")
 
 const toast = read("../../bar/NotificationToast.qml")

@@ -31,6 +31,12 @@ PanelWindow {
   // while that widget is hidden.
   readonly property bool ambientMotion: !UPower.onBattery && !root.sessionLocked
     && !wsIndicator.focusedWindowFullscreen
+  // The pill form's signal wave reacts to the music: cava runs only while one
+  // is on screen, motion is allowed, and a player reports Playing.
+  readonly property bool waveWanted: root.pillsBar && root.horizontal && root.ambientMotion
+    && !Config.reducedMotion
+  Binding { target: AudioLevelService; property: "wanted"; value: root.waveWanted }
+  Binding { target: MediaService; property: "waveActive"; value: root.waveWanted }
   readonly property bool horizontal: barPosition === "top" || barPosition === "bottom"
   readonly property bool dockedTop: barPosition === "top"
   readonly property bool dockedBottom: barPosition === "bottom"
@@ -508,6 +514,8 @@ PanelWindow {
           height: parent.height
           visible: width > Config.spacingLarge * 2
           running: root.ambientMotion
+          lowLevel: AudioLevelService.low
+          highLevel: AudioLevelService.high
           color: Colors.primary
         }
         SignalWave {
@@ -520,6 +528,8 @@ PanelWindow {
           height: parent.height
           visible: width > Config.spacingLarge * 2
           running: root.ambientMotion
+          lowLevel: AudioLevelService.low
+          highLevel: AudioLevelService.high
           color: Colors.primary
         }
       }
