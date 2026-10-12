@@ -1091,8 +1091,10 @@ Flickable {
                 description: member ? "In shortlist. Activate to remove" : "Activate to add to shortlist"
                 onActivated: {
                   Settings.accentPalette = AccentPalette.toggle(Settings.accentPalette, modelData.key)
-                  if (Settings.accentActive === modelData.key && member) Settings.accentActive = ""
+                  var dropsActive = Settings.accentActive === modelData.key && member
+                  if (dropsActive) Settings.accentActive = ""
                   Settings.save()
+                  if (dropsActive) appearanceTab.requestPaletteSync()
                 }
               }
             }
@@ -1122,6 +1124,7 @@ Flickable {
               onActivated: {
                 Settings.accentActive = ""
                 Settings.save()
+                appearanceTab.requestPaletteSync()
               }
             }
 
@@ -1137,6 +1140,7 @@ Flickable {
                 onActivated: {
                   Settings.accentActive = modelData
                   Settings.save()
+                  appearanceTab.requestPaletteSync()
                 }
               }
             }
@@ -1144,8 +1148,9 @@ Flickable {
 
           Text {
             text: accentCard.active === ""
-              ? "Default is the first swatch; pick one of your shortlist to recolor selections and controls"
-              : "Selections and controls use " + AccentPalette.find(accentCard.active).label.toLowerCase()
+              ? "Default is the first swatch; pick one of your shortlist to recolor the shell, GTK, Qt, Kvantum, Niri and terminals"
+              : "The shell and desktop use " + AccentPalette.find(accentCard.active).label.toLowerCase()
+                + (appearanceTab.themeStatus !== "" ? " · " + appearanceTab.themeStatus : "")
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
             font.pixelSize: Config.typeLabelSmallSize

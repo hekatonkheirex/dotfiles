@@ -210,6 +210,41 @@ render_matugen_cache() {
   mv -f -- "$rendered_cache" "$cache_file"
 }
 
+# The shell's accent picker swaps the primary pair for another Matugen role.
+# Apply it to the rendered active cache only, so the Live and Fixed source
+# caches stay pristine and every generator below (GTK, Kvantum, Niri, kitty,
+# ...) sees the chosen accent as "primary". Role rules mirror
+# config/AccentPalette.js.
+apply_accent_override() {
+  local settings="$HOME/.config/quickshell/settings.json"
+  [[ -f "$settings" && -f "$cache_file" ]] || return 0
+
+  local palette active
+  palette=$(jq -r '.accentPalette // ""' "$settings" 2>/dev/null || true)
+  active=$(jq -r '.accentActive // ""' "$settings" 2>/dev/null || true)
+  [[ -n "$active" ]] || return 0
+  [[ "$active" =~ ^(primary|secondary|tertiary)(_container|_fixed|_fixed_dim)?$ ]] || return 0
+  case ",$palette," in *",$active,"*) ;; *) return 0 ;; esac
+
+  local on_role="on_${active%_dim}"
+  local accented
+  accented=$(mktemp "${cache_file}.accent.XXXXXX")
+  if jq --arg role "$active" --arg on "$on_role" '
+    ."scheme-expressive" as $scheme
+    | if ($scheme.light[$role] | type) == "string" and ($scheme.dark[$role] | type) == "string"
+      then reduce ("light", "dark") as $mode (.;
+        ."scheme-expressive"[$mode].primary = $scheme[$mode][$role]
+        | ."scheme-expressive"[$mode].on_primary =
+            ($scheme[$mode][$on] // $scheme[$mode].on_primary))
+      else . end
+  ' "$cache_file" >"$accented"; then
+    mv -f -- "$accented" "$cache_file"
+  else
+    rm -f -- "$accented"
+    printf 'Accent override failed; keeping the Matugen primary.\n' >&2
+  fi
+}
+
 # Keep the existing Matugen Kitty, Starship, and btop paths in sync with the
 # active cache. These are generated in place so Kitty's existing include and
 # btop's existing color_theme setting continue to work without introducing a
@@ -532,6 +567,8 @@ fi
 if (( ! skip_matugen )); then
   render_matugen_cache
 fi
+
+apply_accent_override
 
 generation_failed=0
 if [[ -x "$theme_generator" ]]; then
