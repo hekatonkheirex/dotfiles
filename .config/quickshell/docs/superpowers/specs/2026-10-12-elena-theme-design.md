@@ -4,14 +4,14 @@ Date: 2026-10-12
 
 ## Outcome
 Selecting "elena" in Settings > Appearance applies the elenapam palette and
-adds a thin row of colored workspace blocks along the top screen edge.
-Measured by: style tile selects, `Settings.themeStyle === "elena"`, screenshot
+turns the bar into a thin row of colored workspace blocks along the top
+screen edge. Measured by: style tile selects, `Settings.themeStyle === "elena"`, screenshot
 shows the strip with focused/occupied/empty blocks matching the layout below,
 clicking a block focuses that workspace.
 
 Reference: elenapam's AwesomeWM rice (dark navy cards, pink/mint/cyan/purple
 accents, colored tag blocks on the top edge). Phase 1 covers the palette and
-the strip only.
+the block row only.
 
 ## Theme id
 - `themeStyle = "elena"`, `Config.elenaTheme` (`config/Config.qml`).
@@ -32,8 +32,16 @@ the strip only.
 - Dark only. Light mode reuses the dark palette.
 
 ## Tag strip
-- `bar/TagStrip.qml`, one per screen, layer-shell top edge, 8px tall, full
-  width, reserves its own exclusive zone. The existing bar sits below it.
+- Under `elena` the bar itself is the block row: the Bar window is
+  `Config.tagStripHeight` (8 px) tall, full width, top edge (position forced to
+  top, form forced to full, saved values untouched), exclusive zone 8,
+  transparent (no fill, border or shadow). There is no second window: niri
+  orders layer surfaces by map order, so a separate strip could not sit above
+  the bar. `Config.barWidth` is forced to 8 so zone and popup insets follow.
+- Clock, tray, status and the rest of the bar content are hidden (opacity 0,
+  disabled; the workspace widget stays `visible` so its refreshers run) until
+  the sidebar phase moves them. Mask is the bar body, so clicks reach only the
+  blocks.
 - N equal blocks. N follows the workspace-count setting (active / 5 / 10); a
   focused workspace outside a fixed range is still shown.
 - Each block takes its accent from `primary`, `secondary`, `tertiary` by workspace `idx` modulo 3 (purple, pink, cyan in elenapam).
@@ -42,7 +50,6 @@ the strip only.
 - Click focuses that workspace. Color changes use the existing motion tokens.
 - Reads the model `WorkspaceIndicator` already holds (`workspaces`, focused,
   occupied). No second Niri poll.
-- Under `elena` the in-bar workspace widget is hidden; the strip replaces it.
 - State mapping lives in a pure function in a small `.js` file (same pattern as
   `bar/CalendarLogic.js`) so it can be gated. `tagStates(workspaces)` maps the
   items `WorkspaceIndicator.visibleWorkspaces` already builds, so count rules
@@ -64,4 +71,5 @@ default, and fixed if they do not.
 
 ## Out of scope
 Left sidebar, bottom dock, center music window, dashboard grid, notification
-restyle, window gaps, light variant, fixed strip height setting.
+restyle, window gaps, light variant, fixed strip height setting, relocating
+the hidden bar widgets (sidebar phase).

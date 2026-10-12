@@ -247,7 +247,7 @@ ShellRoot {
     if (bar.horizontal) {
       return bar.dockedBottom
         ? Math.max(0, screenH - h - popupBarInset())
-        : popupBarInset() + Config.tagStripOffset
+        : popupBarInset()
     }
     return Math.round(Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h)))
   }
@@ -471,7 +471,7 @@ ShellRoot {
   NotificationToast {
     id: notificationToast
     notificationServer: notifServer
-    barPosition: shell.barPosition
+    barPosition: Config.elenaTheme ? "top" : shell.barPosition
     screen: bar.screen
   }
 
@@ -504,7 +504,8 @@ ShellRoot {
 
   Bar {
     id: bar
-    barPosition: shell.barPosition
+    // elena is a top-edge block row; the saved position stays untouched.
+    barPosition: Config.elenaTheme ? "top" : shell.barPosition
     notificationCount: notificationPopup.count
     sessionLocked: lockScreen.locked || lockScreen.compositorLocked
     // Wait for persisted settings before exposing the panel so the first
@@ -513,14 +514,6 @@ ShellRoot {
       && Settings.initialLoadComplete
       && !lockScreen.locked
       && !lockScreen.compositorLocked
-  }
-
-  TagStrip {
-    screen: bar.screen
-    visible: Config.elenaTheme && bar.visible
-    workspaces: bar.tagWorkspaces
-    reserveZone: !(bar.horizontal && bar.dockedTop)
-    onActivated: function(idx) { bar.focusTagWorkspace(idx) }
   }
 
   AudioPopup {

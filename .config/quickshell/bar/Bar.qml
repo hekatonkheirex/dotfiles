@@ -121,14 +121,6 @@ PanelWindow {
   readonly property int niriExclusiveZone: (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
     + root.edgeGap
   exclusiveZone: root.niriExclusiveZone
-  // elena: the tag strip owns the top 8 px of the screen; shifting the whole
-  // bar surface keeps the strip and the bar from fighting over exclusive-zone
-  // order. Layer-shell counts the edge margin in the exclusive zone.
-  margins.top: Config.tagStripOffset
-
-  // Read by shell.qml for the elena tag strip.
-  readonly property var tagWorkspaces: wsIndicator.visibleWorkspaces
-  function focusTagWorkspace(idx) { wsIndicator.focusWorkspace(idx) }
   WlrLayershell.namespace: Config.layerNamespace("panel")
   WlrLayershell.layer: WlrLayer.Top
 
@@ -232,9 +224,9 @@ PanelWindow {
     } else {
       if (root.horizontal) {
         popupAnchorX = x + w / 2
-        popupAnchorY = root.height - Config.spacingLarge + Config.tagStripOffset // sit exactly at the bottom of the barBg
+        popupAnchorY = root.height - Config.spacingLarge // sit exactly at the bottom of the barBg
       } else {
-        popupAnchorY = y + Config.tagStripOffset
+        popupAnchorY = y
       }
       openPopup = name
     }
@@ -293,7 +285,10 @@ PanelWindow {
   readonly property int horizontalPillInset: 6
   readonly property int verticalPillInset: 6
   readonly property int verticalWindowEdgeMargin: 0
-  readonly property int normalPanelExtent: root.continuousBar
+  // elena: the surface is exactly the 8 px block row (barWidth is forced to
+  // tagStripHeight in Config); no panel padding below it.
+  readonly property int normalPanelExtent: Config.elenaTheme ? Config.barWidth
+    : root.continuousBar
     ? (Config.ghostTheme ? Config.barWidth : Config.barWidth + Config.spacingLarge) + root.edgeGap
     : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
   readonly property int verticalClockHeight: Math.max(Config.clockVerticalHeight, root.verticalPillLength)
@@ -395,6 +390,7 @@ PanelWindow {
       // Liquid Glass keeps the menu-bar layer visually open; material is
       // reserved for transient/interactive states below it.
       color: root.continuousBar
+        && !Config.elenaTheme
         && !root.ghostCentralGap
         && (!Config.liquidGlassTheme || Colors.liquidGlassOpaque)
         ? root.barPanelColor
@@ -546,8 +542,22 @@ PanelWindow {
         }
       }
 
+      // elena: the whole bar is the workspace block row. Everything else is
+      // hidden with opacity/enabled (not visible: wsIndicator's refreshers are
+      // gated on root.visible) until the sidebar phase. The mask below is
+      // barBg, so clicks reach only these blocks.
+      TagStripBlocks {
+        anchors.fill: parent
+        visible: Config.elenaTheme
+        z: 10
+        workspaces: wsIndicator.visibleWorkspaces
+        onActivated: function(idx) { wsIndicator.focusWorkspace(idx) }
+      }
+
       GridLayout {
         id: layout
+        opacity: Config.elenaTheme ? 0 : 1
+        enabled: !Config.elenaTheme
         layer.enabled: root.glassForegroundShadowEnabled
         layer.effect: glassForegroundShadow
         flow: root.horizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
@@ -616,14 +626,12 @@ PanelWindow {
           Layout.row: root.horizontal ? 0 : root.barSlot("workspaces")
           horizontal: root.horizontal
           integrated: root.continuousBar
-          opacity: Config.elenaTheme ? 0 : 1
-          enabled: !Config.elenaTheme
-          Layout.preferredWidth: (Settings.ccShowWorkspaces && !Config.elenaTheme)
+          Layout.preferredWidth: Settings.ccShowWorkspaces
             ? (root.horizontal
               ? Math.max(implicitWidth, root.pillsBar ? root.horizontalPillLength : 0)
               : parent.width)
             : 0
-          Layout.preferredHeight: (Settings.ccShowWorkspaces && !Config.elenaTheme)
+          Layout.preferredHeight: Settings.ccShowWorkspaces
             ? (root.horizontal
               ? parent.height
               : Math.max(implicitHeight, root.pillsBar ? root.verticalPillLength : 0))
@@ -1228,6 +1236,8 @@ PanelWindow {
       // cannot pull middle widgets away from the screen midpoint.
       GridLayout {
         id: middleLayout
+        opacity: Config.elenaTheme ? 0 : 1
+        enabled: !Config.elenaTheme
         layer.enabled: root.glassForegroundShadowEnabled
         layer.effect: glassForegroundShadow
         flow: root.horizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
@@ -1251,6 +1261,8 @@ PanelWindow {
 
       Item {
         id: clockWrapper
+        opacity: Config.elenaTheme ? 0 : 1
+        enabled: !Config.elenaTheme
         layer.enabled: root.glassForegroundShadowEnabled
         layer.effect: glassForegroundShadow
         // The clock stays outside both layouts to preserve its popup anchor,

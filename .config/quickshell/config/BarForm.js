@@ -20,7 +20,7 @@ function normalize(value) {
   return FORMS.indexOf(value) >= 0 ? value : "full"
 }
 
-// dwm draws its own flat bar: the saved form is kept but not applied.
+// dwm and elena draw their own flat bar: the saved form is kept but not applied.
 function resolve(form, dwm) {
   return dwm ? "full" : normalize(form)
 }

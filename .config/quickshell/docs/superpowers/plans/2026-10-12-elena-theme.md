@@ -337,6 +337,8 @@ yadm commit -m "elena: style flag, settings tile, palette default, script whitel
 
 ### Task 3: Strip rendering with a pixel check
 
+> **Revision 2026-10-12:** `bar/TagStrip.qml` (the second PanelWindow) was dropped: niri orders layer surfaces by map order, so it landed under the bar. Under elena the Bar itself renders `TagStripBlocks`. Ignore TagStrip.qml and `tagStripOffset` below.
+
 **Files:**
 - Create: `bar/TagStripBlocks.qml`, `bar/TagStrip.qml`, `tests/tag-strip/shell.qml`, `scripts/tag-strip-render.sh`
 
@@ -540,6 +542,8 @@ yadm commit -m "elena: tag strip blocks, panel window, pixel check"
 ---
 
 ### Task 4: Bar + shell integration, live verification
+
+> **Revision 2026-10-12:** superseded. Bar.qml shows `TagStripBlocks` in `barBg` under elena, hides the other content with opacity/enabled, `Config.barWidth` = 8, form full, position forced top in shell.qml. No TagStrip window, no margins.top, no popup offsets. Steps 1-4 below are historical.
 
 **Files:**
 - Modify: `bar/Bar.qml` (near line 120 `exclusionMode`; lines 227/229 `popupAnchorY`; lines 602-623 `WorkspaceIndicator`), `bar/PopupBase.qml` (top-margin floor, line ~49), `shell.qml` (after the `Bar { }` block, line ~516)
