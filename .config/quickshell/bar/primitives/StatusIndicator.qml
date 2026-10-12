@@ -32,8 +32,9 @@ Item {
     )
   property color iconColor: Config.liquidGlassTheme ? Colors.barForeground
     : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor)
+  // Ghost keeps accent-colored icons and plain white values.
   property color labelColor: Config.liquidGlassTheme ? Colors.barForeground
-    : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor)
+    : (Config.ghostTheme ? (Colors.darkMode ? "#ffffff" : Colors.ghostText) : root.accentColor)
   property color inactiveBg: Config.liquidGlassTheme ? Colors.liquidGlassClear : Colors.surfaceContainerHigh
   // Indicators stay quiet at rest and reveal their outline on hover/focus;
   // active state is conveyed by the content color and owning popup surface.

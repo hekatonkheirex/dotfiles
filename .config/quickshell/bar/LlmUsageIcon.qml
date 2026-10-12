@@ -63,19 +63,23 @@ Item {
         }
         ctx.stroke();
       } else {
-        // Angular neural core with four circuit traces and registration corners.
-        ctx.lineWidth = 6;
+        // Angular sparkle: one large four-point star and two small ones.
+        function star(cx, cy, outer, inner) {
+          ctx.moveTo(cx, cy - outer);
+          ctx.lineTo(cx + inner, cy - inner);
+          ctx.lineTo(cx + outer, cy);
+          ctx.lineTo(cx + inner, cy + inner);
+          ctx.lineTo(cx, cy + outer);
+          ctx.lineTo(cx - inner, cy + inner);
+          ctx.lineTo(cx - outer, cy);
+          ctx.lineTo(cx - inner, cy - inner);
+          ctx.closePath();
+        }
         ctx.beginPath();
-        ctx.moveTo(50, 24); ctx.lineTo(76, 50);
-        ctx.lineTo(50, 76); ctx.lineTo(24, 50); ctx.closePath();
-        ctx.moveTo(50, 6); ctx.lineTo(50, 24);
-        ctx.moveTo(76, 50); ctx.lineTo(94, 50);
-        ctx.moveTo(50, 76); ctx.lineTo(50, 94);
-        ctx.moveTo(6, 50); ctx.lineTo(24, 50);
-        ctx.moveTo(8, 24); ctx.lineTo(8, 8); ctx.lineTo(24, 8);
-        ctx.moveTo(76, 92); ctx.lineTo(92, 92); ctx.lineTo(92, 76);
-        ctx.stroke();
-        ctx.fillRect(43, 43, 14, 14);
+        star(42, 58, 38, 9);
+        star(80, 20, 17, 4.5);
+        star(82, 80, 12, 3.5);
+        ctx.fill();
       }
       ctx.restore();
     }
