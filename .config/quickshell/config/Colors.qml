@@ -87,6 +87,7 @@ QtObject {
   readonly property bool nothingDesign: Config.nothingDesign
   readonly property bool nothingEvolution: Config.nothingEvolution
   readonly property bool ghostTheme: Config.ghostTheme
+  readonly property bool dwmTheme: Config.dwmTheme
   readonly property bool liquidGlassTheme: Config.liquidGlassTheme
   readonly property bool paletteSourceSelectable: !nothingDesign && !ghostTheme
   readonly property bool fixedPaletteActive: Settings.colorSource === "fixed" && paletteSourceSelectable
@@ -760,7 +761,7 @@ QtObject {
   // UI-style accents do not replace Matugen's external color outputs.
   // Nothing Classic keeps neutral surfaces and a red signal accent.
   readonly property color styleInk: ghostTheme ? ghostText
-    : (liquidGlassTheme || nothingDesign ? fgSurface : outline)
+    : (liquidGlassTheme || nothingDesign || dwmTheme ? fgSurface : outline)
   readonly property color styleOutline: ghostTheme ? ghostHairline
     : (liquidGlassTheme ? liquidGlassEdge
       : (nothingEvolution ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.30)
@@ -770,7 +771,8 @@ QtObject {
       : (nothingEvolution ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.58)
         : (nothingDesign ? Qt.rgba(styleInk.r, styleInk.g, styleInk.b, 0.72) : outline)))
   readonly property color styleShadow: liquidGlassTheme ? liquidGlassShadow : "transparent"
-  readonly property color styleSurface: ghostTheme ? ghostPanel
+  readonly property color styleSurface: dwmTheme ? surfaceContainerLowest
+    : ghostTheme ? ghostPanel
     : (liquidGlassTheme ? surfaceContainer
       : (nothingEvolution
         ? Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b,
@@ -783,7 +785,8 @@ QtObject {
   // Dense reading surfaces need a stable backdrop; translucent chrome and
   // raised layers keep Evolution's wallpaper-aware treatment elsewhere.
   readonly property color readingSurface: nothingEvolution ? background : chromeSurface
-  readonly property color styleSurfaceRaised: ghostTheme ? ghostPanelRaised
+  readonly property color styleSurfaceRaised: dwmTheme ? surfaceContainerLow
+    : ghostTheme ? ghostPanelRaised
     : (liquidGlassTheme ? liquidGlassRaised
       : (nothingEvolution
         ? Qt.rgba(surfaceContainer.r, surfaceContainer.g, surfaceContainer.b,

@@ -5,7 +5,7 @@ import assert from "node:assert/strict"
 
 const src = readFileSync(fileURLToPath(new URL("../../config/BarForm.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
-const B = new Function(src + "; return { FORMS, fromLegacy, normalize, metrics, shoulderPath, outlinePath, wavePath }")()
+const B = new Function(src + "; return { FORMS, fromLegacy, normalize, metrics, resolve, shoulderPath, outlinePath, wavePath }")()
 const o = { barWidth: 42, spacingSmall: 8, spacingLarge: 16 }
 
 assert.deepEqual(B.FORMS, ["full", "fit", "dock", "notch", "pill"])
@@ -21,6 +21,12 @@ assert.deepEqual(B.metrics("dock", o), { edgeGap: 0, sideInset: 42, shoulder: 0,
 assert.deepEqual(B.metrics("notch", o), { edgeGap: 0, sideInset: 42, shoulder: 20, roundNear: false, flat: false, pills: false })
 assert.deepEqual(B.metrics("pill", o), { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: false, pills: true })
 assert.deepEqual(B.metrics("junk", o), B.metrics("full", o))
+
+// dwm draws its own flat bar: any saved form resolves to "full" while it is active.
+for (const f of B.FORMS) assert.equal(B.resolve(f, true), "full")
+for (const f of B.FORMS) assert.equal(B.resolve(f, false), f)
+assert.equal(B.resolve("junk", false), "full")
+assert.equal(B.resolve(undefined, true), "full")
 
 assert.equal(B.shoulderPath(0, { edge: "top", x: 0, y: 0, w: 100, h: 42 }), "")
 

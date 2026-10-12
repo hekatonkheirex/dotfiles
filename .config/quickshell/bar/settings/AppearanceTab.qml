@@ -30,8 +30,8 @@ Flickable {
   // Stacked icon + label choices keep breathing room at the global type scale.
   readonly property int optionButtonHeight: material3Theme
     ? Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + (Config.materialCompact ? 16 : 24)) : 48
-  readonly property int uiStyleColumns: width < 260 ? 1 : (width < 720 ? 2 : 5)
-  readonly property int uiStyleRows: Math.ceil(5 / uiStyleColumns)
+  readonly property int uiStyleColumns: width < 260 ? 1 : (width < 720 ? 2 : 6)
+  readonly property int uiStyleRows: Math.ceil(6 / uiStyleColumns)
   // Keep the selector model independent of palette roles: a new JS array
   // recreates every button, including the one handling the style change.
   readonly property var styleChoices: [
@@ -39,7 +39,8 @@ Flickable {
     { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Classic" },
     { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution" },
     { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost" },
-    { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid" }
+    { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid" },
+    { value: "dwm", variant: "", icon: "terminal", label: "dwm" }
   ]
   readonly property var selectedStylePreview: {
     var value = Settings.themeStyle
@@ -48,6 +49,8 @@ Flickable {
       return { value: value, variant: variant, surface: "#f0f0ee", panel: "#ffffff", ink: "#1a1a1a", accent: "#d71920", onAccent: "#ffffff", font: "NType 82" }
     if (value === "ghost")
       return { value: value, variant: "", surface: "#0d1418", panel: "#152328", ink: "#cdeeea", accent: "#57d9cc", onAccent: "#0d1418", font: "JetBrains Mono" }
+    if (value === "dwm")
+      return { value: value, variant: "", surface: Colors.surfaceContainerLowest, panel: Colors.surfaceContainerLow, ink: Colors.fgSurface, accent: Colors.primary, onAccent: Colors.fgPrimary, font: "monospace" }
     if (value === "nothing" || value === "liquid-glass")
       return { value: value, variant: variant, surface: Colors.styleSurface, panel: Colors.styleSurfaceRaised, ink: Colors.styleInk, accent: Colors.styleAccent, onAccent: Colors.styleAccentText, font: value === "nothing" ? "Geist" : "Roboto Flex" }
     return { value: "material3", variant: "", surface: Colors.surfaceContainerLow, panel: Colors.surfaceContainerHigh, ink: Colors.fgSurface, accent: Colors.primary, onAccent: Colors.fgPrimary, font: "Roboto Flex" }
@@ -423,7 +426,9 @@ Flickable {
                   id: styleTile
                   required property var modelData
                   required property int index
-                  readonly property bool centerLast: appearanceTab.uiStyleColumns === 2 && index === 4
+                  readonly property bool centerLast: appearanceTab.uiStyleColumns === 2
+                    && index === appearanceTab.styleChoices.length - 1
+                    && appearanceTab.styleChoices.length % 2 === 1
                   readonly property bool ghost: modelData.value === "ghost"
                   readonly property bool selectedStyle: Settings.themeStyle === modelData.value
                     && (modelData.value !== "nothing" || Settings.nothingVariant === modelData.variant)
@@ -474,7 +479,7 @@ Flickable {
 
           GridLayout {
             Layout.fillWidth: true
-            columns: appearanceTab.uiStyleColumns === 5 ? 2 : 1
+            columns: appearanceTab.uiStyleColumns === 6 ? 2 : 1
             columnSpacing: Config.spacingMedium
             rowSpacing: Config.spacingSmall
 
@@ -487,7 +492,9 @@ Flickable {
                     ? "Void panels, cyan hairlines, and a Section 9 HUD"
                     : (Settings.themeStyle === "liquid-glass"
                       ? "Translucent functional surfaces, clear controls, and adaptive contrast"
-                      : "Rounded surfaces, tonal elevation, and expressive motion")))
+                      : (Settings.themeStyle === "dwm"
+                        ? "Flat tag bar, plain status text, and a one-line dmenu strip in wallpaper colours"
+                        : "Rounded surfaces, tonal elevation, and expressive motion"))))
               color: Colors.fgSurfaceVariant
               font.family: Config.fontFamily
               font.pixelSize: Config.typeBodyMediumSize
@@ -500,7 +507,7 @@ Flickable {
             }
 
             ActionButton {
-              Layout.alignment: appearanceTab.uiStyleColumns === 5 ? Qt.AlignRight : Qt.AlignLeft
+              Layout.alignment: appearanceTab.uiStyleColumns === 6 ? Qt.AlignRight : Qt.AlignLeft
               Layout.preferredWidth: Math.min(160, uiStyleColumn.width)
               Layout.preferredHeight: 40
               visible: appearanceTab.previousStyle !== ""

@@ -22,8 +22,9 @@ QtObject {
   readonly property bool nothingDesign: Settings.themeStyle === "nothing"
   readonly property bool nothingEvolution: nothingDesign && Settings.nothingVariant === "evolution"
   readonly property bool ghostTheme: Settings.themeStyle === "ghost"
+  readonly property bool dwmTheme: Settings.themeStyle === "dwm"
   readonly property bool liquidGlassTheme: Settings.themeStyle === "liquid-glass"
-  readonly property bool material3Theme: !nothingDesign && !ghostTheme && !liquidGlassTheme
+  readonly property bool material3Theme: !nothingDesign && !ghostTheme && !liquidGlassTheme && !dwmTheme
 
   // Liquid Glass transient surfaces retain compositor glass blur, except
   // the full-screen click-outside shield, which Niri excludes explicitly.
@@ -42,7 +43,7 @@ QtObject {
   readonly property int barWidth: Settings.barSize
   readonly property int widgetSize: barWidth
   // Geometry of the selected bar form (full, fit, dock, notch, pill).
-  readonly property var barFormMetrics: BarForm.metrics(Settings.barForm, {
+  readonly property var barFormMetrics: BarForm.metrics(BarForm.resolve(Settings.barForm, dwmTheme), {
     barWidth: barWidth, spacingSmall: spacingSmall, spacingLarge: spacingLarge
   })
   // Live-adjustable via the Appearance settings tab (single density scale);
@@ -68,10 +69,10 @@ QtObject {
   // sans for dense settings copy instead of setting paragraphs in display type.
   readonly property string fontFamily: nothingEvolution
     ? "Geist"
-    : (nothingDesign ? "Noto Sans" : (ghostTheme ? "JetBrains Mono" : "Roboto Flex"))
+    : (nothingDesign ? "Noto Sans" : (ghostTheme ? "JetBrains Mono" : (dwmTheme ? "monospace" : "Roboto Flex")))
   readonly property string monoFontFamily: nothingEvolution
     ? "Geist Mono"
-    : (nothingDesign ? "NType 82 Mono" : (ghostTheme ? "JetBrains Mono" : "Roboto Flex"))
+    : (nothingDesign ? "NType 82 Mono" : (ghostTheme ? "JetBrains Mono" : (dwmTheme ? "monospace" : "Roboto Flex")))
   readonly property string displayFontFamily: nothingEvolution
     ? "Geist"
     : (nothingDesign ? "NType 82 Headline" : fontFamily)

@@ -20,6 +20,11 @@ function normalize(value) {
   return FORMS.indexOf(value) >= 0 ? value : "full"
 }
 
+// dwm draws its own flat bar: the saved form is kept but not applied.
+function resolve(form, dwm) {
+  return dwm ? "full" : normalize(form)
+}
+
 // edgeGap: space between the screen edge and the bar (reserved by the panel).
 // sideInset: space between the screen ends and the bar body along its axis.
 // shoulder: size in px of each concave flare (notch only, fixed 20).
