@@ -6,6 +6,7 @@ import QtQml
 import Quickshell
 import Quickshell.Io
 import "BarOrder.js" as BarOrder
+import "BarForm.js" as BarForm
 
 FileView {
   id: root
@@ -116,6 +117,10 @@ FileView {
       }
       barWidgetOrder = BarOrder.normalize(barWidgetOrder).join(",")
       adapter.schemaVersion = root.defaults.schemaVersion
+    }
+    if (stored.barForm === undefined && typeof stored.fullBar === "boolean") {
+      barForm = BarForm.fromLegacy(stored.fullBar)
+      needsSave = true
     }
     if (themeStyle === "neo-brutalism") {
       themeStyle = "nothing"

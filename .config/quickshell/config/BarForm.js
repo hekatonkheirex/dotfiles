@@ -9,6 +9,11 @@
 //   pill  no bar surface, each widget floats in its own pill
 var FORMS = ["full", "fit", "dock", "notch", "pill"]
 
+// Settings written before barForm existed stored `fullBar` (false = pills).
+function fromLegacy(fullBar) {
+  return fullBar === false ? "pill" : "full"
+}
+
 function normalize(value) {
   return FORMS.indexOf(value) >= 0 ? value : "full"
 }

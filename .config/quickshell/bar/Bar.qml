@@ -311,7 +311,8 @@ PanelWindow {
       anchors.fill: parent
       visible: root.shoulder > 0
       ShapePath {
-        fillColor: root.barPanelColor
+        // Follow the body: transparent for Liquid Glass and Ghost central gap.
+        fillColor: barBg.color
         strokeColor: "transparent"
         strokeWidth: 0
         PathSvg {

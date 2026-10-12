@@ -5,12 +5,15 @@ import assert from "node:assert/strict"
 
 const src = readFileSync(fileURLToPath(new URL("../../config/BarForm.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
-const B = new Function(src + "; return { FORMS, normalize, metrics, shoulderPath, wavePath }")()
+const B = new Function(src + "; return { FORMS, fromLegacy, normalize, metrics, shoulderPath, wavePath }")()
 const o = { barWidth: 42, spacingSmall: 8, spacingLarge: 16 }
 
 assert.deepEqual(B.FORMS, ["full", "fit", "dock", "notch", "pill"])
 for (const bad of [undefined, null, "", "pills", "FULL"]) assert.equal(B.normalize(bad), "full")
 for (const f of B.FORMS) assert.equal(B.normalize(f), f)
+
+assert.equal(B.fromLegacy(false), "pill")
+for (const v of [true, undefined, null, "false"]) assert.equal(B.fromLegacy(v), "full")
 
 assert.deepEqual(B.metrics("full", o), { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: true, pills: false })
 assert.deepEqual(B.metrics("fit", o), { edgeGap: 8, sideInset: 8, shoulder: 0, roundNear: true, flat: false, pills: false })
@@ -51,3 +54,10 @@ assert.equal(B.wavePath(40, 2, 4, 10),
   "M 0 10 Q 10 2 20 10 T 40 10 T 60 10 T 80 10")
 assert.equal(B.wavePath(40, 1, 4, 10).split(" T ").length, 2)
 console.log("PASS bar-form")
+
+// Source guards for fixed regressions.
+const read = p => readFileSync(fileURLToPath(new URL(p, import.meta.url)), "utf8")
+assert.ok(!/Spring\.stop\(\)/.test(read("../../bar/primitives/ColorSpring.qml")), "ColorSpring must not stop() Behavior animations")
+assert.ok(/fillColor: barBg\.color/.test(read("../../bar/Bar.qml")), "notch shoulders must follow the body fill")
+assert.ok(/BarForm\.fromLegacy/.test(read("../../config/Settings.qml")), "Settings must migrate fullBar")
+console.log("PASS source-guards")
