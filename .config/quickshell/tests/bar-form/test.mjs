@@ -66,3 +66,7 @@ const bar = read("../../bar/Bar.qml")
 assert.equal((bar.match(/running: root\.ambientMotion/g) || []).length, 2, "both SignalWaves must be gated on ambientMotion")
 assert.ok(/ambientMotion: !UPower\.onBattery && !root\.sessionLocked/.test(bar.replace(/readonly property bool /, "")), "ambientMotion gates on battery and lock")
 console.log("PASS wave-gating")
+
+const toast = read("../../bar/NotificationToast.qml")
+assert.ok(/visualSize[\s\S]{0,300}IconButton \{\s*anchors\.centerIn: parent/.test(toast), "toast close button must sit in a fixed-size wrapper")
+console.log("PASS toast-close")

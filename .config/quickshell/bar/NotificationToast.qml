@@ -285,15 +285,24 @@ PanelWindow {
           font.letterSpacing: Config.typeLabelTracking
           opacity: 0.7
         }
-        IconButton {
-          size: Config.ghostTheme ? 36 : 28
-          iconSize: Config.ghostTheme ? 16 : 14
-          iconLabel: "close"
-          iconColor: Colors.fgSurfaceVariant
-          accessibleName: "Dismiss notification"
-          tooltipText: "Dismiss notification"
+        // The wrapper keeps the header row at the visual size; Material's
+        // 40/48px hit target overflows it instead of growing the header.
+        Item {
+          readonly property int visualSize: Config.ghostTheme ? 36 : 28
+          implicitWidth: visualSize
+          implicitHeight: visualSize
           Layout.alignment: Qt.AlignVCenter
-          onClicked: root.dismiss()
+
+          IconButton {
+            anchors.centerIn: parent
+            size: parent.visualSize
+            iconSize: Config.ghostTheme ? 16 : 14
+            iconLabel: "close"
+            iconColor: Colors.fgSurfaceVariant
+            accessibleName: "Dismiss notification"
+            tooltipText: "Dismiss notification"
+            onClicked: root.dismiss()
+          }
         }
       }
 
