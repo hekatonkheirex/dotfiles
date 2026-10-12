@@ -24,7 +24,17 @@ function values(scale) {
   }
 }
 
-// Scale implied by the current bar thickness, snapped to the slider grid.
-function fromBarSize(barSize) {
-  return snap(barSize / 42)
+// Step on the slider grid whose values() lie closest to the current settings.
+// exact is false when any individual slider was tuned away from the step, so
+// the UI can say "Custom" instead of claiming a percentage.
+function match(o) {
+  var best = MIN, bestCost = Infinity
+  for (var s = MIN; s <= MAX + 1e-9; s += STEP) {
+    var v = values(s)
+    var cost = Math.abs(o.barSize - v.barSize) + Math.abs(o.fontPixelSize - v.fontPixelSize)
+      + Math.abs(o.clockFontSize - v.clockFontSize) + Math.abs(o.iconSize - v.iconSize)
+      + Math.abs(o.spacingScale - v.spacingScale) * 20
+    if (cost < bestCost - 1e-9) { bestCost = cost; best = s }
+  }
+  return { scale: snap(best), exact: bestCost < 1e-6 }
 }

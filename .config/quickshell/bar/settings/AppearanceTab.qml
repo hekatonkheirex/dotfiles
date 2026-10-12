@@ -1350,7 +1350,12 @@ Flickable {
         RowLayout {
           Layout.fillWidth: true
           spacing: Config.spacingMedium
-          readonly property real barScale: BarScale.fromBarSize(Settings.barSize)
+          readonly property var scaleMatch: BarScale.match({
+            barSize: Settings.barSize, fontPixelSize: Settings.fontPixelSize,
+            clockFontSize: Settings.clockFontSize, iconSize: Settings.iconSize,
+            spacingScale: Settings.spacingScale
+          })
+          readonly property real barScale: scaleMatch.scale
 
           Text {
             text: "Bar Scale"
@@ -1391,14 +1396,14 @@ Flickable {
           }
 
           Text {
-            text: Math.round(parent.barScale * 100) + "%"
+            text: parent.scaleMatch.exact ? Math.round(parent.barScale * 100) + "%" : "Custom"
             color: Colors.fgSurface
             font.family: Config.fontFamily
             font.pixelSize: Config.typeLabelMediumSize
             font.letterSpacing: Config.typeLabelTracking
             lineHeight: Config.typeLabelMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 44
+            Layout.preferredWidth: 56
           }
         }
 
