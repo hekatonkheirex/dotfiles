@@ -337,6 +337,20 @@ ShellRoot {
       return Settings.themeStyle
     }
 
+    // Dev/testing: switch the bar form in memory (full, fit, dock, notch,
+    // pill). Unknown names normalize to full. Not saved.
+    function barForm(form: string): string {
+      Settings.barForm = BarForm.normalize(form)
+      return Settings.barForm
+    }
+
+    // Dev/testing: toggle Reduce Transparency in memory (the opaque Liquid
+    // Glass bar only exists with it on). Not saved.
+    function reduceTransparency(on: bool): bool {
+      Settings.reduceTransparency = on
+      return Settings.reduceTransparency
+    }
+
     // Dev/testing: select a Settings tab (0-11) in memory. Not saved unless
     // something else calls Settings.save().
     function settingsTab(index: int): int {
