@@ -10,6 +10,7 @@ cache_file="$tmp/cache.json"
 fixture='{"_seed":"t","scheme-expressive":{
   "light":{"primary":"#111111","on_primary":"#ffffff","tertiary":"#aa0000","on_tertiary":"#fefefe","tertiary_fixed_dim":"#bb0000","on_tertiary_fixed":"#010101"},
   "dark":{"primary":"#222222","on_primary":"#000000","tertiary":"#cc0000","on_tertiary":"#fdfdfd","tertiary_fixed_dim":"#dd0000","on_tertiary_fixed":"#020202"}}}'
+accent_args_given=0 accent_palette_arg= accent_active_arg=
 # shellcheck disable=SC1090
 source <(sed -n '/^apply_accent_override() {/,/^}/p' "$repo/scripts/sync-active-palette.sh")
 
@@ -27,4 +28,10 @@ check not-listed  "$(run primary tertiary)"                       "#111111 #ffff
 check empty       "$(run tertiary '')"                            "#111111 #ffffff #222222 #000000"
 check bogus-role  "$(run 'bogus' bogus)"                          "#111111 #ffffff #222222 #000000"
 check missing-key "$(run secondary secondary)"                    "#111111 #ffffff #222222 #000000"
+# Explicit --accent values win over (and do not need) settings.json.
+rm -f "$HOME/.config/quickshell/settings.json"
+accent_args_given=1 accent_palette_arg=tertiary accent_active_arg=tertiary
+printf '%s' "$fixture" >"$cache_file"
+apply_accent_override
+check args-only "$(jq -r '."scheme-expressive".dark.primary' "$cache_file")" "#cc0000"
 echo "accent override: ok"

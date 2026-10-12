@@ -35,7 +35,7 @@ StatusIndicator {
   labelColor: root.muted
     ? (Config.ghostTheme ? Colors.warning : Colors.error)
     : (Config.liquidGlassTheme ? Colors.barForeground
-      : (Config.ghostTheme ? (Colors.darkMode ? "#ffffff" : Colors.ghostText) : root.accentColor))
+      : ((Config.ghostTheme || Config.dwmTheme) ? (Colors.darkMode ? "#ffffff" : Colors.fgSurface) : root.accentColor))
 
   onWheel: function(wheel) {
     var delta = wheel.angleDelta.y > 0 ? Config.volumeStep / 100 : -Config.volumeStep / 100

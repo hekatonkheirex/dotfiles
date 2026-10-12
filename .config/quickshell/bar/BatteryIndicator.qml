@@ -26,10 +26,10 @@ StatusIndicator {
         : (Config.liquidGlassTheme ? Colors.barForeground
           : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor))))
   // Warning, critical and charging states keep their signal color; the
-  // resting Ghost value reads white.
-  labelColor: Config.ghostTheme && !lowCharge && !charging
+  // resting Ghost/dwm value reads white.
+  labelColor: (Config.ghostTheme || Config.dwmTheme) && !lowCharge && !charging
     && !(discharging && pct >= 0 && pct <= 10)
-    ? (Colors.darkMode ? "#ffffff" : Colors.ghostText) : iconColor
+    ? (Colors.darkMode ? "#ffffff" : Colors.fgSurface) : iconColor
 
   iconLabel: {
     if (!batteryDevice) return "battery_unknown"

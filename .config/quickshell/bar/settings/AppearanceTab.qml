@@ -187,6 +187,9 @@ Flickable {
       Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-active-palette.sh",
       "--source",
       Settings.colorSource,
+      "--accent",
+      Settings.accentPalette,
+      Settings.accentActive,
       appearanceTab.themeModeName()
     ]
     running: false
