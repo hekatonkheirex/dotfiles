@@ -1407,9 +1407,9 @@ Flickable {
 
           SliderControl {
             Layout.fillWidth: true
-            value: (Settings.clockFontSize - 12) / 12
-            stepSize: 1 / 12
-            accessibleMinimumValue: 12
+            value: (Settings.clockFontSize - 8) / 16
+            stepSize: 1 / 16
+            accessibleMinimumValue: 8
             accessibleMaximumValue: 24
             accessibleUnit: "px"
             activeColor: Colors.primary
@@ -1422,7 +1422,7 @@ Flickable {
             accessibleName: "Clock font size"
             accessibleDescription: "Adjust the bar clock font size"
             onChanged: function(val) {
-              Settings.clockFontSize = Math.round(12 + val * 12)
+              Settings.clockFontSize = Math.round(8 + val * 16)
             }
             onInteractionFinished: Settings.save()
           }

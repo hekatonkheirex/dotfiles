@@ -18,7 +18,7 @@ function values(scale) {
   return {
     barSize: clamp(Math.round(42 * s), 28, 56),
     fontPixelSize: clamp(Math.round(12 * s), 7, 16),
-    clockFontSize: clamp(Math.round(14 * s), 12, 24),
+    clockFontSize: clamp(Math.round(14 * s), 8, 24),
     iconSize: clamp(Math.round(20 * s), 12, 28),
     spacingScale: clamp(Math.round(s * 20) / 20, 0.75, 1.5)
   }
