@@ -1574,11 +1574,12 @@ Flickable {
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Bar scale"
-            accessibleDescription: "Scale the bar thickness, text, icons and spacing together"
+            accessibleDescription: "Scale the bar thickness, text, clock, icons and spacing together"
             onChanged: function(val) {
               var v = BarScale.values(BarScale.MIN + val * (BarScale.MAX - BarScale.MIN))
               Settings.barSize = v.barSize
               Settings.fontPixelSize = v.fontPixelSize
+              Settings.clockFontSize = v.clockFontSize
               Settings.iconSize = v.iconSize
               Settings.spacingScale = v.spacingScale
             }

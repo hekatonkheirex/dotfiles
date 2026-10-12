@@ -112,7 +112,7 @@ PanelWindow {
     { tab: 2, category: "Sizing", icon: "schedule", title: "Clock Size", subtitle: "Adjust the bar clock size" },
     { tab: 2, category: "Sizing", icon: "photo_size_select_small", title: "Icon Size", subtitle: "Adjust shared icon sizing" },
     { tab: 2, category: "Sizing", icon: "space_bar", title: "Spacing", subtitle: "Adjust the shell density" },
-    { tab: 2, category: "Sizing", icon: "zoom_in_map", title: "Bar Scale", subtitle: "Scale bar, text, icons and spacing together" },
+    { tab: 2, category: "Sizing", icon: "zoom_in_map", title: "Bar Scale", subtitle: "Scale bar, text, clock, icons and spacing together" },
     { tab: 2, category: "Sizing", icon: "height", title: "Bar Size", subtitle: "Adjust bar thickness and widget size" },
     { tab: 2, category: "Reset", icon: "settings_backup_restore", title: "Reset Appearance", subtitle: "Restore appearance defaults" },
     { tab: 3, category: "Wallpaper", icon: "wallpaper", title: "Wallpaper", subtitle: "Browse, set, and randomize wallpapers" },

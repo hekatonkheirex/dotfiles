@@ -1,6 +1,6 @@
 .pragma library
 
-// One scale factor drives bar thickness, text, icons and spacing together.
+// One scale factor drives bar thickness, text, clock, icons and spacing together.
 // Baselines are the Settings defaults, so 1.0 is the stock look. Results are
 // clamped to the individual sliders' ranges.
 var MIN = 0.7
@@ -18,6 +18,7 @@ function values(scale) {
   return {
     barSize: clamp(Math.round(42 * s), 28, 56),
     fontPixelSize: clamp(Math.round(12 * s), 7, 16),
+    clockFontSize: clamp(Math.round(14 * s), 12, 24),
     iconSize: clamp(Math.round(20 * s), 12, 28),
     spacingScale: clamp(Math.round(s * 20) / 20, 0.75, 1.5)
   }
