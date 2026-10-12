@@ -310,7 +310,6 @@ PanelWindow {
     Shape {
       anchors.fill: parent
       visible: root.shoulder > 0
-      preferredRendererType: Shape.CurveRenderer
       ShapePath {
         fillColor: root.barPanelColor
         strokeColor: "transparent"
