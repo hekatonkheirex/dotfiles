@@ -248,6 +248,13 @@ PanelWindow {
   readonly property int sideInset: Config.barFormMetrics.sideInset
   readonly property int shoulder: Config.barFormMetrics.shoulder
   readonly property bool flat: Config.barFormMetrics.flat
+  // Notch hugs its content: the body is as long as the three groups packed
+  // with the normal widget gap. Ghost keeps its stretched bar (its central
+  // cutout needs the room).
+  readonly property bool packed: root.shoulder > 0 && !Config.ghostTheme
+  readonly property real packedLength: root.horizontal
+    ? layout.implicitWidth + root.horizontalPillInset * 2
+    : layout.implicitHeight + root.verticalPillInset * 2
   readonly property bool roundNear: Config.barFormMetrics.roundNear
   readonly property bool glassEdge: root.continuousBar && Config.liquidGlassTheme && Colors.liquidGlassOpaque
   readonly property bool horizontalPillMode: root.horizontal && root.pillsBar
@@ -349,17 +356,21 @@ PanelWindow {
     Rectangle {
       id: barBg
       x: root.horizontal
-        ? root.sideInset
+        ? (parent.width - width) / 2
         : (root.dockedRight ? parent.width - root.verticalPillPanelWidth - root.edgeGap : root.edgeGap)
       y: root.horizontal
         ? (root.dockedBottom ? parent.height - Config.barWidth - root.edgeGap : root.edgeGap)
-        : root.sideInset
+        : (parent.height - height) / 2
       width: root.horizontal
-        ? parent.width - root.sideInset * 2
+        ? (root.packed
+          ? Math.min(root.packedLength, parent.width - root.sideInset * 2)
+          : parent.width - root.sideInset * 2)
         : root.verticalPillPanelWidth
       height: root.horizontal
         ? Config.barWidth
-        : parent.height - root.sideInset * 2
+        : (root.packed
+          ? Math.min(root.packedLength, parent.height - root.sideInset * 2)
+          : parent.height - root.sideInset * 2)
       radius: (root.flat ? 0 : Config.barRadius)
       // Liquid Glass keeps the menu-bar layer visually open; material is
       // reserved for transient/interactive states below it.
@@ -789,10 +800,13 @@ PanelWindow {
           // rotated Ghost effect from collapsing.
           Layout.fillWidth: true
           Layout.fillHeight: true
+          // Packed (notch): the spacer is exactly the middle group, so only
+          // the regular column gap separates start, middle and end.
+          readonly property real pad: root.packed ? 0 : Config.spacingLarge * 2
           Layout.minimumWidth: root.horizontal
-            ? middleLayout.implicitWidth + Config.spacingLarge * 2 : 0
+            ? middleLayout.implicitWidth + pad : 0
           Layout.minimumHeight: root.horizontal ? 0
-            : middleLayout.implicitHeight + Config.spacingLarge * 2
+            : middleLayout.implicitHeight + pad
           Layout.preferredWidth: root.horizontal ? 0 : parent.width
           Layout.preferredHeight: root.horizontal ? parent.height : 0
           clip: true
@@ -1193,8 +1207,16 @@ PanelWindow {
         layer.enabled: root.glassForegroundShadowEnabled
         layer.effect: glassForegroundShadow
         flow: root.horizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
-        x: root.horizontal ? (parent.width - width) / 2 : 0
-        y: root.horizontal ? 0 : (parent.height - height) / 2
+        // Packed (notch): sit in the spacer, not at the screen midpoint.
+        x: root.horizontal
+          ? (root.packed
+            ? layout.x + gapSpacer.x + (gapSpacer.width - width) / 2
+            : (parent.width - width) / 2)
+          : 0
+        y: root.horizontal ? 0
+          : (root.packed
+            ? layout.y + gapSpacer.y + (gapSpacer.height - height) / 2
+            : (parent.height - height) / 2)
         width: root.horizontal ? implicitWidth : parent.width
         height: root.horizontal ? parent.height : implicitHeight
         columnSpacing: Config.spacingCompact
