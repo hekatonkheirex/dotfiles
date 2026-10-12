@@ -40,6 +40,10 @@ if ! sync_mango_liquid_glass_blur "$ui_style"; then
   printf 'Could not synchronize Mango Liquid Glass blur settings; keeping the existing values.\n' >&2
 fi
 
+if ! bash "$script_dir/sync-niri-shape.sh" "$ui_style"; then
+  printf 'Could not synchronize Niri window shape; keeping the existing style.kdl.\n' >&2
+fi
+
 fixed_terminal_assets="$script_dir/ensure-style-terminal-assets.sh"
 if [[ -f "$fixed_terminal_assets" ]] &&
    ! bash "$fixed_terminal_assets"; then

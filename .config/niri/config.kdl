@@ -20,3 +20,4 @@ switch-events {
 debug {
   honor-xdg-activation-with-invalid-serial
 }
+include "style.kdl"
