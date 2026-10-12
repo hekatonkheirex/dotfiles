@@ -9,8 +9,8 @@ Canvas {
   Styled.ThemeTokens { id: theme }
 
   property real progress: 0.0
-  property color activeColor: Config.ghostTheme ? Colors.styleAccent : Colors.primary
-  property color trackColor: Config.ghostTheme ? Colors.styleControl : Colors.surfaceContainerHighest
+  property color activeColor: Config.ghostTheme || Config.dwmTheme ? Colors.styleAccent : Colors.primary
+  property color trackColor: Config.ghostTheme || Config.dwmTheme ? Colors.styleControl : Colors.surfaceContainerHighest
   property real lineWidth: Config.material3Theme ? 6 : 2.5
   property real dotRadius: Config.material3Theme ? 2 : 4
   property real trackLineWidth: Config.material3Theme ? 6 : 1.5
@@ -78,6 +78,13 @@ Canvas {
           ctx.fill();
         }
       }
+    } else if (root.style === "dwm") {
+      // Flat solid fill on a flat track, like dmenu's selection bar.
+      var barHeight = Math.min(8, height);
+      ctx.fillStyle = root.trackColor;
+      ctx.fillRect(0, midY - barHeight / 2, width, barHeight);
+      ctx.fillStyle = root.activeColor;
+      ctx.fillRect(0, midY - barHeight / 2, limitX, barHeight);
     } else if (root.style === "ghost") {
       var count = theme.segmentCount;
       var gap = Math.min(theme.segmentGap, width / (count * 2));

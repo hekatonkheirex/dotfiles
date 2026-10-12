@@ -1,15 +1,17 @@
-// Tokens shared by the Nothing and Ghost control implementations in this
-// folder. Ghost is square HUD chrome; Nothing is rounded. Everything that
+// Tokens shared by the Nothing, Ghost, and dwm control implementations in this
+// folder. Ghost is square HUD chrome; Nothing is rounded; dwm is flat and square. Everything that
 // differs between the two lives here so the controls stay one file each.
 import QtQuick
 import "../../../config"
 
 QtObject {
   readonly property bool ghost: Config.ghostTheme
-  // Ghost draws no rounding anywhere; focus rings and segments follow.
-  readonly property bool square: ghost
-  readonly property int controlRadius: ghost ? 0 : 16
-  readonly property int controlSmallRadius: ghost ? 0 : 16
+  // dwm draws flat solid fills: no segments, no rounding.
+  readonly property bool flat: Config.dwmTheme
+  // Ghost and dwm draw no rounding anywhere; focus rings follow.
+  readonly property bool square: ghost || flat
+  readonly property int controlRadius: square ? 0 : 16
+  readonly property int controlSmallRadius: square ? 0 : 16
   readonly property int borderWidth: 1
   readonly property int focusBorderWidth: 2
   readonly property int shadowOffset: 0

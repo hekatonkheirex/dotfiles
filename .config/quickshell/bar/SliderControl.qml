@@ -47,7 +47,7 @@ FocusScope {
     focus: true
     anchors.fill: parent
     sourceComponent: Config.liquidGlassTheme ? liquidImplementation
-      : ((Config.ghostTheme || Config.nothingDesign) ? styledImplementation : materialImplementation)
+      : ((Config.ghostTheme || Config.nothingDesign || Config.dwmTheme) ? styledImplementation : materialImplementation)
   }
 
   Component {

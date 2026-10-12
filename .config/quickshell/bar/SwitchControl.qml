@@ -1,4 +1,4 @@
-// Material 3, Nothing, and Ghost switches share an API; Liquid Glass uses
+// Material 3, Nothing, Ghost, and dwm switches share an API; Liquid Glass uses
 // a compact treatment of the Material implementation.
 import QtQml
 import QtQuick
@@ -49,7 +49,7 @@ FocusScope {
     focus: true
     anchors.fill: parent
     sourceComponent: Config.liquidGlassTheme ? liquidImplementation
-      : ((Config.ghostTheme || Config.nothingDesign) ? styledImplementation : materialImplementation)
+      : ((Config.ghostTheme || Config.nothingDesign || Config.dwmTheme) ? styledImplementation : materialImplementation)
   }
 
   Component {

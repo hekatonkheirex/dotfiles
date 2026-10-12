@@ -43,6 +43,7 @@ SliderBase {
     anchors.verticalCenter: parent.verticalCenter
     height: 12
     spacing: root.segmentGap
+    visible: !theme.flat
 
     Repeater {
       model: root.segmentCount
@@ -64,6 +65,23 @@ SliderBase {
     }
   }
 
+  // dwm: one flat track with a solid fill, no cells or marker.
+  Rectangle {
+    visible: theme.flat
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    height: 8
+    color: root.enabled ? root.surfaceContainerHighest : root.surfaceContainerHigh
+
+    Rectangle {
+      width: parent.width * root.normalizedValue
+      height: parent.height
+      color: root.enabled ? Qt.tint(root.muted ? root.outline : root.activeColor,
+        root.pressed ? root.pressOverlay : Qt.rgba(0, 0, 0, 0)) : root.outline
+    }
+  }
+
   Rectangle {
     id: marker
     x: Math.max(0, Math.min(root.width - width, root.width * root.normalizedValue - width / 2))
@@ -72,7 +90,7 @@ SliderBase {
     height: root.height - 6
     radius: theme.segmentRadius
     color: root.enabled ? (root.muted ? root.outline : root.activeColor) : root.outline
-    visible: root.active || root.normalizedValue > 0
+    visible: !theme.flat && (root.active || root.normalizedValue > 0)
     Behavior on x { NumberAnimation { duration: root.animateDuration(120); easing.type: Easing.OutCubic } }
   }
 
