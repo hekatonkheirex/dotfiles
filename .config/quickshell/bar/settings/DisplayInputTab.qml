@@ -29,7 +29,7 @@ Flickable {
     { value: "on-button-down", label: "On button down" }
   ]
   anchors.fill: parent
-  visible: root.currentTab === 4
+  visible: root.currentTab === 3
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight

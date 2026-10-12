@@ -21,7 +21,7 @@ Flickable {
   readonly property var lockTimeoutOptions: [0, 60, 120, 180, 300, 600, 900, 1800, 3600]
   readonly property var suspendTimeoutOptions: [0, 300, 600, 900, 1200, 1800, 3600, 7200]
   anchors.fill: parent
-  visible: root.currentTab === 8
+  visible: root.currentTab === 7
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight

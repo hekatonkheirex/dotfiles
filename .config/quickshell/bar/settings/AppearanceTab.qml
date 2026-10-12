@@ -284,6 +284,78 @@ Flickable {
 
       }
 
+      // Wallpaper card: the picker itself is the full-width filmstrip.
+      SettingsCard {
+        variant: "filled"
+        Layout.fillWidth: true
+        Layout.preferredHeight: wallpaperRow.implicitHeight + Config.spacingExtraLarge * 2
+        radius: Config.settingsCardRadius
+        surfaceColor: Colors.surfaceContainer
+        outlineColor: Colors.styleOutline
+        outlineWidth: Config.themeBorderWidth
+
+        RowLayout {
+          id: wallpaperRow
+          anchors.fill: parent
+          anchors.margins: Config.spacingExtraLarge
+          spacing: Config.spacingMedium
+
+          ColumnLayout {
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
+            spacing: Config.spacingCompact
+
+            Text {
+              text: "Wallpaper"
+              color: Colors.fgSurface
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeTitleLargeSize
+              font.weight: Config.typeStrongWeight
+              font.letterSpacing: Config.typeTitleTracking
+              lineHeight: Config.typeTitleLargeLineHeight
+              lineHeightMode: Text.FixedHeight
+            }
+
+            Text {
+              text: "Browse with the filmstrip (also: type @ in the launcher), or apply a random one."
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyMediumSize
+              Layout.fillWidth: true
+              wrapMode: Text.WordWrap
+            }
+          }
+
+          ActionButton {
+            Layout.preferredWidth: appearanceTab.compactLayout ? 40 : 112
+            Layout.preferredHeight: Config.themeLabeledActionButtonHeight
+            iconLabel: "wallpaper"
+            iconSize: Config.iconSize - 2
+            contentSpacing: Config.spacingSmall
+            labelText: appearanceTab.compactLayout ? "" : "Choose"
+            variant: "filled"
+            accessibleName: "Choose wallpaper"
+            accessibleDescription: "Open the wallpaper filmstrip"
+            tooltipText: "Choose wallpaper"
+            onActivated: Quickshell.execDetached(["qs", "ipc", "call", "shell", "wallpapers"])
+          }
+
+          ActionButton {
+            Layout.preferredWidth: appearanceTab.compactLayout ? 40 : 112
+            Layout.preferredHeight: Config.themeLabeledActionButtonHeight
+            iconLabel: "shuffle"
+            iconSize: Config.iconSize - 2
+            contentSpacing: Config.spacingSmall
+            labelText: appearanceTab.compactLayout ? "" : "Random"
+            variant: "outlined"
+            accessibleName: "Random wallpaper"
+            accessibleDescription: "Apply a random wallpaper"
+            tooltipText: "Random wallpaper"
+            onActivated: Quickshell.execDetached(["qs", "ipc", "call", "shell", "randomWallpaper"])
+          }
+        }
+      }
+
       // UI Style card
       SettingsCard {
         variant: "filled"

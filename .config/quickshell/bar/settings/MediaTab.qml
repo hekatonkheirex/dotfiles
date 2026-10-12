@@ -9,7 +9,7 @@ Flickable {
   id: mediaTab
   property QtObject root: null
   anchors.fill: parent
-  visible: root.currentTab === 7
+  visible: root.currentTab === 6
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight

@@ -14,7 +14,7 @@ Flickable {
   property bool sessionLocked: false
   readonly property bool compactLayout: root ? root.compactLayout : false
   anchors.fill: parent
-  visible: root.currentTab === 10
+  visible: root.currentTab === 9
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight

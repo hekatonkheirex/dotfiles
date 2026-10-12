@@ -9,8 +9,8 @@ import "../config/WallpaperFilmstrip.js" as Film
 // Full-width wallpaper picker: a filmstrip of tall leaning slices with one
 // wide, accent-bordered card in the middle and its name below. Left/Right,
 // the wheel or a click moves the selection; typing jumps to the first name
-// that matches; Enter or a click on the card applies it; Escape clears the
-// typed text, then closes.
+// that matches; Enter or a click on the card applies it; Ctrl+R applies a
+// random wallpaper; Escape clears the typed text, then closes.
 PanelWindow {
   id: root
 
@@ -26,6 +26,8 @@ PanelWindow {
   readonly property string thumbDir: Quickshell.env("HOME") + "/.cache/quickshell/wallpaper-thumbs"
   readonly property string previewDir: Quickshell.env("HOME") + "/.cache/quickshell/wallpaper-previews"
   readonly property string previewScript: Quickshell.env("HOME") + "/.config/quickshell/scripts/generate-previews.sh"
+  readonly property string thumbScript: Quickshell.env("HOME") + "/.config/quickshell/scripts/generate-thumbnails.sh"
+  readonly property string randomScript: Quickshell.env("HOME") + "/.config/quickshell/scripts/random-wallpaper.sh"
   readonly property var geo: Film.geometry(root.screen ? root.screen.width : 1920)
   readonly property int captionHeight: 56
 
@@ -132,7 +134,9 @@ PanelWindow {
       lister.running = true
       if (!root.bulkStarted) {
         root.bulkStarted = true
-        Quickshell.execDetached(["nice", "-n", "15", "bash", root.previewScript])
+        // Slice thumbnails first (quick), then the 1600 px previews.
+        Quickshell.execDetached(["nice", "-n", "15", "bash", "-c",
+          "bash \"$1\"; bash \"$2\"", "sh", root.thumbScript, root.previewScript])
       }
       keys.forceActiveFocus()
     }
@@ -156,6 +160,10 @@ PanelWindow {
       else if (event.key === Qt.Key_Right) root.step(1)
       else if (event.key === Qt.Key_Home) root.step(-walls.count)
       else if (event.key === Qt.Key_End) root.step(walls.count)
+      else if (event.key === Qt.Key_R && (event.modifiers & Qt.ControlModifier)) {
+        Quickshell.execDetached(["bash", root.randomScript])
+        root.dismissed()
+      }
       else if (event.key === Qt.Key_Backspace) root.jump(root.query.slice(0, -1))
       else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
         if (strip.currentIndex >= 0 && strip.currentIndex < walls.count)

@@ -389,6 +389,12 @@ ShellRoot {
       shell.wallpaperFilmstripOpen = false
     }
 
+    function randomWallpaper() {
+      Quickshell.execDetached([
+        "bash", Quickshell.env("HOME") + "/.config/quickshell/scripts/random-wallpaper.sh"
+      ])
+    }
+
     function wallpapers() {
       bar.openPopup = ""
       shell.wallpaperFilmstripQuery = ""

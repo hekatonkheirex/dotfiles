@@ -69,7 +69,6 @@ PanelWindow {
     { icon: "person", label: "Account", group: "Personal" },
     { icon: "tune", label: "General", group: "Interface" },
     { icon: "palette", label: "Appearance", group: "Interface" },
-    { icon: "wallpaper", label: "Wallpaper", group: "Interface" },
     { icon: "monitor", label: "Display & Input", group: "Devices" },
     { icon: "wifi", label: "Network", group: "Devices" },
     { icon: "bluetooth", label: "Bluetooth", group: "Devices" },
@@ -115,49 +114,49 @@ PanelWindow {
     { tab: 2, category: "Sizing", icon: "zoom_in_map", title: "Bar Scale", subtitle: "Scale bar, text, clock, icons and spacing together" },
     { tab: 2, category: "Sizing", icon: "height", title: "Bar Size", subtitle: "Adjust bar thickness and widget size" },
     { tab: 2, category: "Reset", icon: "settings_backup_restore", title: "Reset Appearance", subtitle: "Restore appearance defaults" },
-    { tab: 3, category: "Wallpaper", icon: "wallpaper", title: "Wallpaper", subtitle: "Browse, set, and randomize wallpapers" },
-    { tab: 4, category: "Outputs", icon: "monitor", title: "Display mode", anchor: "Mode", subtitle: "Choose the output resolution and refresh rate" },
-    { tab: 4, category: "Outputs", icon: "photo_size_select_small", title: "Display scale", anchor: "Scale", subtitle: "Adjust output scaling" },
-    { tab: 4, category: "Outputs", icon: "screen_rotation", title: "Display transform", anchor: "Transform", subtitle: "Rotate or reflect the output" },
-    { tab: 4, category: "Touchpad", icon: "touch_app", title: "Tap to click", subtitle: "Use a light tap instead of pressing the pad" },
-    { tab: 4, category: "Touchpad", icon: "swap_vert", title: "Touchpad natural scrolling", anchor: "touchpad-natural-scroll", subtitle: "Scroll in the direction your fingers move" },
-    { tab: 4, category: "Touchpad", icon: "touchpad_mouse", title: "Touchpad scroll method", anchor: "Scroll method", subtitle: "Choose the touchpad scroll gesture" },
-    { tab: 4, category: "Mouse", icon: "mouse", title: "Mouse natural scrolling", anchor: "mouse-natural-scroll", subtitle: "Reverse the mouse wheel direction" },
-    { tab: 4, category: "Trackpoint", icon: "mouse", title: "Trackpoint natural scrolling", anchor: "trackpoint-natural-scroll", subtitle: "Reverse the TrackPoint scroll direction" },
-    { tab: 4, category: "Pointer", icon: "speed", title: "Pointer acceleration", anchor: "mouse-accel-speed", subtitle: "Adjust mouse and TrackPoint acceleration" },
-    { tab: 5, category: "Connections", icon: "wifi", title: "Wi-Fi", anchor: "Network", subtitle: "Connect, forget, and manage saved networks" },
-    { tab: 6, category: "Connections", icon: "bluetooth", title: "Bluetooth", subtitle: "Pair and connect nearby devices" },
-    { tab: 7, category: "Media popup", icon: "image", title: "Show album art", subtitle: "Show artwork in the media popup" },
-    { tab: 7, category: "Media popup", icon: "linear_scale", title: "Show progress bar", subtitle: "Show playback progress" },
-    { tab: 7, category: "Media popup", icon: "touch_app", title: "Controls always visible", subtitle: "Keep media controls visible when paused" },
-    { tab: 8, category: "Lock screen", icon: "music_note", title: "Show now playing", subtitle: "Show the current track on the lock screen" },
-    { tab: 8, category: "Lock screen", icon: "wallpaper", title: "Use current wallpaper", subtitle: "Use the active wallpaper on the lock screen" },
-    { tab: 8, category: "Lock screen", icon: "schedule", title: "Clock face", subtitle: "Choose the lock-screen clock style" },
-    { tab: 8, category: "Idle and power", icon: "lock", title: "Lock after inactivity", subtitle: "Set the idle lock timeout" },
-    { tab: 8, category: "Idle and power", icon: "bedtime", title: "Suspend after inactivity", subtitle: "Set the idle suspend timeout" },
-    { tab: 8, category: "Power", icon: "bolt", title: "Power Profiles", anchor: "Power profiles", subtitle: "Choose the automatic power profile" },
-    { tab: 8, category: "Power", icon: "coffee", title: "Caffeine", subtitle: "Temporarily prevent idle actions" },
-    { tab: 9, category: "Notifications", icon: "do_not_disturb_on", title: "Do Not Disturb", subtitle: "Suppress notification toasts" },
-    { tab: 9, category: "Notifications", icon: "bedtime", title: "Quiet hours", subtitle: "Silence notifications during a schedule" },
-    { tab: 9, category: "Notifications", icon: "priority_high", title: "Critical notification bypass", subtitle: "Keep critical alerts visible during quiet hours" },
-    { tab: 9, category: "Notifications", icon: "timer", title: "Toast duration", subtitle: "Choose how long notification toasts remain visible" },
-    { tab: 9, category: "Notifications", icon: "open_in_new", title: "Toast position", subtitle: "Place notification toasts at the top or bottom" },
-    { tab: 9, category: "History", icon: "history", title: "Notification history limit", subtitle: "Limit retained notification history" },
-    { tab: 10, category: "Diagnostics", icon: "monitor_heart", title: "CPU Usage", subtitle: "View current processor usage" },
-    { tab: 10, category: "Diagnostics", icon: "memory", title: "Memory (RAM)", subtitle: "View current memory usage" },
-    { tab: 10, category: "Diagnostics", icon: "storage", title: "Disk Storage", subtitle: "View root filesystem usage" },
-    { tab: 10, category: "Diagnostics", icon: "swap_horiz", title: "Swap", subtitle: "View swap usage" },
-    { tab: 10, category: "Diagnostics", icon: "thermostat", title: "CPU Temperature", anchor: "CPU Temp", subtitle: "View processor temperature" },
-    { tab: 10, category: "Diagnostics", icon: "mode_fan", title: "Fan Speed", subtitle: "View fan speed when available" },
-    { tab: 10, category: "Diagnostics", icon: "battery_full", title: "Battery", subtitle: "View battery status" },
-    { tab: 10, category: "Diagnostics", icon: "battery_alert", title: "Battery Health", subtitle: "View battery health" },
-    { tab: 10, category: "Diagnostics", icon: "battery_charging_full", title: "Battery Cycles", subtitle: "View battery cycle count" },
-    { tab: 10, category: "Diagnostics", icon: "trending_up", title: "Load Average", subtitle: "View one, five, and fifteen minute load" },
-    { tab: 10, category: "Shell actions", icon: "refresh", title: "Reload Quickshell", subtitle: "Restart the shell process" },
-    { tab: 11, category: "Application shortcuts", icon: "apps", title: "App shortcuts", anchor: "Apps", subtitle: "Launch applications and common actions" },
-    { tab: 11, category: "Window shortcuts", icon: "window", title: "Window shortcuts", anchor: "Windows", subtitle: "Focus, move, and resize windows" },
-    { tab: 11, category: "Workspace shortcuts", icon: "workspaces", title: "Workspace shortcuts", anchor: "Workspaces", subtitle: "Move between and manage workspaces" },
-    { tab: 11, category: "System shortcuts", icon: "keyboard", title: "System shortcuts", anchor: "System", subtitle: "Use shell, media, brightness, and power shortcuts" }
+    { tab: 2, category: "Wallpaper", icon: "wallpaper", title: "Wallpaper", subtitle: "Browse, set, and randomize wallpapers" },
+    { tab: 3, category: "Outputs", icon: "monitor", title: "Display mode", anchor: "Mode", subtitle: "Choose the output resolution and refresh rate" },
+    { tab: 3, category: "Outputs", icon: "photo_size_select_small", title: "Display scale", anchor: "Scale", subtitle: "Adjust output scaling" },
+    { tab: 3, category: "Outputs", icon: "screen_rotation", title: "Display transform", anchor: "Transform", subtitle: "Rotate or reflect the output" },
+    { tab: 3, category: "Touchpad", icon: "touch_app", title: "Tap to click", subtitle: "Use a light tap instead of pressing the pad" },
+    { tab: 3, category: "Touchpad", icon: "swap_vert", title: "Touchpad natural scrolling", anchor: "touchpad-natural-scroll", subtitle: "Scroll in the direction your fingers move" },
+    { tab: 3, category: "Touchpad", icon: "touchpad_mouse", title: "Touchpad scroll method", anchor: "Scroll method", subtitle: "Choose the touchpad scroll gesture" },
+    { tab: 3, category: "Mouse", icon: "mouse", title: "Mouse natural scrolling", anchor: "mouse-natural-scroll", subtitle: "Reverse the mouse wheel direction" },
+    { tab: 3, category: "Trackpoint", icon: "mouse", title: "Trackpoint natural scrolling", anchor: "trackpoint-natural-scroll", subtitle: "Reverse the TrackPoint scroll direction" },
+    { tab: 3, category: "Pointer", icon: "speed", title: "Pointer acceleration", anchor: "mouse-accel-speed", subtitle: "Adjust mouse and TrackPoint acceleration" },
+    { tab: 4, category: "Connections", icon: "wifi", title: "Wi-Fi", anchor: "Network", subtitle: "Connect, forget, and manage saved networks" },
+    { tab: 5, category: "Connections", icon: "bluetooth", title: "Bluetooth", subtitle: "Pair and connect nearby devices" },
+    { tab: 6, category: "Media popup", icon: "image", title: "Show album art", subtitle: "Show artwork in the media popup" },
+    { tab: 6, category: "Media popup", icon: "linear_scale", title: "Show progress bar", subtitle: "Show playback progress" },
+    { tab: 6, category: "Media popup", icon: "touch_app", title: "Controls always visible", subtitle: "Keep media controls visible when paused" },
+    { tab: 7, category: "Lock screen", icon: "music_note", title: "Show now playing", subtitle: "Show the current track on the lock screen" },
+    { tab: 7, category: "Lock screen", icon: "wallpaper", title: "Use current wallpaper", subtitle: "Use the active wallpaper on the lock screen" },
+    { tab: 7, category: "Lock screen", icon: "schedule", title: "Clock face", subtitle: "Choose the lock-screen clock style" },
+    { tab: 7, category: "Idle and power", icon: "lock", title: "Lock after inactivity", subtitle: "Set the idle lock timeout" },
+    { tab: 7, category: "Idle and power", icon: "bedtime", title: "Suspend after inactivity", subtitle: "Set the idle suspend timeout" },
+    { tab: 7, category: "Power", icon: "bolt", title: "Power Profiles", anchor: "Power profiles", subtitle: "Choose the automatic power profile" },
+    { tab: 7, category: "Power", icon: "coffee", title: "Caffeine", subtitle: "Temporarily prevent idle actions" },
+    { tab: 8, category: "Notifications", icon: "do_not_disturb_on", title: "Do Not Disturb", subtitle: "Suppress notification toasts" },
+    { tab: 8, category: "Notifications", icon: "bedtime", title: "Quiet hours", subtitle: "Silence notifications during a schedule" },
+    { tab: 8, category: "Notifications", icon: "priority_high", title: "Critical notification bypass", subtitle: "Keep critical alerts visible during quiet hours" },
+    { tab: 8, category: "Notifications", icon: "timer", title: "Toast duration", subtitle: "Choose how long notification toasts remain visible" },
+    { tab: 8, category: "Notifications", icon: "open_in_new", title: "Toast position", subtitle: "Place notification toasts at the top or bottom" },
+    { tab: 8, category: "History", icon: "history", title: "Notification history limit", subtitle: "Limit retained notification history" },
+    { tab: 9, category: "Diagnostics", icon: "monitor_heart", title: "CPU Usage", subtitle: "View current processor usage" },
+    { tab: 9, category: "Diagnostics", icon: "memory", title: "Memory (RAM)", subtitle: "View current memory usage" },
+    { tab: 9, category: "Diagnostics", icon: "storage", title: "Disk Storage", subtitle: "View root filesystem usage" },
+    { tab: 9, category: "Diagnostics", icon: "swap_horiz", title: "Swap", subtitle: "View swap usage" },
+    { tab: 9, category: "Diagnostics", icon: "thermostat", title: "CPU Temperature", anchor: "CPU Temp", subtitle: "View processor temperature" },
+    { tab: 9, category: "Diagnostics", icon: "mode_fan", title: "Fan Speed", subtitle: "View fan speed when available" },
+    { tab: 9, category: "Diagnostics", icon: "battery_full", title: "Battery", subtitle: "View battery status" },
+    { tab: 9, category: "Diagnostics", icon: "battery_alert", title: "Battery Health", subtitle: "View battery health" },
+    { tab: 9, category: "Diagnostics", icon: "battery_charging_full", title: "Battery Cycles", subtitle: "View battery cycle count" },
+    { tab: 9, category: "Diagnostics", icon: "trending_up", title: "Load Average", subtitle: "View one, five, and fifteen minute load" },
+    { tab: 9, category: "Shell actions", icon: "refresh", title: "Reload Quickshell", subtitle: "Restart the shell process" },
+    { tab: 10, category: "Application shortcuts", icon: "apps", title: "App shortcuts", anchor: "Apps", subtitle: "Launch applications and common actions" },
+    { tab: 10, category: "Window shortcuts", icon: "window", title: "Window shortcuts", anchor: "Windows", subtitle: "Focus, move, and resize windows" },
+    { tab: 10, category: "Workspace shortcuts", icon: "workspaces", title: "Workspace shortcuts", anchor: "Workspaces", subtitle: "Move between and manage workspaces" },
+    { tab: 10, category: "System shortcuts", icon: "keyboard", title: "System shortcuts", anchor: "System", subtitle: "Use shell, media, brightness, and power shortcuts" }
   ]
 
   function tabLabel(tabIndex) {
@@ -264,7 +263,7 @@ PanelWindow {
   Timer {
     id: statsTimer
     interval: 3000
-    running: root.visible && root.currentTab === 10
+    running: root.visible && root.currentTab === 9
     repeat: true
     triggeredOnStart: true
     onTriggered: {
@@ -1103,15 +1102,14 @@ PanelWindow {
                 case 0: return accountTabComponent
                 case 1: return generalTabComponent
                 case 2: return appearanceTabComponent
-                case 3: return wallpaperTabComponent
-                case 4: return displayInputTabComponent
-                case 5: return networkTabComponent
-                case 6: return bluetoothTabComponent
-                case 7: return mediaTabComponent
-                case 8: return lockMediaTabComponent
-                case 9: return notificationsTabComponent
-                case 10: return systemTabComponent
-                case 11: return shortcutsTabComponent
+                case 3: return displayInputTabComponent
+                case 4: return networkTabComponent
+                case 5: return bluetoothTabComponent
+                case 6: return mediaTabComponent
+                case 7: return lockMediaTabComponent
+                case 8: return notificationsTabComponent
+                case 9: return systemTabComponent
+                case 10: return shortcutsTabComponent
                 default: return generalTabComponent
               }
             }
@@ -1140,11 +1138,6 @@ PanelWindow {
           Component {
             id: appearanceTabComponent
             AppearanceTab { root: tabContainer.panelRoot }
-          }
-
-          Component {
-            id: wallpaperTabComponent
-            WallpaperTab { root: tabContainer.panelRoot }
           }
 
           Component {

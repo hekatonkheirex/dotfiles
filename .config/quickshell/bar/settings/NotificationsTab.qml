@@ -15,7 +15,7 @@ Flickable {
   readonly property bool material3Theme: Config.material3Theme
   readonly property int segmentedButtonGap: notificationsTab.material3Theme ? 0 : Config.spacingSmall
   anchors.fill: parent
-  visible: root.currentTab === 9
+  visible: root.currentTab === 8
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight
