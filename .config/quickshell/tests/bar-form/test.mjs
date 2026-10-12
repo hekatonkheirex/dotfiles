@@ -15,7 +15,7 @@ for (const f of B.FORMS) assert.equal(B.normalize(f), f)
 assert.deepEqual(B.metrics("full", o), { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: true, pills: false })
 assert.deepEqual(B.metrics("fit", o), { edgeGap: 8, sideInset: 8, shoulder: 0, roundNear: true, flat: false, pills: false })
 assert.deepEqual(B.metrics("dock", o), { edgeGap: 0, sideInset: 42, shoulder: 0, roundNear: false, flat: false, pills: false })
-assert.deepEqual(B.metrics("notch", o), { edgeGap: 0, sideInset: 42, shoulder: 16, roundNear: false, flat: false, pills: false })
+assert.deepEqual(B.metrics("notch", o), { edgeGap: 0, sideInset: 42, shoulder: 20, roundNear: false, flat: false, pills: false })
 assert.deepEqual(B.metrics("pill", o), { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: false, pills: true })
 assert.deepEqual(B.metrics("junk", o), B.metrics("full", o))
 

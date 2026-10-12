@@ -15,7 +15,7 @@ function normalize(value) {
 
 // edgeGap: space between the screen edge and the bar (reserved by the panel).
 // sideInset: space between the screen ends and the bar body along its axis.
-// shoulder: size of each concave flare (notch only).
+// shoulder: size in px of each concave flare (notch only, fixed 20).
 // roundNear: round the corners on the screen-edge side too.
 // flat: no rounding at all (full).
 // pills: per-widget pills instead of one continuous surface.
@@ -26,7 +26,7 @@ function metrics(form, o) {
   case "dock":
     return { edgeGap: 0, sideInset: o.barWidth, shoulder: 0, roundNear: false, flat: false, pills: false }
   case "notch":
-    return { edgeGap: 0, sideInset: o.barWidth, shoulder: o.spacingLarge, roundNear: false, flat: false, pills: false }
+    return { edgeGap: 0, sideInset: o.barWidth, shoulder: 20, roundNear: false, flat: false, pills: false }
   case "pill":
     return { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: false, pills: true }
   default:
