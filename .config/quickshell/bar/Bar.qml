@@ -1246,7 +1246,7 @@ PanelWindow {
         // The clock stays outside both layouts to preserve its popup anchor,
         // but its slot participates in whichever region owns it.
         width: root.horizontal
-          ? (root.ghostHorizontalOneLiner
+          ? (root.oneLiner
             ? Math.max(
                 root.pillsBar ? root.horizontalPillLength : root.wSize,
                 clockContent.implicitWidth + Config.spacingSmall * 2
@@ -1301,21 +1301,21 @@ PanelWindow {
           GridLayout {
             id: clockContent
             anchors.centerIn: parent
-            columns: root.ghostHorizontalOneLiner && root.clockSecondaryVisible ? 2 : 1
-            rows: root.ghostHorizontalOneLiner
+            columns: root.oneLiner && root.clockSecondaryVisible ? 2 : 1
+            rows: root.oneLiner
               ? 1
               : (root.clockSecondaryVisible ? 2 : 1)
-            flow: root.ghostHorizontalOneLiner && root.clockSecondaryVisible
+            flow: root.oneLiner && root.clockSecondaryVisible
               ? GridLayout.LeftToRight
               : GridLayout.TopToBottom
             // Ndot's line-height metrics reserve descent space below each
             // digit row that the visible glyphs never use, which skews
             // Qt's naive vertical centering low. Nudge up to compensate.
             anchors.verticalCenterOffset: Config.nothingDesign && !Config.nothingEvolution && !root.horizontalPillMode ? -4 : 0
-            columnSpacing: root.ghostHorizontalOneLiner && root.clockSecondaryVisible
+            columnSpacing: root.oneLiner && root.clockSecondaryVisible
               ? Config.spacingCompact
               : 0
-            rowSpacing: root.clockSecondaryVisible && !root.ghostHorizontalOneLiner
+            rowSpacing: root.clockSecondaryVisible && !root.oneLiner
               ? Config.clockLineSpacing
               : 0
 

@@ -56,6 +56,8 @@ Item {
     : (workspaceStyleValues.indexOf(Settings.workspaceShape) >= 0
       ? Settings.workspaceShape
       : "expressive")
+  // dwm draws tags straight on the bar: no capsule track behind the numbers.
+  readonly property bool dwmFlatTrack: Config.dwmTheme && root.workspaceStyle === "numbers"
   // Compatibility name for the original four shape bindings.
   readonly property string workspaceShape: workspaceStyle
   readonly property string workspaceCount: ["active", "5", "10"].indexOf(Settings.workspaceCount) >= 0
@@ -571,9 +573,9 @@ Item {
     height: root.horizontal
       ? Math.min(34, Math.max(0, parent.height - Config.spacingSmall))
       : Math.min(parent.height, Math.max(0, grid.implicitHeight + Config.spacingSmall * 2))
-    radius: Math.min(Config.shapeLarge, width / 2, height / 2)
-    color: root.workspaceGroupColor
-    border.width: root.flatLiquidChrome ? 0 : Config.themeBorderWidth
+    radius: root.dwmFlatTrack ? 0 : Math.min(Config.shapeLarge, width / 2, height / 2)
+    color: root.dwmFlatTrack ? "transparent" : root.workspaceGroupColor
+    border.width: root.flatLiquidChrome || root.dwmFlatTrack ? 0 : Config.themeBorderWidth
     border.color: root.flatLiquidChrome
       ? "transparent"
       : (Config.liquidGlassTheme ? Colors.styleOutline : Colors.outlineVariant)
