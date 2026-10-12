@@ -195,6 +195,26 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
     fi
   fi
 
+  # Nothing Evolution (only) takes the user-picked accent from Appearance >
+  # Accent colors for its focus ring; Classic and Ghost stay fixed. The role
+  # is read straight from the Matugen cache.
+  accent_ring=""
+  if [ "$UI_STYLE" = "nothing" ] && [ "$SCHEME" != "claude" ] && command -v jq &>/dev/null \
+     && [ -f "$HOME/.cache/matugen/current_palette.json" ] \
+     && [ "$(jq -r '.nothingVariant // ""' "$HOME/.config/quickshell/settings.json" 2>/dev/null)" = "evolution" ]; then
+    accent_role=$(jq -r '.accentActive // ""' "$HOME/.config/quickshell/settings.json" 2>/dev/null || true)
+    accent_list=$(jq -r '.accentPalette // ""' "$HOME/.config/quickshell/settings.json" 2>/dev/null || true)
+    case ",$accent_list," in
+      *",$accent_role,"*)
+        if [[ "$accent_role" =~ ^(primary|secondary|tertiary)(_container|_fixed|_fixed_dim)?$ ]]; then
+          accent_ring=$(jq -r --arg m "$MODE" --arg r "$accent_role" \
+            '."scheme-expressive"[$m][$r] // empty' "$HOME/.cache/matugen/current_palette.json" 2>/dev/null || true)
+          [[ "$accent_ring" =~ ^#[0-9A-Fa-f]{6}$ ]] || accent_ring=""
+        fi
+        ;;
+    esac
+  fi
+
   # Nothing is intentionally independent of the wallpaper-derived Matugen
   # palette. Keep Niri's window decorations on the same fixed neutral/red
   # roles as Quickshell's config/Colors.qml, including first boot/cache misses.
@@ -231,7 +251,7 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
 
     if [ "$UI_STYLE" = "nothing" ]; then
       focus_width=2
-      focus_active="$on_surface"
+      focus_active="${accent_ring:-$on_surface}"
       focus_inactive="$outline"
       niri_corner_radius=20
       layout_gaps=""
