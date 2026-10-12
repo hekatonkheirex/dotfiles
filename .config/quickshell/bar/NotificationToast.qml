@@ -66,6 +66,7 @@ PanelWindow {
       dismissTimer.restart()
     if (Config.reducedMotion) {
       entryAnimation.stop()
+      materialEntryAnimation.stop()
       reducedMotionEntryAnimation.stop()
       scaleTransform.xScale = 1.0
       scaleTransform.yScale = 1.0
@@ -76,6 +77,8 @@ PanelWindow {
       } else {
         bg.opacity = 1.0
       }
+    } else if (Config.material3Theme) {
+      materialEntryAnimation.restart()
     } else {
       entryAnimation.start()
     }
@@ -175,6 +178,15 @@ PanelWindow {
       Translate { id: transX; x: 0 },
       Scale { id: scaleTransform; origin.x: bg.width; origin.y: 0; xScale: 1.0; yScale: 1.0 }
     ]
+
+    MaterialEntrance {
+      id: materialEntryAnimation
+      surfaceTarget: bg
+      scaleTarget: scaleTransform
+      translationTarget: transX
+      initialScale: Config.toastEntryScale
+      initialOffset: Config.toastEntryOffset
+    }
 
     ParallelAnimation {
       id: entryAnimation
@@ -349,7 +361,7 @@ PanelWindow {
 
           delegate: ActionButton {
             required property var modelData
-            height: 32
+            height: Config.material3Theme ? implicitHeight : 32
             width: Math.max(72, (actionRow.width - actionRow.spacing * (actionRepeater.count - 1)) / actionRepeater.count)
             labelText: modelData.text
             horizontalContent: true

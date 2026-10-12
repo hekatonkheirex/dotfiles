@@ -2,6 +2,7 @@ pragma Singleton
 import QtQml
 import QtQuick
 import Quickshell
+import "BarForm.js" as BarForm
 
 QtObject {
   // Keep Niri as the compatibility default, but detect Mango when the shell
@@ -40,6 +41,10 @@ QtObject {
   // stays square rather than capping the rail at 34px.
   readonly property int barWidth: Settings.barSize
   readonly property int widgetSize: barWidth
+  // Geometry of the selected bar form (full, fit, dock, notch).
+  readonly property var barFormMetrics: BarForm.metrics(Settings.barForm, {
+    barWidth: barWidth, spacingSmall: spacingSmall, spacingLarge: spacingLarge
+  })
   // Live-adjustable via the Appearance settings tab (single density scale);
   // mirrors Settings the same way reducedMotion below does, so every binding
   // that reads these updates immediately without touching the consuming file.
@@ -50,6 +55,11 @@ QtObject {
   property int spacingLarge: Math.round(16 * spacingScale)
   property int spacingExtraLarge: Math.round(24 * spacingScale)
   property int spacingPage: Math.round(32 * spacingScale)
+  // Explicit desktop density changes geometry, never the user's type scale.
+  readonly property bool materialCompact: material3Theme && Settings.materialCompact
+  readonly property int controlHitSize: materialCompact ? 40 : 48
+  readonly property int materialRowPadding: materialCompact ? spacingSmall : spacingLarge
+  readonly property int settingsContentMaxWidth: material3Theme ? 1120 : settingsMaxWidth
   // Reserve visual breathing room between tab content and the outer settings
   // scrollbar, which is intentionally overlaid on the Flickable edge.
   readonly property int settingsScrollbarGutter: spacingMedium
@@ -91,43 +101,44 @@ QtObject {
   property int iconSize: Settings.iconSize
   property int fontPixelSize: Settings.fontPixelSize
 
-  // Compact Material 3 type roles. The shell is a resizable desktop surface,
-  // so these keep the current laptop density while preserving the hierarchy
-  // and naming of the M3 type scale. Use weight and line height to express
-  // emphasis; do not make every setting row compete with its page heading.
-  readonly property int typeLabelSmallSize: nothingDesign && !nothingEvolution
-    ? Math.max(12, fontPixelSize) : Math.max(8, fontPixelSize - 1)
-  readonly property int typeLabelMediumSize: fontPixelSize + (ghostTheme ? 1 : 0)
-  readonly property int typeLabelLargeSize: fontPixelSize + 2
-  readonly property int typeBodySmallSize: nothingDesign && !nothingEvolution
-    ? Math.max(12, fontPixelSize) : Math.max(10, fontPixelSize - 1)
-  readonly property int typeBodyMediumSize: fontPixelSize + (ghostTheme ? 2 : 1)
-  readonly property int typeBodyLargeSize: fontPixelSize + 3
-  readonly property int typeTitleSmallSize: fontPixelSize + 2
-  readonly property int typeTitleMediumSize: fontPixelSize + 3
-  readonly property int typeTitleLargeSize: fontPixelSize + 5
-  readonly property int typeHeadlineSmallSize: fontPixelSize + 8
-  readonly property int typeHeadlineMediumSize: fontPixelSize + 12
-  readonly property int typeHeadlineLargeSize: fontPixelSize + 16
-  readonly property int typeDisplaySmallSize: fontPixelSize + 20
-  readonly property int typeDisplayMediumSize: fontPixelSize + 28
-  readonly property int typeDisplayLargeSize: fontPixelSize + 36
+  // Material's baseline type scale follows the existing font-size preference.
+  // Keep the other styles' compact mappings independent of Material density.
+  readonly property real materialTypeScale: Math.max(0.85, fontPixelSize / 12)
+  readonly property int typeLabelSmallSize: material3Theme ? Math.round(11 * materialTypeScale)
+    : (nothingDesign && !nothingEvolution ? Math.max(12, fontPixelSize) : Math.max(8, fontPixelSize - 1))
+  readonly property int typeLabelMediumSize: material3Theme ? Math.round(12 * materialTypeScale)
+    : fontPixelSize + (ghostTheme ? 1 : 0)
+  readonly property int typeLabelLargeSize: material3Theme ? Math.round(14 * materialTypeScale) : fontPixelSize + 2
+  readonly property int typeBodySmallSize: material3Theme ? Math.round(12 * materialTypeScale)
+    : (nothingDesign && !nothingEvolution ? Math.max(12, fontPixelSize) : Math.max(10, fontPixelSize - 1))
+  readonly property int typeBodyMediumSize: material3Theme ? Math.round(14 * materialTypeScale)
+    : fontPixelSize + (ghostTheme ? 2 : 1)
+  readonly property int typeBodyLargeSize: material3Theme ? Math.round(16 * materialTypeScale) : fontPixelSize + 3
+  readonly property int typeTitleSmallSize: material3Theme ? Math.round(14 * materialTypeScale) : fontPixelSize + 2
+  readonly property int typeTitleMediumSize: material3Theme ? Math.round(16 * materialTypeScale) : fontPixelSize + 3
+  readonly property int typeTitleLargeSize: material3Theme ? Math.round(22 * materialTypeScale) : fontPixelSize + 5
+  readonly property int typeHeadlineSmallSize: material3Theme ? Math.round(24 * materialTypeScale) : fontPixelSize + 8
+  readonly property int typeHeadlineMediumSize: material3Theme ? Math.round(28 * materialTypeScale) : fontPixelSize + 12
+  readonly property int typeHeadlineLargeSize: material3Theme ? Math.round(32 * materialTypeScale) : fontPixelSize + 16
+  readonly property int typeDisplaySmallSize: material3Theme ? Math.round(36 * materialTypeScale) : fontPixelSize + 20
+  readonly property int typeDisplayMediumSize: material3Theme ? Math.round(45 * materialTypeScale) : fontPixelSize + 28
+  readonly property int typeDisplayLargeSize: material3Theme ? Math.round(57 * materialTypeScale) : fontPixelSize + 36
 
-  readonly property int typeLabelSmallLineHeight: 16
-  readonly property int typeLabelMediumLineHeight: 18
-  readonly property int typeLabelLargeLineHeight: 20
-  readonly property int typeBodySmallLineHeight: 16
-  readonly property int typeBodyMediumLineHeight: 19
-  readonly property int typeBodyLargeLineHeight: 22
-  readonly property int typeTitleSmallLineHeight: 18
-  readonly property int typeTitleMediumLineHeight: 20
-  readonly property int typeTitleLargeLineHeight: 22
-  readonly property int typeHeadlineSmallLineHeight: 24
-  readonly property int typeHeadlineMediumLineHeight: 28
-  readonly property int typeHeadlineLargeLineHeight: 32
-  readonly property int typeDisplaySmallLineHeight: 36
-  readonly property int typeDisplayMediumLineHeight: 44
-  readonly property int typeDisplayLargeLineHeight: 52
+  readonly property int typeLabelSmallLineHeight: material3Theme ? Math.round(16 * materialTypeScale) : 16
+  readonly property int typeLabelMediumLineHeight: material3Theme ? Math.round(16 * materialTypeScale) : 18
+  readonly property int typeLabelLargeLineHeight: material3Theme ? Math.round(20 * materialTypeScale) : 20
+  readonly property int typeBodySmallLineHeight: material3Theme ? Math.round(16 * materialTypeScale) : 16
+  readonly property int typeBodyMediumLineHeight: material3Theme ? Math.round(20 * materialTypeScale) : 19
+  readonly property int typeBodyLargeLineHeight: material3Theme ? Math.round(24 * materialTypeScale) : 22
+  readonly property int typeTitleSmallLineHeight: material3Theme ? Math.round(20 * materialTypeScale) : 18
+  readonly property int typeTitleMediumLineHeight: material3Theme ? Math.round(24 * materialTypeScale) : 20
+  readonly property int typeTitleLargeLineHeight: material3Theme ? Math.round(28 * materialTypeScale) : 22
+  readonly property int typeHeadlineSmallLineHeight: material3Theme ? Math.round(32 * materialTypeScale) : 24
+  readonly property int typeHeadlineMediumLineHeight: material3Theme ? Math.round(36 * materialTypeScale) : 28
+  readonly property int typeHeadlineLargeLineHeight: material3Theme ? Math.round(40 * materialTypeScale) : 32
+  readonly property int typeDisplaySmallLineHeight: material3Theme ? Math.round(44 * materialTypeScale) : 36
+  readonly property int typeDisplayMediumLineHeight: material3Theme ? Math.round(52 * materialTypeScale) : 44
+  readonly property int typeDisplayLargeLineHeight: material3Theme ? Math.round(64 * materialTypeScale) : 52
 
   // Qt expresses tracking in pixels. Keep display/headline tracking slightly
   // tight, leave body copy neutral, and give labels only a subtle separation.
@@ -200,20 +211,21 @@ QtObject {
   readonly property real motionSpatialDamping: material3Theme ? 0.82 : 1.0
   readonly property real motionSpatialMass: 1.0
   readonly property real motionSpatialEpsilon: 0.01
+  readonly property real motionEffectsSpring: 12.0
   // One entrance grammar per style, shared by Settings, launcher and menus.
   readonly property real surfaceEntryScale: ghostTheme || (nothingDesign && !nothingEvolution)
-    ? 1.0 : (nothingEvolution ? 0.98 : (liquidGlassTheme ? 0.97 : 0.90))
+    ? 1.0 : (nothingEvolution ? 0.98 : (liquidGlassTheme ? 0.97 : 0.985))
   readonly property real surfaceEntryOffset: ghostTheme ? -8
-    : (nothingDesign ? -12 : (liquidGlassTheme ? -10 : -20))
+    : (nothingDesign ? -12 : (liquidGlassTheme ? -10 : -6))
   readonly property int surfaceEntryDuration: reducedMotion ? 0
     : (ghostTheme ? 90 : (nothingDesign ? (nothingEvolution ? 120 : 100)
       : (liquidGlassTheme ? 160 : 190)))
   readonly property int surfaceOpacityDuration: reducedMotion ? 0
     : (ghostTheme ? 80 : (nothingDesign ? 95 : (liquidGlassTheme ? 110 : 140)))
   readonly property real toastEntryScale: ghostTheme || (nothingDesign && !nothingEvolution)
-    ? 1.0 : (nothingEvolution ? 0.98 : (liquidGlassTheme ? 0.98 : 0.92))
+    ? 1.0 : (nothingEvolution ? 0.98 : (liquidGlassTheme ? 0.98 : 0.985))
   readonly property real toastEntryOffset: ghostTheme ? 14
-    : (nothingDesign ? 22 : (liquidGlassTheme ? 18 : 32))
+    : (nothingDesign ? 22 : (liquidGlassTheme ? 18 : 8))
   readonly property int toastEntryDuration: reducedMotion ? 0
     : (ghostTheme ? 100 : (nothingDesign ? 120 : (liquidGlassTheme ? 160 : 190)))
   // Reduced motion keeps a short opacity-only acknowledgement for Liquid
@@ -242,7 +254,7 @@ QtObject {
   // Shared label column for remote settings rows. Sized for the longest
   // current label while allowing larger type settings to preserve full text.
   readonly property int settingsRowLabelWidth: 200
-  readonly property int settingsMaxWidth: 1100
+  readonly property int settingsMaxWidth: material3Theme ? 1440 : 1100
   readonly property int settingsDefaultWidth: 1100
   readonly property int settingsDefaultHeight: 900
   readonly property int volumeStep: 5

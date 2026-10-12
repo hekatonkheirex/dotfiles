@@ -2,6 +2,7 @@ import QtQuick
 import "../../../config"
 import "."
 import "../shared"
+import "../../primitives"
 // Liquid Glass reuses this accessible control and supplies its material roles
 // through the facade; the HIG slider remains a flat control within that system.
 
@@ -118,8 +119,16 @@ SliderBase {
     width: Math.max(0, thumbCenter - thumbWidth / 2 - leftGap)
     height: root.trackHeight
     radius: root.trackRadius
-    color: Qt.tint(root.muted ? root.outline : root.activeColor, root.stateOverlay)
-    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
+    ColorSpring {
+      id: trackEffect
+      animate: Config.material3Theme && !root.reducedMotion && !Config.reducedMotion
+      targetColor: Qt.tint(root.muted ? root.outline : root.activeColor, root.stateOverlay)
+    }
+    color: Config.material3Theme ? trackEffect.color : trackEffect.targetColor
+    Behavior on color {
+      enabled: !Config.material3Theme
+      ColorAnimation { duration: root.animateDuration(150) }
+    }
 
     Rectangle {
       anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
@@ -178,14 +187,22 @@ SliderBase {
     width: root.thumbWidth
     height: root.thumbHeight
     radius: width / 2
-    color: root.liquidGlass
-      ? Qt.tint(Colors.liquidGlassControlThumb, root.stateOverlay)
-      : Qt.tint(root.muted ? root.outline : root.activeColor, root.stateOverlay)
+    ColorSpring {
+      id: thumbEffect
+      animate: Config.material3Theme && !root.reducedMotion && !Config.reducedMotion
+      targetColor: root.liquidGlass
+        ? Qt.tint(Colors.liquidGlassControlThumb, root.stateOverlay)
+        : Qt.tint(root.muted ? root.outline : root.activeColor, root.stateOverlay)
+    }
+    color: Config.material3Theme ? thumbEffect.color : thumbEffect.targetColor
     border.width: root.liquidGlass
       ? (root.focusRingVisible ? theme.focusBorderWidth : 0)
       : (root.pressed ? theme.focusBorderWidth : 0)
     border.color: root.liquidGlass ? Colors.liquidGlassEdge : root.surfaceContainerHigh
-    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
+    Behavior on color {
+      enabled: !Config.material3Theme
+      ColorAnimation { duration: root.animateDuration(150) }
+    }
 
   }
 

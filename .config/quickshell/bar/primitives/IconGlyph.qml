@@ -27,19 +27,37 @@ Item {
   implicitHeight: root.iconSize
 
 
+  // Keep each font's text and axes together. Changing all three on one Text
+  // during a style switch makes Qt shape intermediate SF/Material pairings
+  // and repeatedly resolve fallback fonts on the GUI thread.
   Text {
     anchors.fill: parent
-    text: root.usesSfSymbol ? root.sfGlyph : root.iconLabel
+    visible: !root.usesSfSymbol
+    text: root.iconLabel
     textFormat: Text.PlainText
     color: root.iconColor
     opacity: root.iconOpacity
-    font.family: root.usesSfSymbol ? Config.sfSymbolsFont : root.iconFont
-    // SF's medium-scale glyphs occupy roughly one em, unlike Material's box.
-    font.pixelSize: root.usesSfSymbol ? root.iconBoxSize * 0.8 : root.iconSize
+    font.family: root.iconFont
+    font.pixelSize: root.iconSize
     font.weight: Font.Normal
-    font.variableAxes: !root.usesSfSymbol && root.iconVariableAxes
+    font.variableAxes: root.iconVariableAxes
       ? Config.iconVariableAxes(root.filled ? 1 : 0, root.iconSize)
       : ({})
+    horizontalAlignment: Text.AlignHCenter
+    verticalAlignment: Text.AlignVCenter
+  }
+
+  Text {
+    anchors.fill: parent
+    visible: root.usesSfSymbol
+    text: root.sfGlyph
+    textFormat: Text.PlainText
+    color: root.iconColor
+    opacity: root.iconOpacity
+    font.family: Config.sfSymbolsFont
+    // SF's medium-scale glyphs occupy roughly one em, unlike Material's box.
+    font.pixelSize: root.iconBoxSize * 0.8
+    font.weight: Font.Normal
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
   }

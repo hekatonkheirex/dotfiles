@@ -27,19 +27,42 @@ IconButtonBase {
   property real radius: size / 2
 
   Rectangle {
-    anchors.fill: parent
+    anchors.centerIn: parent
+    width: Config.material3Theme ? root.size : root.width
+    height: Config.material3Theme ? root.size : root.height
     radius: root.radius
-    color: !root.enabled ? "transparent"
-      : root.selected ? Qt.tint(Colors.primary, root.pressColor)
-      : (root.pressed ? root.pressColor
-        : (root.hovered ? root.hoverColor
-          : (root.activeFocus ? Colors.focusOverlay : root.backgroundColor)))
+    ColorSpring {
+      id: containerEffect
+      targetColor: Config.material3Theme
+        ? Qt.tint(root.backgroundColor, !root.enabled ? "transparent"
+          : (root.pressed ? root.pressColor
+            : (root.hovered ? root.hoverColor
+              : (root.activeFocus ? Colors.focusOverlay : "transparent"))))
+        : (!root.enabled ? "transparent"
+          : root.selected ? Qt.tint(Colors.primary, root.pressColor)
+            : (root.pressed ? root.pressColor
+              : (root.hovered ? root.hoverColor
+                : (root.activeFocus ? Colors.focusOverlay : root.backgroundColor))))
+    }
+    color: Config.material3Theme ? containerEffect.color : containerEffect.targetColor
     border.width: root.outlined ? theme.borderWidth : 0
     border.color: root.borderColor
 
     Behavior on color {
+      enabled: !Config.material3Theme
       ColorAnimation { duration: Config.animationDuration }
     }
+  }
+
+  Rectangle {
+    anchors.centerIn: parent
+    width: root.size + 4
+    height: root.size + 4
+    radius: root.radius + 2
+    color: "transparent"
+    border.width: Config.material3Theme && root.activeFocus ? theme.focusBorderWidth : 0
+    border.color: theme.focus
+    visible: border.width > 0
   }
 
   GlassSheen {

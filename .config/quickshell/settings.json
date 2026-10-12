@@ -1,5 +1,6 @@
 {
     "barClockInFlow": true,
+    "barForm": "full",
     "barSize": 42,
     "barWidgetOrder": "launcher,workspaces,layout,focused,gap,clock,center,llm,audio,display,media,battery,tray,notifications,weather",
     "calendarWeekStartsMonday": false,
@@ -25,7 +26,6 @@
     "colorVariant": "auto",
     "doNotDisturb": false,
     "fontPixelSize": 12,
-    "fullBar": true,
     "iconSize": 20,
     "idleLockTimeoutSeconds": 300,
     "idleSuspendTimeoutSeconds": 900,
@@ -34,6 +34,7 @@
     "lockClockSize": 72,
     "lockShowMedia": true,
     "lockUseWallpaper": false,
+    "materialCompact": false,
     "mediaControlsAlwaysVisible": false,
     "mediaShowAlbumArt": true,
     "mediaShowProgressBar": true,
@@ -52,13 +53,13 @@
     "settingsPanelWidth": 1100,
     "spacingScale": 1,
     "systemShowUptime": true,
-    "themePreference": 2,
-    "themeStyle": "liquid-glass",
+    "themePreference": 0,
+    "themeStyle": "material3",
     "timezone": "",
     "weatherAllowIpGeolocation": false,
     "weatherLocation": "",
     "weatherRefreshIntervalMinutes": 15,
     "weatherUnits": "metric",
     "workspaceCount": "active",
-    "workspaceShape": "pill"
+    "workspaceShape": "numbers"
 }

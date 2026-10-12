@@ -13,13 +13,10 @@ Item {
   id: root
 
   property bool locked: false
-  // Read the compositor-owned state directly as well as the local mirror so
-  // bar surfaces stay hidden while the protocol state is changing.
-  readonly property bool compositorLocked: Config.isNiri && sessionLock.locked
-  // Read `secure` before `locked`: WlSessionLock emits no change signal for
-  // `locked` when a lock starts, so with `locked` first the && short-circuits
-  // on a stale false, never subscribes to `secure`, and the binding stays
-  // false after niri confirms. scripts/lock then falls back to swaylock.
+  // Quickshell 0.3.2 can omit lockedChanged on unlock. Read secure first so
+  // its notification invalidates this binding and lets the bar map again.
+  readonly property bool compositorLocked: Config.isNiri && sessionLock.secure && sessionLock.locked
+  // Keep secure first here too: locked can also miss its start notification.
   readonly property bool secure: Config.isNiri && sessionLock.secure && sessionLock.locked
   onLockedChanged: {
     updateReloadWatchState()

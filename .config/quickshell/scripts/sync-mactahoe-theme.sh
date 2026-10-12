@@ -179,6 +179,17 @@ set_cursor_theme_value() {
 }
 
 if [[ -n "$cursor_theme_dir" ]]; then
+  # The shared Material 3 synchronizer selects Bibata first. Override both
+  # Niri's compositor cursor and its application environment for Liquid Glass.
+  decorations_file="$HOME/.config/niri/decorations.kdl"
+  if [[ -f "$decorations_file" ]]; then
+    sed -i "s/xcursor-theme \".*\"/xcursor-theme \"$cursor_theme\"/" "$decorations_file"
+  fi
+  environments_file="$HOME/.config/niri/environments.kdl"
+  if [[ -f "$environments_file" ]]; then
+    sed -i "s/XCURSOR_THEME \".*\"/XCURSOR_THEME \"$cursor_theme\"/" "$environments_file"
+  fi
+
   # sync-terminal-theme.sh regenerates Mango's fragment before this script
   # runs, so apply the MacTahoe cursor after that fallback has selected its
   # default Bibata value. decorations.conf is hand-maintained but owns the
@@ -192,6 +203,11 @@ if [[ -n "$cursor_theme_dir" ]]; then
   fi
   desktop_lower="$(printf '%s' "$desktop_name" | tr '[:upper:]' '[:lower:]')"
   case "$desktop_lower" in
+    niri*)
+      if command -v niri >/dev/null 2>&1; then
+        niri msg action load-config-file
+      fi
+      ;;
     mango*)
       if command -v mmsg >/dev/null 2>&1 && ! mmsg dispatch reload_config >/dev/null 2>&1; then
         printf 'Could not reload Mango after applying the MacTahoe cursor theme.\n' >&2

@@ -85,7 +85,8 @@ ActionButtonBase {
     topRightRadius: root.segmented && root.groupPosition !== "last" ? 0 : root.radius
     bottomLeftRadius: root.segmented && root.groupPosition !== "first" ? 0 : root.radius
     bottomRightRadius: root.segmented && root.groupPosition !== "last" ? 0 : root.radius
-    color: root.color
+    ColorSpring { id: containerEffect; targetColor: root.color }
+    color: Config.material3Theme ? containerEffect.color : root.color
     border.color: root.borderColor
     border.width: root.segmented ? 0 : root.borderWidth
   }
@@ -159,6 +160,7 @@ ActionButtonBase {
   }
 
   Behavior on color {
+    enabled: !Config.material3Theme
     ColorAnimation { duration: Config.animationDuration }
   }
 

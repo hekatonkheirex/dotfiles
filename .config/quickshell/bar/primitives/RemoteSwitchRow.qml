@@ -20,10 +20,12 @@ ListItem {
   property string statusMessage: ""
   signal writeFailed(string message)
 
-  height: 60
+  height: Config.material3Theme ? implicitHeight : 60
+  toggleControl: remoteSwitch
   Layout.fillWidth: true
 
   SwitchControl {
+    id: remoteSwitch
     checked: root.checked
     enabled: !writeProc.running
     activeColor: Colors.primary

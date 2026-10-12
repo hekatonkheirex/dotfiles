@@ -41,8 +41,7 @@ PanelWindow {
 
   anchors.left: true
   // Nothing and Ghost pills need more clearance than the nominal bar width.
-  margins.left: (!Settings.fullBar && (Config.nothingDesign || Config.ghostTheme)
-    ? Config.barWidth + 18 : Config.barWidth) + Config.spacingMedium
+  margins.left: Config.barWidth + Config.barFormMetrics.edgeGap + Config.spacingMedium
   property int screenH: Screen.desktopAvailableHeight
 
   anchors.top: true
@@ -52,6 +51,7 @@ PanelWindow {
     if (visible) {
       if (Config.reducedMotion) {
         entryAnimation.stop()
+        materialEntryAnimation.stop()
         reducedMotionEntryAnimation.stop()
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
@@ -62,6 +62,8 @@ PanelWindow {
         } else {
           bg.opacity = 1.0
         }
+      } else if (Config.material3Theme) {
+        materialEntryAnimation.restart()
       } else {
         entryAnimation.start()
       }
@@ -113,6 +115,13 @@ PanelWindow {
         Translate { id: transX; x: 0 },
         Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
       ]
+
+      MaterialEntrance {
+        id: materialEntryAnimation
+        surfaceTarget: bg
+        scaleTarget: scaleTransform
+        translationTarget: transX
+      }
 
       ParallelAnimation {
         id: entryAnimation

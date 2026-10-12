@@ -99,7 +99,9 @@ Flickable {
           leadingIcon: "music_note"
           title: "Show now playing"
           subtitle: "Display current track on the lock screen"
+          toggleControl: nowPlayingSwitch
           SwitchControl {
+            id: nowPlayingSwitch
             checked: Settings.lockShowMedia
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -121,7 +123,9 @@ Flickable {
             : (Settings.lockUseWallpaper
               ? "Show the desktop wallpaper behind the lock screen"
               : "Use the animated lock-screen background")
+          toggleControl: wallpaperSwitch
           SwitchControl {
+            id: wallpaperSwitch
             checked: Config.liquidGlassTheme || Settings.lockUseWallpaper
             enabled: !Config.liquidGlassTheme
             activeColor: Colors.primary
@@ -343,7 +347,9 @@ Flickable {
           subtitle: root.caffeineOn
             ? "Idle lock, display off, and suspend timers are paused"
             : "Idle lock, display off, and suspend timers are active"
+          toggleControl: caffeineSwitch
           SwitchControl {
+            id: caffeineSwitch
             checked: root.caffeineOn
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh

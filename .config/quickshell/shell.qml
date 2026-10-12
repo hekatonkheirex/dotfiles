@@ -8,6 +8,7 @@ import Quickshell.Services.Notifications
 import Quickshell.Services.UPower
 import Quickshell.Io
 import "config"
+import "config/BarForm.js" as BarForm
 import "bar"
 import "ui" as Ui
 
@@ -79,7 +80,6 @@ ShellRoot {
   // Keep Ghost's selected edge intact instead of forcing every Ghost bar to top.
   readonly property bool isHorizontal: shell.barPosition === "top"
     || shell.barPosition === "bottom"
-  property bool fullBar: Settings.fullBar
   property bool paletteActivationComplete: false
   property bool startupThemeRefreshComplete: false
 
@@ -224,7 +224,7 @@ ShellRoot {
   // selected edge. Callers pass their own implicit size and Screen bound so
   // bindings stay reactive.
   function popupBarInset() {
-    return bar.verticalPillPanelWidth + Config.spacingMedium
+    return bar.verticalPillPanelWidth + bar.edgeGap + Config.spacingMedium
   }
 
   function popupMarginLeft(w, screenW) {
@@ -254,8 +254,8 @@ ShellRoot {
     shell.setBarPosition(next)
   }
 
-  function toggleFullBar() {
-    Settings.fullBar = !Settings.fullBar
+  function setBarForm(form) {
+    Settings.barForm = BarForm.normalize(form)
     Settings.save()
   }
 
@@ -469,7 +469,6 @@ ShellRoot {
     id: bar
     barPosition: shell.barPosition
     notificationCount: notificationPopup.count
-    fullBar: shell.fullBar
     // Wait for persisted settings before exposing the panel so the first
     // mapped surface uses the final bar geometry and style.
     visible: bar.surfaceReady
@@ -642,10 +641,9 @@ ShellRoot {
     onSetBarPosition: function(position) { shell.setBarPosition(position) }
     onResetAppearance: shell.resetAppearanceToDefaults()
     onResetAllSettings: shell.resetAllSettingsToDefaults()
-    fullBar: shell.fullBar
     notificationPopup: notificationPopup
     sessionLocked: lockScreen.locked || lockScreen.compositorLocked
-    onToggleFullBar: shell.toggleFullBar()
+    onSetBarForm: function(form) { shell.setBarForm(form) }
   }
 
   OsdOverlay {

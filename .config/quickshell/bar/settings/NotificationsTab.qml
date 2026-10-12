@@ -73,7 +73,9 @@ Flickable {
             subtitle: Settings.doNotDisturb
               ? "Toasts suppressed; history retained"
               : "Toast notifications enabled"
+          toggleControl: dndSwitch
           SwitchControl {
+            id: dndSwitch
             checked: Settings.doNotDisturb
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -157,7 +159,8 @@ Flickable {
 
           Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: 36
+            Layout.preferredHeight: Config.material3Theme ? Math.max(Config.controlHitSize,
+              Config.typeLabelMediumLineHeight + (Config.materialCompact ? 16 : 24)) : 36
 
             Row {
               anchors.fill: parent
@@ -202,7 +205,9 @@ Flickable {
           subtitle: Settings.notificationQuietHoursEnabled
             ? formatMinutes(Settings.notificationQuietHoursStart) + " – " + formatMinutes(Settings.notificationQuietHoursEnd)
             : "Off"
+          toggleControl: quietHoursSwitch
           SwitchControl {
+            id: quietHoursSwitch
             checked: Settings.notificationQuietHoursEnabled
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -323,7 +328,9 @@ Flickable {
           leadingIcon: "priority_high"
           title: "Critical notifications bypass quiet hours"
           subtitle: Settings.notificationCriticalBypass ? "Critical alerts remain visible" : "All notifications are suppressed"
+          toggleControl: bypassSwitch
           SwitchControl {
+            id: bypassSwitch
             checked: Settings.notificationCriticalBypass
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh

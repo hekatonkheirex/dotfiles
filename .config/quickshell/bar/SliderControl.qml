@@ -6,7 +6,7 @@ import "../config"
 import "themes/material3" as Material3
 import "themes/styled" as Styled
 
-Item {
+FocusScope {
   id: root
 
   property real value: 0.5
@@ -31,7 +31,7 @@ Item {
   signal changed(real value)
   signal interactionFinished()
 
-  width: parent ? parent.width : 240
+  implicitWidth: 240
   height: 40
   activeFocusOnTab: true
 
@@ -39,11 +39,12 @@ Item {
   readonly property bool pressed: implementation.item ? implementation.item.pressed : false
   readonly property bool active: implementation.item ? implementation.item.active : false
   function clearFocus() {
-    if (implementation.item) implementation.item.focus = false
+    root.focus = false
   }
 
   Loader {
     id: implementation
+    focus: true
     anchors.fill: parent
     sourceComponent: Config.liquidGlassTheme ? liquidImplementation
       : ((Config.ghostTheme || Config.nothingDesign) ? styledImplementation : materialImplementation)
@@ -84,6 +85,7 @@ Item {
   Binding { target: implementation.item; property: "accessibleUnit"; value: root.accessibleUnit }
   Binding { target: implementation.item; property: "enabled"; value: root.enabled }
   Binding { target: implementation.item; property: "activeFocusOnTab"; value: root.activeFocusOnTab }
+  Binding { target: implementation.item; property: "focus"; value: true }
 
   Connections {
     target: implementation.item

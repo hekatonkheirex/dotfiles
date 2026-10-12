@@ -28,11 +28,13 @@ PanelWindow {
 
   implicitWidth: wallpaperMode
     ? Math.min(Config.settingsMaxWidth, Math.max(Config.popupWidth, Screen.desktopAvailableWidth - Config.spacingPage))
-    : Math.min(Config.launcherWidth, Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
+    : Math.min(Config.launcherWidth,
+      Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
   visible: false
   implicitHeight: wallpaperMode
     ? Math.min(screenH - Config.spacingPage, wallpaperGridHeight + 86)
-    : Math.min(clipItem.implicitHeight + Config.spacingPage, clipboardMode ? 560 : 500)
+    : Math.min(screenH - Config.spacingPage, clipItem.implicitHeight + Config.spacingPage,
+      clipboardMode ? 620 : 500)
 
   Behavior on implicitWidth {
     NumberAnimation {
@@ -58,6 +60,28 @@ PanelWindow {
 
   anchors.top: true
   margins.top: Math.max(Config.spacingSmall, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight))
+
+  readonly property var selectedResult: filteredModel.count > 0
+    && selectedIndex >= 0 && selectedIndex < filteredModel.count ? filteredModel.get(selectedIndex) : null
+  readonly property string selectionActionLabel: selectedResult && selectedResult.kind === "clipboard"
+    ? "Restore clipboard entry" : (selectedResult && selectedResult.kind === "clipboard-action"
+      ? selectedResult.name : (selectedResult && selectedResult.kind === "action" ? "Run action" : "Open application"))
+
+  function activateSelection() {
+    if (!root.selectedResult) return
+    var result = root.selectedResult
+    if (result.kind === "action" || result.kind === "clipboard-action") root.runAction(result.actionId)
+    else if (result.kind === "wallpaper") root.applyWallpaper(result.path)
+    else if (result.kind === "clipboard") root.restoreClipboardEntry(result.clipboardLine)
+    else root.launchApp(result.argv, result.terminal)
+  }
+
+  function launchCommandText(argv) {
+    // Copy runnable arguments, not the desktop file's %U/%F template.
+    return root.normalizeArgv(argv).map(function(arg) {
+      return "'" + arg.replace(/'/g, "'\\''") + "'"
+    }).join(" ")
+  }
 
   ListModel { id: appModel }
   ListModel {
@@ -792,9 +816,9 @@ PanelWindow {
     running: visible
     repeat: true
     onTriggered: {
-      if (!searchInputControl.input.activeFocus
-          && !root.voiceRecording
-          && !root.voiceTranscribing) {
+      var window = searchInputControl.Window.window
+      if (window && !window.active && !resultMenu.opened
+          && !root.voiceRecording && !root.voiceTranscribing) {
         stop()
         dismissed()
       }
@@ -820,6 +844,7 @@ PanelWindow {
       }
       if (Config.reducedMotion) {
         entryAnimation.stop()
+        materialEntryAnimation.stop()
         reducedMotionEntryAnimation.stop()
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
@@ -830,12 +855,15 @@ PanelWindow {
         } else {
           bg.opacity = 1.0
         }
+      } else if (Config.material3Theme) {
+        materialEntryAnimation.restart()
       } else {
         entryAnimation.start()
       }
       root.voiceRecording = false
       root.voiceTranscribing = false
     } else {
+      resultMenu.close()
       if (root.voiceRecording) {
         root.voiceRecording = false
         recorderProc.running = false
@@ -890,6 +918,13 @@ PanelWindow {
       Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
     ]
 
+    MaterialEntrance {
+      id: materialEntryAnimation
+      surfaceTarget: bg
+      scaleTarget: scaleTransform
+      translationTarget: transX
+    }
+
     ParallelAnimation {
       id: entryAnimation
       NumberAnimation {
@@ -931,12 +966,68 @@ PanelWindow {
     ColumnLayout {
       id: clipItem
       anchors { fill: parent; margins: Config.spacingMedium }
+
+      Shortcut {
+        sequence: "Ctrl+F"
+        context: Qt.WindowShortcut
+        enabled: root.visible
+        onActivated: {
+          searchInputControl.input.forceActiveFocus()
+          searchInputControl.input.selectAll()
+        }
+      }
+      Shortcut {
+        sequence: "Escape"
+        context: Qt.WindowShortcut
+        enabled: root.visible
+        onActivated: {
+          if (resultMenu.opened) {
+            resultMenu.close()
+            searchInputControl.input.forceActiveFocus()
+          } else root.dismissed()
+        }
+      }
+      Shortcut {
+        sequences: ["Shift+F10", "Menu"]
+        context: Qt.WindowShortcut
+        enabled: root.visible && root.selectedResult !== null && !root.wallpaperMode
+        onActivated: resultMenu.popup(appList, appList.width / 2, appList.height / 2)
+      }
+
+      Menu {
+        id: resultMenu
+        width: Math.min(280, bg.width - Config.spacingMedium * 2)
+        background: Rectangle {
+          radius: Config.shapeMedium
+          color: Colors.surfaceContainerHigh
+          border.width: 1
+          border.color: Colors.styleOutline
+        }
+        DesktopMenuItem {
+          text: root.selectionActionLabel
+          enabled: root.selectedResult !== null
+          onTriggered: root.activateSelection()
+        }
+        DesktopMenuItem {
+          text: "Copy launch command"
+          visible: root.selectedResult !== null && root.selectedResult.kind === "app"
+          height: visible ? implicitHeight : 0
+          enabled: visible && root.normalizeArgv(root.selectedResult.argv).length > 0
+          onTriggered: Quickshell.execDetached(["wl-copy", "--", root.launchCommandText(root.selectedResult.argv)])
+        }
+        DesktopMenuItem {
+          text: "Delete clipboard entry"
+          visible: root.selectedResult !== null && root.selectedResult.kind === "clipboard"
+          height: visible ? implicitHeight : 0
+          onTriggered: root.deleteClipboardEntry(root.selectedResult.clipboardLine)
+        }
+      }
       spacing: Config.spacingMedium
 
       TextFieldControl {
         id: searchInputControl
         Layout.fillWidth: true
-        height: Config.nothingEvolution ? 48 : 46
+        height: Config.material3Theme ? implicitHeight : (Config.nothingEvolution ? 48 : 46)
         leadingIcon: "search"
         leadingIconSize: 22
         placeholder: root.voiceRecording
@@ -952,16 +1043,7 @@ PanelWindow {
         captureHorizontalArrows: root.wallpaperMode
         accessibleName: "Search applications and launcher providers"
 
-        onAccepted: {
-          if (filteredModel.count > 0 && root.selectedIndex >= 0 && root.selectedIndex < filteredModel.count) {
-            var result = filteredModel.get(root.selectedIndex)
-            if (result.kind === "action") root.runAction(result.actionId)
-            else if (result.kind === "wallpaper") root.applyWallpaper(result.path)
-            else if (result.kind === "clipboard") root.restoreClipboardEntry(result.clipboardLine)
-            else if (result.kind === "clipboard-action") root.runAction(result.actionId)
-            else root.launchApp(result.argv, result.terminal)
-          }
-        }
+        onAccepted: root.activateSelection()
         onEscapePressed: root.dismissed()
         onUpPressed: {
           if (root.wallpaperMode) root.moveWallpaperSelection(Qt.Key_Up)
@@ -1005,7 +1087,7 @@ PanelWindow {
       }
 
       // Prefix shortcuts live under the field instead of crowding the placeholder.
-      Row {
+      Flow {
         id: prefixChips
         Layout.fillWidth: true
         Layout.leftMargin: Config.spacingSmall
@@ -1018,33 +1100,23 @@ PanelWindow {
             { key: ";", label: "clipboard" },
             { key: "@", label: "wallpapers" }
           ]
-          delegate: Rectangle {
+          delegate: ActionButton {
             required property var modelData
-            height: 26
-            width: chipText.implicitWidth + Config.spacingMedium * 2
-            radius: height / 2
-            color: chipMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
-            border.width: 1
-            border.color: Colors.outlineVariant
-
-            Text {
-              id: chipText
-              anchors.centerIn: parent
-              text: modelData.key + "  " + modelData.label
-              color: Colors.fgSurfaceVariant
+            height: Config.material3Theme ? implicitHeight : 32
+            width: chipMetrics.width + Config.spacingMedium * 2
+            labelText: modelData.key + "  " + modelData.label
+            horizontalContent: true
+            variant: "outlined"
+            accessibleName: "Search " + modelData.label
+            TextMetrics {
+              id: chipMetrics
               font.family: Config.fontFamily
               font.pixelSize: Config.typeLabelMediumSize
+              text: modelData.key + "  " + modelData.label
             }
-
-            MouseArea {
-              id: chipMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: {
-                searchInputControl.text = modelData.key
-                searchInputControl.input.forceActiveFocus()
-              }
+            onActivated: {
+              searchInputControl.text = modelData.key
+              searchInputControl.input.forceActiveFocus()
             }
           }
         }
@@ -1053,6 +1125,7 @@ PanelWindow {
       Connections {
         target: searchInputControl.input
         function onTextChanged() {
+          resultMenu.close()
           root.searchText = searchInputControl.text
           root.selectedIndex = 0
           root.filterApps()
@@ -1063,6 +1136,13 @@ PanelWindow {
         id: appList
         Layout.fillWidth: true
         Layout.preferredHeight: root.wallpaperMode ? 0 : Math.min(contentHeight, 380)
+        Layout.fillHeight: true
+        Layout.minimumHeight: 0
+        activeFocusOnTab: true
+        Keys.onUpPressed: root.moveSelection(-1)
+        Keys.onDownPressed: root.moveSelection(1)
+        Keys.onReturnPressed: root.activateSelection()
+        Keys.onEnterPressed: root.activateSelection()
         visible: !root.wallpaperMode
         model: filteredModel
         clip: true
@@ -1071,10 +1151,15 @@ PanelWindow {
         ScrollBar.vertical: SettingsScrollBar { scrollTarget: appList }
 
         delegate: ListItem {
+          id: resultRow
+          contextMenuEnabled: true
+          activeFocusOnTab: false
+          Keys.onUpPressed: { root.moveSelection(-1); appList.forceActiveFocus() }
+          Keys.onDownPressed: { root.moveSelection(1); appList.forceActiveFocus() }
           // The scrollbar is overlaid on the ListView; leave a gutter so a
           // selected row's rounded border cannot run underneath its thumb.
           width: Math.max(0, appList.width - Config.spacingMedium)
-          height: root.clipboardMode ? 54 : 44
+          height: Config.material3Theme ? implicitHeight : (root.clipboardMode ? 54 : 44)
           radius: Config.nothingDesign || Config.ghostTheme ? Config.shapeMedium : 22
           // Apps without a resolvable icon get a generic glyph, not a letter avatar.
           leadingIcon: model.kind === "action" || model.kind === "wallpaper"
@@ -1084,20 +1169,20 @@ PanelWindow {
             && model.kind !== "clipboard-action" && model.kind !== "clipboard"
             ? "file://" + model.icon : ""
           title: model.name
-          subtitle: model.comment || ""
+          subtitle: Config.material3Theme && root.selectedIndex !== index ? "" : (model.comment || "")
           selected: root.selectedIndex === index
           accessibleName: model.name
           accessibleDescription: model.comment || (model.kind === "action" ? "Shell action" : "Application")
           onHoveredChanged: {
-            if (hovered) root.selectedIndex = index
+            if (hovered && !resultMenu.opened) root.selectedIndex = index
           }
           onClicked: {
             root.selectedIndex = index
-            if (model.kind === "action") root.runAction(model.actionId)
-            else if (model.kind === "wallpaper") root.applyWallpaper(model.path)
-            else if (model.kind === "clipboard") root.restoreClipboardEntry(model.clipboardLine)
-            else if (model.kind === "clipboard-action") root.runAction(model.actionId)
-            else root.launchApp(model.argv, model.terminal)
+            root.activateSelection()
+          }
+          onContextMenuRequested: function(mouse) {
+            root.selectedIndex = index
+            resultMenu.popup(resultRow, mouse.x, mouse.y)
           }
 
           IconButton {
@@ -1112,6 +1197,16 @@ PanelWindow {
             onClicked: root.deleteClipboardEntry(model.clipboardLine)
           }
         }
+      }
+
+      Text {
+        Layout.fillWidth: true
+        visible: !root.wallpaperMode && !root.clipboardMode && filteredModel.count === 0
+        text: "No matching results"
+        color: Colors.fgSurfaceVariant
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeBodyMediumSize
+        wrapMode: Text.Wrap
       }
 
       Rectangle {
@@ -1337,10 +1432,6 @@ PanelWindow {
         }
       }
 
-      Item {
-        Layout.fillHeight: !root.wallpaperMode
-        visible: !root.wallpaperMode
-      }
     }
   }
 

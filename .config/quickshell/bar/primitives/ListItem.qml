@@ -62,18 +62,33 @@ Rectangle {
     : Colors.fgSurface
   property string accessibleName: ""
   property string accessibleDescription: ""
+  // Explicitly associate switch rows with their existing activation path.
+  property Item toggleControl: null
+  property bool contextMenuEnabled: false
+  signal contextMenuRequested(var mouse)
   readonly property bool hovered: itemMouse.containsMouse
   readonly property bool pressed: itemMouse.pressed
 
   signal clicked(var mouse)
 
-  height: root.navigationItem ? 48 : 44
+  onClicked: {
+    if (root.toggleControl !== null) root.toggleControl.activate()
+  }
+
+  implicitHeight: root.material3Style
+    ? Math.max(Config.controlHitSize, textColumn.implicitHeight + Config.materialRowPadding,
+      trailingRow.implicitHeight + Config.materialRowPadding)
+    : (root.navigationItem ? 48 : 44)
+  height: implicitHeight
+  Layout.minimumHeight: root.material3Style ? implicitHeight : 0
   radius: root.materialNavigationItem ? height / 2
     : (Config.liquidGlassTheme ? Config.shapeCompact : Config.shapeMedium)
-  activeFocusOnTab: root.enabled
+  activeFocusOnTab: root.enabled && (root.toggleControl === null || root.toggleControl.enabled)
   opacity: root.enabled ? 1.0 : 0.38
 
-  Accessible.role: Accessible.ListItem
+  Accessible.role: root.toggleControl !== null ? Accessible.CheckBox : Accessible.ListItem
+  Accessible.checkable: root.toggleControl !== null
+  Accessible.checked: root.toggleControl !== null && root.toggleControl.checked
   Accessible.name: root.accessibleName !== "" ? root.accessibleName : root.title
   Accessible.description: root.accessibleDescription !== ""
     ? root.accessibleDescription
@@ -89,16 +104,20 @@ Rectangle {
       event.accepted = true
     }
   }
-  color: {
-    if (root.stateHighlighted) return root.selectedContainerColor
-    if (root.materialNavigationItem) {
-      if (root.navigationFocused || root.activeFocus) return Qt.tint("transparent", Colors.focusOverlay)
-      return itemMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
+  ColorSpring {
+    id: rowEffect
+    targetColor: {
+      if (root.stateHighlighted) return root.selectedContainerColor
+      if (root.materialNavigationItem) {
+        if (root.navigationFocused || root.activeFocus) return Qt.tint("transparent", Colors.focusOverlay)
+        return itemMouse.containsMouse ? Qt.tint("transparent", Colors.hoverOverlay) : "transparent"
+      }
+      if (root.navigationFocused) return Qt.tint("transparent", Colors.focusOverlay)
+      if (itemMouse.containsMouse) return Qt.tint("transparent", Colors.hoverOverlay)
+      return root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
     }
-    if (root.navigationFocused) return Qt.tint("transparent", Colors.focusOverlay)
-    if (itemMouse.containsMouse) return Qt.tint("transparent", Colors.hoverOverlay)
-    return root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
   }
+  color: root.material3Style ? rowEffect.color : rowEffect.targetColor
   border.color: root.materialNavigationItem
     ? "transparent"
     : (root.materialStatusItem || (root.material3Style && root.stateHighlighted)
@@ -113,6 +132,7 @@ Rectangle {
       ? 0 : Config.themeBorderWidth)
 
   Behavior on color {
+    enabled: !root.material3Style
     ColorAnimation { duration: Config.animationDuration }
   }
 
@@ -134,10 +154,16 @@ Rectangle {
     id: itemMouse
     anchors.fill: parent
     hoverEnabled: true
+    acceptedButtons: root.contextMenuEnabled ? Qt.LeftButton | Qt.RightButton : Qt.LeftButton
     enabled: root.enabled
-    cursorShape: Qt.PointingHandCursor
+    cursorShape: root.toggleControl !== null && !root.toggleControl.enabled
+      ? Qt.ArrowCursor : Qt.PointingHandCursor
     onClicked: function(mouse) {
       root.forceActiveFocus()
+      if (mouse.button === Qt.RightButton) {
+        root.contextMenuRequested(mouse)
+        return
+      }
       root.clicked(mouse)
     }
   }
@@ -208,6 +234,7 @@ Rectangle {
     }
 
     ColumnLayout {
+      id: textColumn
       Layout.fillWidth: true
       Layout.alignment: Qt.AlignVCenter
       spacing: 0
@@ -224,7 +251,8 @@ Rectangle {
         font.letterSpacing: Config.typeBodyTracking
         lineHeight: Config.typeBodyLargeLineHeight
         lineHeightMode: Text.FixedHeight
-        elide: Text.ElideRight
+        wrapMode: root.material3Style && !root.navigationItem ? Text.Wrap : Text.NoWrap
+        elide: root.material3Style && !root.navigationItem ? Text.ElideNone : Text.ElideRight
       }
 
       Text {
@@ -239,7 +267,8 @@ Rectangle {
         font.letterSpacing: Config.typeLabelTracking
         lineHeight: Config.typeLabelMediumLineHeight
         lineHeightMode: Text.FixedHeight
-        elide: Text.ElideRight
+        wrapMode: root.material3Style ? Text.WordWrap : Text.NoWrap
+        elide: root.material3Style ? Text.ElideNone : Text.ElideRight
       }
     }
 

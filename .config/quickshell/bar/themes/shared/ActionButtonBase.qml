@@ -4,6 +4,7 @@
 // root.hovered / root.pressed for pointer state.
 import QtQuick
 import "../../../config"
+import "../../primitives"
 
 Item {
   id: root
@@ -30,6 +31,11 @@ Item {
 
   readonly property bool hovered: mouseArea.containsMouse
   readonly property bool pressed: mouseArea.pressed
+
+  DesktopToolTip {
+    text: root.tooltipText
+    visible: root.visible && root.enabled && (root.hovered || root.activeFocus) && text !== ""
+  }
 
   Accessible.role: root.grouped && root.checkable
     ? Accessible.RadioButton

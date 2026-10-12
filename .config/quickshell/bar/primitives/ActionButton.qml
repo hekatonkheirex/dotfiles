@@ -8,7 +8,7 @@ import "../../config"
 import "../themes/material3" as Material3
 import "../themes/styled" as Styled
 
-Item {
+FocusScope {
   id: root
 
   property string iconLabel: ""
@@ -99,13 +99,17 @@ Item {
       event.accepted = true
     }
   }
-  Layout.minimumHeight: 0
+  implicitHeight: root.material3Theme
+    ? Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + (Config.materialCompact ? 16 : 24)) : 0
+  Layout.minimumHeight: root.material3Theme ? implicitHeight : 0
+  Layout.minimumWidth: root.material3Theme ? Config.controlHitSize : 0
 
   readonly property bool hovered: implementation.item ? implementation.item.hovered : false
   readonly property bool pressed: implementation.item ? implementation.item.pressed : false
 
   Loader {
     id: implementation
+    focus: true
     anchors.fill: parent
     sourceComponent: (Config.ghostTheme || Config.nothingDesign)
       ? styledImplementation : materialImplementation
@@ -152,6 +156,7 @@ Item {
   Binding { target: implementation.item; property: "borderWidth"; value: root.borderWidth }
   Binding { target: implementation.item; property: "enabled"; value: root.enabled }
   Binding { target: implementation.item; property: "activeFocusOnTab"; value: root.activeFocusOnTab }
+  Binding { target: implementation.item; property: "focus"; value: true }
 
   Connections {
     target: implementation.item

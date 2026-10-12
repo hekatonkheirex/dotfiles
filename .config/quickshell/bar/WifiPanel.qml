@@ -560,6 +560,7 @@ Item {
             subtitle: model.active ? "Connected" : "Saved network"
             statusActive: model.active
             accessibleName: model.name + " saved Wi-Fi network"
+            toggleControl: autoConnectSwitch
 
             // Use a fixed action group so the switch focus ring and delete hit
             // area cannot collapse into the same trailing layout space.
@@ -572,7 +573,7 @@ Item {
               SwitchControl {
                 id: autoConnectSwitch
                 width: 52
-                height: 32
+                height: Config.material3Theme ? Config.controlHitSize : 32
                 checked: model.autoconnect
                 activeColor: Colors.primary
                 surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -586,8 +587,8 @@ Item {
 
               IconButton {
                 id: forgetButton
-                width: 32
-                height: 32
+                width: Config.material3Theme ? Config.controlHitSize : 32
+                height: Config.material3Theme ? Config.controlHitSize : 32
                 size: 32
                 iconSize: 18
                 iconLabel: "delete"

@@ -66,6 +66,14 @@ Flickable {
 
     GridLayout {
       Layout.fillWidth: true
+      columns: Config.material3Theme && generalTab.width >= 800 ? 2 : 1
+      columnSpacing: Config.spacingLarge
+      rowSpacing: Config.spacingLarge
+
+    GridLayout {
+      Layout.fillWidth: true
+      Layout.preferredWidth: 0
+      Layout.alignment: Qt.AlignTop
       columns: 1
       columnSpacing: Config.spacingLarge
       rowSpacing: Config.spacingSmall
@@ -93,7 +101,9 @@ Flickable {
             leadingIcon: "motion_photos_off"
             title: "Reduced motion"
             subtitle: Config.reducedMotion ? "Animations minimized" : "Expressive transitions"
+            toggleControl: motionSwitch
             SwitchControl {
+              id: motionSwitch
               checked: Settings.reduceMotion
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -113,7 +123,9 @@ Flickable {
             subtitle: Settings.reduceTransparency
               ? "Glass and Evolution surfaces are opaque"
               : "Glass and Evolution show the backdrop"
+            toggleControl: transparencySwitch
             SwitchControl {
+              id: transparencySwitch
               checked: Settings.reduceTransparency
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -131,7 +143,9 @@ Flickable {
             leadingIcon: "schedule"
             title: "Show uptime"
             subtitle: Settings.systemShowUptime ? "Shown on the Account tab" : "Hidden from the Account tab"
+            toggleControl: uptimeSwitch
             SwitchControl {
+              id: uptimeSwitch
               checked: Settings.systemShowUptime
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -150,6 +164,8 @@ Flickable {
 
     GridLayout {
       Layout.fillWidth: true
+      Layout.preferredWidth: 0
+      Layout.alignment: Qt.AlignTop
       columns: 1
       columnSpacing: Config.spacingLarge
       rowSpacing: Config.spacingSmall
@@ -177,7 +193,9 @@ Flickable {
             leadingIcon: "schedule"
             title: "24-hour clock"
             subtitle: Settings.clock24h ? "13:00" : "1:00 PM"
+            toggleControl: clockSwitch
             SwitchControl {
+              id: clockSwitch
               checked: Settings.clock24h
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -195,7 +213,9 @@ Flickable {
             leadingIcon: "timer"
             title: "Show seconds"
             subtitle: "Display seconds in the bar clock"
+            toggleControl: secondsSwitch
             SwitchControl {
+              id: secondsSwitch
               checked: Settings.clockShowSeconds
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -213,7 +233,9 @@ Flickable {
             leadingIcon: "calendar_view_week"
             title: "Week starts Monday"
             subtitle: Settings.calendarWeekStartsMonday ? "Mon - Sun" : "Sun - Sat"
+            toggleControl: weekSwitch
             SwitchControl {
+              id: weekSwitch
               checked: Settings.calendarWeekStartsMonday
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -228,7 +250,7 @@ Flickable {
 
           GridLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: generalTab.compactLayout ? 64 : 44
+            Layout.preferredHeight: Config.material3Theme ? implicitHeight : (generalTab.compactLayout ? 64 : 44)
             columns: generalTab.compactLayout ? 1 : 2
             columnSpacing: Config.spacingSmall
             rowSpacing: Config.spacingCompact
@@ -243,9 +265,13 @@ Flickable {
               lineHeight: Config.typeBodyLargeLineHeight
               lineHeightMode: Text.FixedHeight
               Layout.fillWidth: generalTab.compactLayout
-              Layout.preferredWidth: generalTab.compactLayout ? 0 : 80
-              Layout.minimumWidth: generalTab.compactLayout ? 0 : 80
-              Layout.preferredHeight: generalTab.compactLayout ? 20 : 44
+              Layout.preferredWidth: generalTab.compactLayout ? 0
+                : (Config.material3Theme ? Math.max(80, implicitWidth) : 80)
+              Layout.minimumWidth: generalTab.compactLayout ? 0
+                : (Config.material3Theme ? implicitWidth : 80)
+              Layout.minimumHeight: Config.material3Theme ? Config.typeBodyLargeLineHeight : 0
+              Layout.preferredHeight: generalTab.compactLayout
+                ? (Config.material3Theme ? Config.typeBodyLargeLineHeight : 20) : 44
               verticalAlignment: Text.AlignVCenter
               elide: Text.ElideRight
               Layout.leftMargin: Config.spacingSmall
@@ -278,6 +304,8 @@ Flickable {
       }
 
     }
+    }
+
 
     // Compact bar contents. Settings and the power menu intentionally stay
     // outside this list so there is always a way back into the shell.
@@ -406,7 +434,8 @@ Flickable {
           Item {
             width: Math.min(160, Math.max(96,
               generalTab.width - 56))
-            height: 36
+            height: Config.material3Theme ? Math.max(Config.controlHitSize,
+              Config.typeLabelMediumLineHeight + (Config.materialCompact ? 16 : 24)) : 36
 
             Row {
               anchors.fill: parent
@@ -492,7 +521,9 @@ Flickable {
           subtitle: Settings.weatherAllowIpGeolocation
             ? "Approximate location used when manual location is blank"
             : "Off; set a manual location for weather"
+          toggleControl: geolocationSwitch
           SwitchControl {
+            id: geolocationSwitch
             checked: Settings.weatherAllowIpGeolocation
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh

@@ -86,6 +86,7 @@ PopupBase {
 
       SliderControl {
       id: outputSlider
+      width: parent.width
       value: root.volume
       muted: root.muted
       activeColor: Colors.primary
@@ -148,6 +149,7 @@ PopupBase {
 
       SliderControl {
       id: microphoneSlider
+      width: parent.width
       value: root.micVolume
       muted: root.micMuted
       activeColor: Colors.primary

@@ -30,7 +30,10 @@ Rectangle {
   signal leftPressed()
   signal rightPressed()
 
-  height: 36
+  implicitHeight: root.material3Style
+    ? Math.max(Config.controlHitSize, Config.typeBodyLargeLineHeight + (Config.materialCompact ? 16 : 24)) : 36
+  height: implicitHeight
+  Layout.minimumHeight: root.material3Style ? implicitHeight : 0
   radius: Config.liquidGlassTheme ? Config.shapeCompact : Config.shapeMedium
   color: root.material3Style
     ? Colors.surface

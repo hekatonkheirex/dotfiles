@@ -47,7 +47,7 @@ FileView {
     clockFontSize: 14,
     doNotDisturb: false,
     fontPixelSize: 12,
-    fullBar: false,
+    barForm: "full",
     iconSize: 20,
     idleLockTimeoutSeconds: 300,
     idleSuspendTimeoutSeconds: 900,
@@ -70,6 +70,7 @@ FileView {
     reduceMotion: false,
     reduceTransparency: false,
     spacingScale: 1.0,
+    materialCompact: false,
     systemShowUptime: true,
     colorSource: "live",
     colorPalette: "material3",
@@ -155,7 +156,7 @@ FileView {
   property alias clockFontSize: adapter.clockFontSize
   property alias doNotDisturb: adapter.doNotDisturb
   property alias fontPixelSize: adapter.fontPixelSize
-  property alias fullBar: adapter.fullBar
+  property alias barForm: adapter.barForm
   property alias iconSize: adapter.iconSize
   property alias idleLockTimeoutSeconds: adapter.idleLockTimeoutSeconds
   property alias idleSuspendTimeoutSeconds: adapter.idleSuspendTimeoutSeconds
@@ -179,6 +180,7 @@ FileView {
   property alias notificationToastDurationMs: adapter.notificationToastDurationMs
   property alias reduceMotion: adapter.reduceMotion
   property alias spacingScale: adapter.spacingScale
+  property alias materialCompact: adapter.materialCompact
   property alias systemShowUptime: adapter.systemShowUptime
   property alias colorSource: adapter.colorSource
   property alias colorPalette: adapter.colorPalette
@@ -201,10 +203,11 @@ FileView {
     barSize = root.defaults.barSize
     clockFontSize = root.defaults.clockFontSize
     fontPixelSize = root.defaults.fontPixelSize
-    fullBar = root.defaults.fullBar
+    barForm = root.defaults.barForm
     iconSize = root.defaults.iconSize
     reduceTransparency = root.defaults.reduceTransparency
     spacingScale = root.defaults.spacingScale
+    materialCompact = root.defaults.materialCompact
     workspaceShape = root.defaults.workspaceShape
     workspaceCount = root.defaults.workspaceCount
     colorSource = root.defaults.colorSource
@@ -301,7 +304,7 @@ FileView {
     property int clockFontSize: root.defaults.clockFontSize
     property bool doNotDisturb: root.defaults.doNotDisturb
     property int fontPixelSize: root.defaults.fontPixelSize
-    property bool fullBar: root.defaults.fullBar
+    property string barForm: root.defaults.barForm
     property int iconSize: root.defaults.iconSize
     property int idleLockTimeoutSeconds: root.defaults.idleLockTimeoutSeconds
     property int idleSuspendTimeoutSeconds: root.defaults.idleSuspendTimeoutSeconds
@@ -325,6 +328,7 @@ FileView {
     property real notificationToastDurationMs: root.defaults.notificationToastDurationMs
     property bool reduceMotion: root.defaults.reduceMotion
     property real spacingScale: root.defaults.spacingScale
+    property bool materialCompact: root.defaults.materialCompact
     property bool systemShowUptime: root.defaults.systemShowUptime
     // Live reads the wallpaper-generated Matugen roles; fixed selects a
     // curated semantic palette from PaletteCatalog.js.

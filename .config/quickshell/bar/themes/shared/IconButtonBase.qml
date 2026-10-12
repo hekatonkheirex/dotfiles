@@ -3,6 +3,7 @@
 // only theme-specific properties and visuals; read root.hovered / root.pressed
 // for pointer state.
 import QtQuick
+import "../../primitives"
 
 Item {
   id: root
@@ -27,6 +28,11 @@ Item {
 
   readonly property bool hovered: mouseArea.containsMouse
   readonly property bool pressed: mouseArea.pressed
+
+  DesktopToolTip {
+    text: root.tooltipText
+    visible: root.visible && root.enabled && (root.hovered || root.activeFocus) && text !== ""
+  }
 
   Accessible.role: root.checkable ? Accessible.CheckBox : Accessible.Button
   Accessible.checkable: root.checkable

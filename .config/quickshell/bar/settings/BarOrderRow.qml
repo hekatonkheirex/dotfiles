@@ -20,6 +20,7 @@ ListItem {
     ? (widgetId === "clock" && !Settings.barClockInFlow
       ? "Theme default" : "Shown in bar")
     : "Hidden from bar"
+  toggleControl: visibilitySwitch
 
   function movedOrder(direction) {
     return widgetId === "clock" && !Settings.barClockInFlow
@@ -47,8 +48,8 @@ ListItem {
     iconLabel: "arrow_upward"
     iconSize: 18
     variant: "text"
-    width: 32
-    height: 32
+    width: Config.material3Theme ? Config.controlHitSize : 32
+    height: Config.material3Theme ? Config.controlHitSize : 32
     enabled: row.movedOrder(-1) !== row.savedOrder
     accessibleName: "Move " + row.title + " toward start"
     tooltipText: accessibleName
@@ -59,8 +60,8 @@ ListItem {
     iconLabel: "arrow_downward"
     iconSize: 18
     variant: "text"
-    width: 32
-    height: 32
+    width: Config.material3Theme ? Config.controlHitSize : 32
+    height: Config.material3Theme ? Config.controlHitSize : 32
     enabled: row.movedOrder(1) !== row.savedOrder
     accessibleName: "Move " + row.title + " toward end"
     tooltipText: accessibleName
@@ -71,8 +72,8 @@ ListItem {
     iconSize: 18
     variant: "text"
     selected: row.middleActive
-    width: 32
-    height: 32
+    width: Config.material3Theme ? Config.controlHitSize : 32
+    height: Config.material3Theme ? Config.controlHitSize : 32
     accessibleName: row.middleActive
       ? "Move " + row.title + " to end"
       : "Move " + row.title + " to middle"
@@ -81,6 +82,7 @@ ListItem {
   }
 
   SwitchControl {
+    id: visibilitySwitch
     checked: Settings[row.modelData.key]
     activeColor: Colors.primary
     surfaceContainerHigh: Colors.surfaceContainerHigh

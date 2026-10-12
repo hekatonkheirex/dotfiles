@@ -1,10 +1,12 @@
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import "../config"
+import "../config/BarForm.js" as BarForm
 import "../config/BarOrder.js" as BarOrder
 import "../config/ClockTiming.js" as ClockTiming
 import "primitives"
@@ -101,7 +103,8 @@ PanelWindow {
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
-  readonly property int niriExclusiveZone: root.horizontal ? Config.barWidth : root.verticalPillPanelWidth
+  readonly property int niriExclusiveZone: (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
+    + root.edgeGap
   exclusiveZone: root.niriExclusiveZone
   WlrLayershell.namespace: Config.layerNamespace("panel")
   WlrLayershell.layer: WlrLayer.Top
@@ -228,8 +231,15 @@ PanelWindow {
     return true
   }
 
-  property bool fullBar: false
-  readonly property bool pillsBar: !root.fullBar
+  // Every bar form is one continuous surface; per-widget pills are gone.
+  readonly property bool fullBar: true
+  readonly property bool pillsBar: false
+  // Geometry for the selected form (see config/BarForm.js).
+  readonly property int edgeGap: Config.barFormMetrics.edgeGap
+  readonly property int sideInset: Config.barFormMetrics.sideInset
+  readonly property int shoulder: Config.barFormMetrics.shoulder
+  readonly property bool flat: Config.barFormMetrics.flat
+  readonly property bool roundNear: Config.barFormMetrics.roundNear
   readonly property bool horizontalPillMode: root.horizontal && root.pillsBar
   readonly property bool ghostHorizontalOneLiner: Config.ghostTheme && root.horizontal
   // The horizontal full bar follows the Hyprland layout's compact icon-plus
@@ -248,7 +258,7 @@ PanelWindow {
   readonly property int verticalWindowEdgeMargin: 0
   readonly property real expandProgress: 1.0
   readonly property int normalPanelExtent: root.fullBar
-    ? (Config.ghostTheme ? Config.barWidth : Config.barWidth + Config.spacingLarge)
+    ? (Config.ghostTheme ? Config.barWidth : Config.barWidth + Config.spacingLarge) + root.edgeGap
     : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
   readonly property int verticalClockHeight: Math.max(Config.clockVerticalHeight, root.verticalPillLength)
 
@@ -296,21 +306,38 @@ PanelWindow {
     anchors.fill: parent
 
 
+    // Notch form: concave shoulders flow from the screen edge into the body.
+    Shape {
+      anchors.fill: parent
+      visible: root.shoulder > 0
+      preferredRendererType: Shape.CurveRenderer
+      ShapePath {
+        fillColor: root.barPanelColor
+        strokeColor: "transparent"
+        strokeWidth: 0
+        PathSvg {
+          path: BarForm.shoulderPath(root.shoulder, {
+            edge: root.barPosition, x: barBg.x, y: barBg.y, w: barBg.width, h: barBg.height
+          })
+        }
+      }
+    }
+
     Rectangle {
       id: barBg
       x: root.horizontal
-        ? (root.wSize + 6) * (1.0 - root.expandProgress)
-        : (root.dockedRight ? parent.width - root.verticalPillPanelWidth : 8 * (1.0 - root.expandProgress))
+        ? root.sideInset
+        : (root.dockedRight ? parent.width - root.verticalPillPanelWidth - root.edgeGap : root.edgeGap)
       y: root.horizontal
-        ? (root.dockedBottom ? parent.height - Config.barWidth : 8 * (1.0 - root.expandProgress))
-        : (root.wSize + 6) * (1.0 - root.expandProgress)
+        ? (root.dockedBottom ? parent.height - Config.barWidth - root.edgeGap : root.edgeGap)
+        : root.sideInset
       width: root.horizontal
-        ? (layout.implicitWidth + 12) + (parent.width - (layout.implicitWidth + 12)) * root.expandProgress
-        : root.verticalPillPanelWidth - 8 * (1.0 - root.expandProgress)
+        ? parent.width - root.sideInset * 2
+        : root.verticalPillPanelWidth
       height: root.horizontal
-        ? Config.barWidth - 8 * (1.0 - root.expandProgress)
-        : (layout.implicitHeight + 12) + (parent.height - (layout.implicitHeight + 12)) * root.expandProgress
-      radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + Config.barRadius * root.expandProgress
+        ? Config.barWidth
+        : parent.height - root.sideInset * 2
+      radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + (root.flat ? 0 : Config.barRadius) * root.expandProgress
       // Liquid Glass keeps the menu-bar layer visually open; material is
       // reserved for transient/interactive states below it.
       color: root.fullBar
@@ -349,7 +376,7 @@ PanelWindow {
         x: root.dockedRight ? barBg.width - width : 0
         y: root.dockedBottom ? barBg.height - height : 0
         color: barBg.color
-        visible: width > 0
+        visible: width > 0 && !root.roundNear
       }
 
       // Square-off helper for the docked edge's far corner
@@ -363,7 +390,7 @@ PanelWindow {
           ? (root.dockedBottom ? barBg.height - height : 0)
           : barBg.height - height
         color: barBg.color
-        visible: width > 0
+        visible: width > 0 && !root.roundNear
       }
 
       Item {

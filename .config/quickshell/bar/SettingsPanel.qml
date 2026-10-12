@@ -24,8 +24,7 @@ PanelWindow {
   signal setBarPosition(string position)
   signal resetAppearance()
   signal resetAllSettings()
-  property bool fullBar: false
-  signal toggleFullBar()
+  signal setBarForm(string form)
 
   property int currentTab: Math.max(0, Math.min(tabCount - 1, Settings.lastSettingsTab))
   property int focusedTab: currentTab
@@ -34,7 +33,8 @@ PanelWindow {
   // The rail contracts before page controls do; long labels retain their
   // accessible names and hover tooltips at the minimum panel width.
   readonly property int sidebarWidth: root.implicitWidth <= 480 ? 108
-    : (root.implicitWidth < 700 ? 132 : (root.compactLayout ? 184 : 280))
+    : (root.implicitWidth < 700 ? 132
+      : (root.compactLayout ? 184 : (Config.material3Theme ? 240 : 280)))
   readonly property int sidebarRowSpacing: Config.spacingCompact
   readonly property int contentMargin: root.implicitHeight < 540 ? Config.spacingMedium
     : (Config.material3Theme ? Config.spacingLarge : Config.spacingExtraLarge)
@@ -104,10 +104,11 @@ PanelWindow {
     { tab: 2, category: "Color and theme", icon: "palette", title: "Color palette", anchor: "Palette family", subtitle: "Material 3, Catppuccin, Gruvbox, or TokyoNight" },
     { tab: 2, category: "Color and theme", icon: "contrast", title: "Contrast", subtitle: "Standard, medium, or high contrast" },
     { tab: 2, category: "Bar", icon: "dock_to_bottom", title: "Bar placement", subtitle: "Top, bottom, left, or right" },
-    { tab: 2, category: "Bar", icon: "view_week", title: "Bar display style", subtitle: "One continuous bar or separate pills" },
+    { tab: 2, category: "Bar", icon: "view_week", title: "Bar form", subtitle: "Full, fit, dock, or notch" },
     { tab: 2, category: "Workspaces", icon: "looks_5", title: "Visible workspaces", subtitle: "Show active workspaces, one through five, or one through ten" },
     { tab: 2, category: "Workspaces", icon: "shapes", title: "Workspace marker style", anchor: "Workspace buttons", subtitle: "Choose expressive, pill, rounded, circle, dots, glyph, or other shapes" },
     { tab: 2, category: "Sizing", icon: "format_size", title: "UI Font Size", subtitle: "Adjust the shell's base text size" },
+    { tab: 2, category: "Sizing", icon: "density_small", title: "Compact desktop density", subtitle: "Smaller Material controls without changing text size" },
     { tab: 2, category: "Sizing", icon: "schedule", title: "Clock Size", subtitle: "Adjust the bar clock size" },
     { tab: 2, category: "Sizing", icon: "photo_size_select_small", title: "Icon Size", subtitle: "Adjust shared icon sizing" },
     { tab: 2, category: "Sizing", icon: "space_bar", title: "Spacing", subtitle: "Adjust the shell density" },
@@ -517,6 +518,7 @@ PanelWindow {
       idleCheck.running = true
       if (Config.reducedMotion) {
         entryAnimation.stop()
+        materialEntryAnimation.stop()
         reducedMotionEntryAnimation.stop()
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
@@ -527,6 +529,8 @@ PanelWindow {
         } else {
           bg.opacity = 1.0
         }
+      } else if (Config.material3Theme) {
+        materialEntryAnimation.restart()
       } else {
         entryAnimation.start()
       }
@@ -566,6 +570,26 @@ PanelWindow {
     focus: true
     Keys.priority: Keys.BeforeItem
 
+    Shortcut {
+      sequence: "Ctrl+F"
+      context: Qt.WindowShortcut
+      enabled: root.visible
+      onActivated: {
+        searchField.input.forceActiveFocus()
+        searchField.input.selectAll()
+      }
+    }
+
+    Shortcut {
+      sequence: "Escape"
+      context: Qt.WindowShortcut
+      enabled: root.visible
+      onActivated: {
+        if (searchField.text !== "") searchField.text = ""
+        else if (Date.now() - root.openTime > 150) root.dismissed()
+      }
+    }
+
     Keys.onPressed: function(event) {
       // Mango's global Print bindings cannot see keys while this full-screen
       // layer owns exclusive keyboard focus. Keep the screenshot shortcuts
@@ -581,6 +605,11 @@ PanelWindow {
       // this handler runs BeforeItem, so it would otherwise steal Space,
       // Enter, Up/Down, and Escape from the text being typed.
       if (searchField.input.activeFocus) return
+
+      // Content owns editing and navigation keys; only the sidebar changes tabs.
+      for (var item = mainItem.Window.window.activeFocusItem; item; item = item.parent) {
+        if (item === tabContainer) return
+      }
 
       if (event.key === Qt.Key_Slash) {
         searchField.input.forceActiveFocus()
@@ -666,6 +695,13 @@ PanelWindow {
         Scale { id: scaleTransform; origin.x: bg.width / 2; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
       ]
 
+      MaterialEntrance {
+        id: materialEntryAnimation
+        surfaceTarget: bg
+        scaleTarget: scaleTransform
+        translationTarget: transX
+      }
+
       ParallelAnimation {
         id: entryAnimation
         NumberAnimation {
@@ -721,7 +757,7 @@ PanelWindow {
           id: dragHandle
           anchors.fill: parent
           hoverEnabled: true
-          enabled: root.visible && !entryAnimation.running
+          enabled: root.visible && !entryAnimation.running && !materialEntryAnimation.running
           cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
 
           property point pressPoint
@@ -1054,7 +1090,8 @@ PanelWindow {
 
           Loader {
             id: tabLoader
-            anchors.fill: parent
+            anchors { top: parent.top; bottom: parent.bottom; horizontalCenter: parent.horizontalCenter }
+            width: Math.min(parent.width, Config.settingsContentMaxWidth)
             active: root.visible
             sourceComponent: {
               switch (root.currentTab) {
@@ -1163,7 +1200,7 @@ PanelWindow {
       z: 1000
       cursorShape: Qt.SizeFDiagCursor
       hoverEnabled: true
-      enabled: !entryAnimation.running
+      enabled: !entryAnimation.running && !materialEntryAnimation.running
 
       property point pressLocal
       property real startWidth: 0

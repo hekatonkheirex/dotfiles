@@ -15,26 +15,30 @@ Flickable {
   readonly property bool material3Theme: Config.material3Theme
   readonly property int optionButtonGap: Config.themeOptionGap
   readonly property int segmentedButtonGap: appearanceTab.material3Theme ? 0 : appearanceTab.optionButtonGap
-  // Stacked icon + label choices need a 48px hit area to keep both glyphs
-  // comfortably inside the button outline at the global font scale.
-  readonly property int optionButtonHeight: 48
+  // Stacked icon + label choices keep breathing room at the global type scale.
+  readonly property int optionButtonHeight: material3Theme
+    ? Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + (Config.materialCompact ? 16 : 24)) : 48
   readonly property int uiStyleColumns: width < 260 ? 1 : (width < 720 ? 2 : 5)
   readonly property int uiStyleRows: Math.ceil(5 / uiStyleColumns)
+  // Keep the selector model independent of palette roles: a new JS array
+  // recreates every button, including the one handling the style change.
   readonly property var styleChoices: [
-    { value: "material3", variant: "", icon: "auto_awesome", label: "Material", surface: Colors.surfaceContainerLow, panel: Colors.surfaceContainerHigh, ink: Colors.fgSurface, accent: Colors.primary, onAccent: Colors.fgPrimary, font: "Roboto Flex" },
-    { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Classic", surface: "#f0f0ee", panel: "#ffffff", ink: "#1a1a1a", accent: "#d71920", onAccent: "#ffffff", font: "NType 82" },
-    { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution", surface: Colors.styleSurface, panel: Colors.styleSurfaceRaised, ink: Colors.styleInk, accent: Colors.styleAccent, onAccent: Colors.styleAccentText, font: "Geist" },
-    { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost", surface: "#0d1418", panel: "#152328", ink: "#cdeeea", accent: "#57d9cc", onAccent: "#0d1418", font: "JetBrains Mono" },
-    { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid", surface: Colors.styleSurface, panel: Colors.styleSurfaceRaised, ink: Colors.styleInk, accent: Colors.styleAccent, onAccent: Colors.styleAccentText, font: "Roboto Flex" }
+    { value: "material3", variant: "", icon: "auto_awesome", label: "Material" },
+    { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Classic" },
+    { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution" },
+    { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost" },
+    { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid" }
   ]
   readonly property var selectedStylePreview: {
-    for (var i = 0; i < styleChoices.length; i++) {
-      var style = styleChoices[i]
-      if (style.value === Settings.themeStyle
-          && (style.value !== "nothing" || style.variant === Settings.nothingVariant))
-        return style
-    }
-    return styleChoices[0]
+    var value = Settings.themeStyle
+    var variant = Settings.nothingVariant
+    if (value === "nothing" && variant === "classic")
+      return { value: value, variant: variant, surface: "#f0f0ee", panel: "#ffffff", ink: "#1a1a1a", accent: "#d71920", onAccent: "#ffffff", font: "NType 82" }
+    if (value === "ghost")
+      return { value: value, variant: "", surface: "#0d1418", panel: "#152328", ink: "#cdeeea", accent: "#57d9cc", onAccent: "#0d1418", font: "JetBrains Mono" }
+    if (value === "nothing" || value === "liquid-glass")
+      return { value: value, variant: variant, surface: Colors.styleSurface, panel: Colors.styleSurfaceRaised, ink: Colors.styleInk, accent: Colors.styleAccent, onAccent: Colors.styleAccentText, font: value === "nothing" ? "Geist" : "Roboto Flex" }
+    return { value: "material3", variant: "", surface: Colors.surfaceContainerLow, panel: Colors.surfaceContainerHigh, ink: Colors.fgSurface, accent: Colors.primary, onAccent: Colors.fgPrimary, font: "Roboto Flex" }
   }
   readonly property var workspaceCountOptions: [
     { value: "active", icon: "dynamic_feed", label: "Active", description: "Show the workspaces currently known to Niri" },
@@ -1044,103 +1048,95 @@ Flickable {
           }
       }
 
-      // Full bar toggle
+      // Bar form chooser
       SettingsCard {
         variant: "filled"
         Layout.column: 0
         Layout.row: appearanceTab.compactLayout ? 1 : 0
         Layout.fillWidth: true
         Layout.preferredWidth: 0
-        Layout.preferredHeight: barPlacementColumn.implicitHeight + Config.spacingPage
+        Layout.preferredHeight: barFormColumn.implicitHeight + Config.spacingPage
         radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
         outlineColor: Colors.styleOutline
         outlineWidth: Config.themeBorderWidth
 
-          Row {
-            anchors.fill: parent
-            anchors.margins: Config.spacingMedium
-            spacing: 0
+          ColumnLayout {
+            id: barFormColumn
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.topMargin: Config.spacingLarge
+            anchors.leftMargin: Config.spacingLarge
+            anchors.rightMargin: Config.spacingLarge
+            spacing: Config.spacingSmall
+
+            Text {
+              text: "Bar Form"
+              color: Colors.fgSurface
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyLargeSize
+              font.weight: Config.typeStrongWeight
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyLargeLineHeight
+              lineHeightMode: Text.FixedHeight
+              Layout.alignment: Qt.AlignHCenter
+            }
 
             Item {
-              width: parent.width / 3
-              height: parent.height
+              Layout.fillWidth: true
+              Layout.alignment: Qt.AlignHCenter
+              Layout.preferredHeight: appearanceTab.optionButtonHeight
+              height: appearanceTab.optionButtonHeight
 
-              Rectangle {
-                anchors.centerIn: parent
-                width: 24
-                height: 24
-                radius: Config.shapeCompact
-                color: Colors.styleAccent
+              Row {
+                anchors.fill: parent
+                spacing: appearanceTab.segmentedButtonGap
 
-                IconGlyph {
-                  anchors.centerIn: parent
-                  iconLabel: "dock_to_bottom"
-                  iconColor: Colors.styleAccentText
-                  iconSize: Config.iconSize
+                Repeater {
+                  model: [
+                    { value: "full", icon: "dock_to_bottom", label: "Full", description: "Edge to edge" },
+                    { value: "fit", icon: "web_asset", label: "Fit", description: "Inset rounded frame" },
+                    { value: "dock", icon: "bottom_app_bar", label: "Dock", description: "Open desktop edge" },
+                    { value: "notch", icon: "flip_to_front", label: "Notch", description: "Flowing shoulders" }
+                  ]
+
+                  delegate: ActionButton {
+                    required property var modelData
+                    required property int index
+                    width: (parent.width - appearanceTab.segmentedButtonGap * 3) / 4
+                    height: parent.height
+                    iconLabel: modelData.icon
+                    iconSize: 15
+                    contentSpacing: Config.spacingSmall
+                    horizontalContent: false
+                    labelText: modelData.label
+                    selected: Settings.barForm === modelData.value
+                    checkable: true
+                    grouped: true
+                    groupPosition: index === 0 ? "first" : (index === 3 ? "last" : "middle")
+                    accessibleName: modelData.label + " bar form"
+                    accessibleDescription: modelData.description
+                    onActivated: root.setBarForm(modelData.value)
+                  }
                 }
               }
             }
 
-            Item {
-              width: parent.width / 3
-              height: parent.height
-
-              ColumnLayout {
-                anchors.centerIn: parent
-                width: parent.width
-                height: implicitHeight
-                spacing: 1
-
-                Text {
-                  Layout.fillWidth: true
-                  text: root.fullBar ? "Full bar" : "Pills bar"
-                  color: Colors.fgSurface
-                  font.family: Config.fontFamily
-                  font.pixelSize: Config.typeBodyLargeSize
-                  font.weight: Config.typeStrongWeight
-                  font.letterSpacing: Config.typeBodyTracking
-                  lineHeight: Config.typeBodyLargeLineHeight
-                  lineHeightMode: Text.FixedHeight
-                  horizontalAlignment: Text.AlignHCenter
-                }
-
-                Text {
-                  Layout.fillWidth: true
-                  text: root.fullBar ? "One continuous surface" : "Floating pill per widget"
-                  color: Colors.fgSurfaceVariant
-                  font.family: Config.fontFamily
-                  font.pixelSize: Config.typeLabelMediumSize
-                  font.letterSpacing: Config.typeLabelTracking
-                  lineHeight: Config.typeLabelMediumLineHeight
-                  lineHeightMode: Text.FixedHeight
-                  horizontalAlignment: Text.AlignHCenter
-                  wrapMode: Text.WordWrap
-                  maximumLineCount: 2
-                  elide: Text.ElideRight
-                }
+            Text {
+              Layout.fillWidth: true
+              text: {
+                var forms = { full: "Edge to edge", fit: "Inset rounded frame",
+                  dock: "Open desktop edge", notch: "Flowing shoulders" }
+                return forms[Settings.barForm] || forms.full
               }
-            }
-
-            Item {
-              width: parent.width / 3
-              height: parent.height
-
-              SwitchControl {
-                anchors.centerIn: parent
-                checked: root.fullBar
-                activeColor: Colors.primary
-                surfaceContainerHigh: Colors.surfaceContainerHigh
-                surfaceContainerHighest: Colors.surfaceContainerHighest
-                outline: Colors.styleOutlineStrong
-                motionDuration: Config.motionMedium
-                reducedMotion: Config.reducedMotion
-                accessibleName: "Bar display style"
-                accessibleDescription: root.fullBar
-                  ? "All widgets share one continuous bar"
-                  : "Each widget is shown as a separate floating pill"
-                onToggled: root.toggleFullBar()
-              }
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeLabelMediumSize
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: Config.typeLabelMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              horizontalAlignment: Text.AlignHCenter
             }
           }
       }
@@ -1319,6 +1315,23 @@ Flickable {
           lineHeightMode: Text.FixedHeight
         }
 
+        ListItem {
+          Layout.fillWidth: true
+          visible: appearanceTab.material3Theme
+          title: "Compact desktop density"
+          subtitle: "Smaller control spacing for precise pointer input. Text size stays unchanged."
+          toggleControl: desktopDensitySwitch
+          SwitchControl {
+            id: desktopDensitySwitch
+            checked: Settings.materialCompact
+            accessibleName: "Compact desktop density"
+            onToggled: {
+              Settings.materialCompact = !Settings.materialCompact
+              Settings.save()
+            }
+          }
+        }
+
         // UI font size
         RowLayout {
           Layout.fillWidth: true
@@ -1333,7 +1346,8 @@ Flickable {
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
             // Ghost's mono face is wider; keep the label clear of the track.
-            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
+            Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
+              : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
           }
 
           SliderControl {
@@ -1384,7 +1398,8 @@ Flickable {
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
             // Ghost's mono face is wider; keep the label clear of the track.
-            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
+            Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
+              : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
           }
 
           SliderControl {
@@ -1435,7 +1450,8 @@ Flickable {
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
             // Ghost's mono face is wider; keep the label clear of the track.
-            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
+            Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
+              : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
           }
 
           SliderControl {

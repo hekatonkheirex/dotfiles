@@ -333,7 +333,7 @@ PopupBase {
 
                       delegate: ActionButton {
                         required property var modelData
-                        height: 32
+                        height: Config.material3Theme ? implicitHeight : 32
                         width: Math.max(72, (historyActionRow.width - historyActionRow.spacing * (historyActionRepeater.count - 1)) / historyActionRepeater.count)
                         labelText: modelData.text
                         horizontalContent: true

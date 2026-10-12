@@ -24,7 +24,9 @@ SwitchBase {
     ? root.pressOverlay
     : (root.hovered || root.activeFocus ? root.hoverOverlay : Qt.rgba(0, 0, 0, 0))
 
-  height: 32
+  height: root.liquidGlass ? 32 : 48
+  readonly property real materialTrackWidth: Math.min(52, root.width)
+  readonly property real materialTrackX: (root.width - root.materialTrackWidth) / 2
 
   readonly property real liquidTrackWidth: Math.min(38, root.width)
   readonly property real liquidTrackHeight: Math.min(22, root.height)
@@ -38,8 +40,8 @@ SwitchBase {
     ? (checked
       ? root.liquidTrackX + root.liquidTrackWidth - root.targetThumbSize - root.liquidThumbInset
       : root.liquidTrackX + root.liquidThumbInset)
-    : (checked
-      ? (pressed ? width - 28 - 2 : width - 24 - 4)
+    : root.materialTrackX + (checked
+      ? (pressed ? root.materialTrackWidth - 28 - 2 : root.materialTrackWidth - 24 - 4)
       : (pressed ? 2 : 8))
 
   property real thumbSize: root.liquidGlass ? 20 : 16
@@ -84,24 +86,31 @@ SwitchBase {
 
   Rectangle {
     id: track
-    x: root.liquidGlass ? root.liquidTrackX : 0
-    y: root.liquidGlass ? root.liquidTrackY : 0
-    width: root.liquidGlass ? root.liquidTrackWidth : root.width
-    height: root.liquidGlass ? root.liquidTrackHeight : root.height
+    x: root.liquidGlass ? root.liquidTrackX : root.materialTrackX
+    y: root.liquidGlass ? root.liquidTrackY : (root.height - 32) / 2
+    width: root.liquidGlass ? root.liquidTrackWidth : root.materialTrackWidth
+    height: root.liquidGlass ? root.liquidTrackHeight : 32
     radius: height / 2
-    color: root.enabled
-      ? Qt.tint(root.checked
-        ? root.activeColor
-        : (root.liquidGlass ? Colors.liquidGlassControlTrack : root.surfaceContainerHighest),
-        root.stateOverlay)
-      : (root.liquidGlass ? Colors.liquidGlassControlTrack : root.surfaceContainerHighest)
+    ColorSpring {
+      id: trackEffect
+      animate: Config.material3Theme && !root.reducedMotion && !Config.reducedMotion
+      targetColor: root.enabled
+        ? Qt.tint(root.checked ? root.activeColor
+          : (root.liquidGlass ? Colors.liquidGlassControlTrack : root.surfaceContainerHighest),
+          root.stateOverlay)
+        : (root.liquidGlass ? Colors.liquidGlassControlTrack : root.surfaceContainerHighest)
+    }
+    color: Config.material3Theme ? trackEffect.color : trackEffect.targetColor
     border.width: root.liquidGlass
       ? 0
       : (root.checked || !root.enabled ? 0 : theme.focusBorderWidth)
     border.color: root.liquidGlass ? Colors.liquidGlassEdge : root.outline
     opacity: root.enabled ? 1 : 0.55
 
-    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
+    Behavior on color {
+      enabled: !Config.material3Theme
+      ColorAnimation { duration: root.animateDuration(150) }
+    }
   }
 
   Rectangle {
@@ -122,15 +131,23 @@ SwitchBase {
     width: root.thumbSize
     height: root.thumbSize
     radius: width / 2
-    color: root.enabled
-      ? (root.liquidGlass
-        ? Qt.tint(Colors.liquidGlassControlThumb, root.stateOverlay)
-        : Qt.tint(root.checked ? root.activeContentColor : root.outline, root.stateOverlay))
-      : root.outline
+    ColorSpring {
+      id: thumbEffect
+      animate: Config.material3Theme && !root.reducedMotion && !Config.reducedMotion
+      targetColor: root.enabled
+        ? (root.liquidGlass
+          ? Qt.tint(Colors.liquidGlassControlThumb, root.stateOverlay)
+          : Qt.tint(root.checked ? root.activeContentColor : root.outline, root.stateOverlay))
+        : root.outline
+    }
+    color: Config.material3Theme ? thumbEffect.color : thumbEffect.targetColor
     border.width: root.liquidGlass && root.activeFocus ? theme.focusBorderWidth : 0
     border.color: root.focusColor
 
-    Behavior on color { ColorAnimation { duration: root.animateDuration(150) } }
+    Behavior on color {
+      enabled: !Config.material3Theme
+      ColorAnimation { duration: root.animateDuration(150) }
+    }
 
     IconGlyph {
       anchors.centerIn: parent

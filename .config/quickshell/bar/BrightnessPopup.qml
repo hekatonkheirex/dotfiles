@@ -57,6 +57,7 @@ PopupBase {
     PopupDivider {}
 
     SliderControl {
+      width: parent.width
       value: root.pct / 100
       activeColor: Colors.brightness
       surfaceContainerHigh: Colors.surfaceContainerHigh

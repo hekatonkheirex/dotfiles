@@ -52,7 +52,9 @@ Flickable {
           leadingIcon: "image"
           title: "Show album art"
           subtitle: "Display cover art in the media popup"
+          toggleControl: albumArtSwitch
           SwitchControl {
+            id: albumArtSwitch
             checked: Settings.mediaShowAlbumArt
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -70,7 +72,9 @@ Flickable {
           leadingIcon: "linear_scale"
           title: "Show progress bar"
           subtitle: "Display the playback progress bar"
+          toggleControl: progressSwitch
           SwitchControl {
+            id: progressSwitch
             checked: Settings.mediaShowProgressBar
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -88,7 +92,9 @@ Flickable {
           leadingIcon: "touch_app"
           title: "Controls always visible"
           subtitle: "Bar icon toggles play/pause directly, instead of opening the popup"
+          toggleControl: controlsSwitch
           SwitchControl {
+            id: controlsSwitch
             checked: Settings.mediaControlsAlwaysVisible
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh

@@ -27,7 +27,7 @@ QtObject {
     : ""
   readonly property bool loading: usageProcess.running
   readonly property bool stale: updatedAt !== "" && (status === "error"
-    || now - Date.parse(updatedAt) > 10 * 60000)
+    || now - Date.parse(updatedAt) > 2 * pollMinutes * 60000)
 
   onPopupActiveChanged: {
     if (popupActive) refreshIfDue()

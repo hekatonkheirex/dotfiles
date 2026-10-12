@@ -2,11 +2,12 @@
 // a compact treatment of the Material implementation.
 import QtQml
 import QtQuick
+import QtQuick.Layouts
 import "../config"
 import "themes/material3" as Material3
 import "themes/styled" as Styled
 
-Item {
+FocusScope {
   id: root
 
   property bool checked: false
@@ -27,8 +28,16 @@ Item {
 
   signal toggled()
 
+  function activate() {
+    if (root.enabled) root.toggled()
+  }
+
   width: 52
-  height: 32
+  height: root.material3Theme ? Config.controlHitSize : 32
+  implicitWidth: 52
+  implicitHeight: root.material3Theme ? Config.controlHitSize : 32
+  Layout.minimumWidth: root.material3Theme ? Config.controlHitSize : 0
+  Layout.minimumHeight: root.material3Theme ? Config.controlHitSize : 0
   activeFocusOnTab: true
 
   readonly property bool hovered: implementation.item ? implementation.item.hovered : false
@@ -37,6 +46,7 @@ Item {
 
   Loader {
     id: implementation
+    focus: true
     anchors.fill: parent
     sourceComponent: Config.liquidGlassTheme ? liquidImplementation
       : ((Config.ghostTheme || Config.nothingDesign) ? styledImplementation : materialImplementation)
@@ -74,6 +84,7 @@ Item {
   Binding { target: implementation.item; property: "accessibleDescription"; value: root.accessibleDescription }
   Binding { target: implementation.item; property: "enabled"; value: root.enabled }
   Binding { target: implementation.item; property: "activeFocusOnTab"; value: root.activeFocusOnTab }
+  Binding { target: implementation.item; property: "focus"; value: true }
 
   Connections {
     target: implementation.item

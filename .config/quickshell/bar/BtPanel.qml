@@ -247,7 +247,9 @@ Item {
       leadingIcon: "visibility"
       title: "Discoverable"
       subtitle: root.discoverable ? "Nearby devices can find this computer" : "Hidden from nearby devices"
+      toggleControl: discoverableSwitch
       SwitchControl {
+        id: discoverableSwitch
         checked: root.discoverable
         activeColor: Colors.primary
         surfaceContainerHigh: Colors.surfaceContainerHigh
@@ -546,8 +548,8 @@ Item {
 
         Item {
           id: deviceActionArea
-          width: 60
-          height: 32
+          width: Config.material3Theme ? Config.controlHitSize * 2 + Config.spacingCompact : 60
+          height: Config.material3Theme ? Config.controlHitSize : 32
           anchors.verticalCenter: parent.verticalCenter
           readonly property bool showActions: itemRow.hovered || disconnectButton.hovered || renameButton.hovered
 
