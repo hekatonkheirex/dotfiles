@@ -10,7 +10,7 @@ const load = (rel, exports) => {
 }
 const T = load("../../config/TagStrip.js", "tagStates, ACCENT_COUNT")
 const P = load("../../config/PaletteCatalog.js",
-  "palette, resolveVariant, fixedFamilyOptions, familyLabel, variantLabel, variantOptions, semanticPalette")
+  "palette, resolveVariant, fixedFamilyOptions, familyLabel, variantLabel")
 
 // tagStates
 assert.equal(T.ACCENT_COUNT, 3)
@@ -32,8 +32,8 @@ assert.deepEqual(
 // focused beats occupied; accent follows idx, not list position
 assert.deepEqual(T.tagStates([{ idx: 7, isFocused: true, isOccupied: false }]),
   [{ idx: 7, state: "focused", accent: 0 }])
-// idx 0 / negative entries must not give negative accents; non-numeric idx is skipped
-assert.deepEqual(T.tagStates([{ idx: 0 }, { idx: -1 }, null, {}]),
+// idx 0 / negative entries must not give negative accents; non-integer idx (NaN, 2.5) is skipped
+assert.deepEqual(T.tagStates([{ idx: 0 }, { idx: -1 }, { idx: NaN }, { idx: 2.5 }, null, {}]),
   [{ idx: 0, state: "empty", accent: 2 }, { idx: -1, state: "empty", accent: 1 }])
 
 // palette

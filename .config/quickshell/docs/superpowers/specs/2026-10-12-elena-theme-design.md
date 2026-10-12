@@ -23,7 +23,8 @@ the strip only.
 
 ## Palette
 - New fixed family `elenapam` in `PaletteCatalog`: navy surface ~#1a1f2b,
-  accents pink, mint, cyan, purple, green sampled from the reference image.
+  the palette defines purple (primary), pink (secondary) and cyan (tertiary)
+  accents plus an error red, sampled from the reference image.
 - Under `elena`, `Settings.colorSource` defaults to fixed with that family.
   Setting the existing palette-source toggle to wallpaper gives Matugen.
   `Colors.paletteSourceSelectable` already allows this for styles other than

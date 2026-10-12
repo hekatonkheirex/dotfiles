@@ -10,7 +10,7 @@ function tagStates(workspaces) {
   var out = []
   for (var i = 0; i < workspaces.length; i++) {
     var w = workspaces[i]
-    if (!w || typeof w.idx !== "number") continue
+    if (!w || !Number.isInteger(w.idx)) continue
     out.push({
       idx: w.idx,
       state: w.isFocused ? "focused" : (w.isOccupied ? "occupied" : "empty"),
