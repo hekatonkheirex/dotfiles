@@ -15,7 +15,7 @@ the strip only.
 
 ## Theme id
 - `themeStyle = "elena"`, `Config.elenaTheme` (`config/Config.qml`).
-- Excluded from `Config.material3Theme`.
+- Stays inside `Config.material3Theme` (the facades in `bar/SliderControl.qml`, `bar/primitives/ActionButton.qml` pick Material controls from it). `Config.elenaTheme` is an extra flag only.
 - New tile in `bar/settings/AppearanceTab.qml` `styleChoices`; selector math
   moves from 6 to 7 choices.
 - Shape tokens stay Material (rounded). No change to bar, launcher or popups
@@ -35,15 +35,17 @@ the strip only.
   width, reserves its own exclusive zone. The existing bar sits below it.
 - N equal blocks. N follows the workspace-count setting (active / 5 / 10); a
   focused workspace outside a fixed range is still shown.
-- Each block has a fixed accent, cycling purple, pink, cyan, mint, green.
+- Each block takes its accent from `primary`, `secondary`, `tertiary` by workspace `idx` modulo 3 (purple, pink, cyan in elenapam).
   States: focused = full accent, occupied = accent at about 35% over the
   surface, empty = faint track.
 - Click focuses that workspace. Color changes use the existing motion tokens.
 - Reads the model `WorkspaceIndicator` already holds (`workspaces`, focused,
   occupied). No second Niri poll.
 - Under `elena` the in-bar workspace widget is hidden; the strip replaces it.
-- State mapping lives in a pure function `tagStates(workspaces, count)` in a
-  small `.js` file (same pattern as `bar/CalendarLogic.js`) so it can be gated.
+- State mapping lives in a pure function in a small `.js` file (same pattern as
+  `bar/CalendarLogic.js`) so it can be gated. `tagStates(workspaces)` maps the
+  items `WorkspaceIndicator.visibleWorkspaces` already builds, so count rules
+  (active/5/10, focused outside range) stay in one place.
 
 ## Niri
 `scripts/sync-niri-shape.sh` must leave corners rounded for `elena`. dwm
@@ -51,8 +53,7 @@ squares them; the script is checked so unknown ids fall through to the
 default, and fixed if they do not.
 
 ## Verification
-- Gate test under `scripts/tests/`: `tagStates` for focused/occupied/empty,
-  count active/5/10, focused workspace outside the fixed range, empty input.
+- Gate test `tests/elena/test.mjs`: `tagStates` states, accent by idx, junk input; elenapam palette roles and catalog wiring.
 - Style added to `scripts/controls-golden*.sh` so the pixel baseline covers it.
 - Scratch-HOME harness plus IPC style switch, screenshot of the strip in each
   state, then restore `style material3 ""` and `dismissPopups`. See memory

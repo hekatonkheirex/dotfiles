@@ -8,7 +8,8 @@ var familyList = [
   { value: "material3", label: "Material 3", icon: "auto_awesome" },
   { value: "catppuccin", label: "Catppuccin", icon: "palette" },
   { value: "gruvbox", label: "Gruvbox", icon: "tonality" },
-  { value: "tokyonight", label: "TokyoNight", icon: "nights_stay" }
+  { value: "tokyonight", label: "TokyoNight", icon: "nights_stay" },
+  { value: "elenapam", label: "Elenapam", icon: "palette" }
 ]
 
 var variantLists = {
@@ -37,6 +38,9 @@ var variantLists = {
     { value: "storm", label: "Storm", icon: "cloud" },
     { value: "moon", label: "Moon", icon: "brightness_2" },
     { value: "night", label: "Night", icon: "dark_mode" }
+  ],
+  elenapam: [
+    { value: "dark", label: "Dark", icon: "dark_mode" }
   ]
 }
 
@@ -60,7 +64,7 @@ function familyOptions() {
 }
 
 function fixedFamilyOptions() {
-  return [familyList[1], familyList[2], familyList[3]]
+  return [familyList[1], familyList[2], familyList[3], familyList[4]]
 }
 
 function variantOptions(family) {
@@ -102,6 +106,7 @@ function resolveVariant(family, variant, darkMode) {
       ? variant
       : (darkMode ? "night" : "day")
   }
+  if (family === "elenapam") return "dark"
   return "expressive"
 }
 
@@ -324,10 +329,30 @@ function tokyonightPalette(variant) {
   return semanticPalette(s, a)
 }
 
+// elenapam: navy cards with pink, purple and cyan accents (the AwesomeWM rice
+// by elenapam). Dark only; light mode reuses it.
+function elenapamPalette() {
+  var s = {
+    base: "#1a1f2b", dim: "#151922", bright: "#2a3140", lowest: "#131720",
+    low: "#1e2430", container: "#232a37", high: "#2a3140", highest: "#343c4d",
+    variant: "#2a3140", text: "#f2f4f8", subtext: "#a3acbd",
+    outline: "#5b6578", outlineVariant: "#3a4254"
+  }
+  var a = {
+    primary: "#c77dc8", onPrimary: "#1a1f2b", primaryContainer: "#4a2f4d", onPrimaryContainer: "#f3d4f4",
+    secondary: "#f06292", onSecondary: "#1a1f2b", secondaryContainer: "#522a39", onSecondaryContainer: "#ffd6e3",
+    tertiary: "#5bb8d4", onTertiary: "#1a1f2b", tertiaryContainer: "#1f4452", onTertiaryContainer: "#cfeefa",
+    error: "#ff6b6b", onError: "#1a1f2b", errorContainer: "#5a2a2a", onErrorContainer: "#ffd9d9",
+    inversePrimary: "#8e4f90"
+  }
+  return semanticPalette(s, a)
+}
+
 function palette(family, variant, darkMode) {
   var resolved = resolveVariant(family, variant, darkMode)
   if (family === "catppuccin") return catppuccinPalette(resolved)
   if (family === "gruvbox") return gruvboxPalette(resolved)
   if (family === "tokyonight") return tokyonightPalette(resolved)
+  if (family === "elenapam") return elenapamPalette()
   return null
 }
