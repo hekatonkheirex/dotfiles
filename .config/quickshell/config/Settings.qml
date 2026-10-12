@@ -77,6 +77,8 @@ FileView {
     colorPalette: "material3",
     colorVariant: "auto",
     colorContrast: "standard",
+    accentPalette: "",
+    accentActive: "",
     themeStyle: "nothing",
     nothingVariant: "evolution",
     lockClockFace: "micrographics",
@@ -191,6 +193,8 @@ FileView {
   property alias colorPalette: adapter.colorPalette
   property alias colorVariant: adapter.colorVariant
   property alias colorContrast: adapter.colorContrast
+  property alias accentPalette: adapter.accentPalette
+  property alias accentActive: adapter.accentActive
   property alias nothingVariant: adapter.nothingVariant
   property alias themeStyle: adapter.themeStyle
   property alias themePreference: adapter.themePreference
@@ -219,6 +223,8 @@ FileView {
     colorPalette = root.defaults.colorPalette
     colorVariant = root.defaults.colorVariant
     colorContrast = root.defaults.colorContrast
+    accentPalette = root.defaults.accentPalette
+    accentActive = root.defaults.accentActive
     themeStyle = root.defaults.themeStyle
     nothingVariant = root.defaults.nothingVariant
     lockClockFace = root.defaults.lockClockFace
@@ -341,6 +347,10 @@ FileView {
     property string colorPalette: root.defaults.colorPalette
     property string colorVariant: root.defaults.colorVariant
     property string colorContrast: root.defaults.colorContrast
+    // Shortlist (csv of Matugen role keys, max 8) and the active accent role;
+    // empty active keeps the style default.
+    property string accentPalette: root.defaults.accentPalette
+    property string accentActive: root.defaults.accentActive
     // Nothing Classic remains selectable until Evolution's release and review;
     // Evolution uses wallpaper-aware roles.
     property string themeStyle: root.defaults.themeStyle

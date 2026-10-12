@@ -7,6 +7,7 @@ import "../"
 import "../primitives"
 import "../../config"
 import "../../config/PaletteCatalog.js" as PaletteCatalog
+import "../../config/AccentPalette.js" as AccentPalette
 import "../../config/BarScale.js" as BarScale
 
 Flickable {
@@ -1024,6 +1025,135 @@ Flickable {
               lineHeight: Config.typeBodySmallLineHeight
               lineHeightMode: Text.FixedHeight
             }
+          }
+        }
+      }
+
+      // Accent colors: shortlist of Matugen roles plus the active accent.
+      SettingsCard {
+        id: accentCard
+        readonly property var picked: AccentPalette.normalize(Settings.accentPalette)
+        readonly property string active: AccentPalette.resolve(Settings.accentPalette, Settings.accentActive)
+        readonly property bool full: picked.length >= AccentPalette.MAX
+        variant: "filled"
+        Layout.fillWidth: true
+        Layout.preferredHeight: accentColumn.implicitHeight + Config.spacingLarge * 2
+        radius: Config.settingsCardRadius
+        surfaceColor: Colors.surfaceContainer
+        outlineColor: Colors.styleOutline
+        outlineWidth: Config.themeBorderWidth
+
+        ColumnLayout {
+          id: accentColumn
+          anchors.fill: parent
+          anchors.margins: Config.spacingLarge
+          spacing: Config.spacingSmall
+
+          Text {
+            text: "Accent colors"
+            color: Colors.fgSurface
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeBodyLargeSize
+            font.weight: Config.typeStrongWeight
+            font.letterSpacing: Config.typeBodyTracking
+            lineHeight: Config.typeBodyLargeLineHeight
+            lineHeightMode: Text.FixedHeight
+            Layout.alignment: Qt.AlignHCenter
+          }
+
+          Text {
+            text: "Shortlist up to " + AccentPalette.MAX + " colors from the palette ("
+              + accentCard.picked.length + " of " + AccentPalette.MAX + " chosen)"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeLabelSmallSize
+            font.weight: Config.typeMediumWeight
+            font.letterSpacing: Config.typeLabelTracking
+            lineHeight: Config.typeLabelSmallLineHeight
+            lineHeightMode: Text.FixedHeight
+            Layout.fillWidth: true
+          }
+
+          Flow {
+            Layout.fillWidth: true
+            spacing: Config.spacingMedium
+
+            Repeater {
+              model: AccentPalette.ROLES
+
+              delegate: AccentSwatch {
+                required property var modelData
+                readonly property bool member: accentCard.picked.indexOf(modelData.key) >= 0
+                swatchColor: Colors.accentRoleColor(modelData.key)
+                mark: member
+                enabled: member || !accentCard.full
+                label: modelData.label
+                description: member ? "In shortlist. Activate to remove" : "Activate to add to shortlist"
+                onActivated: {
+                  Settings.accentPalette = AccentPalette.toggle(Settings.accentPalette, modelData.key)
+                  if (Settings.accentActive === modelData.key && member) Settings.accentActive = ""
+                  Settings.save()
+                }
+              }
+            }
+          }
+
+          Text {
+            text: "Active accent"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeLabelSmallSize
+            font.weight: Config.typeMediumWeight
+            font.letterSpacing: Config.typeLabelTracking
+            lineHeight: Config.typeLabelSmallLineHeight
+            lineHeightMode: Text.FixedHeight
+            Layout.fillWidth: true
+          }
+
+          Flow {
+            Layout.fillWidth: true
+            spacing: Config.spacingMedium
+
+            AccentSwatch {
+              swatchColor: Colors.accentRoleColor("primary")
+              ring: accentCard.active === ""
+              label: "Default accent"
+              description: "Use the style's own primary color"
+              onActivated: {
+                Settings.accentActive = ""
+                Settings.save()
+              }
+            }
+
+            Repeater {
+              model: accentCard.picked
+
+              delegate: AccentSwatch {
+                required property string modelData
+                swatchColor: Colors.accentRoleColor(modelData)
+                ring: accentCard.active === modelData
+                label: AccentPalette.find(modelData).label + " accent"
+                description: "Use this color as the active accent"
+                onActivated: {
+                  Settings.accentActive = modelData
+                  Settings.save()
+                }
+              }
+            }
+          }
+
+          Text {
+            text: accentCard.active === ""
+              ? "Default is the first swatch; pick one of your shortlist to recolor selections and controls"
+              : "Selections and controls use " + AccentPalette.find(accentCard.active).label.toLowerCase()
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.typeLabelSmallSize
+            font.letterSpacing: Config.typeLabelTracking
+            lineHeight: Config.typeLabelSmallLineHeight
+            lineHeightMode: Text.FixedHeight
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
           }
         }
       }

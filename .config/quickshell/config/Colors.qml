@@ -14,6 +14,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "PaletteCatalog.js" as PaletteCatalog
+import "AccentPalette.js" as AccentPalette
 
 QtObject {
   id: colors
@@ -665,8 +666,15 @@ QtObject {
   property color surfaceContainerHigh:      surfaceRole(darkMode ? "dark" : "light", "surface_container_high", darkMode ? d_surfaceContainerHigh : l_surfaceContainerHigh, 0.90)
   property color surfaceContainerHighest:   surfaceRole(darkMode ? "dark" : "light", "surface_container_highest", darkMode ? d_surfaceContainerHighest : l_surfaceContainerHighest, 0.94)
   property color surfaceVariant:            surfaceRole(darkMode ? "dark" : "light", "surface_variant", darkMode ? d_surfaceVariant : l_surfaceVariant, 0.88)
-  property color primary:                   paletteRole(darkMode ? "dark" : "light", "primary", darkMode ? d_primary : l_primary)
-  property color fgPrimary:                 paletteRole(darkMode ? "dark" : "light", "on_primary", darkMode ? d_onPrimary : l_onPrimary)
+  // User-picked accent: swaps the primary pair for another Matugen role.
+  // Authored palettes lacking the role fall back to their own primary.
+  readonly property string accentRole: AccentPalette.resolve(Settings.accentPalette, Settings.accentActive)
+  function accentRoleColor(role) {
+    var mode = darkMode ? "dark" : "light"
+    return paletteRole(mode, role, paletteRole(mode, "primary", darkMode ? d_primary : l_primary))
+  }
+  property color primary:                   accentRole === "" ? paletteRole(darkMode ? "dark" : "light", "primary", darkMode ? d_primary : l_primary) : accentRoleColor(accentRole)
+  property color fgPrimary:                 paletteRole(darkMode ? "dark" : "light", AccentPalette.onRole(accentRole), darkMode ? d_onPrimary : l_onPrimary)
   property color primaryContainer:          paletteRole(darkMode ? "dark" : "light", "primary_container", darkMode ? d_primaryContainer : l_primaryContainer)
   property color fgPrimaryContainer:        paletteRole(darkMode ? "dark" : "light", "on_primary_container", darkMode ? d_onPrimaryContainer : l_onPrimaryContainer)
   property color secondary:                 paletteRole(darkMode ? "dark" : "light", "secondary", darkMode ? d_secondary : l_secondary)
