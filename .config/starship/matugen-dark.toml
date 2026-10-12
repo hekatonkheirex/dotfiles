@@ -47,11 +47,11 @@ stashed = "≡"
 
 [git_state]
 format = '\([$state( $progress_current/$progress_total)]($style)\) '
-style = "#ffb5a0"
+style = "#ecbcaf"
 
 [cmd_duration]
 format = " [$duration]($style) "
-style = "#ffb5a0"
+style = "#ecbcaf"
 
 [time]
 disabled = false
@@ -60,32 +60,32 @@ format = '$time'
 
 [c]
 symbol = '󰙱 '
-style = "#ffb5a0"
+style = "#ecbcaf"
 
 [lua]
 symbol = "󰢱 "
-style = "#ffb5a0"
+style = "#ecbcaf"
 
 [nodejs]
 symbol = "⬢ "
-style = "#ffb5a0"
+style = "#ecbcaf"
 
 [perl]
 symbol = " "
-style = "#ffb5a0"
+style = "#ecbcaf"
 
 [php]
 symbol = " "
-style = "#ffb5a0"
+style = "#ecbcaf"
 
 [python]
 symbol = " "
-style = "#ffb5a0"
+style = "#ecbcaf"
 
 [ruby]
 symbol = " "
-style = "#ffb5a0"
+style = "#ecbcaf"
 
 [rust]
 symbol = " "
-style = "#ffb5a0"
+style = "#ecbcaf"
