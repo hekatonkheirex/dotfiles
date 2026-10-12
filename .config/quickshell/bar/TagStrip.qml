@@ -12,7 +12,9 @@ PanelWindow {
 
   property var workspaces: []
   // False when a top-docked horizontal bar already includes the strip in its
-  // own margin; true for bottom and vertical bars.
+  // own margin; true for bottom and vertical bars. When false the strip uses
+  // ExclusionMode.Ignore (zone -1): niri places zone-0 surfaces after earlier
+  // surfaces' zones, so without it the strip landed at y=42 under the bar.
   property bool reserveZone: false
 
   signal activated(int idx)
@@ -24,7 +26,7 @@ PanelWindow {
   }
   implicitHeight: Config.tagStripHeight
   color: "transparent"
-  exclusionMode: ExclusionMode.Normal
+  exclusionMode: root.reserveZone ? ExclusionMode.Normal : ExclusionMode.Ignore
   exclusiveZone: root.reserveZone ? Config.tagStripHeight : 0
   WlrLayershell.namespace: Config.layerNamespace("tagstrip")
   WlrLayershell.layer: WlrLayer.Top
