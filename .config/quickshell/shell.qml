@@ -231,7 +231,7 @@ ShellRoot {
     if (bar.horizontal) {
       // Float popups off the screen edge instead of clamping flush to it.
       var gap = Config.spacingMedium
-      return Math.max(gap, Math.min(bar.popupAnchorX - w / 2, screenW - w - gap))
+      return Math.round(Math.max(gap, Math.min(bar.popupAnchorX - w / 2, screenW - w - gap)))
     }
     return bar.dockedRight
       ? Math.max(0, screenW - w - popupBarInset())
@@ -244,7 +244,7 @@ ShellRoot {
         ? Math.max(0, screenH - h - popupBarInset())
         : popupBarInset()
     }
-    return Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h))
+    return Math.round(Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h)))
   }
 
   function toggleLayout() {

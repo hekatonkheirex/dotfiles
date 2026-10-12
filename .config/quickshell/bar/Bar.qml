@@ -238,7 +238,7 @@ PanelWindow {
   }
 
   readonly property bool pillsBar: Config.barFormMetrics.pills
-  readonly property bool fullBar: !root.pillsBar
+  readonly property bool continuousBar: !root.pillsBar
   readonly property bool groupedPills: root.pillsBar && root.horizontal && !Config.ghostTheme
   // Geometry for the selected form (see config/BarForm.js).
   readonly property int edgeGap: Config.barFormMetrics.edgeGap
@@ -251,7 +251,7 @@ PanelWindow {
   // The horizontal full bar follows the Hyprland layout's compact icon-plus
   // label controls. Vertical bars and stacked clock content stay unchanged.
   readonly property bool horizontalInlineContent: root.horizontalPillMode
-    || (root.horizontal && root.fullBar)
+    || (root.horizontal && root.continuousBar)
     || root.ghostHorizontalOneLiner
   // Ghost's horizontal clock shows only the time. Keep the minute row in
   // vertical bars and the date below the time in other horizontal styles.
@@ -262,8 +262,7 @@ PanelWindow {
   readonly property int horizontalPillInset: 6
   readonly property int verticalPillInset: 6
   readonly property int verticalWindowEdgeMargin: 0
-  readonly property real expandProgress: 1.0
-  readonly property int normalPanelExtent: root.fullBar
+  readonly property int normalPanelExtent: root.continuousBar
     ? (Config.ghostTheme ? Config.barWidth : Config.barWidth + Config.spacingLarge) + root.edgeGap
     : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
   readonly property int verticalClockHeight: Math.max(Config.clockVerticalHeight, root.verticalPillLength)
@@ -299,7 +298,7 @@ PanelWindow {
   )
   readonly property real ghostGapStart: root.ghostGapCenter - root.ghostGapLength / 2
   readonly property real ghostGapEnd: root.ghostGapCenter + root.ghostGapLength / 2
-  readonly property bool ghostCentralGap: root.fullBar
+  readonly property bool ghostCentralGap: root.continuousBar
     && Config.ghostTheme
     && root.ghostGapLength > 0
 
@@ -343,16 +342,16 @@ PanelWindow {
       height: root.horizontal
         ? Config.barWidth
         : parent.height - root.sideInset * 2
-      radius: (root.horizontal ? height / 2 : width / 2) * (1.0 - root.expandProgress) + (root.flat ? 0 : Config.barRadius) * root.expandProgress
+      radius: (root.flat ? 0 : Config.barRadius)
       // Liquid Glass keeps the menu-bar layer visually open; material is
       // reserved for transient/interactive states below it.
-      color: root.fullBar
+      color: root.continuousBar
         && !root.ghostCentralGap
         && (!Config.liquidGlassTheme || Colors.liquidGlassOpaque)
         ? root.barPanelColor
         : "transparent"
       // An opaque glass bar has a defined edge against windows.
-      border.width: root.fullBar && Config.liquidGlassTheme && Colors.liquidGlassOpaque
+      border.width: root.continuousBar && Config.liquidGlassTheme && Colors.liquidGlassOpaque
         ? Config.themeBorderWidth : 0
       border.color: Colors.styleOutline
 
@@ -377,8 +376,8 @@ PanelWindow {
 
       // Square-off helper for the docked edge's near corner
       Rectangle {
-        width: barBg.radius * root.expandProgress
-        height: barBg.radius * root.expandProgress
+        width: barBg.radius
+        height: barBg.radius
         x: root.dockedRight ? barBg.width - width : 0
         y: root.dockedBottom ? barBg.height - height : 0
         color: barBg.color
@@ -387,8 +386,8 @@ PanelWindow {
 
       // Square-off helper for the docked edge's far corner
       Rectangle {
-        width: barBg.radius * root.expandProgress
-        height: barBg.radius * root.expandProgress
+        width: barBg.radius
+        height: barBg.radius
         x: root.horizontal
           ? barBg.width - width
           : (root.dockedRight ? barBg.width - width : 0)
@@ -518,8 +517,8 @@ PanelWindow {
         height: root.horizontal
           ? parent.height
           : parent.height - root.verticalPillInset * 2
-        columnSpacing: Config.spacingCompact * root.expandProgress
-        rowSpacing: Config.spacingCompact * root.expandProgress
+        columnSpacing: Config.spacingCompact
+        rowSpacing: Config.spacingCompact
 
         Item {
           id: launcherWrapper
@@ -528,18 +527,17 @@ PanelWindow {
           Layout.row: root.horizontal ? 0 : root.barSlot("launcher")
           Layout.preferredWidth: root.horizontal
             ? (root.pillsBar ? root.horizontalPillLength : root.wSize)
-              * root.expandProgress * (Settings.ccShowLauncher ? 1 : 0)
+              * (Settings.ccShowLauncher ? 1 : 0)
             : parent.width * (Settings.ccShowLauncher ? 1 : 0)
           Layout.preferredHeight: root.horizontal
             ? parent.height * (Settings.ccShowLauncher ? 1 : 0)
             : Math.max(
                 root.pillsBar ? root.verticalPillLength : 0,
                 launcherWidget.verticalLayoutHeight
-              ) * root.expandProgress * (Settings.ccShowLauncher ? 1 : 0)
+              ) * (Settings.ccShowLauncher ? 1 : 0)
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0 && Settings.ccShowLauncher
+          visible: Settings.ccShowLauncher
           clip: true
 
           PillSurface {
@@ -552,7 +550,7 @@ PanelWindow {
             anchors.fill: parent
             active: root.openPopup === "launcher"
             horizontal: root.horizontal
-            integrated: root.fullBar
+            integrated: root.continuousBar
             onClicked: function(mouse) {
               root.togglePopup("launcher", launcherWidget)
             }
@@ -565,7 +563,7 @@ PanelWindow {
           Layout.column: root.horizontal ? root.barSlot("workspaces") : 0
           Layout.row: root.horizontal ? 0 : root.barSlot("workspaces")
           horizontal: root.horizontal
-          integrated: root.fullBar
+          integrated: root.continuousBar
           Layout.preferredWidth: Settings.ccShowWorkspaces
             ? (root.horizontal
               ? Math.max(implicitWidth, root.pillsBar ? root.horizontalPillLength : 0)
@@ -597,7 +595,7 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal
             ? (layoutAvailable
               ? Math.max(root.horizontalPillLength, layoutIndicator.horizontalContentWidth)
-              : 0) * root.expandProgress
+              : 0)
             : (layoutAvailable ? parent.width : 0)
           Layout.preferredHeight: root.horizontal
             ? (layoutAvailable ? parent.height : 0)
@@ -605,12 +603,11 @@ PanelWindow {
               ? Math.max(
                   root.pillsBar ? root.verticalPillLength : 0,
                   layoutIndicator.verticalLayoutHeight
-                ) * root.expandProgress
+                )
               : 0)
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0 && layoutAvailable
+          visible: layoutAvailable
           clip: true
 
           PillSurface {
@@ -623,7 +620,7 @@ PanelWindow {
             anchors.fill: parent
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent
-            integrated: root.fullBar
+            integrated: root.continuousBar
             iconLabel: "view_quilt"
             labelText: wsIndicator.mangoLayoutName !== ""
               ? wsIndicator.mangoLayoutName
@@ -666,17 +663,16 @@ PanelWindow {
           )
           Layout.preferredWidth: root.horizontal
             ? (hasWindowInfo
-              ? Math.min(Math.max(320, root.width * 0.28), Math.max(140, windowInfoTextWidth + Config.spacingLarge)) * root.expandProgress
+              ? Math.min(Math.max(320, root.width * 0.28), Math.max(140, windowInfoTextWidth + Config.spacingLarge))
               : 0) * (Settings.ccShowFocusedWindow ? 1 : 0)
             : (hasWindowInfo ? parent.width : 0) * (Settings.ccShowFocusedWindow ? 1 : 0)
           Layout.preferredHeight: (root.horizontal
             ? parent.height
-            : (hasWindowInfo ? verticalInfoHeight * root.expandProgress : 0))
+            : (hasWindowInfo ? verticalInfoHeight : 0))
             * (Settings.ccShowFocusedWindow ? 1 : 0)
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0 && hasWindowInfo && Settings.ccShowFocusedWindow
+          visible: hasWindowInfo && Settings.ccShowFocusedWindow
           clip: true
 
           PillSurface {
@@ -780,7 +776,6 @@ PanelWindow {
             : middleLayout.implicitHeight + Config.spacingLarge * 2
           Layout.preferredWidth: root.horizontal ? 0 : parent.width
           Layout.preferredHeight: root.horizontal ? parent.height : 0
-          visible: root.expandProgress > 0
           clip: true
 
           // Restore the historical Ghost gap treatment inside the current
@@ -788,7 +783,7 @@ PanelWindow {
           // strictly decorative and cannot change popup geometry.
           Ghost.GapGlitch {
             id: ghostGapGlitch
-            visible: Config.ghostTheme && !root.fullBar
+            visible: Config.ghostTheme && !root.continuousBar
             width: root.horizontal ? parent.width : parent.height
             height: root.horizontal ? parent.height : parent.width
             anchors.centerIn: parent
@@ -798,7 +793,7 @@ PanelWindow {
           }
 
           Ghost.GapTrace {
-            visible: Config.ghostTheme && !root.fullBar && root.horizontal
+            visible: Config.ghostTheme && !root.continuousBar && root.horizontal
             colors_: Colors
             config: Config
             horizontal: true
@@ -817,18 +812,17 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, audioIndicator.horizontalContentWidth)
-              : root.wSize) * root.expandProgress
+              : root.wSize)
             : parent.width
           Layout.preferredHeight: root.horizontal
             ? parent.height
             : Math.max(
                 root.pillsBar ? root.verticalPillLength : 0,
                 audioIndicator.verticalLayoutHeight
-              ) * root.expandProgress
+              )
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0 && Settings.ccShowAudio
+          visible: Settings.ccShowAudio
           clip: true
 
           PillSurface {
@@ -843,7 +837,7 @@ PanelWindow {
             active: root.openPopup === "audio"
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent
-            integrated: root.fullBar
+            integrated: root.continuousBar
             onClicked: function(mouse) {
               root.togglePopup("audio", audioIndicator)
             }
@@ -858,18 +852,17 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, brightnessIndicator.horizontalContentWidth)
-              : root.wSize) * root.expandProgress
+              : root.wSize)
             : parent.width
           Layout.preferredHeight: root.horizontal
             ? parent.height
             : Math.max(
                 root.pillsBar ? root.verticalPillLength : 0,
                 brightnessIndicator.verticalLayoutHeight
-              ) * root.expandProgress
+              )
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0 && Settings.ccShowDisplay
+          visible: Settings.ccShowDisplay
           clip: true
 
           PillSurface {
@@ -884,7 +877,7 @@ PanelWindow {
             active: root.openPopup === "brightness"
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent
-            integrated: root.fullBar
+            integrated: root.continuousBar
             onClicked: function(mouse) {
               root.togglePopup("brightness", brightnessIndicator)
             }
@@ -899,18 +892,17 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, mediaIndicator.horizontalContentWidth)
-              : root.wSize) * root.expandProgress
+              : root.wSize)
             : parent.width
           Layout.preferredHeight: root.horizontal
             ? parent.height
             : Math.max(
                 root.pillsBar ? root.verticalPillLength : 0,
                 mediaIndicator.verticalLayoutHeight
-              ) * root.expandProgress
+              )
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0 && Settings.ccShowMedia
+          visible: Settings.ccShowMedia
           clip: true
 
           PillSurface {
@@ -925,7 +917,7 @@ PanelWindow {
             active: root.openPopup === "media"
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent
-            integrated: root.fullBar
+            integrated: root.continuousBar
             onClicked: function(mouse) {
               if (Settings.mediaControlsAlwaysVisible) {
                 Quickshell.execDetached([Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py", "play"])
@@ -944,18 +936,17 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, weatherIndicator.horizontalContentWidth)
-              : root.wSize) * root.expandProgress
+              : root.wSize)
             : parent.width
           Layout.preferredHeight: root.horizontal
             ? parent.height
             : Math.max(
                 root.pillsBar ? root.verticalPillLength : 0,
                 weatherIndicator.verticalLayoutHeight
-              ) * root.expandProgress
+              )
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0 && Settings.ccShowWeather
+          visible: Settings.ccShowWeather
           clip: true
 
           PillSurface {
@@ -970,7 +961,7 @@ PanelWindow {
             active: root.openPopup === "weather"
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent
-            integrated: root.fullBar
+            integrated: root.continuousBar
             onClicked: function(mouse) {
               root.togglePopup("weather", weatherIndicator)
             }
@@ -985,18 +976,17 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, llmUsageIndicator.horizontalContentWidth)
-              : root.wSize) * root.expandProgress
+              : root.wSize)
             : parent.width
           Layout.preferredHeight: root.horizontal
             ? parent.height
             : Math.max(
                 root.pillsBar ? root.verticalPillLength : 0,
                 llmUsageIndicator.verticalLayoutHeight
-              ) * root.expandProgress
+              )
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0 && Settings.ccShowLlm
+          visible: Settings.ccShowLlm
           clip: true
 
           PillSurface {
@@ -1011,7 +1001,7 @@ PanelWindow {
             active: root.openPopup === "llm"
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent
-            integrated: root.fullBar
+            integrated: root.continuousBar
             onClicked: function(mouse) {
               root.togglePopup("llm", llmUsageIndicator)
             }
@@ -1026,18 +1016,17 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal
             ? (root.horizontalInlineContent
               ? Math.max(root.horizontalPillLength, batteryIndicator.horizontalContentWidth)
-              : root.wSize) * root.expandProgress
+              : root.wSize)
             : parent.width
           Layout.preferredHeight: root.horizontal
             ? parent.height
             : Math.max(
                 root.pillsBar ? root.verticalPillLength : 0,
                 batteryIndicator.verticalLayoutHeight
-              ) * root.expandProgress
+              )
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0 && Settings.ccShowBattery
+          visible: Settings.ccShowBattery
           clip: true
 
           PillSurface {
@@ -1051,7 +1040,7 @@ PanelWindow {
             active: root.openPopup === "battery"
             horizontal: root.horizontal
             inlineContent: root.horizontalInlineContent
-            integrated: root.fullBar
+            integrated: root.continuousBar
             onClicked: function(mouse) {
               root.togglePopup("battery", batteryIndicator)
             }
@@ -1067,18 +1056,17 @@ PanelWindow {
             ? Math.max(
                 systemTray.preferredLength,
                 root.pillsBar ? root.horizontalPillLength : 0
-              ) * root.expandProgress
+              )
             : parent.width
           Layout.preferredHeight: root.horizontal
             ? parent.height
             : Math.max(
                 systemTray.preferredLength,
                 root.pillsBar ? root.verticalPillLength : 0
-              ) * root.expandProgress
+              )
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: Settings.ccShowTray && systemTray.visibleCount > 0 && (root.expandProgress > 0)
+          visible: Settings.ccShowTray && systemTray.visibleCount > 0
           clip: true
 
           PillSurface {
@@ -1089,7 +1077,7 @@ PanelWindow {
           SystemTrayArea {
             id: systemTray
             horizontal: root.horizontal
-            integrated: root.fullBar
+            integrated: root.continuousBar
             anchors.fill: parent
             parentWindow: root
           }
@@ -1101,18 +1089,17 @@ PanelWindow {
           Layout.column: root.horizontal ? root.barSlot("notifications") : 0
           Layout.row: root.horizontal ? 0 : root.barSlot("notifications")
           Layout.preferredWidth: root.horizontal
-            ? (root.pillsBar ? root.horizontalPillLength : root.wSize) * root.expandProgress
+            ? (root.pillsBar ? root.horizontalPillLength : root.wSize)
             : parent.width
           Layout.preferredHeight: root.horizontal
             ? parent.height
             : Math.max(
                 root.pillsBar ? root.verticalPillLength : 0,
                 notifIndicator.verticalLayoutHeight
-              ) * root.expandProgress
+              )
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0 && Settings.ccShowNotifications
+          visible: Settings.ccShowNotifications
           clip: true
 
           PillSurface {
@@ -1126,7 +1113,7 @@ PanelWindow {
             notificationCount: root.notificationCount
             active: root.openPopup === "notification" || (!Config.liquidGlassTheme && (!Config.ghostTheme || root.horizontal) && root.notificationCount > 0)
             horizontal: root.horizontal
-            integrated: root.fullBar
+            integrated: root.continuousBar
             onClicked: function(mouse) {
               root.togglePopup("notification", notifIndicator)
             }
@@ -1149,18 +1136,16 @@ PanelWindow {
           Layout.column: root.horizontal ? root.barSlots.length : 0
           Layout.row: root.horizontal ? 0 : root.barSlots.length
           Layout.preferredWidth: root.horizontal
-            ? (root.pillsBar ? root.horizontalPillLength : root.wSize) * root.expandProgress
+            ? (root.pillsBar ? root.horizontalPillLength : root.wSize)
             : parent.width
           Layout.preferredHeight: root.horizontal
             ? parent.height
             : Math.max(
                 root.pillsBar ? root.verticalPillLength : 0,
                 menuIndicator.verticalLayoutHeight
-              ) * root.expandProgress
+              )
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          opacity: root.expandProgress
-          visible: root.expandProgress > 0
           clip: true
 
           PillSurface {
@@ -1174,7 +1159,7 @@ PanelWindow {
             iconLabel: "power_settings_new"
             active: root.openPopup === "quickmenu"
             horizontal: root.horizontal
-            integrated: root.fullBar
+            integrated: root.continuousBar
             onClicked: function(mouse) {
               root.togglePopup("quickmenu", menuIndicator)
             }
@@ -1193,8 +1178,8 @@ PanelWindow {
         y: root.horizontal ? 0 : (parent.height - height) / 2
         width: root.horizontal ? implicitWidth : parent.width
         height: root.horizontal ? parent.height : implicitHeight
-        columnSpacing: Config.spacingCompact * root.expandProgress
-        rowSpacing: Config.spacingCompact * root.expandProgress
+        columnSpacing: Config.spacingCompact
+        rowSpacing: Config.spacingCompact
         z: 2
       }
 
@@ -1215,22 +1200,21 @@ PanelWindow {
                 112,
                 root.wSize * 2.5,
                 root.pillsBar ? root.horizontalPillLength : 0
-              )) * root.expandProgress
+              ))
           : parent.width
         height: root.horizontal
           ? parent.height
           : Math.max(
               root.verticalClockHeight,
               root.pillsBar ? root.verticalPillLength : 0
-            ) * root.expandProgress
+            )
         x: (root.inMiddle("clock") ? middleLayout.x : layout.x)
           + clockSlot.x + (clockSlot.width - width) / 2
         y: root.horizontal ? 0
           : (root.inMiddle("clock") ? middleLayout.y : layout.y)
             + clockSlot.y + (clockSlot.height - height) / 2
         z: 2
-        opacity: root.expandProgress
-        visible: root.expandProgress > 0 && Settings.ccShowClock
+        visible: Settings.ccShowClock
         clip: true
 
         PillSurface {

@@ -41,7 +41,6 @@ PanelWindow {
 
   anchors.left: true
   // Nothing and Ghost pills need more clearance than the nominal bar width.
-  // Nothing and Ghost pills need more clearance than the nominal bar width.
   margins.left: (Config.barFormMetrics.pills && (Config.nothingDesign || Config.ghostTheme)
     ? Config.barWidth + 18 : Config.barWidth) + Config.barFormMetrics.edgeGap + Config.spacingMedium
   property int screenH: Screen.desktopAvailableHeight

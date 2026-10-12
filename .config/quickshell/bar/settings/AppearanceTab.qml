@@ -14,6 +14,17 @@ Flickable {
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
   readonly property bool material3Theme: Config.material3Theme
+  property bool fineTuneOpen: false
+  readonly property var fineTuneTitles: ["ui font size", "clock size", "icon size", "spacing", "bar size"]
+  // Settings search calls this before locating a target; true means the
+  // layout changed and the caller should retry on the next tick.
+  function expandForSearch(title) {
+    var t = String(title).toLowerCase()
+    var hit = fineTuneTitles.indexOf(t) >= 0
+    if (!hit || fineTuneOpen) return false
+    fineTuneOpen = true
+    return true
+  }
   readonly property int optionButtonGap: Config.themeOptionGap
   readonly property int segmentedButtonGap: appearanceTab.material3Theme ? 0 : appearanceTab.optionButtonGap
   // Stacked icon + label choices keep breathing room at the global type scale.
@@ -1335,218 +1346,11 @@ Flickable {
           }
         }
 
-        // UI font size
-        RowLayout {
-          Layout.fillWidth: true
-          spacing: Config.spacingMedium
-
-          Text {
-            text: "UI Font Size"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            // Ghost's mono face is wider; keep the label clear of the track.
-            Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
-              : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
-          }
-
-          SliderControl {
-            Layout.fillWidth: true
-            value: (Settings.fontPixelSize - 7) / 9
-            stepSize: 1 / 9
-            accessibleMinimumValue: 7
-            accessibleMaximumValue: 16
-            accessibleUnit: "px"
-            activeColor: Colors.primary
-            surfaceContainerHigh: Colors.surfaceContainerHigh
-            surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
-            focusColor: Colors.primary
-            motionDuration: Config.motionMedium
-            reducedMotion: Config.reducedMotion
-            accessibleName: "UI font size"
-            accessibleDescription: "Adjust global UI font size"
-            onChanged: function(val) {
-              Settings.fontPixelSize = Math.round(7 + val * 9)
-            }
-            onInteractionFinished: Settings.save()
-          }
-
-          Text {
-            text: Settings.fontPixelSize + "px"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelMediumSize
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 44
-          }
-        }
-
-        // Clock font size
-        RowLayout {
-          Layout.fillWidth: true
-          spacing: Config.spacingMedium
-
-          Text {
-            text: "Clock Size"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            // Ghost's mono face is wider; keep the label clear of the track.
-            Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
-              : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
-          }
-
-          SliderControl {
-            Layout.fillWidth: true
-            value: (Settings.clockFontSize - 8) / 16
-            stepSize: 1 / 16
-            accessibleMinimumValue: 8
-            accessibleMaximumValue: 24
-            accessibleUnit: "px"
-            activeColor: Colors.primary
-            surfaceContainerHigh: Colors.surfaceContainerHigh
-            surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
-            focusColor: Colors.primary
-            motionDuration: Config.motionMedium
-            reducedMotion: Config.reducedMotion
-            accessibleName: "Clock font size"
-            accessibleDescription: "Adjust the bar clock font size"
-            onChanged: function(val) {
-              Settings.clockFontSize = Math.round(8 + val * 16)
-            }
-            onInteractionFinished: Settings.save()
-          }
-
-          Text {
-            text: Settings.clockFontSize + "px"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelMediumSize
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 44
-          }
-        }
-
-        // Icon size
-        RowLayout {
-          Layout.fillWidth: true
-          spacing: Config.spacingMedium
-
-          Text {
-            text: "Icon Size"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            // Ghost's mono face is wider; keep the label clear of the track.
-            Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
-              : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
-          }
-
-          SliderControl {
-            Layout.fillWidth: true
-            value: (Settings.iconSize - 12) / 16
-            stepSize: 1 / 16
-            accessibleMinimumValue: 12
-            accessibleMaximumValue: 28
-            accessibleUnit: "px"
-            activeColor: Colors.primary
-            surfaceContainerHigh: Colors.surfaceContainerHigh
-            surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
-            focusColor: Colors.primary
-            motionDuration: Config.motionMedium
-            reducedMotion: Config.reducedMotion
-            accessibleName: "Icon size"
-            accessibleDescription: "Adjust global icon size"
-            onChanged: function(val) {
-              Settings.iconSize = Math.round(12 + val * 16)
-            }
-            onInteractionFinished: Settings.save()
-          }
-
-          Text {
-            text: Settings.iconSize + "px"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelMediumSize
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 44
-          }
-        }
-
-        // Spacing
-        RowLayout {
-          Layout.fillWidth: true
-          spacing: Config.spacingMedium
-
-          Text {
-            text: "Spacing"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            // Ghost's mono face is wider; keep the label clear of the track.
-            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
-          }
-
-          SliderControl {
-            Layout.fillWidth: true
-            value: (Settings.spacingScale - 0.75) / 0.75
-            stepSize: 0.05 / 0.75
-            accessibleMinimumValue: 75
-            accessibleMaximumValue: 150
-            accessibleUnit: "%"
-            activeColor: Colors.primary
-            surfaceContainerHigh: Colors.surfaceContainerHigh
-            surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
-            focusColor: Colors.primary
-            motionDuration: Config.motionMedium
-            reducedMotion: Config.reducedMotion
-            accessibleName: "Spacing"
-            accessibleDescription: "Adjust global layout spacing"
-            onChanged: function(val) {
-              Settings.spacingScale = Math.round((0.75 + val * 0.75) * 20) / 20
-            }
-            onInteractionFinished: Settings.save()
-          }
-
-          Text {
-            text: Math.round(Settings.spacingScale * 100) + "%"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelMediumSize
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 44
-          }
-        }
-
         // Bar scale: drives bar size, font, icon and spacing together
         RowLayout {
           Layout.fillWidth: true
           spacing: Config.spacingMedium
-          readonly property real scale: BarScale.fromBarSize(Settings.barSize)
+          readonly property real barScale: BarScale.fromBarSize(Settings.barSize)
 
           Text {
             text: "Bar Scale"
@@ -1561,7 +1365,7 @@ Flickable {
 
           SliderControl {
             Layout.fillWidth: true
-            value: (parent.scale - BarScale.MIN) / (BarScale.MAX - BarScale.MIN)
+            value: (parent.barScale - BarScale.MIN) / (BarScale.MAX - BarScale.MIN)
             stepSize: BarScale.STEP / (BarScale.MAX - BarScale.MIN)
             accessibleMinimumValue: Math.round(BarScale.MIN * 100)
             accessibleMaximumValue: Math.round(BarScale.MAX * 100)
@@ -1587,7 +1391,7 @@ Flickable {
           }
 
           Text {
-            text: Math.round(parent.scale * 100) + "%"
+            text: Math.round(parent.barScale * 100) + "%"
             color: Colors.fgSurface
             font.family: Config.fontFamily
             font.pixelSize: Config.typeLabelMediumSize
@@ -1598,54 +1402,313 @@ Flickable {
           }
         }
 
-        // Bar size
-        RowLayout {
+
+        // Individual sizes live under Bar Scale; collapsed by default.
+        Rectangle {
           Layout.fillWidth: true
-          spacing: Config.spacingMedium
+          implicitHeight: Math.max(Config.controlHitSize, fineTuneLabel.implicitHeight + Config.spacingMedium)
+          radius: Config.shapeCompact
+          color: fineTuneArea.containsMouse ? Colors.surfaceContainerHigh : "transparent"
+          activeFocusOnTab: true
+          Accessible.role: Accessible.Button
+          Accessible.name: "Individual sizes"
+          Keys.onSpacePressed: appearanceTab.fineTuneOpen = !appearanceTab.fineTuneOpen
+          Keys.onReturnPressed: appearanceTab.fineTuneOpen = !appearanceTab.fineTuneOpen
 
-          Text {
-            text: "Bar Size"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            // Ghost's mono face is wider; keep the label clear of the track.
-            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
-          }
+          RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: Config.spacingSmall
+            anchors.rightMargin: Config.spacingSmall
+            spacing: Config.spacingSmall
 
-          SliderControl {
-            Layout.fillWidth: true
-            value: (Settings.barSize - 28) / 28
-            stepSize: 2 / 28
-            accessibleMinimumValue: 28
-            accessibleMaximumValue: 56
-            accessibleUnit: "px"
-            activeColor: Colors.primary
-            surfaceContainerHigh: Colors.surfaceContainerHigh
-            surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
-            focusColor: Colors.primary
-            motionDuration: Config.motionMedium
-            reducedMotion: Config.reducedMotion
-            accessibleName: "Bar size"
-            accessibleDescription: "Adjust the bar's thickness and widget size"
-            onChanged: function(val) {
-              Settings.barSize = Math.round(28 + val * 28)
+            IconGlyph {
+              iconLabel: appearanceTab.fineTuneOpen ? "expand_more" : "chevron_right"
+              iconColor: Colors.fgSurfaceVariant
+              iconSize: Config.iconSize
             }
-            onInteractionFinished: Settings.save()
+            Text {
+              id: fineTuneLabel
+              Layout.fillWidth: true
+              text: "Individual sizes"
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyMediumSize
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+            }
           }
 
-          Text {
-            text: Settings.barSize + "px"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelMediumSize
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 44
+          MouseArea {
+            id: fineTuneArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: appearanceTab.fineTuneOpen = !appearanceTab.fineTuneOpen
+          }
+        }
+
+        ColumnLayout {
+          Layout.fillWidth: true
+          visible: appearanceTab.fineTuneOpen
+          spacing: Config.spacingSmall
+
+          // UI font size
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Config.spacingMedium
+
+            Text {
+              text: "UI Font Size"
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyMediumSize
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              // Ghost's mono face is wider; keep the label clear of the track.
+              Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
+                : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
+            }
+
+            SliderControl {
+              Layout.fillWidth: true
+              value: (Settings.fontPixelSize - 7) / 9
+              stepSize: 1 / 9
+              accessibleMinimumValue: 7
+              accessibleMaximumValue: 16
+              accessibleUnit: "px"
+              activeColor: Colors.primary
+              surfaceContainerHigh: Colors.surfaceContainerHigh
+              surfaceContainerHighest: Colors.surfaceContainerHighest
+              outline: Colors.styleOutlineStrong
+              focusColor: Colors.primary
+              motionDuration: Config.motionMedium
+              reducedMotion: Config.reducedMotion
+              accessibleName: "UI font size"
+              accessibleDescription: "Adjust global UI font size"
+              onChanged: function(val) {
+                Settings.fontPixelSize = Math.round(7 + val * 9)
+              }
+              onInteractionFinished: Settings.save()
+            }
+
+            Text {
+              text: Settings.fontPixelSize + "px"
+              color: Colors.fgSurface
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeLabelMediumSize
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: Config.typeLabelMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              Layout.preferredWidth: 44
+            }
+          }
+
+          // Clock font size
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Config.spacingMedium
+
+            Text {
+              text: "Clock Size"
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyMediumSize
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              // Ghost's mono face is wider; keep the label clear of the track.
+              Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
+                : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
+            }
+
+            SliderControl {
+              Layout.fillWidth: true
+              value: (Settings.clockFontSize - 8) / 16
+              stepSize: 1 / 16
+              accessibleMinimumValue: 8
+              accessibleMaximumValue: 24
+              accessibleUnit: "px"
+              activeColor: Colors.primary
+              surfaceContainerHigh: Colors.surfaceContainerHigh
+              surfaceContainerHighest: Colors.surfaceContainerHighest
+              outline: Colors.styleOutlineStrong
+              focusColor: Colors.primary
+              motionDuration: Config.motionMedium
+              reducedMotion: Config.reducedMotion
+              accessibleName: "Clock font size"
+              accessibleDescription: "Adjust the bar clock font size"
+              onChanged: function(val) {
+                Settings.clockFontSize = Math.round(8 + val * 16)
+              }
+              onInteractionFinished: Settings.save()
+            }
+
+            Text {
+              text: Settings.clockFontSize + "px"
+              color: Colors.fgSurface
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeLabelMediumSize
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: Config.typeLabelMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              Layout.preferredWidth: 44
+            }
+          }
+
+          // Icon size
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Config.spacingMedium
+
+            Text {
+              text: "Icon Size"
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyMediumSize
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              // Ghost's mono face is wider; keep the label clear of the track.
+              Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
+                : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
+            }
+
+            SliderControl {
+              Layout.fillWidth: true
+              value: (Settings.iconSize - 12) / 16
+              stepSize: 1 / 16
+              accessibleMinimumValue: 12
+              accessibleMaximumValue: 28
+              accessibleUnit: "px"
+              activeColor: Colors.primary
+              surfaceContainerHigh: Colors.surfaceContainerHigh
+              surfaceContainerHighest: Colors.surfaceContainerHighest
+              outline: Colors.styleOutlineStrong
+              focusColor: Colors.primary
+              motionDuration: Config.motionMedium
+              reducedMotion: Config.reducedMotion
+              accessibleName: "Icon size"
+              accessibleDescription: "Adjust global icon size"
+              onChanged: function(val) {
+                Settings.iconSize = Math.round(12 + val * 16)
+              }
+              onInteractionFinished: Settings.save()
+            }
+
+            Text {
+              text: Settings.iconSize + "px"
+              color: Colors.fgSurface
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeLabelMediumSize
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: Config.typeLabelMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              Layout.preferredWidth: 44
+            }
+          }
+
+          // Spacing
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Config.spacingMedium
+
+            Text {
+              text: "Spacing"
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyMediumSize
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              // Ghost's mono face is wider; keep the label clear of the track.
+              Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
+            }
+
+            SliderControl {
+              Layout.fillWidth: true
+              value: (Settings.spacingScale - 0.75) / 0.75
+              stepSize: 0.05 / 0.75
+              accessibleMinimumValue: 75
+              accessibleMaximumValue: 150
+              accessibleUnit: "%"
+              activeColor: Colors.primary
+              surfaceContainerHigh: Colors.surfaceContainerHigh
+              surfaceContainerHighest: Colors.surfaceContainerHighest
+              outline: Colors.styleOutlineStrong
+              focusColor: Colors.primary
+              motionDuration: Config.motionMedium
+              reducedMotion: Config.reducedMotion
+              accessibleName: "Spacing"
+              accessibleDescription: "Adjust global layout spacing"
+              onChanged: function(val) {
+                Settings.spacingScale = Math.round((0.75 + val * 0.75) * 20) / 20
+              }
+              onInteractionFinished: Settings.save()
+            }
+
+            Text {
+              text: Math.round(Settings.spacingScale * 100) + "%"
+              color: Colors.fgSurface
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeLabelMediumSize
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: Config.typeLabelMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              Layout.preferredWidth: 44
+            }
+          }
+
+          // Bar size
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: Config.spacingMedium
+
+            Text {
+              text: "Bar Size"
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeBodyMediumSize
+              font.letterSpacing: Config.typeBodyTracking
+              lineHeight: Config.typeBodyMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              // Ghost's mono face is wider; keep the label clear of the track.
+              Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
+            }
+
+            SliderControl {
+              Layout.fillWidth: true
+              value: (Settings.barSize - 28) / 28
+              stepSize: 2 / 28
+              accessibleMinimumValue: 28
+              accessibleMaximumValue: 56
+              accessibleUnit: "px"
+              activeColor: Colors.primary
+              surfaceContainerHigh: Colors.surfaceContainerHigh
+              surfaceContainerHighest: Colors.surfaceContainerHighest
+              outline: Colors.styleOutlineStrong
+              focusColor: Colors.primary
+              motionDuration: Config.motionMedium
+              reducedMotion: Config.reducedMotion
+              accessibleName: "Bar size"
+              accessibleDescription: "Adjust the bar's thickness and widget size"
+              onChanged: function(val) {
+                Settings.barSize = Math.round(28 + val * 28)
+              }
+              onInteractionFinished: Settings.save()
+            }
+
+            Text {
+              text: Settings.barSize + "px"
+              color: Colors.fgSurface
+              font.family: Config.fontFamily
+              font.pixelSize: Config.typeLabelMediumSize
+              font.letterSpacing: Config.typeLabelTracking
+              lineHeight: Config.typeLabelMediumLineHeight
+              lineHeightMode: Text.FixedHeight
+              Layout.preferredWidth: 44
+            }
           }
         }
 

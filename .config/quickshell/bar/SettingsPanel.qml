@@ -419,6 +419,10 @@ PanelWindow {
   function revealSearchTarget() {
     var page = tabLoader.item
     if (!page) return
+    if (page.expandForSearch && page.expandForSearch(root.searchTargetTitle)) {
+      Qt.callLater(root.revealSearchTarget)
+      return
+    }
     var target = root.findSearchTarget(page, root.searchTargetTitle)
     if (!target) {
       searchField.input.forceActiveFocus()

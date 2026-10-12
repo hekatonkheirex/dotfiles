@@ -6,7 +6,9 @@
 //   fit   inset rounded frame, floating off the edge
 //   dock  narrower body flush with the edge, open desktop at both ends
 //   notch dock body with concave shoulders flowing into the edge
-//   pill  no bar surface, each widget floats in its own pill
+//   pill  no bar surface, each widget floats in its own pill; horizontal bars
+//         group widgets in outlined capsules joined by a signal wave (Ghost and
+//         vertical bars get per-widget pills only)
 var FORMS = ["full", "fit", "dock", "notch", "pill"]
 
 // Settings written before barForm existed stored `fullBar` (false = pills).

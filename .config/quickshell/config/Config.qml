@@ -41,7 +41,7 @@ QtObject {
   // stays square rather than capping the rail at 34px.
   readonly property int barWidth: Settings.barSize
   readonly property int widgetSize: barWidth
-  // Geometry of the selected bar form (full, fit, dock, notch).
+  // Geometry of the selected bar form (full, fit, dock, notch, pill).
   readonly property var barFormMetrics: BarForm.metrics(Settings.barForm, {
     barWidth: barWidth, spacingSmall: spacingSmall, spacingLarge: spacingLarge
   })
