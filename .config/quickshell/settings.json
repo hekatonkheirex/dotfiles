@@ -1,6 +1,6 @@
 {
     "barClockInFlow": true,
-    "barForm": "pill",
+    "barForm": "full",
     "barSize": 34,
     "barWidgetOrder": "launcher,workspaces,layout,focused,gap,clock,center,llm,audio,display,media,battery,tray,notifications,weather",
     "calendarWeekStartsMonday": false,
