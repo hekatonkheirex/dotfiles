@@ -77,6 +77,14 @@ console.log("PASS source-guards")
 const bar = read("../../bar/Bar.qml")
 assert.equal((bar.match(/running: root\.ambientMotion/g) || []).length, 2, "both SignalWaves must be gated on ambientMotion")
 assert.ok(/ambientMotion: !UPower\.onBattery && !root\.sessionLocked/.test(bar.replace(/readonly property bool /, "")), "ambientMotion gates on battery and lock")
+{
+  const wave = read("../../bar/primitives/SignalWave.qml")
+  const layers = [...wave.matchAll(/Layer \{ period: (\d+); amp: ([\d.]+);.*?loopMs: (\d+); direction: (-?1) \}/g)]
+  assert.equal(layers.length, 2, "two wave layers")
+  assert.deepEqual(layers.map(l => +l[4]).sort(), [-1, 1], "layers travel in opposite directions")
+  const speeds = layers.map(l => +l[1] / (+l[3] / 1000))
+  assert.ok(speeds.every(v => v > 40 && v < 60), "slide speed matches reference (~44-51 px/s): " + speeds)
+}
 console.log("PASS wave-gating")
 
 const toast = read("../../bar/NotificationToast.qml")
