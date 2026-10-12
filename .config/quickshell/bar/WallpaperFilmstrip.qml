@@ -8,12 +8,17 @@ import "../config/WallpaperFilmstrip.js" as Film
 
 // Full-width wallpaper picker: a filmstrip of tall leaning slices with one
 // wide, accent-bordered card in the middle and its name below. Left/Right,
-// the wheel or a click moves the selection; Enter or a click on the card
-// applies it; Escape closes.
+// the wheel or a click moves the selection; typing jumps to the first name
+// that matches; Enter or a click on the card applies it; Escape clears the
+// typed text, then closes.
 PanelWindow {
   id: root
 
   property bool open: false
+  // Text typed into the launcher's "@" mode; jumps to the first match on open.
+  property string initialQuery: ""
+  property string query: ""
+  readonly property bool noMatch: root.query !== "" && Film.find(root.names(), root.query) < 0
   signal dismissed()
 
   readonly property string wallsDir: Quickshell.env("HOME") + "/Pictures/Walls"
@@ -34,7 +39,7 @@ PanelWindow {
   implicitHeight: root.geo.cardH + root.captionHeight
   margins.top: Math.max(0, ((root.screen ? root.screen.height : 1080) - root.implicitHeight) / 2)
 
-  ListModel { id: model }
+  ListModel { id: walls }
 
   function apply(name) {
     if (!name) return
@@ -44,8 +49,20 @@ PanelWindow {
     root.dismissed()
   }
 
+  function names() {
+    var out = []
+    for (var i = 0; i < walls.count; i++) out.push(walls.get(i).name)
+    return out
+  }
+
+  function jump(query) {
+    root.query = query
+    var hit = Film.find(root.names(), query)
+    if (hit >= 0) strip.currentIndex = hit
+  }
+
   function step(delta) {
-    strip.currentIndex = Film.clampIndex(strip.currentIndex, delta, model.count)
+    strip.currentIndex = Film.clampIndex(strip.currentIndex, delta, walls.count)
   }
 
   Process {
@@ -59,16 +76,25 @@ PanelWindow {
     stdout: StdioCollector {
       onStreamFinished: {
         var parsed = Film.parse(text)
-        model.clear()
-        for (var i = 0; i < parsed.items.length; i++) model.append(parsed.items[i])
-        strip.currentIndex = parsed.current
-        strip.positionViewAtIndex(parsed.current, ListView.Center)
+        walls.clear()
+        for (var i = 0; i < parsed.items.length; i++) walls.append(parsed.items[i])
+        strip.snap = true
+        var start = parsed.current
+        if (root.initialQuery !== "") {
+          var hit = Film.find(root.names(), root.initialQuery)
+          if (hit >= 0) start = hit
+        }
+        strip.currentIndex = -1
+        strip.currentIndex = start
+        strip.pos = start
+        strip.snap = false
       }
     }
   }
 
   onOpenChanged: {
     if (root.open) {
+      root.query = root.initialQuery
       lister.running = false
       lister.running = true
       keys.forceActiveFocus()
@@ -83,106 +109,132 @@ PanelWindow {
     Behavior on opacity { NumberAnimation { duration: Config.reducedMotion ? 0 : 160 } }
 
     Keys.onPressed: function(event) {
-      if (event.key === Qt.Key_Escape) root.dismissed()
-      else if (event.key === Qt.Key_Left || event.key === Qt.Key_H) root.step(-1)
-      else if (event.key === Qt.Key_Right || event.key === Qt.Key_L) root.step(1)
-      else if (event.key === Qt.Key_Home) root.step(-model.count)
-      else if (event.key === Qt.Key_End) root.step(model.count)
+      var typed = event.text.length === 1 && event.text >= " " && event.text !== "\x7f"
+        && !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))
+      if (event.key === Qt.Key_Escape) {
+        if (root.query !== "") root.query = ""
+        else root.dismissed()
+      }
+      else if (event.key === Qt.Key_Left) root.step(-1)
+      else if (event.key === Qt.Key_Right) root.step(1)
+      else if (event.key === Qt.Key_Home) root.step(-walls.count)
+      else if (event.key === Qt.Key_End) root.step(walls.count)
+      else if (event.key === Qt.Key_Backspace) root.jump(root.query.slice(0, -1))
       else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-        if (strip.currentIndex >= 0 && strip.currentIndex < model.count)
-          root.apply(model.get(strip.currentIndex).name)
-      } else return
+        if (strip.currentIndex >= 0 && strip.currentIndex < walls.count)
+          root.apply(walls.get(strip.currentIndex).name)
+      } else if (typed) root.jump(root.query + event.text)
+      else return
       event.accepted = true
     }
 
-    ListView {
+    // Items are placed by Film.layout() from a fractional position, so a
+    // jump of any length slides without the view re-deriving the selection.
+    Item {
       id: strip
       anchors.left: parent.left
       anchors.right: parent.right
       anchors.top: parent.top
       height: root.geo.cardH
-      orientation: ListView.Horizontal
-      model: model
-      spacing: 2
-      clip: false
-      cacheBuffer: root.geo.cardW
-      highlightRangeMode: ListView.StrictlyEnforceRange
-      preferredHighlightBegin: (width - root.geo.cardW) / 2
-      preferredHighlightEnd: (width + root.geo.cardW) / 2
-      highlightMoveDuration: Config.reducedMotion ? 0 : 240
-      highlightMoveVelocity: -1
-      boundsBehavior: Flickable.StopAtBounds
-      interactive: false
 
-      delegate: Item {
-        id: slot
-        required property int index
-        required property string name
-        required property real mtime
-        readonly property bool current: ListView.isCurrentItem
-        property bool thumbMissing: false
+      readonly property int spacing: 2
+      property int currentIndex: -1
+      property real pos: 0
+      property bool snap: true
+      readonly property int reach: Math.ceil(width / 2 / Math.max(1, root.geo.sliceW)) + 2
+      readonly property int base: Math.floor(pos) - reach
 
-        width: slot.current ? root.geo.cardW : root.geo.sliceW
-        height: strip.height
-        Behavior on width { NumberAnimation { duration: Config.reducedMotion ? 0 : 240; easing.type: Easing.OutCubic } }
+      Behavior on pos {
+        enabled: !strip.snap && !Config.reducedMotion
+        NumberAnimation { duration: 260; easing.type: Easing.OutCubic }
+      }
+      // Full-size decodes (some wallpapers are huge PNGs) share one loader
+      // thread with the thumbnails, so start one only once the selection rests.
+      property bool rested: false
+      onCurrentIndexChanged: {
+        strip.rested = false
+        restTimer.restart()
+        if (currentIndex >= 0) strip.pos = currentIndex
+      }
+      Timer { id: restTimer; interval: 280; onTriggered: strip.rested = true }
 
-        Item {
-          id: card
-          anchors.verticalCenter: parent.verticalCenter
-          width: parent.width
-          height: slot.current ? root.geo.cardH : root.geo.sliceH
-          clip: true
-          Behavior on height { NumberAnimation { duration: Config.reducedMotion ? 0 : 240; easing.type: Easing.OutCubic } }
+      Repeater {
+        model: 2 * strip.reach + 3
 
-          // Lean the whole slice, picture included, about its vertical centre.
-          transform: Matrix4x4 {
-            matrix: Qt.matrix4x4(1, -root.geo.lean, 0, root.geo.lean * card.height / 2,
-                                 0, 1, 0, 0,
-                                 0, 0, 1, 0,
-                                 0, 0, 0, 1)
+        delegate: Item {
+          id: slot
+          required property int index
+          // Stable per item: delegate j always shows the index congruent to j
+          // modulo the window, so advancing by one reloads a single image.
+          readonly property int span: 2 * strip.reach + 3
+          readonly property int idx: strip.base + (((slot.index - strip.base) % slot.span) + slot.span) % slot.span
+          readonly property bool valid: slot.idx >= 0 && slot.idx < walls.count
+          readonly property var geom: Film.layout(slot.idx, strip.pos, root.geo, strip.spacing)
+          readonly property bool current: slot.idx === strip.currentIndex
+          readonly property string name: slot.valid ? walls.get(slot.idx).name : ""
+          property bool thumbMissing: false
+
+          visible: slot.valid
+          x: (strip.width - root.geo.cardW) / 2 + slot.geom.x
+          width: slot.geom.w
+          height: strip.height
+
+          Item {
+            id: card
+            anchors.verticalCenter: parent.verticalCenter
+            width: parent.width
+            height: slot.geom.h
+            clip: true
+
+            // Lean the whole slice, picture included, about its vertical centre.
+            transform: Matrix4x4 {
+              matrix: Qt.matrix4x4(1, -root.geo.lean, 0, root.geo.lean * card.height / 2,
+                                   0, 1, 0, 0,
+                                   0, 0, 1, 0,
+                                   0, 0, 0, 1)
+            }
+
+            Rectangle { anchors.fill: parent; color: Colors.surfaceContainer }
+
+            Image {
+              anchors.fill: parent
+              source: slot.valid ? "file://" + (slot.thumbMissing ? root.wallsDir : root.thumbDir) + "/" + slot.name : ""
+              sourceSize: Qt.size(200, 130)
+              fillMode: Image.PreserveAspectCrop
+              asynchronous: true
+              cache: false
+              onStatusChanged: if (status === Image.Error) slot.thumbMissing = true
+            }
+
+            // Full picture only for the selected card; the thumbnail stays
+            // under it until the decode finishes.
+            Image {
+              anchors.fill: parent
+              visible: slot.current
+              source: slot.current && slot.valid && strip.rested ? "file://" + root.wallsDir + "/" + slot.name : ""
+              sourceSize: Qt.size(1280, 720)
+              fillMode: Image.PreserveAspectCrop
+              asynchronous: true
+              cache: false
+              opacity: status === Image.Ready ? 1 : 0
+              Behavior on opacity { NumberAnimation { duration: Config.reducedMotion ? 0 : 140 } }
+            }
+
+            Rectangle {
+              anchors.fill: parent
+              color: "transparent"
+              border.width: slot.current ? 2 : 0
+              border.color: Colors.primary
+            }
           }
 
-          Rectangle { anchors.fill: parent; color: Colors.surfaceContainer }
-
-          Image {
+          MouseArea {
             anchors.fill: parent
-            source: "file://" + (slot.thumbMissing ? root.wallsDir : root.thumbDir) + "/" + slot.name
-            sourceSize: Qt.size(200, 130)
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            cache: false
-            onStatusChanged: if (status === Image.Error) slot.thumbMissing = true
-          }
-
-          // Full picture only for the selected card; the thumbnail stays under
-          // it until the decode finishes.
-          Image {
-            id: full
-            anchors.fill: parent
-            visible: slot.current
-            source: slot.current ? "file://" + root.wallsDir + "/" + slot.name : ""
-            sourceSize: Qt.size(1280, 720)
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            cache: false
-            opacity: status === Image.Ready ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: Config.reducedMotion ? 0 : 140 } }
-          }
-
-          Rectangle {
-            anchors.fill: parent
-            color: "transparent"
-            border.width: slot.current ? 2 : 0
-            border.color: Colors.primary
-          }
-        }
-
-        MouseArea {
-          anchors.fill: parent
-          cursorShape: Qt.PointingHandCursor
-          onClicked: {
-            if (slot.current) root.apply(slot.name)
-            else strip.currentIndex = slot.index
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+              if (slot.current) root.apply(slot.name)
+              else strip.currentIndex = slot.idx
+            }
           }
         }
       }
@@ -204,8 +256,8 @@ PanelWindow {
       width: captionRow.implicitWidth + 28
       height: captionRow.implicitHeight + 14
       radius: height / 2
-      color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 0.9)
-      visible: model.count > 0 && strip.currentIndex >= 0 && strip.currentIndex < model.count
+      color: Qt.rgba(Colors.surfaceContainer.r, Colors.surfaceContainer.g, Colors.surfaceContainer.b, 1)
+      visible: walls.count > 0 && strip.currentIndex >= 0 && strip.currentIndex < walls.count
 
       Row {
         id: captionRow
@@ -213,13 +265,20 @@ PanelWindow {
         spacing: 14
 
         Text {
-          text: caption.visible ? Film.label(model.get(strip.currentIndex).name) : ""
+          visible: root.query !== ""
+          text: "/" + root.query
+          color: root.noMatch ? Colors.error : Colors.primary
+          font.family: Config.monoFontFamily
+          font.pixelSize: 13
+        }
+        Text {
+          text: caption.visible ? Film.label(walls.get(strip.currentIndex).name) : ""
           color: Colors.fgSurface
           font.family: Config.monoFontFamily
           font.pixelSize: 13
         }
         Text {
-          text: caption.visible ? Film.stamp(model.get(strip.currentIndex).mtime) : ""
+          text: caption.visible ? Film.stamp(walls.get(strip.currentIndex).mtime) : ""
           color: Colors.outline
           font.family: Config.monoFontFamily
           font.pixelSize: 13

@@ -24,6 +24,9 @@ PanelWindow {
   readonly property string voiceFilePath: root.runtimeDirectory + "/voice-search.wav"
 
   signal dismissed()
+  // "@" hands off to the full-width wallpaper filmstrip; the text typed after
+  // it travels along as the initial jump query.
+  signal wallpapersRequested(string query)
 
 
   implicitWidth: wallpaperMode
@@ -204,7 +207,9 @@ PanelWindow {
   readonly property bool clipboardMode: searchText.trim().startsWith(";")
 
   onWallpaperModeChanged: {
-    if (root.wallpaperMode) root.refreshWallpapers()
+    if (!root.wallpaperMode) return
+    root.wallpapersRequested(root.searchText.trim().substring(1).trim())
+    root.dismissed()
   }
   readonly property int wallpaperCellWidth: 180
   readonly property int wallpaperCellHeight: 124

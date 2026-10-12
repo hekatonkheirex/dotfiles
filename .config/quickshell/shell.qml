@@ -18,6 +18,7 @@ ShellRoot {
   // Full-width wallpaper filmstrip (bar/WallpaperFilmstrip.qml); toggled by
   // `qs ipc call shell wallpapers`.
   property bool wallpaperFilmstripOpen: false
+  property string wallpaperFilmstripQuery: ""
 
   // Battery low alert — Warning at 20%, Alert at 10%. Persists until manually
   // dismissed or the charger is plugged in (see checkLevel + notifServer capture below).
@@ -390,6 +391,7 @@ ShellRoot {
 
     function wallpapers() {
       bar.openPopup = ""
+      shell.wallpaperFilmstripQuery = ""
       shell.wallpaperFilmstripOpen = !shell.wallpaperFilmstripOpen
     }
 
@@ -679,6 +681,7 @@ ShellRoot {
     id: wallpaperFilmstrip
     screen: bar.screen
     open: shell.wallpaperFilmstripOpen && !lockScreen.locked
+    initialQuery: shell.wallpaperFilmstripQuery
     onDismissed: shell.wallpaperFilmstripOpen = false
   }
 
@@ -688,6 +691,10 @@ ShellRoot {
     visible: bar.openPopup === "launcher" && !lockScreen.locked
     anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
+    onWallpapersRequested: function(query) {
+      shell.wallpaperFilmstripQuery = query
+      shell.wallpaperFilmstripOpen = true
+    }
 
     anchors.left: true
     margins.left: launcherPopup.wallpaperMode

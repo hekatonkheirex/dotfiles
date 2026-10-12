@@ -68,3 +68,39 @@ function parse(text) {
     if (items[j].name === currentName) { current = j; break }
   return { items: items, current: current }
 }
+
+function normalize(text) {
+  return String(text).toLowerCase().replace(/[._\-\s]+/g, " ").trim()
+}
+
+// Type-to-jump: first name starting with the query, else first containing it.
+// Returns -1 for an empty query or no match.
+function find(names, query) {
+  var q = normalize(query)
+  if (!q) return -1
+  var contains = -1
+  for (var i = 0; i < names.length; i++) {
+    var n = normalize(names[i])
+    if (n.indexOf(q) === 0) return i
+    if (contains < 0 && n.indexOf(q) > 0) contains = i
+  }
+  return contains
+}
+
+// Geometry of item `i` while the selection sits at the (possibly fractional)
+// position `pos`. x is the left edge relative to the selected card's resting
+// left edge. Exactly one card-width of extra size is shared between the two
+// items that straddle `pos`, and the gap between neighbours is always `spacing`.
+function layout(i, pos, geo, spacing) {
+  var step = geo.sliceW + spacing
+  var fl = Math.floor(pos)
+  var f = pos - fl
+  var bump = Math.max(0, 1 - Math.abs(i - pos))
+  var g = i <= fl ? 0 : (i === fl + 1 ? 1 - f : 1)
+  return {
+    x: (i - pos) * step + (geo.cardW - geo.sliceW) * g,
+    w: geo.sliceW + (geo.cardW - geo.sliceW) * bump,
+    h: geo.sliceH + (geo.cardH - geo.sliceH) * bump,
+    bump: bump
+  }
+}
