@@ -9,6 +9,7 @@ import Quickshell.Services.UPower
 import Quickshell.Io
 import "config"
 import "config/BarForm.js" as BarForm
+import "config/DockModel.js" as DockModel
 import "bar"
 import "ui" as Ui
 
@@ -261,6 +262,39 @@ ShellRoot {
     bar.openPopup = "launcher"
   }
 
+  // niri's socket path changes per session; pick the newest like the other
+  // niri helpers in this config.
+  function niriAction(args) {
+    Quickshell.execDetached(["sh", "-c",
+      "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) niri msg action " + args])
+  }
+
+  function dockLaunch(appId) {
+    var entry = DesktopEntries.heuristicLookup(appId)
+    if (entry) entry.execute()
+    else Quickshell.execDetached([appId])
+  }
+
+  function dockActivate(appId) {
+    var windows = WindowService.windows
+    var own = DockModel.dockItems([appId], windows)[0]
+    if (!own || own.count === 0) { shell.dockLaunch(appId); return }
+    var id = own.focused
+      ? DockModel.nextWindow(windows, appId, WindowService.focusedWindowId, 1)
+      : DockModel.relevantWindow(windows, appId)
+    if (id !== null) shell.niriAction("focus-window --id " + Math.floor(id))
+  }
+
+  function dockClose(appId) {
+    var id = DockModel.relevantWindow(WindowService.windows, appId)
+    if (id !== null) shell.niriAction("close-window --id " + Math.floor(id))
+  }
+
+  function dockCycle(appId, direction) {
+    var id = DockModel.nextWindow(WindowService.windows, appId, WindowService.focusedWindowId, direction)
+    if (id !== null) shell.niriAction("focus-window --id " + Math.floor(id))
+  }
+
   function popupMarginLeft(w, screenW) {
     if (bar.horizontal) {
       // Float popups off the screen edge instead of clamping flush to it.
@@ -416,6 +450,22 @@ ShellRoot {
       if (!Config.elenaTheme || lockScreen.locked) return false
       shell.openLauncherWith(text)
       return true
+    }
+
+    // Dev/testing: dock state as JSON (items, visibility inputs).
+    function dockState(): string {
+      return JSON.stringify({
+        revealed: dock.revealed,
+        workspaceEmpty: WindowService.workspaceEmpty,
+        windows: WindowService.windows.length,
+        items: dock.items
+      })
+    }
+
+    // Dev/testing: force the dock shown (true) or back to automatic (false).
+    function dockReveal(on: bool): bool {
+      dock.forceShown = on
+      return dock.revealed
     }
 
     // Dev/testing: the launcher's current search text.
@@ -611,6 +661,17 @@ ShellRoot {
     screen: bar.screen
     onDismissed: bar.openPopup = ""
     onSearchSubmitted: function(text) { shell.openLauncherWith(text) }
+  }
+
+  Dock {
+    id: dock
+    visible: Config.elenaTheme && bar.visible && !lockScreen.locked
+    screen: bar.screen
+    items: DockModel.dockItems(DockModel.normalizePinned(Settings.dockPinned), WindowService.windows)
+    workspaceEmpty: WindowService.workspaceEmpty
+    onItemActivated: function(appId) { shell.dockActivate(appId) }
+    onItemClosed: function(appId) { shell.dockClose(appId) }
+    onItemCycled: function(appId, direction) { shell.dockCycle(appId, direction) }
   }
 
   Connections {
