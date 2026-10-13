@@ -49,7 +49,7 @@ surface with an exclusive zone of the bar height.
 | glance | x1 | clock glyph + `HHMM` pill (min width 34 S) | sidebar page 0 | right click: launcher |
 | tasks | x2 | calendar glyph + day-of-month pill | sidebar page 1 | |
 | media | x5 | speaker glyph + volume ring: 5 S thick, backdrop `surfaceContainerHighest`, starts at 75 %, counter-clockwise; muted ring uses x8 | sidebar page 2 (clamped to existing pages) | scroll up/down: volume +/- (one step per notch); middle: mute; right: focus or spawn pavucontrol |
-| network | x4 | VPN glyph (on/off) + 4 signal bars (heights `23S-16S`, `-10.5S`, `-5.5S`, `23S`; 5 S wide; active up to the signal level, disconnected = one short x8 bar) | Settings > Network (tab 4) until R4 | |
+| network | x4 | VPN glyph (on/off) + 4 signal bars (heights `23S-16S`, `-10.5S`, `-5.5S`, `23S`; 5 S wide; active up to the signal level; with no active network all four collapse to short x8 bars, as in her `.disconnected` style) | Settings > Network (tab 4) until R4 | |
 | alarms | x3 | alarm glyph + count pill; with no alarms a 4 S slashed line rotated 38 degrees | no-op until R5 | |
 | logout | x6 | charger or battery glyph + 3-part vertical battery stack (14 S wide parts, thresholds 66/83, 33/49, 0/16: part is `full` above the half threshold, `half` (50 % opacity) above the lower one, else `surfaceContainerHighest`) | quick menu until R3 | |
 
