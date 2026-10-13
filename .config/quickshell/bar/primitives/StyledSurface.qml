@@ -1,4 +1,4 @@
-// Shared tonal cards; Liquid Glass uses neutral translucent material.
+
 import QtQuick
 import "../../config"
 
@@ -11,27 +11,21 @@ Item {
   // Settings groups use a quieter surface and fine outline, without changing
   // the shell's unrelated popup and dashboard cards.
   property bool settingsSection: false
-  property color surfaceColor: Config.material3Theme ? Colors.surface : Colors.styleSurface
-  property color outlineColor: Config.material3Theme ? Colors.outlineVariant : Colors.styleOutline
+  property color surfaceColor: Colors.surface
+  property color outlineColor: Colors.outlineVariant
   property real outlineWidth: Config.themeBorderWidth
   property real radius: Config.shapeLarge
   property bool clipContent: false
-  readonly property bool material3Theme: Config.material3Theme
-  readonly property color liquidGlassSurfaceColor: root.variant === "elevated"
-    ? Colors.liquidGlassRaised
-    : (root.variant === "filled" ? Colors.liquidGlassRaised : Colors.liquidGlassClear)
-  readonly property color renderedSurfaceColor: root.material3Theme
-    ? (root.variant === "elevated"
+  readonly property color renderedSurfaceColor: (root.variant === "elevated"
       ? Colors.surfaceContainerLow
       : (root.variant === "filled"
         ? (root.settingsSection ? Colors.surfaceContainer : Colors.surfaceContainerHighest)
         : root.surfaceColor))
-    : (Config.liquidGlassTheme ? root.liquidGlassSurfaceColor : root.surfaceColor)
-  readonly property color renderedOutlineColor: root.material3Theme && root.settingsSection && root.variant === "filled"
+  readonly property color renderedOutlineColor: root.settingsSection && root.variant === "filled"
     ? Qt.rgba(Colors.outlineVariant.r, Colors.outlineVariant.g, Colors.outlineVariant.b, 0.25)
-    : (root.material3Theme && root.variant !== "outlined" ? "transparent" : root.outlineColor)
-  readonly property real renderedOutlineWidth: root.material3Theme && root.settingsSection && root.variant === "filled"
-    ? 1 : (root.material3Theme && root.variant !== "outlined" ? 0 : root.outlineWidth)
+    : (root.variant !== "outlined" ? "transparent" : root.outlineColor)
+  readonly property real renderedOutlineWidth: root.settingsSection && root.variant === "filled"
+    ? 1 : (root.variant !== "outlined" ? 0 : root.outlineWidth)
 
   default property alias content: contentLayer.data
 
@@ -44,7 +38,7 @@ Item {
     height: root.height
     radius: root.radius
     color: Qt.rgba(Colors.shadow.r, Colors.shadow.g, Colors.shadow.b, 0.16)
-    visible: root.material3Theme && root.variant === "elevated" && root.width > 0 && root.height > 0
+    visible: root.variant === "elevated" && root.width > 0 && root.height > 0
     z: -1
   }
 
@@ -58,11 +52,6 @@ Item {
     clip: root.clipContent
   }
 
-  GlassSheen {
-    anchors.fill: surface
-    radius: surface.radius
-    glassEnabled: Config.liquidGlassTheme
-  }
 
   Item {
     id: contentLayer

@@ -14,18 +14,7 @@ PanelWindow {
   id: root
 
   property int anchorY: 0
-  // dwm theme: the launcher becomes a one-line strip drawn over a horizontal bar.
-  property bool barHorizontal: true
-  readonly property bool dmenu: Config.dwmTheme && root.barHorizontal
-  onDmenuChanged: if (visible) focusTimer.restart()
 
-  readonly property string runtimeDirectory: {
-    var xdgRuntime = Quickshell.env("XDG_RUNTIME_DIR")
-    return xdgRuntime
-      ? xdgRuntime + "/quickshell"
-      : Quickshell.env("HOME") + "/.cache/quickshell/runtime"
-  }
-  readonly property string voiceFilePath: root.runtimeDirectory + "/voice-search.wav"
 
   signal dismissed()
   // "@" hands off to the full-width wallpaper filmstrip; the text typed after
@@ -33,11 +22,10 @@ PanelWindow {
   signal wallpapersRequested(string query)
 
 
-  implicitWidth: root.dmenu ? 0 : Math.min(Config.launcherWidth,
+  implicitWidth: Math.min(Config.launcherWidth,
     Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
   visible: false
-  implicitHeight: root.dmenu ? Config.barWidth
-    : Math.min(screenH - Config.spacingPage, clipItem.implicitHeight + Config.spacingPage,
+  implicitHeight: Math.min(screenH - Config.spacingPage, clipItem.implicitHeight + Config.spacingPage,
         clipboardMode ? 620 : 500)
 
   Behavior on implicitWidth {
@@ -55,9 +43,9 @@ PanelWindow {
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: Config.layerNamespace("popup")
-  WlrLayershell.layer: root.dmenu ? WlrLayer.Overlay : WlrLayer.Top
+  WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.focusable: true
-  WlrLayershell.keyboardFocus: root.dmenu ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
+  WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
   property int screenH: Screen.desktopAvailableHeight
 
@@ -193,8 +181,6 @@ PanelWindow {
   // once after the on-show reset below, then cleared.
   property string initialQuery: ""
   property int selectedIndex: 0
-  property bool voiceRecording: false
-  property bool voiceTranscribing: false
   property bool clipboardLoaded: false
   property bool clipboardLoading: false
   property bool clipboardWipeArmed: false
@@ -299,34 +285,6 @@ PanelWindow {
     }
   }
 
-  Process {
-    id: recorderProc
-    command: [
-      "sh", "-c",
-      "mkdir -p -- \"$1\" && (chmod 700 -- \"$1\" 2>/dev/null || [ \"$(stat -c %a -- \"$1\" 2>/dev/null)\" = 700 ]) && exec pw-record --rate 16000 --channels 1 --format s16 \"$2\"",
-      "sh", root.runtimeDirectory, root.voiceFilePath
-    ]
-    running: false
-  }
-
-  Process {
-    id: transcriberProc
-    command: ["python3", Quickshell.env("HOME") + "/.config/quickshell/scripts/voice-search.py", root.voiceFilePath]
-    running: false
-    stdout: StdioCollector {
-      onStreamFinished: {
-        root.voiceTranscribing = false
-        var t = text.trim()
-        if (t.length > 0) {
-          searchInputControl.text = t
-          root.searchText = t
-          root.selectedIndex = 0
-          filterApps()
-        }
-        searchInputControl.input.forceActiveFocus()
-      }
-    }
-  }
 
   Component.onCompleted: {
     filteredModel.clear()
@@ -369,18 +327,6 @@ PanelWindow {
     return JSON.stringify(root.normalizeArgv(value))
   }
 
-  function toggleVoiceSearch() {
-    if (!root.voiceRecording && !root.voiceTranscribing) {
-      root.voiceRecording = true
-      Quickshell.execDetached(["rm", "-f", root.voiceFilePath])
-      recorderProc.running = true
-    } else if (root.voiceRecording) {
-      root.voiceRecording = false
-      root.voiceTranscribing = true
-      recorderProc.running = false
-      transcriberProc.running = true
-    }
-  }
 
   function runLauncherScript(name) {
     Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/quickshell/scripts/" + name])
@@ -751,8 +697,7 @@ PanelWindow {
     repeat: true
     onTriggered: {
       var window = searchInputControl.Window.window
-      if (window && !window.active && !resultMenu.opened
-          && !root.voiceRecording && !root.voiceTranscribing) {
+      if (window && !window.active && !resultMenu.opened) {
         stop()
         dismissed()
       }
@@ -785,38 +730,23 @@ PanelWindow {
         root.filterApps()
         searchInputControl.input.cursorPosition = q.length
       }
-      if (Config.reducedMotion || root.dmenu) {
+      if (Config.reducedMotion || false) {
         entryAnimation.stop()
         materialEntryAnimation.stop()
         reducedMotionEntryAnimation.stop()
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
         transX.x = 0
-        if (Config.liquidGlassTheme) {
-          bg.opacity = 0.0
-          reducedMotionEntryAnimation.start()
-        } else {
+        {
           bg.opacity = 1.0
         }
-      } else if (Config.material3Theme) {
-        materialEntryAnimation.restart()
       } else {
-        entryAnimation.start()
+        materialEntryAnimation.restart()
       }
-      root.voiceRecording = false
-      root.voiceTranscribing = false
     } else {
       // A query set while the launcher stayed hidden must not leak into the next open.
       root.initialQuery = ""
       resultMenu.close()
-      if (root.voiceRecording) {
-        root.voiceRecording = false
-        recorderProc.running = false
-      }
-      if (root.voiceTranscribing) {
-        root.voiceTranscribing = false
-        transcriberProc.running = false
-      }
       if (clipboardProc.running) clipboardProc.running = false
       clipboardWipeTimer.stop()
       clipboardRefreshTimer.stop()
@@ -844,20 +774,15 @@ PanelWindow {
   Rectangle {
     id: bg
     anchors.fill: parent
-    color: root.dmenu ? Colors.styleSurface
-      : (Config.nothingEvolution ? Colors.readingSurface
-      : (Config.liquidGlassTheme
-        ? Colors.chromeSurface
-        : ((Config.nothingDesign || Config.ghostTheme)
-          ? Colors.styleSurfaceRaised : Colors.surfaceContainer)))
-    radius: root.dmenu ? 0 : Config.popupRadius
-    border.color: Colors.styleOutline
-    border.width: root.dmenu ? 0 : Config.themeBorderWidth
-
-    GlassSheen {
+    color: Colors.surface
+    radius: Config.popupRadius
+    // Static reference framing; focus rings remain on the native controls.
+    DashedFrame {
       anchors.fill: parent
-      radius: parent.radius
+      active: root.visible
+      radius: bg.radius
     }
+
 
     transform: [
       Translate { id: transX; x: 0 },
@@ -909,101 +834,10 @@ PanelWindow {
       easing.type: Easing.OutCubic
     }
 
-    // dmenu strip: prompt, input, then results inline. The search field is the
-    // same TextFieldControl the list view uses; it is reparented here so focus,
-    // filtering and launch logic stay in one place.
-    RowLayout {
-      id: dmenuRow
-      visible: root.dmenu
-      anchors.fill: parent
-      spacing: 0
-
-      Text {
-        id: dmenuPrompt
-        Layout.fillHeight: true
-        Layout.preferredWidth: implicitWidth + Config.spacingMedium * 2
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        text: root.clipboardMode ? "clip" : "run"
-        color: Colors.fgPrimary
-        font.family: Config.fontFamily
-        font.pixelSize: Config.typeLabelMediumSize
-        Rectangle {
-          anchors.fill: parent
-          z: -1
-          color: Colors.primary
-        }
-      }
-
-      // searchInputControl is reparented here when root.dmenu is true.
-      Item {
-        id: dmenuInputSlot
-        Layout.preferredWidth: Math.min(280, Math.round(root.width / 3))
-        Layout.fillHeight: true
-      }
-
-      Text {
-        visible: !appStrip.atXBeginning && filteredModel.count > 0
-        text: "<"
-        color: Colors.fgSurface
-        font.family: Config.fontFamily
-        font.pixelSize: Config.typeLabelMediumSize
-        Layout.leftMargin: Config.spacingSmall
-        Layout.rightMargin: Config.spacingCompact
-      }
-
-      ListView {
-        id: appStrip
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        orientation: ListView.Horizontal
-        clip: true
-        interactive: false
-        model: root.dmenu ? filteredModel : null
-        currentIndex: root.selectedIndex
-        onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
-
-        delegate: Rectangle {
-          required property int index
-          required property var model
-          readonly property bool current: root.selectedIndex === index
-          height: appStrip.height
-          width: stripLabel.implicitWidth + Config.spacingMedium * 2
-          color: current ? Colors.primary : "transparent"
-
-          Text {
-            id: stripLabel
-            anchors.centerIn: parent
-            text: model.name
-            color: parent.current ? Colors.fgPrimary : Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelMediumSize
-          }
-
-          MouseArea {
-            anchors.fill: parent
-            onClicked: {
-              root.selectedIndex = index
-              root.activateSelection()
-            }
-          }
-        }
-      }
-
-      Text {
-        visible: !appStrip.atXEnd && filteredModel.count > 0
-        text: ">"
-        color: Colors.fgSurface
-        font.family: Config.fontFamily
-        font.pixelSize: Config.typeLabelMediumSize
-        Layout.leftMargin: Config.spacingCompact
-        Layout.rightMargin: Config.spacingSmall
-      }
-    }
 
     ColumnLayout {
       id: clipItem
-      anchors { fill: parent; margins: Config.spacingMedium }
+      anchors { fill: parent; margins: Config.spacingLarge }
 
       Shortcut {
         sequence: "Ctrl+F"
@@ -1028,7 +862,7 @@ PanelWindow {
       Shortcut {
         sequences: ["Shift+F10", "Menu"]
         context: Qt.WindowShortcut
-        enabled: root.visible && root.selectedResult !== null && !root.dmenu
+        enabled: root.visible && root.selectedResult !== null && true
         onActivated: resultMenu.popup(appList, appList.width / 2, appList.height / 2)
       }
 
@@ -1039,7 +873,7 @@ PanelWindow {
           radius: Config.shapeMedium
           color: Colors.surfaceContainerHigh
           border.width: 1
-          border.color: Colors.styleOutline
+          border.color: Colors.outlineVariant
         }
         DesktopMenuItem {
           text: root.selectionActionLabel
@@ -1062,43 +896,41 @@ PanelWindow {
       }
       spacing: Config.spacingMedium
 
-      // List-view slot for searchInputControl. It sizes like the field did as a
-      // direct layout child: preferred = implicitHeight, minimum = Material's.
-      Item {
-        id: listInputSlot
-        visible: !root.dmenu
+      RowLayout {
         Layout.fillWidth: true
-        Layout.preferredHeight: searchInputControl.implicitHeight
-        Layout.minimumHeight: Config.material3Theme ? searchInputControl.implicitHeight : 0
+        Text {
+          Layout.fillWidth: true
+          text: "/ " + (root.actionMode ? "ACTIONS"
+            : (root.clipboardMode ? "CLIPBOARD" : "APPLICATIONS")) + " /"
+          color: Colors.primary
+          font.family: "monospace"
+          font.pixelSize: Config.typeLabelMediumSize
+          font.letterSpacing: Config.typeMonoTracking
+          elide: Text.ElideRight
+        }
+        Text {
+          text: filteredModel.count + (filteredModel.count === 1 ? " MATCH" : " MATCHES")
+          color: Colors.fgSurfaceVariant
+          font.family: "monospace"
+          font.pixelSize: Config.typeLabelSmallSize
+          font.letterSpacing: Config.typeMonoTracking
+        }
       }
 
       TextFieldControl {
         id: searchInputControl
-        // Reparenting appends to the new parent's children and layouts place
-        // children in that order, so the field lives in a plain slot Item in
-        // each layout instead of being a layout child itself.
-        parent: root.dmenu ? dmenuInputSlot : listInputSlot
-        width: parent.width
-        // Strip: fixed third-width input, no icon, no frame, arrows move selection.
-        height: parent.height
-        // Reproduces TextFieldControl's own color binding for every non-dmenu style.
-        color: root.dmenu ? "transparent"
-          : (Config.material3Theme ? Colors.surface
-            : (Config.liquidGlassTheme ? Colors.liquidGlassControl : Colors.styleSurface))
-        border.width: root.dmenu ? 0
-          : (searchInputControl.input.activeFocus ? Config.themeFocusBorderWidth : Config.themeBorderWidth)
-        leadingIcon: root.dmenu ? "" : "search"
-        captureHorizontalArrows: root.dmenu
+        Layout.fillWidth: true
+        Layout.preferredHeight: implicitHeight
+        Layout.minimumHeight: implicitHeight
+        color: Colors.surfaceContainer
+        border.width: (searchInputControl.input.activeFocus ? Config.themeFocusBorderWidth : Config.themeBorderWidth)
+        leadingIcon: "search"
+        captureHorizontalArrows: false
         onLeftPressed: root.moveSelection(-1)
         onRightPressed: root.moveSelection(1)
         leadingIconSize: 22
-        placeholder: root.voiceRecording
-          ? "Listening... Click mic to stop."
-          : (root.voiceTranscribing
-            ? "Transcribing..."
-            : (root.actionMode
-              ? "Run a shell action..."
-              : (root.clipboardMode ? "Search clipboard history..." : "Search apps")))
+        placeholder: root.actionMode ? "Run a shell action..."
+          : (root.clipboardMode ? "Search clipboard history..." : "Search apps")
         showPlaceholderOnFocus: true
         accessibleName: "Search applications and launcher providers"
 
@@ -1107,35 +939,6 @@ PanelWindow {
         onUpPressed: root.moveSelection(-1)
         onDownPressed: root.moveSelection(1)
 
-        IconButton {
-          id: micIcon
-          visible: !root.dmenu
-          size: 32
-          iconSize: 22
-          iconLabel: root.voiceRecording ? "stop" : (root.voiceTranscribing ? "sync" : "mic")
-          iconColor: root.voiceRecording ? Colors.destructive : (root.voiceTranscribing ? Colors.info : Colors.fgSurfaceVariant)
-          accessibleName: root.voiceRecording
-            ? "Stop voice search"
-            : (root.voiceTranscribing ? "Transcribing voice search" : "Start voice search")
-          accessibleDescription: root.voiceTranscribing
-            ? "Voice search is being transcribed"
-            : "Record a voice query for the launcher"
-          tooltipText: accessibleName
-          onClicked: root.toggleVoiceSearch()
-          onRotationChanged: {
-            if (!root.voiceTranscribing && rotation !== 0) rotation = 0
-          }
-
-          RotationAnimator {
-            target: micIcon
-            running: root.voiceTranscribing && !Config.reducedMotion
-            loops: Animation.Infinite
-            from: 0
-            to: 360
-            duration: 1200
-          }
-
-        }
       }
 
       // Prefix shortcuts live under the field instead of crowding the placeholder.
@@ -1144,7 +947,7 @@ PanelWindow {
         Layout.fillWidth: true
         Layout.leftMargin: Config.spacingSmall
         spacing: Config.spacingSmall
-        visible: !root.dmenu && root.searchText === "" && !root.voiceRecording && !root.voiceTranscribing
+        visible: root.searchText === ""
 
         Repeater {
           model: [
@@ -1154,9 +957,9 @@ PanelWindow {
           ]
           delegate: ActionButton {
             required property var modelData
-            height: Config.material3Theme ? implicitHeight : 32
+            height: implicitHeight
             width: chipMetrics.width + Config.spacingMedium * 2
-            labelText: modelData.key + "  " + modelData.label
+            labelText: modelData.key + "  " + modelData.label.toUpperCase()
             horizontalContent: true
             variant: "outlined"
             accessibleName: "Search " + modelData.label
@@ -1164,7 +967,7 @@ PanelWindow {
               id: chipMetrics
               font.family: Config.fontFamily
               font.pixelSize: Config.typeLabelMediumSize
-              text: modelData.key + "  " + modelData.label
+              text: modelData.key + "  " + modelData.label.toUpperCase()
             }
             onActivated: {
               searchInputControl.text = modelData.key
@@ -1186,7 +989,7 @@ PanelWindow {
 
       ListView {
         id: appList
-        visible: !root.dmenu
+        visible: true
         Layout.fillWidth: true
         Layout.preferredHeight: Math.min(contentHeight, 380)
         Layout.fillHeight: true
@@ -1211,8 +1014,8 @@ PanelWindow {
           // The scrollbar is overlaid on the ListView; leave a gutter so a
           // selected row's rounded border cannot run underneath its thumb.
           width: Math.max(0, appList.width - Config.spacingMedium)
-          height: Config.material3Theme ? implicitHeight : (root.clipboardMode ? 54 : 44)
-          radius: Config.nothingDesign || Config.ghostTheme ? Config.shapeMedium : 22
+          height: implicitHeight
+          radius: Config.shapeMedium
           // Apps without a resolvable icon get a generic glyph, not a letter avatar.
           leadingIcon: model.kind === "action"
             || model.kind === "clipboard-action" || model.kind === "clipboard" ? model.icon
@@ -1221,10 +1024,20 @@ PanelWindow {
             && model.kind !== "clipboard-action" && model.kind !== "clipboard"
             ? "file://" + model.icon : ""
           title: model.name
-          subtitle: Config.material3Theme && root.selectedIndex !== index ? "" : (model.comment || "")
+          subtitle: root.selectedIndex !== index ? "" : (model.comment || "")
           selected: root.selectedIndex === index
           accessibleName: model.name
           accessibleDescription: model.comment || (model.kind === "action" ? "Shell action" : "Application")
+          property Item selectionMarker: Rectangle {
+            parent: resultRow
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            width: 3
+            height: Math.min(24, parent.height - Config.spacingSmall * 2)
+            radius: width / 2
+            color: Colors.primary
+            visible: resultRow.selected
+          }
           onHoveredChanged: {
             if (hovered && !resultMenu.opened) root.selectedIndex = index
           }
@@ -1253,7 +1066,7 @@ PanelWindow {
 
       Text {
         Layout.fillWidth: true
-        visible: !root.dmenu && !root.clipboardMode && filteredModel.count === 0
+        visible: !root.clipboardMode && filteredModel.count === 0
         text: "No matching results"
         color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
@@ -1263,14 +1076,12 @@ PanelWindow {
 
       Rectangle {
         id: clipboardPreview
-        visible: !root.dmenu && root.clipboardMode
+        visible: root.clipboardMode
         Layout.fillWidth: true
         Layout.preferredHeight: 70
         radius: Config.shapeMedium
-        color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-          ? Colors.styleSurface
-          : Colors.surfaceContainerLow
-        border.color: Colors.styleOutline
+        color: Colors.surfaceContainerLow
+        border.color: Colors.outlineVariant
         border.width: Config.themeBorderWidth
 
         ColumnLayout {
@@ -1279,11 +1090,11 @@ PanelWindow {
           spacing: 2
 
           Text {
-            text: "Selected preview"
+            text: "SELECTED PREVIEW"
             color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
+            font.family: "monospace"
             font.pixelSize: Config.typeLabelSmallSize
-            font.weight: Font.Medium
+            font.letterSpacing: Config.typeMonoTracking
           }
 
           Text {
@@ -1299,6 +1110,17 @@ PanelWindow {
         }
       }
 
+      Text {
+        Layout.fillWidth: true
+        text: "↑↓ SELECT · ENTER " + (root.clipboardMode ? "RESTORE"
+          : (root.actionMode ? "RUN" : "OPEN")) + " · CTRL+F SEARCH"
+        color: Colors.fgSurfaceVariant
+        font.family: "monospace"
+        font.pixelSize: Config.typeLabelSmallSize
+        font.letterSpacing: Config.typeMonoTracking
+        wrapMode: Text.Wrap
+      }
+
     }
   }
 
@@ -1309,7 +1131,6 @@ PanelWindow {
   }
 
   function ensureVisible(idx) {
-    if (root.dmenu) appStrip.positionViewAtIndex(idx, ListView.Contain)
-    else appList.positionViewAtIndex(idx, ListView.Contain)
+    appList.positionViewAtIndex(idx, ListView.Contain)
   }
 }

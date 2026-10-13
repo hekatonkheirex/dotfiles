@@ -60,7 +60,7 @@ RowLayout {
     activeColor: Colors.primary
     surfaceContainerHigh: Colors.surfaceContainerHigh
     surfaceContainerHighest: Colors.surfaceContainerHighest
-    outline: Colors.styleOutlineStrong
+    outline: Colors.outline
     focusColor: Colors.primary
     motionDuration: Config.motionMedium
     reducedMotion: Config.reducedMotion

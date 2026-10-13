@@ -8,9 +8,9 @@ set -euo pipefail
 root=$(realpath "${1:-$(dirname "$0")/..}")
 home=$(mktemp -d); trap 'rm -rf "$home"' EXIT
 mkdir -p "$home/.config/quickshell" "$home/cfg"
-cp -r "$root/config" "$root/bar" "$root/resources" "$home/cfg/"
+cp -r "$root/config" "$root/bar" "$home/cfg/"
 cp "$root/tests/controls/shell.qml" "$home/cfg/shell.qml"
-printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapan","colorVariant":"auto","themePreference":2}\n' \
+printf '{"colorSource":"fixed","colorPalette":"elenapan","colorVariant":"auto","themePreference":2}\n' \
   > "$home/.config/quickshell/settings.json"
 HOME="$home" GOLDEN_OUT="$home/controls.png" QS_NO_RELOAD_POPUP=1 \
   timeout 30 qs -p "$home/cfg/shell.qml" >"$home/qs.log" 2>&1 || true
@@ -25,7 +25,7 @@ from PIL import Image
 im = Image.open(sys.argv[1]).convert("RGB")
 assert im.size == (760, 560), f"size {im.size}"
 checks = re.findall(r"CHECK (\S+) (\S+) (\S+) (\d+) (\d+) (\d+)", open(sys.argv[2]).read())
-assert len(checks) == 10, f"expected 10 CHECK lines, got {len(checks)}"
+assert len(checks) == 13, f"expected 13 CHECK lines, got {len(checks)}"
 fails = 0
 for name, x, y, *want in checks:
     got = im.getpixel((int(float(x)), int(float(y))))
@@ -33,7 +33,7 @@ for name, x, y, *want in checks:
     fails += not ok
     print(("PASS " if ok else "FAIL ") + name + ("" if ok else f" got {got} want {tuple(map(int, want))}"))
 behave = re.findall(r"BEHAVE (\S+) ([01])", open(sys.argv[2]).read())
-assert len(behave) == 3, f"expected 3 BEHAVE lines, got {len(behave)}"
+assert len(behave) == 4, f"expected 4 BEHAVE lines, got {len(behave)}"
 for name, ok in behave:
     fails += ok != "1"
     print(("PASS " if ok == "1" else "FAIL ") + name)

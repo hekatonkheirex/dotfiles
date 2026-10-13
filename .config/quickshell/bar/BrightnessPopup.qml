@@ -62,7 +62,7 @@ PopupBase {
       activeColor: Colors.brightness
       surfaceContainerHigh: Colors.surfaceContainerHigh
       surfaceContainerHighest: Colors.surfaceContainerHighest
-      outline: Colors.styleOutlineStrong
+      outline: Colors.outline
       focusColor: Colors.brightness
       motionDuration: Config.motionMedium
       reducedMotion: Config.reducedMotion

@@ -24,18 +24,11 @@ Item {
   property real iconOpacity: 1.0
   property string labelText: ""
   property real labelOpacity: 1.0
-  property color accentColor: Config.nothingEvolution
-    ? Colors.styleAccent
-    : (Config.nothingDesign
-      ? Colors.fgSurface
-    : (Config.ghostTheme ? Colors.styleAccent : Colors.primary)
-    )
-  property color iconColor: Config.liquidGlassTheme ? Colors.barForeground
-    : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor)
-  // Ghost and dwm keep accent-colored icons and plain white values.
-  property color labelColor: Config.liquidGlassTheme ? Colors.barForeground
-    : ((Config.ghostTheme || Config.dwmTheme) ? (Colors.darkMode ? "#ffffff" : Colors.fgSurface) : root.accentColor)
-  property color inactiveBg: Config.liquidGlassTheme ? Colors.liquidGlassClear : Colors.surfaceContainerHigh
+  property color accentColor: ((Colors.primary))
+  property color iconColor: (root.accentColor)
+
+  property color labelColor: (root.accentColor)
+  property color inactiveBg: Colors.surfaceContainerHigh
   // Indicators stay quiet at rest and reveal their outline on hover/focus;
   // active state is conveyed by the content color and owning popup surface.
   property bool borderOnHoverOnly: true
@@ -45,11 +38,8 @@ Item {
   property string badgeText: ""
   property color badgeColor: Colors.error
   property color badgeTextColor: Colors.fgError
-  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassOpaque
 
-  // Nothing's dot-matrix numeral font is reserved for pure numeric readouts
-  // (battery/brightness/volume %), not textual states like "Muted" or
-  // workspace names.
+
   readonly property bool numericLabel: /^-?\d+%?$/.test(root.labelText)
   // Compensate for the extra ascent/descent in the icon font and numeric
   // label line boxes so the visible glyphs sit close without changing the
@@ -122,9 +112,7 @@ Item {
       topMargin: root.horizontal ? 6 : 0
       bottomMargin: root.horizontal ? 6 : 0
     }
-    radius: Config.ghostTheme || Config.dwmTheme ? 0
-      : (Config.liquidGlassTheme ? Config.shapeCompact
-        : (root.horizontal ? height / 2 : width / 2))
+    radius: ((root.horizontal ? height / 2 : width / 2))
     clip: true
     color: {
       var overlay = mouseArea.pressed ? Colors.pressOverlay
@@ -132,49 +120,29 @@ Item {
           : (root.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
       var base = root.integrated
         ? "transparent"
-        : (root.flatLiquidChrome
-          ? (root.active ? Colors.liquidGlassClear : "transparent")
-        : (root.borderOnHoverOnly
-          ? ((Config.nothingDesign || Config.ghostTheme)
-            ? Colors.styleSurface
-            : (Config.liquidGlassTheme ? Colors.liquidGlassClear : "transparent"))
+        : ((root.borderOnHoverOnly
+          ? (("transparent"))
           : root.inactiveBg))
       return Qt.tint(base, overlay)
     }
     border.color: {
-      if (Config.liquidGlassTheme) {
-        return root.active || mouseArea.containsMouse || root.activeFocus
-          ? Colors.styleOutline
-          : "transparent"
-      }
-      if (Config.ghostTheme) return root.active || mouseArea.containsMouse || root.activeFocus
-        ? Colors.styleOutline : "transparent"
-      if (Config.nothingEvolution) {
-        return root.active || mouseArea.containsMouse || root.activeFocus
-          ? Colors.styleOutline
-          : "transparent"
-      }
-      if (Config.nothingDesign) return "transparent"
+
+
+
+
       if (root.active) return root.activeFocus ? Colors.focusOverlay : "transparent"
       if (root.borderOnHoverOnly && !mouseArea.containsMouse && !root.activeFocus) return "transparent"
-      return Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
+      return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
     }
-    border.width: root.integrated || Config.nothingDesign
-      ? (Config.nothingEvolution && !root.integrated ? Config.themeBorderWidth : 0)
-      : (Config.liquidGlassTheme
-        ? ((root.active || mouseArea.containsMouse || root.activeFocus) ? Config.themeBorderWidth : 0)
-        : Config.themeBorderWidth)
+    border.width: root.integrated || false
+      ? (0)
+      : (Config.themeBorderWidth)
 
     Behavior on color {
       ColorAnimation { duration: Config.animationDuration }
     }
   }
 
-  GlassSheen {
-    anchors.fill: bgOverlay
-    radius: bgOverlay.radius
-    glassEnabled: !root.flatLiquidChrome || root.active || root.hovered || root.activeFocus
-  }
 
   GridLayout {
     id: contentLayout
@@ -229,21 +197,12 @@ Item {
       text: root.labelText
       opacity: root.labelOpacity
       color: root.labelColor
-      font.family: Config.nothingDesign
-        ? (root.numericLabel ? Config.dotFontFamily : Config.monoFontFamily)
-        : Config.fontFamily
-      // Ghost values share one mono rhythm; shrink only when the selected
-      // rail thickness cannot hold a four-character reading such as 100%.
-      font.pixelSize: Config.ghostTheme && !root.inlineContent && root.numericLabel
-        ? Math.min(Config.typeLabelMediumSize,
-                   Math.max(9, Math.floor((root.width - 2) / (root.labelText.length * 0.65))))
-        : Config.typeLabelMediumSize
-      font.weight: Config.ghostTheme && root.numericLabel
-        ? Font.Medium
-        : (Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-          ? Config.themeFontWeight : Font.Medium)
-      font.letterSpacing: Config.ghostTheme && root.numericLabel ? 0
-        : (Config.nothingDesign ? 0.3 : Config.typeLabelTracking)
+      font.family: Config.fontFamily
+
+
+      font.pixelSize: Config.typeLabelMediumSize
+      font.weight: (Font.Medium)
+      font.letterSpacing: (Config.typeLabelTracking)
       lineHeight: Config.typeLabelMediumLineHeight
       lineHeightMode: Text.FixedHeight
       horizontalAlignment: Text.AlignHCenter
@@ -252,7 +211,7 @@ Item {
       Layout.preferredWidth: implicitWidth
       Layout.maximumWidth: root.inlineContent
         ? implicitWidth
-        : Math.max(0, root.width - (Config.ghostTheme ? 2 : Config.spacingSmall))
+        : Math.max(0, root.width - (Config.spacingSmall))
       Layout.preferredHeight: implicitHeight
       Layout.fillHeight: root.inlineContent
       Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter

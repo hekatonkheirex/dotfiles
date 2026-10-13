@@ -19,7 +19,6 @@ Rectangle {
   property string leadingIcon: ""
   property color leadingIconColor: Colors.fgSurfaceVariant
   property real leadingIconSize: 22
-  readonly property bool material3Style: Config.material3Theme
 
   default property alias trailingContent: trailingRow.data
 
@@ -30,23 +29,14 @@ Rectangle {
   signal leftPressed()
   signal rightPressed()
 
-  implicitHeight: root.material3Style
-    ? Math.max(Config.controlHitSize, Config.typeBodyLargeLineHeight + (Config.materialCompact ? 16 : 24)) : 36
+  implicitHeight: Math.max(Config.controlHitSize, Config.typeBodyLargeLineHeight + (24))
   height: implicitHeight
-  Layout.minimumHeight: root.material3Style ? implicitHeight : 0
-  radius: Config.liquidGlassTheme ? Config.shapeCompact : Config.shapeMedium
-  color: root.material3Style
-    ? Colors.surface
-    : (Config.liquidGlassTheme ? Colors.liquidGlassControl : Colors.styleSurface)
-  border.color: root.material3Style
-    ? (input.activeFocus ? Colors.primary : Colors.outline)
-    : Colors.styleOutlineStrong
+  Layout.minimumHeight: implicitHeight
+  radius: Config.shapeMedium
+  color: Colors.surface
+  border.color: (input.activeFocus ? Colors.primary : Colors.outline)
   border.width: input.activeFocus ? Config.themeFocusBorderWidth : Config.themeBorderWidth
 
-  GlassSheen {
-    anchors.fill: parent
-    radius: root.radius
-  }
 
   RowLayout {
     anchors {

@@ -138,7 +138,7 @@ Flickable {
     Layout.preferredHeight: accountTab.compactLayout ? 196 : 152
     radius: Config.settingsCardRadius
     surfaceColor: Colors.surfaceContainer
-    outlineColor: Colors.styleOutline
+    outlineColor: Colors.outlineVariant
     outlineWidth: Config.themeBorderWidth
 
     Flow {
@@ -291,7 +291,7 @@ Flickable {
     Layout.preferredHeight: machineInfoCol.implicitHeight + Config.spacingMedium * 2
     radius: Config.settingsCardRadius
     surfaceColor: Colors.surfaceContainer
-    outlineColor: Colors.styleOutline
+    outlineColor: Colors.outlineVariant
     outlineWidth: Config.themeBorderWidth
 
     ColumnLayout {

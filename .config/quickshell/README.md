@@ -6,26 +6,24 @@ A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/)
 
 This replaces a traditional status bar (waybar) and panel infrastructure with a unified QML-based shell. It provides:
 
-- **A single bar** (`bar/Bar.qml`) that supports top, bottom, left, and right placement, with five forms: Full (edge to edge), Fit (inset rounded frame), Dock (narrower body flush with the edge), Notch (content-width body with concave shoulders; start, middle and end groups packed with the normal widget gap, Ghost keeps the stretched body) and Pill (widgets in outlined group capsules joined by a signal wave; Ghost and vertical bars get per-widget pills only). Adjacent widgets use a compact 4 px gap at the default spacing scale in both edge and centered groups. The form (`barForm`) is persisted with the other Appearance preferences; older `fullBar` settings migrate on first load. **Bar Scale** scales bar thickness, text, clock, icons and spacing together; the individual sliders sit under it in Appearance > Sizing.
-- **Bar Placement**: Choose top, bottom, left, or right in the Settings Appearance tab, persisted across reboots (saved to `~/.config/quickshell/layout`). Legacy `horizontal` and `vertical` values remain supported as top and left.
+- **Workspace strip** (`bar/Bar.qml`): the whole top bar is an 8px row of workspace color blocks.
+- **Sidebar and dock**: a toggleable two-page sidebar (Status and Dashboard) and a bottom app dock. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
 - **Lock screen** with PAM + fingerprint authentication.
-- **Ghost startup welcome**: The post-SDDM cyberbrain artwork and Section 9-inspired trace are a themed illustration, not a system diagnostic. Do Not Disturb, Reduce Motion, and the local username reflect actual settings; the overlay can be dismissed by click or key.
-- **Ghost bar**: Pixel-stepped edges frame a transparent, space-responsive signal gap. The rail follows Appearance → Bar Size and keeps indicator values visible. Vertical volume, brightness, battery, and clock numerals share a medium-weight mono rhythm; long percentage values scale to the available rail width. Kanji workspaces use glyph color and weight to indicate selection rather than a cell frame. Notification history keeps an accented bell without showing the popup-open state until the panel opens. Inactive chrome stays subdued, with the clock emphasized on horizontal bars. Ghost uses cyan for selection, amber for muted audio/low battery, green for charging, and red for critical battery or notification states.
-- **Notification handling** with history and toasts, styled through the selected UI system.
+- **Notification handling** with history and toasts, using the single Elena control implementation.
 - **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; the Quick Menu and Notifications tab share the persisted setting.
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
-- **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, local offline **voice search**, shell actions via `>` (including capture), clipboard history via `;`, and wallpaper search via `@`.
+- **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, shell actions via `>`, clipboard history via `;`, and wallpaper search via `@`. Speech recognition is removed.
 - **On-Screen Display (OSD)** overlay for volume, brightness, mic mute, airplane mode, bluetooth, and keyboard backlight (polled from sysfs since the EC never emits a key event for it).
 - **LLM usage**: One read-only bar widget whose popup displays Codex and Claude side by side, including five-hour and weekly usage, reset countdowns, and available reset credits. Enabled by default; visibility and position are configurable in General → Bar Contents.
 - **Settings panel**: A multi-functional, resizable and draggable panel launched via `XF86Tools` with eleven tabs:
   - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
-  - **General**: Motion, reduced transparency, uptime, clock, calendar week start, timezone, bar widget visibility and order, and weather location/refresh/privacy/unit settings
-  - **Appearance**: Wallpaper card (Choose opens the filmstrip, Random applies a random wallpaper), Color mode, Live wallpaper-generated Material 3 colors or Fixed Catppuccin/Gruvbox/TokyoNight palettes, UI style previews with one-click revert, contrast, bar placement, workspace button shapes, sizing controls, color reload, and confirmed appearance reset
+  - **General**: Motion, uptime, clock, calendar week start, timezone, bar widget visibility and order, and weather location/refresh/privacy/unit settings
+  - **Appearance**: Wallpaper filmstrip and random wallpaper, Auto/Light/Dark mode, Live wallpaper colors or Fixed palettes (including Elenapan), accent shortlist, contrast, dock pins, retained bar preferences, sizing, color reload, and confirmed appearance reset. No UI-style picker or separate compact-control density setting.
   - **Display & Input**: Per-output mode, scale, and transform controls plus touchpad, mouse, trackpoint, and edge-gesture settings
   - **Network**: Wi-Fi power, scan, connect, disconnect, saved-network, and autoconnect controls; Wi-Fi is Settings-only and has no compact bar indicator
   - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls; Bluetooth is Settings-only and has no compact bar indicator
   - **Media**: Media artwork, progress, and control visibility
-  - **Lock & Power**: Lock-screen media/clock and wallpaper options, idle lock/suspend timeouts, Caffeine, and TLP power profiles
+  - **Lock & Power**: Lock-screen media, clock size and wallpaper options, idle lock/suspend timeouts, Caffeine, and TLP power profiles
   - **Notifications**: Do Not Disturb, quiet hours, critical bypass, toast position/duration, history retention, clear-history, and test-notification controls
   - **System**: CPU, memory, disk, swap, thermal, fan, battery health/cycles, diagnostics copy, reload, and confirmed reset actions
   - **Shortcuts**: Curated active-compositor keybind reference with source open and copy actions
@@ -38,16 +36,11 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 ├── shell.qml                  # Entry point — ShellRoot, IpcHandler, popups, battery alert, file triggers
 ├── settings.json              # Persisted user settings (JsonAdapter-backed)
 ├── layout                     # Persisted bar placement ("top" | "bottom" | "left" | "right")
-├── resources/
-│   └── images/welcome-cyberbrain.png # Recovered Ghost startup artwork
-├── ui/
-│   └── WelcomeScreen.qml       # Post-SDDM Ghost startup overlay
 ├── config/
 │   ├── Config.qml             # Build-time layout, typography, shape, and motion tokens
 │   ├── Settings.qml           # Persisted preferences singleton (FileView + JsonAdapter over settings.json)
-│   ├── Colors.qml             # Material roles, palette resolution, fixed Classic Nothing/Ghost palettes, adaptive Evolution roles, Liquid Glass regular/clear roles, Matugen fallback + system dark-mode tracking
-│   ├── PaletteCatalog.js      # Fixed Material 3, Catppuccin, Gruvbox, and TokyoNight semantic palettes
-│   ├── SfSymbols.js           # Liquid Glass SF codepoint map verified against the locally installed SF Pro Text font
+│   ├── Colors.qml             # Semantic roles, Live/Fixed palette resolution, Matugen fallback and dark-mode tracking
+│   ├── PaletteCatalog.js      # Elenapan, Catppuccin, Gruvbox and TokyoNight palette families
 │   ├── AudioService.qml       # Shared PipeWire sink/source state and watcher
 │   ├── BrightnessService.qml  # Shared backlight state and watcher
 │   ├── BatteryService.qml     # Shared UPower battery-device selection
@@ -56,9 +49,14 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── LlmUsageService.qml    # Shared quota polling and stale-reading state
 │   ├── CodexUsageService.qml  # Codex quota singleton
 │   ├── ClaudeUsageService.qml # Claude quota singleton
+│   ├── WindowService.qml       # Read-only Niri window stream
+│   ├── WindowState.js          # Window-event reducer
+│   ├── DockModel.js            # Pin order and running-app grouping
 │   └── cava.ini               # cava config for the real-time audio visualizer
 ├── bar/
-│   ├── Bar.qml                 # The panel itself — full-bar/pills-bar styles, orientation-aware active indicators
+│   ├── Bar.qml                # Top workspace strip and retained hidden widget machinery
+│   ├── Sidebar.qml            # Status/Dashboard sidebar (content in sidebar/)
+│   ├── Dock.qml               # Bottom app dock (content in dock/)
 │   ├── SettingsPanel.qml       # Settings panel shell (state, processes, tab bar) — content in settings/
 │   ├── settings/
 │   │   ├── AccountTab.qml
@@ -73,49 +71,48 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   │   ├── NotificationsTab.qml
 │   │   ├── ShortcutsTab.qml
 │   │   └── SystemTab.qml
-│   ├── LockScreen.qml          # PAM auth, fingerprint, adaptive clock faces, power buttons
+│   ├── LockScreen.qml          # PAM auth, fingerprint and compositor-enforced session lock
 │   ├── WorkspaceIndicator.qml  # Workspace/tag pills + focused-window state (orientation-aware)
 │   ├── Launcher.qml            # App launcher button
 │   ├── LauncherPopup.qml       # App/provider search (apps, clipboard, wallpapers, actions)
 │   ├── AudioIndicator.qml      # Volume icon + scroll control (orientation-aware)
-│   ├── AudioPopup.qml          # Volume + mic sliders (M3 bordered, correct active/mute states)
+│   ├── AudioPopup.qml          # Volume + mic sliders (shared bordered surface, correct active/mute states)
 │   ├── BrightnessIndicator.qml # Brightness icon (orientation-aware)
-│   ├── BrightnessPopup.qml     # Brightness slider (M3 bordered)
+│   ├── BrightnessPopup.qml     # Brightness slider (shared bordered surface)
 │   ├── BatteryIndicator.qml    # Battery via UPower (orientation-aware)
-│   ├── BatteryPopup.qml        # Detailed battery info (M3 bordered)
+│   ├── BatteryPopup.qml        # Detailed battery info (shared bordered surface)
 │   ├── MediaIndicator.qml      # Active MPRIS player indicator
 │   ├── MediaPopup.qml          # Media controls and circular cava visualizer
 │   ├── WeatherIndicator.qml    # Current weather indicator
 │   ├── WeatherPopup.qml        # Current conditions and forecast
 │   ├── LlmUsageIndicator.qml   # Single combined LLM usage indicator
-│   ├── LlmUsageIcon.qml        # Theme-specific LLM shapes using the shared bar-widget icon color
+│   ├── LlmUsageIcon.qml        # Angular sparkle using the shared indicator color
 │   ├── LlmUsagePopup.qml       # Combined Codex and Claude usage popup
 │   ├── LlmUsageSection.qml     # Provider usage, resets, and refresh state
 │   ├── WifiPanel.qml            # Wi-Fi controls used by the Settings Network tab
 │   ├── BtPanel.qml              # Bluetooth controls used by the Settings Bluetooth tab
 │   ├── SystemTrayArea.qml      # StatusNotifier tray icons (orientation-aware)
 │   ├── MenuIndicator.qml       # Quick Settings bar trigger
-│   ├── QuickMenu.qml           # Quick Settings plus caffeine, radio, DND, Settings, lock, and power actions
+│   ├── QuickMenu.qml           # Four controls plus a 3×2 session/power/settings grid
 │   ├── OsdOverlay.qml          # Volume/brightness/mic/airplane/bluetooth/kbd-backlight OSD popup
 │   ├── CalendarLogic.js        # Calendar weekday ordering and day-cell model
-│   ├── CalendarPopup.qml       # Calendar month grid (M3 bordered)
+│   ├── CalendarPopup.qml       # Calendar month grid (shared bordered surface)
 │   ├── NotificationIndicator.qml # Notifications counter (orientation-aware)
-│   ├── NotificationPopup.qml   # M3 notification history popup list
-│   ├── NotificationToast.qml   # M3 notification toast banner
-│   ├── AnimatedBackground.qml  # Reusable animated M3 blob background (popups/Settings)
-│   ├── PopupBase.qml           # Shared popup chrome (background, border, Liquid Glass sheen, entry animation)
+│   ├── NotificationPopup.qml   # Notification history popup list
+│   ├── NotificationToast.qml   # Notification toast banner
+│   ├── AnimatedBackground.qml  # Reusable animated background (popups/Settings)
+│   ├── PopupBase.qml           # Shared popup background, border and spring entrance
 │   ├── PopupShield.qml         # Full-screen click-outside-to-dismiss surface
 │   ├── PopupDivider.qml        # Reusable popup section divider
 │   ├── PowerConfirmation.qml   # Confirmation surface for destructive power actions
 │   ├── FocusDismiss.qml        # Popup dismissal on app focus loss
 │   ├── FileTrigger.qml         # Private runtime trigger-file watcher (single inotifywait for all triggers)
-│   ├── SliderControl.qml       # Theme-selected slider facade (volume/brightness/etc.)
-│   ├── SwitchControl.qml       # Theme-selected switch/toggle facade
-│   ├── WaveProgressBar.qml     # Theme-aware progress canvas: Material wave, Liquid Glass capsule, Nothing dot matrix
+│   ├── SliderControl.qml       # Elena slider facade (volume/brightness/etc.)
+│   ├── SwitchControl.qml       # Elena switch facade
+│   ├── WaveProgressBar.qml     # Single wave-progress canvas
 │   ├── primitives/             # Shared buttons, list items, and text fields
 │   │   ├── ActionButton.qml
-│   │   ├── GlassSheen.qml
-│   │   ├── IconGlyph.qml          # Liquid Glass SF glyphs; Material glyphs for other styles and unavailable SF equivalents
+│   │   ├── IconGlyph.qml          # Shared Material Symbols font glyph; no per-style icon implementation
 │   │   ├── IconButton.qml
 │   │   ├── ListDivider.qml
 │   │   ├── ListItem.qml
@@ -124,12 +121,12 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   │   ├── StatusIndicator.qml
 │   │   ├── StyledSurface.qml
 │   │   └── TextFieldControl.qml
-│   └── themes/                 # Separate UI-style implementations
-│       ├── material3/          # Material 3 controls and ThemeTokens.qml
-│       ├── shared/              # Base types (input, focus, accessibility) every control implementation extends
-│       ├── styled/              # Shared Nothing + Ghost controls; ThemeTokens.qml holds every per-theme difference
-│       ├── nothing/             # Evolution clock face
-│       └── ghost/               # Ghost gap/trace effects
+│   └── controls/               # Elena-native controls with shared input/accessibility bases
+│       ├── ElenaActionButton.qml
+│       ├── ElenaIconButton.qml
+│       ├── ElenaSliderControl.qml
+│       ├── ElenaSwitchControl.qml
+│       └── LevelTile.qml
 ├── scripts/
 │   ├── launcher                # Launcher trigger (private runtime trigger)
 │   ├── quickmenu                # Quick menu trigger (private runtime trigger)
@@ -143,29 +140,26 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── apply-wallpaper.sh       # Wallpaper selection + Matugen/theme refresh
 │   ├── capture-screen.sh         # Full-screen/region capture, save, and clipboard copy
 │   ├── sync-active-palette.sh   # Renders the active cache and refreshes every theme consumer
-│   ├── ensure-style-terminal-assets.sh # Restores fixed Nothing/Ghost terminal companions
 │   ├── apply-accent-color.sh    # Compatibility stub — palette is fixed by Matugen, not user-selectable
 │   ├── generate-thumbnails.sh   # Generates/caches 200×130 wallpaper thumbnails for the filmstrip slices
 │   ├── random-wallpaper.sh      # Applies a random wallpaper, avoiding the current one
 │   ├── generate-previews.sh     # Sharp 1600 px previews for the wallpaper filmstrip (one file or all missing)
-│   ├── m3-qmllint-gate.sh       # QML regression gate for the M3 refactor, including shared primitives
-│   ├── install-ui-suite.sh      # Clones and installs Material 3, Nothing, and Ghost companion themes
-│   ├── verify-ui-suite.sh       # Verifies user-level assets across supported UI styles
+│   ├── m3-qmllint-gate.sh       # QML regression gate, including native controls and shared primitives
+│   ├── install-ui-suite.sh      # Installs palette-driven Matugen desktop companions
+│   ├── verify-ui-suite.sh       # Verifies only those companion assets
 │   ├── install-sddm-integration.sh # Installs the root SDDM bridge and polkit policy
-│   ├── verify-sddm-integration.sh  # Verifies the bridge and all supported SDDM theme assets
+│   ├── verify-sddm-integration.sh # Verifies the bridge and light/dark Matugen greeters
 │   ├── idle.sh                  # Caffeine-controlled swayidle timeouts: dim, lock, display off, suspend
 │   ├── idle-brightness-off      # Saves and dims brightness in the runtime directory
 │   ├── idle-brightness-restore  # Validates and restores saved brightness
 │   ├── sync-theme-mode-locked.sh # Serialized wrapper for the external theme synchronizer
-│   ├── sync-mactahoe-theme.sh   # Selects MacTahoe GTK, icon, Kvantum, and cursor assets for Liquid Glass
 │   ├── lid.sh                   # Lid close: lock
 │   ├── safe-logout.sh           # Clean Niri/Mango quit, falls back to a session kill
 │   ├── mpris_monitor.py         # Active MPRIS state broadcaster (DBus + private FIFO listener)
 │   ├── mpris_control.py         # MPRIS play/pause/stop/next/prev control for the active player
 │   ├── weather.py               # Open-Meteo weather fetcher script
 │   ├── codex-usage.py           # Read-only OpenAI subscription usage/reset inventory
-│   ├── claude-usage.py          # Read-only Anthropic subscription usage/reset inventory
-│   └── voice-search.py          # Local speech transcription via python-vosk (downloads its model to ~/.local/share/vosk-model on first use)
+│   └── claude-usage.py          # Read-only Anthropic subscription usage/reset inventory
 └── bin/
     └── desktop-parser.py        # .desktop → JSON for launcher
 ```
@@ -219,7 +213,6 @@ The Intel i915 driver has hung Quickshell's render thread twice in production (`
 
 `quickshell-gpu-watchdog.service` (unit at `~/.config/systemd/user/quickshell-gpu-watchdog.service`, script at `scripts/gpu-hang-watchdog.sh`) tails the `quickshell.service` journal for the `Context is lost` / `Graphics device lost` signature and force-restarts `quickshell.service` when it appears. Enabled alongside `quickshell.service` via `graphical-session.target`.
 
-When `Settings.themeStyle` is `ghost`, `ui/WelcomeScreen.qml` starts automatically after the shell is ready. It can also be replayed with `quickshell ipc call shell welcome`; other styles leave the overlay disabled.
 
 ### Lid Switch
 
@@ -278,7 +271,6 @@ When `XDG_RUNTIME_DIR` is unavailable, Quickshell uses
 - `ipc.launcher()` — toggle launcher popup
 - `ipc.lock()` — activate lock screen
 - `ipc.quickmenu()` — toggle quick menu
-- `ipc.welcome()` — replay the Ghost startup welcome overlay when Ghost is selected
 - `ipc.settings()` — toggle Settings popup
 - `ipc.commandcenter()` — legacy alias for `ipc.settings()`
 - `ipc.layout()` — toggle bar orientation
@@ -308,7 +300,7 @@ The Niri lock surface includes:
 - **Fingerprint reader** via `fprintd-verify` (auto-retries on failure), started/stopped imperatively in `onLockedChanged` to avoid QML declarative binding breaks
 - Profile image (`~/Pictures/profile.jpg`), live clock, suspend/reboot/poweroff buttons
 - **Lock & Power settings** configure automatic lock and suspend timeouts plus TLP power profiles; the existing dim/display-off stages remain fixed, and suspend locks first
-- Liquid Glass always uses the active wallpaper with a full-screen blur and a restrained veil; its lock surface follows the macOS two-zone layout with a top date/time and a bottom identity prompt that reveals authentication on click, while other styles keep the existing wallpaper toggle and animated/flat fallback
+- The wallpaper preference remains optional; the existing animated fallback and authentication layout are unchanged by the Elena-only cutover.
 - Lock requests are available through `IpcHandler.lock()`, `scripts/lock`, or the private runtime trigger; Mango routes them to `swaylock`
 
 Niri starts an independent swayidle before-sleep watcher. It remains active
@@ -330,18 +322,18 @@ Popup positioning follows the active bar placement (computed in `shell.qml`'s `p
 
 All bar-owned popups, the shield, Settings, notifications, and power confirmation use the bar's display. Placement and wallpaper-launcher sizing are clamped in that display's local coordinates rather than the primary monitor's dimensions.
 
-Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` arms dismissal after the popup acquires focus, ignoring initial inactive/null-focus events while it maps. The popup content uses a `FocusScope` so moving between controls or disabling a focused refresh button does not dismiss it; genuine focus loss is rechecked on the next event-loop turn. The full-page Settings surface remains open through Mango's transient layer-focus changes so switching tags or clients does not dismiss it. `PopupBase.qml` supplies the shared M3 background/border/entry-animation chrome that most popups build on; Liquid Glass adds translucent functional surfaces and a restrained sheen to that same path. Actual backdrop blur remains compositor-owned and is optional when the compositor has background effects enabled.
+Escape or clicking outside (on another window) dismisses the active popup. All popups use `WlrLayer.Top` and `PopupShield` sits on `WlrLayer.Bottom` to intercept outside clicks. `FocusDismiss` arms dismissal after the popup acquires focus, ignoring initial inactive/null-focus events while it maps. The popup content uses a `FocusScope` so moving between controls or disabling a focused refresh button does not dismiss it; genuine focus loss is rechecked on the next event-loop turn. The full-page Settings surface remains open through Mango's transient layer-focus changes so switching tags or clients does not dismiss it. `PopupBase.qml` supplies the shared background/border/entry-animation chrome that most popups build on; backdrop effects remain compositor-owned.
 
 | Popup | Trigger | Content |
 |---|---|---|
-| Launcher | `Launcher` button / `Mod+D` | App/provider search (offline voice search, `>` actions and capture, `;` clipboard history, `@` wallpapers) + `.desktop` list |
-| Audio | `AudioIndicator` click | Volume + mic sliders (M3 switches; active check = sound enabled, unchecked = muted). Pointer adjustments do not leave a focus outline; keyboard focus stays visible while adjusting and resets when the popup closes. |
-| Brightness | `BrightnessIndicator` click | Brightness slider (M3 bordered) |
-| Battery | `BatteryIndicator` click | Percentage, energy capacity, status, rate, cycles, model (M3 bordered) |
+| Launcher | `Launcher` button / `Mod+D` | App/provider search (`>` actions and capture, `;` clipboard history, `@` wallpapers) + `.desktop` list |
+| Audio | `AudioIndicator` click | Volume + mic sliders (Elena switches; active check = sound enabled, unchecked = muted). Pointer adjustments do not leave a focus outline; keyboard focus stays visible while adjusting and resets when the popup closes. |
+| Brightness | `BrightnessIndicator` click | Brightness slider (shared bordered surface) |
+| Battery | `BatteryIndicator` click | Percentage, energy capacity, status, rate, cycles, model (shared bordered surface) |
 | LLM usage | Themed LLM indicator / `qs ipc call shell popup llm` | Codex and Claude five-hour/weekly usage, reset countdowns, available reset credits, and per-provider refresh |
-| Calendar | Clock click | Month grid with navigation (M3 bordered) |
-| Notifications | `NotificationIndicator` click | M3-compliant card layout list tracked via `modelData` |
-| Quick Menu | `MenuIndicator` click / `Mod+Escape` | Connections, live volume/brightness adjustments, focus controls, Settings, lock, and confirmed power actions |
+| Calendar | Clock click | Month grid with navigation (shared bordered surface) |
+| Notifications | `NotificationIndicator` click | Elena card layout list tracked via `modelData` |
+| Quick Menu | `MenuIndicator` click / `Mod+Escape` | Caffeine, airplane mode, Bluetooth, DND; Log Out, Shut Down, Restart, Sleep, Lock and Settings tiles |
 | Settings | Quick Settings entry / `XF86Tools` | 11 tabs: Account, General, Appearance, Display & Input, Network, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts (responsive surface with persisted last tab, drag-to-move, and resize handle) |
 | OSD | volume/brightness/mic/airplane/bluetooth/kbd-backlight keys | Auto-dismissing bottom-anchored status card (not part of the `openPopup` system — a separate always-on-top window) |
 
@@ -349,25 +341,24 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 
 ### `config/Config.qml`
 
-Build-time layout, typography, shape, and motion tokens: `barWidth`, `widgetSize`, type sizes, independent bar clock typography, spacing, style-dependent shape/border/shadow tokens, motion durations (`motionShort`/`Medium`/`Long`/`ExtraLong`, all zeroed when `reducedMotion` is on), `popupWidth`, Settings min/max dimensions, and step sizes for volume/brightness. `Settings.themeStyle` selects the component styling independently from the generated palette, while `Settings.nothingVariant` selects Classic or Evolution inside the Nothing family. Classic keeps NType 82 Headline and NType 82 Mono for its signature typography but uses Noto Sans for dense copy; small type has a 12px floor. Evolution uses Geist and Geist Mono, a shared Settings card radius, adaptive accent roles, and translucent chrome tokens. Ghost reserves a wider Settings rail for monospaced navigation labels. Liquid Glass uses a restrained macOS-like radius hierarchy, regular/clear materials, and its own motion tokens.
+Build-time layout, typography, shape and motion tokens: the 8px workspace strip, type sizes, independent clock typography, spacing, 8/12/20px shapes, motion durations (zeroed under Reduced Motion), popup dimensions, Settings bounds and audio/brightness step sizes. The shell has one UI style; colors remain independently configurable.
 
-Popup and toast entrances share a style-specific motion grammar: Material uses restrained, higher-damping spring entrances, Nothing is crisp, Ghost uses short precise translation, and Liquid Glass is fluid. Workspace selection retains its own expressive spring damping. Reduced Motion suppresses spatial transitions; Liquid Glass retains its existing short opacity acknowledgement.
+Popup and toast entrances retain the existing Elena spatial springs. Workspace selection keeps its own spring damping, and Reduced Motion suppresses spatial transitions.
 
-Material's named type roles use the M3 baseline scale at the existing 12px UI-size preference (body medium 14px, body large 16px, title large 22px). Font sizes and line heights scale together; Material Settings content rows grow and wrap their text rather than clipping it. Other styles retain their own type scales.
+Named text roles use the existing 12px UI-size baseline (body medium 14px, body large 16px, title large 22px). Font sizes and line heights scale with the general font-size preference. Settings rows grow and wrap rather than clipping.
 
-Material icon buttons reserve a 48×48 input target by default, independently of their compact visual size. Appearance → Sizing → Compact desktop density opts into 40px minimum targets and tighter content-row padding for precise pointer input, without changing font sizes. Switches retain their 52×32 track inside the chosen target height. Filled and tonal icon-button backgrounds remain present under hover, press, and focus state layers, with a separate keyboard-focus outline. Switch-bearing Settings rows activate the associated switch from the label or Enter/Space, honor disabled/busy controls, and do not double-activate a direct switch click.
+Icon buttons and switches reserve 48px minimum input targets independently of visual size. The switch track is a 58×30 pill; sliders are level-fill tiles; selected icon buttons use a white round badge. Switch-bearing Settings rows activate from the label or Enter/Space, honor disabled/busy controls and do not double-activate a direct switch click.
 
 Shared icon and action-button tooltips appear only while their control is visible and enabled. Hiding a control also hides its tooltip, so clearing notification history does not leave a hint covering the empty-state message.
 
-Material popup, launcher, Settings, and toast entrances use shared spatial springs with small scale/translation changes and higher damping for desktop surfaces; control-color effects retain non-overshooting RGBA springs. Reduced Motion snaps color effects, including transitions already in flight, and removes spatial entrances. These are Qt spring adaptations of M3 Expressive, not Android's exact spring-token values.
+Control-color effects retain the existing non-overshooting RGBA springs. Reduced Motion snaps color effects, including in-flight transitions, and removes spatial entrances.
 
-The Material desktop refinements follow Google's [desktop design principles](https://developer.android.com/design/ui/desktop/guides/foundations/design-principles), [pane and density guidance](https://developer.android.com/design/ui/desktop/guides/foundations/get-started), and [across-form-factors guidance](https://developer.android.com/design/ui/desktop/guides/foundations/across-form-factors). They adapt the existing Quickshell interface to desktop space and input; they do not add a Googlebook OS, Android runtime, or another theme. Niri remains the window manager.
 
 ### Codex and Claude subscription usage
 
-One themed indicator opens a single **LLM usage** popup with Codex and Claude sections. Liquid Glass uses a six-loop mark, Material 3 a four-point sparkle, Nothing Classic and Evolution a six-arm asterisk, and Ghost an angular circuit core. Every shape uses the owning `StatusIndicator.iconColor`, matching other bar widgets: Liquid Glass bar foreground, Material 3 accent, Nothing Classic foreground, Nothing Evolution adaptive accent, and Ghost muted ink at rest with cyan when active. The marks have transparent backdrops rather than the reference screenshots' tiles. The custom icon uses `StatusIndicator.iconComponent`, preserving the shared hit target, keyboard activation, loading spinner, tooltip, and error badge. The indicator is icon-only rather than combining unrelated quotas into one percentage; its tooltip summarizes both providers. Each section shows five-hour and weekly **percent used**, reset countdowns, available reset credits, and its own refresh button and status. The sections sit side by side on wide displays and stack on narrow displays; short displays can scroll. Codex full resets cover both weekly and five-hour limits; Claude reports saved usage-limit reset credits. The nearest reset-credit expiry is displayed in local time. Reset credits are never redeemed by the widget.
+One angular-sparkle indicator opens a single **LLM usage** popup with Codex and Claude sections. It uses the shared indicator color, input target, keyboard activation, loading spinner, tooltip and error badge.
 
-Usage bars follow the selected UI style: Liquid Glass uses a luminous rounded fill over a muted capsule track; Material 3 uses a thick rounded wave, a separated remaining track, and a terminal stop dot; Nothing Classic and Evolution use three rows of bright/dim dots inside a capsule; Ghost uses a square 24-cell scanline meter with taller active cells, matching its slider tokens. Nothing uses foreground ink and Ghost uses its cyan accent for normal usage; all styles retain the error color at 90% used and above. The shared progress renderer also styles the media progress bar, except Ghost media retains its existing thin straight meter. Theme changes repaint the bars without changing quota values or reset times.
+Usage bars and media progress use the single wave renderer. Normal usage uses the semantic primary accent; usage at or above 90% retains the error color. Quota values and reset times are independent of palette choices.
 
 `scripts/codex-usage.py` reads the existing OAuth sign-in from `$CODEX_HOME/auth.json`, or `~/.codex/auth.json` when unset. Sign in with `codex login`; API keys cannot report ChatGPT-plan Codex quota. The helper calls OpenAI's `wham/usage` and `wham/rate-limit-reset-credits` endpoints using Python's standard library. These account endpoints can change independently of the public API. Credentials are not passed through QML, written to settings, logged, refreshed, or modified. The helper emits quota data only, without account identifiers.
 
@@ -379,39 +370,19 @@ Successful readings become stale only after twice the provider's polling interva
 
 ### `config/Settings.qml`
 
-Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). Backs bar layout, motion, independent `reduceTransparency`, clock/calendar/timezone, indicator visibility, workspaces, color source/palette/contrast, UI style (`material3`, `nothing`, `ghost`, or `liquid-glass`), Nothing variant, lock screen, notifications, idle timeouts, and weather. A saved `neo-brutalism` selection migrates to Nothing Evolution on load. The persisted format is `schemaVersion: 2`; version 1 preferences migrate the separate Codex/Claude toggles and order entries to the combined LLM widget and remove obsolete keys. Preferences update through `watchChanges: true`; call `Settings.save()` after mutating an alias. The Appearance tab restores appearance-owned defaults; the confirmed System reset restores all settings and top bar placement.
+Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). It owns layout preferences, motion, clock/calendar/timezone, indicator settings, workspaces, palette/contrast/accent, dock pins, lock screen, notifications, idle timeouts and weather. Obsolete style-selector, variant, compact-density, transparency and alternate-clock keys are ignored on load and omitted when settings are next saved. The persisted format remains `schemaVersion: 2`; the existing combined LLM-widget migration is unchanged. Preferences update through `watchChanges: true`; call `Settings.save()` after mutating a persisted value.
 
 ### `config/Colors.qml`
 
-Material 3 semantic roles resolve from Live Matugen or a Fixed palette in `PaletteCatalog.js` (Catppuccin, Gruvbox, TokyoNight). Nothing Classic and Ghost use authored light/dark palettes; Nothing Evolution uses the active wallpaper palette. Palette roles supplied as color strings are converted to colors before applying alpha, so translucent roles keep their wallpaper tint instead of rendering black. Evolution's Settings, launcher, and notification history use opaque reading surfaces; cards use tinted surfaces, while compact popup and bar chrome stays translucent. `reduceTransparency` also makes that chrome opaque, independently of motion and contrast. Liquid Glass uses a neutral light/dark scale for functional materials; `reduceTransparency` or high contrast makes its chrome opaque. Fixed palettes export their light/dark roles to the shared Matugen cache for desktop integrations. See [Apple's materials guidance](https://developer.apple.com/design/human-interface-guidelines/materials).
+Semantic color roles resolve from Live Matugen or a Fixed palette in `PaletteCatalog.js`. Elenapan remains a fixed family alongside Catppuccin, Gruvbox and TokyoNight. Material role names are Matugen data vocabulary, not a remaining Material UI implementation. Color strings are converted before applying alpha, and contrast remains independent of palette source.
 
 Format: `l_<token>` (light), `d_<token>` (dark), and flat resolved `<token>` properties (no prefix) for current mode. Text/icon colors are prefixed with `fg` (e.g. `fgSurface`, `fgPrimary`) to prevent conflicts with QML's internal signal handler compiler rules.
 
 System dark mode is read once and monitored through `gsettings` (owned by `Colors.qml` itself, since it's the single instance everyone reads from). Mode toggles in the launcher or Settings call the existing desktop mode synchronizer, while the shell selects the matching Matugen light/dark roles locally.
 
-`Settings.themePreference` owns color mode (Auto/Light/Dark); `colorSource` chooses Live or Fixed and `colorContrast` adjusts outline/text roles. `themeStyle` selects Material 3, Nothing, Ghost, or Liquid Glass; `nothingVariant` retains Classic and Evolution until an actual OS 5 release justifies reevaluating Classic. Evolution uses Geist, wallpaper-adaptive roles, and layered surfaces; Classic and Ghost retain fixed authored palettes. The Appearance chooser uses five compact, keyboard-focusable style selectors and one larger illustrative preview of the selected style's bar, launcher, and notification. Selectors wrap from five to two columns, then one in narrow panels. Selection applies immediately, with a one-click revert while Settings remains open. `shell.qml` synchronizes GTK, icons, Kvantum, terminals, Neovim, Niri, and SDDM on style or mode changes.
+Auto/Light/Dark controls the color mode; Live/Fixed controls the source; contrast and the accent shortlist remain configurable. Appearance has no style chooser or revert-style action.
 
-Ghost's authored dark palette raises secondary-text contrast, and its medium label/body roles are slightly larger at the default font setting. Tiny HUD metadata stays separate from primary Settings and launcher text; selected launcher subtitles use the selected ink rather than muted ink on cyan.
-
-Liquid Glass is available as `liquid-glass`: neutral translucent chrome, compact controls, macOS-style switches and sliders, and Matugen accents. Settings uses a stronger reading backdrop than transient chrome so text remains legible over busy windows, without disabling glass elsewhere. `reduceTransparency` or high contrast selects opaque surfaces. The bar uses monochrome foregrounds at rest, with a soft black foreground shadow (32% opacity, 1px downward offset, 3px blur) while transparent; opaque mode and other styles disable the effect. The bar background remains transparent. External synchronization selects MacTahoe GTK/icon/Kvantum/cursor companions while keeping Matugen terminal/editor assets; missing companions retain their respective fallbacks.
-
-Cursor changes follow style and color mode across GNOME, GTK 3/4, and Niri's compositor cursor and application environment. Liquid Glass selects `MacTahoe-cursors` in light mode and `MacTahoe-dark-cursors` in dark mode, with a live Niri configuration reload. Leaving Liquid Glass restores `Bibata-Modern-Classic`, or `ghost-section9` for Ghost. Cursor size is unchanged.
-
-Liquid Glass shell icons use SF Symbols embedded in the locally installed `SF Pro Text` font (verified version `15.0d4e20`), through `SfSymbols.js`. Font glyphs replace desktop-theme SVGs and their per-icon enlargement factors. The shared icon frame is bounded by the requested size, and Liquid Glass Settings navigation uses the configured icon size rather than the larger data-row size. Filled states select verified filled SF glyphs where available. Labels without an equivalent in this older SF font, including Bluetooth, coffee, and granular battery levels, retain their Material glyphs. No Apple font files are bundled; the map is version-specific and needs revalidation if that font is replaced.
-
-Style switching keeps the Appearance selector buttons alive while their preview colors update, preserving keyboard focus. SF and Material glyphs use separate text items so changing styles does not repeatedly reshape intermediate glyph/font combinations on the UI thread. Desktop companion synchronization remains asynchronous.
-
-Niri's `windowrules.kdl` disables compositor background blur only for `quickshell-liquid-glass-shield`, the full-screen click-outside surface shown while a popup is open. This keeps the desktop background sharp in Liquid Glass while retaining localized glass blur behind popups, Settings, toasts, OSD, and power confirmations. Other themes retain their existing shield behavior; application blur and the lock screen's own wallpaper blur are unchanged.
-
-Liquid Glass popups and notification toasts use a matching 20px QML and compositor corner radius; Settings and OSD use 16px. Settings has its own `quickshell-liquid-glass-settings` namespace; non-Liquid Settings retains the standard popup namespace. These surfaces disable Niri's wallpaper-xray sampling (`xray false`) so blur follows the actual content beneath them instead of introducing wallpaper-colored edges over dark windows. Localized backdrop blur costs more than the cached wallpaper blur. The restrained neutral QML border/specular highlight remains intentional. These Niri radii must track the corresponding QML surface radii.
-
-`ensure-style-terminal-assets.sh` supplies fixed Nothing/Ghost Starship prompts and the recovered dark Ghost btop palette. Material 3 retains Roboto Flex and tonal surfaces. Nothing Classic retains NType display labels, neutral surfaces, and red accents, with Noto Sans for readable body copy; Evolution uses Geist and adaptive colors. Ghost uses its cyan HUD palette and square controls.
-
-### dwm style
-
-`dwm` is a flat, square UI style modelled on dwm and dmenu: a one-line bar with square workspace tags and flat status text, and a launcher that becomes a dmenu-style strip drawn over the bar. Select it in Settings > Appearance > dwm, or try it without saving with `qs ipc call shell style dwm ""`. The palette follows the wallpaper through Matugen, like Material 3.
-
-Strip keys, documented from the code in `bar/LauncherPopup.qml`: Left/Right move through results, Up/Down also move the selection, Enter launches, Esc closes. The `>`, `;` and `@` provider prefixes work as in the normal launcher. The strip has no voice button. On vertical bars the launcher stays a regular popup.
+The desktop companion scripts install and synchronize only the existing palette-driven GTK, icon, Qt and light/dark SDDM assets. Their external project and asset names still contain `Material3-Expressive`; those names identify the Matugen backend, not a selectable shell UI. Nothing/Ghost terminal generation and MacTahoe synchronization are removed. Already installed assets outside this repository are not deleted.
 
 ### `bar/PopupShield.qml`
 
@@ -424,35 +395,33 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 ## Widget Details
 
 - **Wallpaper filmstrip** (`bar/WallpaperFilmstrip.qml`, layout and list helpers in `config/WallpaperFilmstrip.js`, tested by `node tests/wallpaper-filmstrip/test.mjs` and `bash tests/wallpaper-filmstrip/previews.test.sh`, `random.test.sh`, and `node tests/settings-tabs/test.mjs` for tab numbering): a full-width picker of tall leaning slices with one wide accent-bordered card and its name and date below, sized from the screen width to match a reference capture. Typing `@` in the launcher opens it (the launcher closes; text typed after `@` pre-selects the first match), and `qs ipc call shell wallpapers` toggles it directly. Left/Right, Home/End or the wheel move; typing jumps to the first name that starts with or contains the text (Backspace edits, Escape clears it, then closes); Enter or a click on the card applies through `scripts/apply-wallpaper.sh`. It reads `~/Pictures/Walls`, uses the Wallpaper tab's thumbnails for slices, starts on the current wallpaper (from `awww query`) and shows a sharp 1600 px preview on the selected card once it has rested (`scripts/generate-previews.sh`: one preview on demand if missing, plus one niced bulk run per session into `~/.cache/quickshell/wallpaper-previews`; the original is the fallback). Slices avoid `clip`, which is stencil-only and jagged under a shear, and use edge antialiasing and mipmaps. Items are placed from a fractional position (not a `ListView`, whose origin drifts as delegates load), and only a window of delegates is alive. The launcher no longer has its own wallpaper grid; `@` is only the hand-off (the Settings > Wallpaper tab keeps its grid).
-- **Bar.qml**: Single component for all four placements and five bar forms (Full, Fit, Dock, Notch, Pill; Pill draws outlined group capsules and a signal wave in the gaps that animates only while music plays: two counter-travelling sine layers breathe on a 2.82 s cycle (linear rise, quick collapse, short rest, fitted to a reference capture) while cava hears sound from a Playing player, and sit flat and still otherwise, on battery, under fullscreen and with reduced motion; geometry in `config/BarForm.js`, tested by `node tests/bar-form/test.mjs`). Widgets follow a saved Start/Middle/End order in either orientation: a flexible divider separates the edge groups, while the Middle group is anchored independently to the bar midpoint. Settings and power remain at the far edge. The clock defaults to its theme position (centered in most styles, right-side slot in horizontal Ghost) and can join any ordered region.
+- **Bar.qml**: The visible surface is the top workspace strip. The saved Start/Middle/End order, forms and widget preferences remain in the hidden widget machinery for a later re-homing change. `config/BarForm.js` still handles those saved forms.
 - **Clock scheduling**: The visible bar clock updates at minute boundaries unless seconds are enabled, in which case it updates at second boundaries. Showing the bar or changing the seconds preference resynchronizes it; timezone formatting remains independent. The local bar preference hides the focused-window label and centers the clock; both can be changed under General → Bar contents.
-- **Calendar**: The Ghost popup uses an uppercase month with a quieter separate year, mono weekday labels and a fine rule above the dates. Today has a square cyan outline and raised fill instead of the circular filled badge used by the other styles. Month navigation and the Sunday/Monday week-start preference are unchanged.
-- **WorkspaceIndicator**: Streams workspaces from Niri (`niri msg event-stream`) using `SplitParser` and runs only when visible. Moves as one widget when reordered. Horizontal markers center within their allocated track, including Classic's numbered controls.
+- **Calendar**: Month navigation, a circular today badge and the Sunday/Monday week-start preference remain unchanged.
+- **WorkspaceIndicator**: Streams Niri workspaces and focused-window state. The Elena path renders color blocks; hidden widget machinery remains available to its existing consumers.
 - **Mango layout indicator**: Reads the active tag's layout from the shared `mmsg watch all-monitors` stream. Defaults between Workspaces and Focused window, but can move independently under General > Bar contents.
 - **AudioIndicator / BrightnessIndicator / MediaIndicator / WeatherIndicator**: Event-driven watchers and polling loops are bound to their active/visible state. Audio writes for sink and microphone are serialized and coalesced during rapid slider/toggle input, with a final state read after the latest write.
 - **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
 - **WifiPanel / BtPanel**: Network and Bluetooth controls live in Settings tabs, including saved Wi-Fi profiles, Bluetooth discovery/pairing, and connected-device actions. They are intentionally not rendered as compact bar indicators.
 - **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu, orientation-aware layout.
-- **QuickMenu**: Restored from the saved pre-redesign implementation (`cd9025d2`), including its original title, spacing, Controls/Power headings, button arrangement, and live hover/focus state hints. Settings, DND, Bluetooth, airplane mode, and Caffeine remain above the separate lock/power row. Audio and brightness are not mixed into this menu. The bar's Audio popup provides output volume/mute and microphone volume/mute controls; Brightness opens its own popup. Power actions retain confirmation.
-- **Launcher**: App/action/clipboard search uses a screen-bounded 460px single-column surface. Material shows the selected result's description inline and keeps other rows concise; popup height follows the result count rather than reserving a separate details pane. Wallpaper mode retains its wider grid. Ctrl+F returns to search, arrows select results, Enter activates the selection, and Tab reaches provider controls. Right-click or Shift+F10/Menu exposes opening, copying an application's POSIX-shell-quoted launch arguments, or deleting a clipboard entry as appropriate; copied commands use parsed arguments rather than desktop-file placeholders. Escape closes an open context menu before dismissing the launcher; internal focus changes do not dismiss it.
+- **QuickMenu**: Dashed Elena session card with monospace headings/hints, four live-state controls and a labeled 3×2 grid for Log Out, Shut Down, Restart, Sleep, Lock and Settings. Settings moved into the sixth tile rather than adding a new power command. Left/Right traverses tiles with wrapping; Up/Down changes grid rows in the same column. Tab/Enter/Space remain native. Each power action closes the menu before opening the existing confirmation overlay, which starts on Cancel, supports Escape/outside cancellation and uses 48px button hit height. The secure lock route and actual power commands are unchanged. Audio/brightness controls remain in their existing homes.
+- **Launcher**: App/action/clipboard search uses a screen-bounded 460px single-column Elena card with a dashed rounded frame, monospace uppercase provider/count labels, contextual keyboard hints and an accent selection marker. Names and selected descriptions keep the regular body font and normal case; popup height follows content without a separate details pane. Ctrl+F returns to search, arrows select results, Enter activates, and Tab reaches provider controls. Right-click or Shift+F10/Menu exposes opening, copying parsed POSIX-shell-quoted application arguments, or deleting a clipboard entry; Escape closes the context menu before dismissing. `@` still hands off to the wallpaper filmstrip. Speech recognition, its microphone button, recording/transcription processes and helper are removed; system packages and downloaded models outside the repo are untouched.
 - **Settings**: Provides eleven tabs, remembers the last selected tab, keeps Network and Bluetooth Settings-only, and preserves Settings/power entry points when bar content switches are disabled. The panel moves from its header and resizes from the bottom-right corner, with a 560px minimum width and a maximum height bounded by screen margins. Sidebar navigation scrolls on overflow without a visible scrollbar; keyboard navigation brings the selected tab into view. Search prioritizes control titles, reports result counts or an empty state, and opens and highlights matching controls.
-- **Settings presentation**: Defaults to a 1100×900 panel when no saved size exists. Material can expand to 1440px, with a bounded 240px navigation pane and content capped at 1120px. General's behavior and clock/calendar sections become side-by-side above an 800px content width and stack below it. Narrow navigation labels elide with tooltips rather than clipping; content rows wrap and grow. Ctrl+F searches from any control, and content editing/navigation keys no longer change sidebar tabs. Compact desktop density is persisted independently of text size and resets with Appearance defaults. Nothing, Ghost, and Liquid retain their own color and shape language.
-- **Bar widget relocation**: In Settings → General → Bar contents, all widgets—including the clock—use the same up/down, middle, and visibility controls. Arrows reorder widgets across Start/Middle/End; the middle button places a widget at the midpoint or moves it back to End. Hidden widgets keep their saved positions. Until moved, the clock follows the selected theme: centered in Material and vertical bars, at the end in horizontal Ghost. Moving it makes its chosen region explicit across theme changes; Reset all restores automatic clock placement and the default order. Existing two-region saved layouts load with an empty Middle region.
-- **ActionButton**: A label-only button does not reserve icon height or icon-to-label spacing; compact Settings actions such as Weather > Apply keep their text centered in every UI style.
-- **Weather**: Uses a configured manual location by default, optionally supports IP geolocation, refreshes on the persisted interval, and reports the last update time. Refreshes coalesce rather than aborting an active fetch; invalid responses and command failures appear in the popup as errors. Ghost gives the current reading a raised, larger panel, makes the hourly forecast a quieter strip, and shows details as ruled data rows. Without a valid reading, it shows a compact status message rather than placeholder forecasts and measurements. Other styles retain their existing layout.
-- **Notifications**: Retains history while DND or quiet hours suppress toast delivery; critical-notification bypass, toast placement, retention, and clear-history actions are persisted. History cards are non-clickable reading surfaces with a 36px dismiss/remove target. One activation removes that history entry and, if the notification is still live, dismisses it from the server. Ghost uses a screen-bounded 400px history panel, closer card spacing, square app badges, and summaries that wrap to two lines; the other styles retain their existing density and badge shape.
-- **Ghost notification toasts**: Use a screen-bounded 320px reading surface with the history panel’s square app badge and two-line summaries. The app badge and panel border use a danger signal for critical notifications. Only the visible 36px close control dismisses a Ghost toast; clicking its text or background does not. Other styles retain whole-toast dismissal, and the existing timeout/DND behavior remains unchanged.
+- **Settings presentation**: Defaults to 1100×900 when no saved size exists, can expand to 1440px, and bounds the navigation pane and page width. General sections become side-by-side above 800px and stack below. Narrow labels elide with tooltips; rows wrap and grow. Ctrl+F searches from any control, without stealing content editing/navigation keys.
+- **Bar widget preferences**: General retains visibility, order and Start/Middle/End placement settings. They do not replace the Elena workspace strip. Hidden widgets retain their saved positions; re-homing them is out of scope for S1.
+- **ActionButton**: Label-only buttons reserve no icon height or icon-to-label spacing; compact Settings actions retain centered labels.
+- **Weather**: Uses a configured manual location by default, optionally supports IP geolocation, refreshes on the persisted interval and reports the last update time. Refreshes coalesce rather than aborting an active fetch; invalid responses and command failures appear as popup errors.
+- **Notifications**: Retains history while DND or quiet hours suppress toast delivery. Critical bypass, placement, retention and clear-history remain persisted. History cards are reading surfaces with explicit dismiss/remove controls; toast input and timeout behavior retain the existing Elena path.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a polling re-query runs in `shell.qml` after reloads.
-- **Theme ownership**: Live is Matugen's wallpaper palette for Material 3 and Nothing Evolution; Fixed palettes come from `config/PaletteCatalog.js`. `scripts/sync-active-palette.sh` activates the selected cache, regenerates Material 3 desktop companions, and refreshes synchronizers. Classic Nothing and Ghost keep authored Quickshell colors. `scripts/apply-wallpaper.sh` still refreshes Live while Fixed is selected. The root-owned SDDM bridge changes the greeter only on explicit style/mode changes.
-- **New deployment**: `yadm bootstrap` (or `/home/mura/install.sh`) offers `scripts/install-ui-suite.sh`, which installs Material 3, Nothing, and Ghost companion projects and SDDM themes. Run directly with `--dry-run`, `--skip-sddm`, `--skip-cursors`, or `--skip-nvim` as needed. `scripts/verify-ui-suite.sh` checks supported GTK, icon, Kvantum, cursor, terminal, btop, Neovim, and SDDM assets. Existing installed themes outside the managed set are not deleted.
-- **Appearance tab**: Shows five compact style selectors in one row when space allows, or a balanced compact grid; the active style is outlined and its keyboard-focusable button selects it. A single larger illustration shows the selected style's bar, launcher, and notification treatment below the selectors; it is not a live screenshot. Changes save immediately, and Revert style remains next to the description when space allows. Contrast, palette, bar, sizing, and appearance reset remain below; General holds the independent Reduce transparency switch.
+- **Palette ownership**: Live comes from wallpaper-driven Matugen; Fixed comes from `PaletteCatalog.js`. `sync-active-palette.sh` activates separate source caches and refreshes the generated companions. Wallpaper changes still refresh Live while Fixed is selected. SDDM updates remain explicit.
+- **Deployment**: `scripts/install-ui-suite.sh` installs only the palette-driven Matugen companions and optional light/dark greeters. Use `--dry-run` or `--skip-sddm`; `verify-ui-suite.sh` checks the matching assets. Existing outside-tree themes are untouched. Installing the updated SDDM bridge requires an explicit privileged action; no system installation is performed by the cutover.
+- **Appearance**: Palette, accent, contrast, wallpaper, dock pins, retained bar preferences, sizing and confirmed reset remain. Removed styles have no picker, preview or search entry.
 - **Display & Input tab**: Reads and safely edits Niri output, input, and edge-gesture settings through the validated `scripts.niri_config` CLI. Remote controls only read while their Settings page is active.
 - **Wallpaper thumbnails**: `scripts/generate-thumbnails.sh` produces 200×130 center-cropped thumbnails under `~/.cache/quickshell/wallpaper-thumbs`, regenerating only when the source is newer, with bounded concurrency, atomic publishing and a nonzero exit status on failure. The filmstrip runs it, then `scripts/generate-previews.sh`, once per shell session at low priority. There is no Wallpaper tab: choose from Appearance, the launcher's `@`, or `qs ipc call shell wallpapers`; `qs ipc call shell randomWallpaper` (and Ctrl+R in the filmstrip) applies a random one through `scripts/random-wallpaper.sh`.
-- **Lock & Power tab**: Owns lock-screen options, idle lock/suspend timeouts, Caffeine, TLP power-profile selection with automatic AC/battery restore, and the Evolution-only Gooey/Micrographics clock-face selector.
+- **Lock & Power**: Owns clock size, wallpaper/media preferences, idle lock/suspend timeouts, Caffeine and automatic AC/battery power-profile restoration.
 - **Media tab**: Owns media artwork, progress, and always-visible-control preferences for the media popup.
-- **Ghost media popup**: Uses a framed 200×140 artwork crop with a compact horizontal Cava signal, left-aligned two-line track titles, a straight progress trace, and a square accent playback control. Silence leaves the signal strip empty. With no player, Ghost collapses to a short “No Media Playing” message instead of showing placeholder art, times, and inactive controls. Other styles retain their circular artwork and wave progress.
 - **Media / MPRIS**: `scripts/mpris_monitor.py` broadcasts the active player's state as newline-delimited JSON over stdout (consumed via `SplitParser`), and also listens on a private runtime named pipe for out-of-band pokes. `scripts/mpris_control.py` sends play/pause/next/prev to whichever player is currently active (preferring a "Playing" one); the visualizer is available in the Settings media controls.
-- **OSD**: A separate always-on-top `PanelWindow` (`bar/OsdOverlay.qml`), not part of the popup/`openPopup` system. Ghost uses a raised panel with cyan corner brackets, a mono channel header, an inset signal icon, and a tick-marked level meter; status-only events use a shorter panel without a meter. Liquid Glass retains a compact horizontal readout; Material 3 and Nothing use centered icon/value compositions. Continuous readings show a meter, while mic, airplane, Bluetooth, and muted volume show status without a misleading percentage bar. Auto-hides after 1.5s. Polls sysfs directly for the ThinkPad keyboard backlight since the EC never emits a Wayland key event for `Fn+Space`.
+- **OSD**: A separate centered icon/value surface, outside the popup state machine. Continuous readings show a meter; mic, airplane, Bluetooth and muted volume show status instead. It auto-hides after 1.5s and polls sysfs for ThinkPad keyboard backlight changes.
 - **Lock Screen Security**: Employs imperative start/stop handlers in `onLockedChanged` for `fprintdProcess` to prevent QML declarative property binding breaks.
 
 ## Dependencies
@@ -460,10 +429,8 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **Quickshell** — the shell framework
 - **Qt6** (QtQuick, QtWayland)
 - **Niri** — compositor, workspace/window state, actions, and shell integration
-- **Python 3** — for `.desktop` parsing, weather, MPRIS, and voice search
-- **python-vosk** — offline speech recognition (model auto-downloaded to `~/.local/share/vosk-model` on first use)
+- **Python 3** — for `.desktop` parsing, weather and MPRIS
 - **python-dbus** / **PyGObject** — MPRIS monitoring and control
-- **pw-record** (from `pipewire-utils`) — recording mic input
 - **wpctl** (WirePlumber) — audio control
 - **playerctl** — media transport keys
 - **brightnessctl** — backlight and keyboard-LED control
@@ -495,12 +462,12 @@ This project is licensed under the terms of the GNU General Public License v3.0 
 
 ## Control golden test
 
-`scripts/controls-golden.sh <root> <out>` renders every themed control state
-in all five styles under a throwaway `$HOME` (`tests/controls-golden/shell.qml`).
+`scripts/controls-golden.sh <root> <out>` renders only Elena controls under
+a throwaway `$HOME` (`tests/controls-golden/shell.qml`).
 `scripts/controls-golden-baseline.sh` wraps it:
 
 - `update` renders the current tree and replaces the baseline.
-- `check` renders again and fails if any style moves by more than a few pixels.
+- `check` compares only `elena.png` and fails above 40 differing pixels. Historical other-style images are ignored.
 
 The baseline lives outside the repo, in `~/.local/state/quickshell-golden/controls`
 (override with `QS_GOLDEN_DIR`), because fonts and Qt version change pixels per
@@ -509,9 +476,89 @@ change. After a deliberate visual change, review the result and run `update`.
 
 ## Control behaviour test
 
-`scripts/controls-behavior.sh` runs `tests/controls-behavior/shell.qml` (QtTest)
-once per style: keyboard and mouse activation, disabled controls ignoring
-input, and slider keys, for ActionButton, IconButton, SwitchControl and
-SliderControl. It needs no baseline. Input, focus, and accessibility code lives
-once in `bar/themes/shared/*Base.qml`; the material3 and styled implementations
-extend those and only add theme-specific properties and visuals.
+`scripts/controls-behavior.sh` runs the Elena QtTest contract: keyboard and
+mouse activation, disabled inputs, switch-row activation, slider keys, hover,
+reduced motion and tooltip visibility. Input, focus and accessibility live in
+`bar/controls/*Base.qml`; adjacent `Elena*` implementations supply the visuals.
+Muted level tiles show clipped diagonal stripes instead of an active fill;
+unmuting restores the existing level. The render check covers both states and
+the rounded corners.
+`controls-render.sh`, `sidebar-render.sh`, `dock-render.sh` and
+`tag-strip-render.sh` provide isolated Elenapan-palette pixel checks.
+`config-dump.sh check` compares the original role/token oracle, allowing only
+explicitly removed properties and the intended shape change. Its legacy-key
+fixture proves stale settings cannot activate a removed style or density.
+
+After QML cutovers, cold-restart Quickshell before live IPC verification:
+`systemctl --user restart quickshell.service`. Launcher and session/power
+presentation redesigns are implemented; notification redesign remains separate.
+Bindings, confirmation execution and authentication remain unchanged.
+
+## Sidebar pages (S2)
+
+Toggle with `qs ipc call shell popup sidebar`. Status keeps the clock, battery,
+weather, media and level controls. Dashboard adds the current user/session,
+Account/Appearance/System settings links, a browsable calendar, uptime, memory
+used/total and explicitly labeled one-minute CPU load average.
+
+Use the page buttons or **Ctrl+PageUp / Ctrl+PageDown**. Tab, Enter and Space
+work on the native buttons. Page selection stays in memory across close/open;
+it does not write settings. Search stays fixed below either page, preserves
+its query while switching, and clears on close. Enter retains the existing
+launcher search and `@` wallpaper routing.
+
+Both page bodies scroll on short outputs while navigation and search remain
+visible. Status services activate only on Status; procfs statistics refresh
+every five seconds only on the visible Dashboard. Calendar week start follows
+the existing preference. Unavailable metrics are labeled, not shown as zero.
+The profile uses an initial badge instead of adding another masked image.
+
+`node tests/sidebar/stats.test.mjs` checks metric parsing boundaries.
+`bash scripts/sidebar-render.sh` exercises keyboard navigation, search
+retention, real metric refresh/stop, year/leap-day calendar behavior and
+short-height scrolling. With `KEEP_PNG=/tmp/sidebar.png`, it keeps Status,
+Dashboard (`/tmp/sidebar-dashboard.png`) and short-height
+(`/tmp/sidebar-short.png`) captures. Full-shell quick-link routing is also
+smoke-checked separately. Specification:
+`docs/superpowers/specs/2026-10-13-elena-sidebar-pages-design.md`.
+
+## Launcher redesign and speech removal
+
+The reference supplies the dashed-card and tracked-monospace grammar, not a
+replacement launcher workflow. App discovery/ranking, `>` actions, `;`
+clipboard history and `@` wallpaper handoff remain. Ordinary microphone
+volume/mute controls are independent and remain available.
+
+The isolated native launcher scenario passed 17 checks covering real desktop
+entries, keyboard/context-menu interaction, an isolated clipboard fixture,
+empty/long-name/short-height layouts, sidebar query handoff and a harmless
+application activation. Six mode/layout captures were produced and the
+application/action/clipboard/short-height views visually inspected; the
+captured frame contains both dashes and gaps. No destructive power, clipboard
+wipe or microphone capture was exercised.
+
+QML lint, all 14 Node regression commands, 31 control behavior checks and
+33 provider/desktop-parser Python cases passed. The live launcher check
+requires the user's cold restart; these are isolated runtime results.
+Specification: `docs/superpowers/specs/2026-10-13-elena-launcher-design.md`.
+
+
+## Session/power presentation
+
+`bar/primitives/DashedFrame.qml` now shares static rounded dashed framing among
+the launcher, session menu and power confirmation. The confirmation retains
+its public color overrides for both lock-screen callsites, signal contract,
+initial Cancel focus and outside/keyboard cancellation.
+
+Isolated native scenarios passed 19 session-grid/action checks and nine
+confirmation checks. All four power selections and cancellation paths were
+exercised. Executor verification used only owned temporary `touch` commands;
+confirmation keyboard checks ran without an attached executor. No real
+logout, shutdown, reboot, suspend, lock or radio/caffeine toggle was invoked.
+Session menu, normal and lock-customized confirmations, and the extracted
+launcher frame were rendered and visually inspected.
+
+QML lint, 14 Node regression commands, 31 control behavior checks, three
+safe-logout Python cases and the obsolete-style gate passed. Live
+display-only checks await the user's cold restart. Specification:
+`docs/superpowers/specs/2026-10-13-elena-power-menu-design.md`.

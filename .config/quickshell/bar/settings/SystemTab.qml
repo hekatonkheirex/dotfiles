@@ -263,7 +263,7 @@ Flickable {
       Layout.preferredHeight: statsGrid.implicitHeight + Config.spacingMedium * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       GridLayout {

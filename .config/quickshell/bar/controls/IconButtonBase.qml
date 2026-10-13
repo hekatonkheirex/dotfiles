@@ -1,7 +1,5 @@
-// Input, focus, and accessibility behaviour shared by every IconButton
-// implementation (material3/ and styled/). Implementations extend this and add
-// only theme-specific properties and visuals; read root.hovered / root.pressed
-// for pointer state.
+// Elena icon-button input, focus and accessibility. The visual implementation
+// reads hovered / pressed for pointer state.
 import QtQuick
 import "../primitives"
 

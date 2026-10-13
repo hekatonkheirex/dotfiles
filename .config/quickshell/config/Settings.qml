@@ -72,7 +72,6 @@ FileView {
     notificationToastPosition: "top-right",
     notificationToastDurationMs: 5000,
     reduceMotion: false,
-    reduceTransparency: false,
     spacingScale: 1.0,
     systemShowUptime: true,
     colorSource: "live",
@@ -81,7 +80,6 @@ FileView {
     colorContrast: "standard",
     accentPalette: "",
     accentActive: "",
-    lockClockFace: "micrographics",
     themePreference: 0,
     timezone: "",
     weatherAllowIpGeolocation: false,
@@ -177,14 +175,12 @@ FileView {
   property alias settingsPanelWidth: adapter.settingsPanelWidth
   property alias settingsPanelHeight: adapter.settingsPanelHeight
   property alias lockClockSize: adapter.lockClockSize
-  property alias lockClockFace: adapter.lockClockFace
   property alias lockShowMedia: adapter.lockShowMedia
   property alias lockUseWallpaper: adapter.lockUseWallpaper
   property alias mediaControlsAlwaysVisible: adapter.mediaControlsAlwaysVisible
   property alias mediaShowAlbumArt: adapter.mediaShowAlbumArt
   property alias mediaShowProgressBar: adapter.mediaShowProgressBar
   property alias notificationCriticalBypass: adapter.notificationCriticalBypass
-  property alias reduceTransparency: adapter.reduceTransparency
   property alias notificationHistoryLimit: adapter.notificationHistoryLimit
   property alias notificationQuietHoursEnabled: adapter.notificationQuietHoursEnabled
   property alias notificationQuietHoursEnd: adapter.notificationQuietHoursEnd
@@ -207,12 +203,6 @@ FileView {
   property alias weatherRefreshIntervalMinutes: adapter.weatherRefreshIntervalMinutes
   property alias weatherUnits: adapter.weatherUnits
 
-  // elena is the only UI style. These are no longer persisted (stale keys in
-  // settings.json are ignored); read-only shims stay while bar/ and shell.qml
-  // still read them (Tasks 5 to 8 remove the readers, Task 9 the shims).
-  readonly property string themeStyle: "elena"
-  readonly property string nothingVariant: "evolution"
-  readonly property bool materialCompact: false
 
   function save() {
     root.writeAdapter()
@@ -224,7 +214,6 @@ FileView {
     fontPixelSize = root.defaults.fontPixelSize
     barForm = root.defaults.barForm
     iconSize = root.defaults.iconSize
-    reduceTransparency = root.defaults.reduceTransparency
     spacingScale = root.defaults.spacingScale
     workspaceShape = root.defaults.workspaceShape
     workspaceCount = root.defaults.workspaceCount
@@ -234,7 +223,6 @@ FileView {
     colorContrast = root.defaults.colorContrast
     accentPalette = root.defaults.accentPalette
     accentActive = root.defaults.accentActive
-    lockClockFace = root.defaults.lockClockFace
     themePreference = root.defaults.themePreference
   }
 
@@ -339,7 +327,6 @@ FileView {
     property bool mediaShowAlbumArt: root.defaults.mediaShowAlbumArt
     property bool mediaShowProgressBar: root.defaults.mediaShowProgressBar
     property bool notificationCriticalBypass: root.defaults.notificationCriticalBypass
-    property bool reduceTransparency: root.defaults.reduceTransparency
     property int notificationHistoryLimit: root.defaults.notificationHistoryLimit
     property bool notificationQuietHoursEnabled: root.defaults.notificationQuietHoursEnabled
     property int notificationQuietHoursEnd: root.defaults.notificationQuietHoursEnd
@@ -359,7 +346,6 @@ FileView {
     // empty active keeps the style default.
     property string accentPalette: root.defaults.accentPalette
     property string accentActive: root.defaults.accentActive
-    property string lockClockFace: root.defaults.lockClockFace
     // 0 = auto, 1 = light, 2 = dark.
     property int themePreference: root.defaults.themePreference
     property string timezone: root.defaults.timezone

@@ -1,12 +1,57 @@
-{"removed": [
-  "Colors.dwmTheme"],
- "removedPrefixes": [
-  "Colors.ghost",
-  "Colors.nothing",
-  "Colors.liquidGlass"],
- "changed": {
-  "Config.shapeLarge": [16, 20],
-  "Config.borderRadius": [16, 20],
-  "Config.popupRadius": [16, 20],
-  "Config.barRadius": [16, 20],
-  "Config.settingsCardRadius": [16, 20]}}
+{
+  "removed": [
+    "Colors.barForeground",
+    "Colors.barForegroundMuted",
+    "Colors.dwmTheme",
+    "Colors.paletteSourceSelectable",
+    "Colors.styleAccent",
+    "Colors.styleAccentText",
+    "Colors.styleControl",
+    "Colors.styleInk",
+    "Colors.styleOutline",
+    "Colors.styleOutlineStrong",
+    "Colors.styleSelectedText",
+    "Colors.styleShadow",
+    "Colors.styleSurface",
+    "Colors.styleSurfaceRaised",
+    "Config.dwmTheme",
+    "Config.elenaTheme",
+    "Config.evolutionControlAlpha",
+    "Config.evolutionRaisedAlpha",
+    "Config.evolutionSurfaceAlpha",
+    "Config.ghostTheme",
+    "Config.liquidGlassTheme",
+    "Config.material3Theme",
+    "Config.materialCompact",
+    "Config.nothingDesign",
+    "Config.nothingEvolution",
+    "Config.sfSymbolsFont"
+  ],
+  "removedPrefixes": [
+    "Colors.ghost",
+    "Colors.nothing",
+    "Colors.liquidGlass"
+  ],
+  "changed": {
+    "Config.shapeLarge": [
+      16,
+      20
+    ],
+    "Config.borderRadius": [
+      16,
+      20
+    ],
+    "Config.popupRadius": [
+      16,
+      20
+    ],
+    "Config.barRadius": [
+      16,
+      20
+    ],
+    "Config.settingsCardRadius": [
+      16,
+      20
+    ]
+  }
+}

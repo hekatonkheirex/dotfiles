@@ -7,22 +7,18 @@ github_owner=${UI_THEME_GITHUB_OWNER:-hekatonkheirex}
 sddm_theme_root=/usr/share/sddm/themes
 dry_run=0
 skip_sddm=0
-skip_cursors=0
-skip_nvim=0
 
 usage() {
   cat <<'EOF'
 Usage: install-ui-suite.sh [options]
 
-Clone and install the four Quickshell UI style families without storing their
-generated theme sources in yadm. Existing project directories are reused as-is.
+Clone and install the palette-driven Matugen desktop companions without storing
+their generated theme sources in yadm. Existing checkouts are reused as-is.
 
 Options:
   --projects-dir PATH  Theme checkout directory (default: ~/Projects)
   --github-owner NAME  GitHub owner (default: hekatonkheirex)
   --skip-sddm          Skip SDDM theme builds, bridge, and verification
-  --skip-cursors       Skip the Ghost cursor build/install
-  --skip-nvim          Skip the Neovim plugin-manager sync
   --dry-run            Print clones and commands without changing the system
 EOF
 }
@@ -41,14 +37,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-sddm)
       skip_sddm=1
-      shift
-      ;;
-    --skip-cursors)
-      skip_cursors=1
-      shift
-      ;;
-    --skip-nvim)
-      skip_nvim=1
       shift
       ;;
     --dry-run)
@@ -119,11 +107,6 @@ install_sddm_dist() {
   case "$name" in
     material3-expressive-sddm)
       themes=(Material3-Expressive-Dynamic-SDDM Material3-Expressive-Dynamic-Dark-SDDM) ;;
-    nothing-sddm)
-      themes=(Nothing-OS-SDDM Nothing-OS-Dark-SDDM) ;;
-    ghost-sddm)
-      dist_dir="$projects_dir/ghost-sddm/.build"
-      themes=(Ghost-SDDM) ;;
     *) die "unmanaged SDDM source project: $name" ;;
   esac
   [[ -d "$dist_dir" && ! -L "$dist_dir" ]] || die "missing or unsafe generated SDDM output: $dist_dir"
@@ -182,80 +165,37 @@ repos=(
   material3-expressive-theme
   material3-expressive-icons
   material3-expressive-kvantum
-  nothing-theme
-  nothing-icons
-  nothing-kvantum
-  ghost-theme
-  ghost-icons
-  ghost-kvantum
 )
 if (( ! skip_sddm )); then
-  repos+=(
-    material3-expressive-sddm
-    nothing-sddm
-    ghost-sddm
-  )
-fi
-if (( ! skip_cursors )); then
-  repos+=(ghost-cursors)
+  repos+=(material3-expressive-sddm)
 fi
 
 for repo in "${repos[@]}"; do
   clone_repo "$repo"
 done
 
-# Material 3 owns the shared GTK build engine and current Matugen palette.
-# Nothing and Ghost consume that generated baseline, so keep this order.
+# Build the shared engine's palette-driven GTK, icon and Qt outputs.
 run_step 'Material 3 GTK theme' "$projects_dir/material3-expressive-theme" python3 generate.py
 run_step 'Material 3 icon themes' "$projects_dir/material3-expressive-icons" python3 generate.py
 run_step 'Material 3 Kvantum themes' "$projects_dir/material3-expressive-kvantum" python3 generate.py
 
-run_step 'Nothing GTK theme' "$projects_dir/nothing-theme" python3 generate.py
-run_step 'Nothing icon themes' "$projects_dir/nothing-icons" make install
-run_step 'Nothing Kvantum themes' "$projects_dir/nothing-kvantum" make install
-
-run_step 'Ghost GTK theme' "$projects_dir/ghost-theme" bash scripts/install.sh --dest "$HOME/.themes"
-run_step 'Ghost icon themes' "$projects_dir/ghost-icons" bash scripts/install.sh
-run_step 'Ghost Kvantum themes' "$projects_dir/ghost-kvantum" make install
-
-if (( ! skip_cursors )); then
-  run_step 'Ghost cursor build' "$projects_dir/ghost-cursors" python3 build.py
-  run_step 'Ghost cursor install' "$projects_dir/ghost-cursors" bash install.sh
-fi
-
-# The external style repositories do not provide the fixed Starship/btop
-# companions. Fill local integration assets before active-style synchronization.
-run_step 'Style terminal companion assets' "$script_dir" bash "$script_dir/ensure-style-terminal-assets.sh"
 
 if (( ! skip_sddm )); then
   run_step 'Material 3 SDDM themes' "$projects_dir/material3-expressive-sddm" python3 generate.py
   install_sddm_dist material3-expressive-sddm
 
-  run_step 'Nothing SDDM themes' "$projects_dir/nothing-sddm" python3 generate.py --output dist
-  install_sddm_dist nothing-sddm
-
-  run_step 'Ghost SDDM theme build' "$projects_dir/ghost-sddm" make build
-  install_sddm_dist ghost-sddm
-
   run_step 'Quickshell SDDM bridge' "$script_dir" bash "$script_dir/install-sddm-integration.sh"
   run_step 'SDDM integration verification' "$script_dir" bash "$script_dir/verify-sddm-integration.sh"
 fi
 
-if (( ! skip_nvim )); then
-  if command -v nvim >/dev/null 2>&1; then
-    run_step 'Neovim plugin sync' "$HOME" nvim --headless '+Lazy! sync' +qa
-  else
-    printf 'Warning: nvim not found; skipping Neovim plugin sync.\n' >&2
-  fi
-fi
 
-sync_script="$HOME/.local/bin/sync-theme-mode.sh"
+sync_script="$script_dir/sync-theme-mode-locked.sh"
 if [[ -x "$sync_script" ]]; then
   if [[ -n ${DBUS_SESSION_BUS_ADDRESS:-} || -n ${WAYLAND_DISPLAY:-} ]]; then
     if (( skip_sddm )); then
       run_step 'Active theme synchronization' "$HOME" bash "$sync_script" auto --quiet
     else
-      run_step 'Active theme and SDDM synchronization' "$HOME" bash "$sync_script" auto --quiet '' --sync-sddm
+      run_step 'Active theme and SDDM synchronization' "$HOME" bash "$sync_script" auto --quiet --sync-sddm
     fi
   else
     printf 'Warning: no graphical session detected; run %s after login.\n' "$sync_script"
@@ -269,8 +209,6 @@ if (( dry_run )); then
 else
   verification_args=()
   (( skip_sddm )) && verification_args+=(--skip-sddm)
-  (( skip_cursors )) && verification_args+=(--skip-cursors)
-  (( skip_nvim )) && verification_args+=(--skip-nvim)
   run_step 'UI suite verification' "$script_dir" bash "$script_dir/verify-ui-suite.sh" "${verification_args[@]}"
 fi
 

@@ -1,6 +1,6 @@
-// Behaviour checks for the themed controls, run once per style by
-// scripts/controls-behavior.sh (copied to a config-copy root like the golden
-// harness). Prints one "PASS|FAIL <name>" line per check, then "DONE n fail".
+// Behaviour checks for the single Elena control implementation, run by
+// scripts/controls-behavior.sh in a config-copy root. Prints one
+// "PASS|FAIL <name>" line per check, then "DONE n fail".
 import QtQuick
 import QtQuick.Layouts
 import QtTest

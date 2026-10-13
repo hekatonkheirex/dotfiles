@@ -32,13 +32,13 @@ PanelWindow {
   signal settingsRequested()
 
   readonly property int lockPowerIndex: root.powerOptions.length
+  readonly property int settingsPowerIndex: root.lockPowerIndex + 1
 
   property bool caffeineOn: false
   property bool airplaneOn: false
   property bool bluetoothOn: false
 
-  readonly property int actionGap: Config.ghostTheme ? Config.spacingCompact
-    : (Config.nothingDesign ? Config.spacingMedium : Config.spacingSmall)
+  readonly property int actionGap: (Config.spacingSmall)
   // The hint reads live state. Storing the formatted string at hover time
   // left it stale when the async state probes finished after the popup opened.
   property string controlHintKey: ""
@@ -115,9 +115,8 @@ PanelWindow {
 
   function focusPower(index) {
     root.activePowerIndex = index
-    var item = index === root.lockPowerIndex
-      ? lockPowerButton
-      : powerRepeater.itemAt(index)
+    var item = index === root.lockPowerIndex ? lockPowerButton
+      : (index === root.settingsPowerIndex ? settingsPowerButton : powerRepeater.itemAt(index))
     if (item) item.forceActiveFocus()
   }
 
@@ -278,10 +277,7 @@ PanelWindow {
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
         transX.x = 0
-        if (Config.liquidGlassTheme) {
-          bg.opacity = 0.0
-          reducedMotionEntryAnimation.start()
-        } else {
+        {
           bg.opacity = 1.0
         }
       } else {
@@ -332,19 +328,19 @@ PanelWindow {
           root.dismissed()
         }
         event.accepted = true
-      } else if (event.key === Qt.Key_Left) {
-        var len = root.powerOptions.length + 1;
-        var nextIndex = (root.activePowerIndex === -1) ? 0 : (root.activePowerIndex === len - 1 ? 0 : root.activePowerIndex + 1);
-        root.focusPower(nextIndex)
-        event.accepted = true
-      } else if (event.key === Qt.Key_Right) {
-        var len = root.powerOptions.length + 1;
-        var nextIndex = (root.activePowerIndex === -1) ? len - 1 : (root.activePowerIndex === 0 ? len - 1 : root.activePowerIndex - 1);
+      } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Right
+          || event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
+        var len = root.powerOptions.length + 2
+        var delta = event.key === Qt.Key_Left ? -1 : (event.key === Qt.Key_Right ? 1 : 3)
+        var nextIndex = root.activePowerIndex < 0 ? 0 : (root.activePowerIndex + delta + len) % len
         root.focusPower(nextIndex)
         event.accepted = true
       } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
         if (root.activePowerIndex === root.lockPowerIndex) {
           root.requestLock()
+          event.accepted = true
+        } else if (root.activePowerIndex === root.settingsPowerIndex) {
+          root.settingsRequested()
           event.accepted = true
         } else if (root.activePowerIndex >= 0 && root.activePowerIndex < root.powerOptions.length) {
           root.requestPower(root.activePowerIndex)
@@ -358,17 +354,10 @@ PanelWindow {
       id: bg
       anchors.fill: parent
       radius: Config.popupRadius
-      color: Colors.chromeSurface
+      color: Colors.surface
       clip: true
-      border.width: Config.themeBorderWidth
-      border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-        ? Colors.styleOutline
-        : Colors.outlineVariant
+      DashedFrame { anchors.fill: parent; active: root.visible; radius: bg.radius }
 
-      GlassSheen {
-        anchors.fill: parent
-        radius: parent.radius
-      }
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -419,26 +408,20 @@ PanelWindow {
           fill: parent
           margins: Config.popupPadding
         }
-        spacing: Config.ghostTheme ? Config.spacingSmall
-          : (Config.nothingDesign ? Config.spacingLarge : Config.spacingMedium)
+        spacing: (Config.spacingMedium)
 
         Text {
-          text: Config.ghostTheme ? "QUICK / SETTINGS" : "Quick Settings"
-          color: Colors.fgSurface
-          font.family: Config.displayFontFamily
-          font.pixelSize: Config.material3Theme ? Config.typeHeadlineMediumSize
-            : Config.typeHeadlineSmallSize
-          font.weight: Config.typeStrongWeight
-          font.letterSpacing: Config.typeHeadlineTracking
-          lineHeight: Config.material3Theme ? Config.typeHeadlineMediumLineHeight
-            : Config.typeHeadlineSmallLineHeight
-          lineHeightMode: Text.FixedHeight
+          text: "/ SESSION /"
+          color: Colors.primary
+          font.family: "monospace"
+          font.pixelSize: Config.typeTitleMediumSize
+          font.letterSpacing: Config.typeMonoTracking
         }
 
         Rectangle {
           width: parent.width
           height: 1
-          color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
+          color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
         }
 
         Row {
@@ -446,9 +429,9 @@ PanelWindow {
           spacing: Config.spacingSmall
 
           Text {
-            text: Config.ghostTheme ? "01 / CONTROLS" : "CONTROLS"
+            text: "CONTROLS"
             color: Colors.fgSurfaceVariant
-            font.family: Config.monoFontFamily
+            font.family: "monospace"
             font.pixelSize: Config.typeLabelSmallSize
             font.letterSpacing: Config.typeMonoTracking
           }
@@ -467,10 +450,9 @@ PanelWindow {
       Row {
         spacing: root.actionGap
         width: parent.width
-        layoutDirection: Qt.RightToLeft
 
         ActionButton {
-          width: (parent.width - 4 * root.actionGap) / 5
+          width: (parent.width - 3 * root.actionGap) / 4
           height: width
           iconLabel: "coffee"
           labelText: ""
@@ -489,7 +471,7 @@ PanelWindow {
         }
 
         ActionButton {
-          width: (parent.width - 4 * root.actionGap) / 5
+          width: (parent.width - 3 * root.actionGap) / 4
           height: width
           iconLabel: root.airplaneOn ? "airplanemode_active" : "airplanemode_inactive"
           labelText: ""
@@ -508,7 +490,7 @@ PanelWindow {
         }
 
         ActionButton {
-          width: (parent.width - 4 * root.actionGap) / 5
+          width: (parent.width - 3 * root.actionGap) / 4
           height: width
           iconLabel: root.bluetoothOn ? "bluetooth_connected" : "bluetooth_disabled"
           labelText: ""
@@ -527,7 +509,7 @@ PanelWindow {
         }
 
         ActionButton {
-          width: (parent.width - 4 * root.actionGap) / 5
+          width: (parent.width - 3 * root.actionGap) / 4
           height: width
           iconLabel: "do_not_disturb_on"
           labelText: ""
@@ -548,27 +530,12 @@ PanelWindow {
           }
         }
 
-        ActionButton {
-          width: (parent.width - 4 * root.actionGap) / 5
-          height: width
-          iconLabel: "settings"
-          labelText: ""
-          tooltipText: "Settings"
-          horizontalContent: false
-          accessibleName: "Settings"
-          accessibleDescription: "Opens shell settings"
-          onHoveredChanged: root.showControlHint("Settings", null, hovered || activeFocus)
-          onActiveFocusChanged: root.showControlHint("Settings", null, hovered || activeFocus)
-          onActivated: {
-            root.settingsRequested()
-          }
-        }
       }
 
         Rectangle {
           width: parent.width
           height: 1
-          color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)
+          color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
         }
 
         Row {
@@ -576,9 +543,9 @@ PanelWindow {
           spacing: Config.spacingSmall
 
           Text {
-            text: Config.ghostTheme ? "02 / POWER" : "POWER"
+            text: "SESSION ACTIONS"
             color: Colors.fgSurfaceVariant
-            font.family: Config.monoFontFamily
+            font.family: "monospace"
             font.pixelSize: Config.typeLabelSmallSize
             font.letterSpacing: Config.typeMonoTracking
           }
@@ -586,8 +553,9 @@ PanelWindow {
           Text {
             width: parent.width - x
             text: root.activePowerIndex < 0 ? ""
-              : (root.activePowerIndex === root.lockPowerIndex
-                ? "Lock screen" : root.powerOptions[root.activePowerIndex].label)
+              : (root.activePowerIndex === root.lockPowerIndex ? "Lock screen"
+                : (root.activePowerIndex === root.settingsPowerIndex ? "Settings"
+                  : root.powerOptions[root.activePowerIndex].label))
             horizontalAlignment: Text.AlignRight
             elide: Text.ElideRight
             color: Colors.fgSurface
@@ -596,10 +564,10 @@ PanelWindow {
           }
         }
 
-      Row {
+      Grid {
         spacing: root.actionGap
         width: parent.width
-        layoutDirection: Qt.RightToLeft
+        columns: 3
 
         Repeater {
           id: powerRepeater
@@ -609,15 +577,15 @@ PanelWindow {
             required property var modelData
             required property int index
 
-            width: (parent.width - 4 * root.actionGap) / 5
-            height: width
+            width: (parent.width - 2 * root.actionGap) / 3
+            height: Math.max(80, Config.controlHitSize)
             iconLabel: root.powerIcon(modelData.label)
-            labelText: ""
+            labelText: modelData.label
             selected: index === root.activePowerIndex
             horizontalContent: false
             tooltipText: modelData.label
             accessibleName: modelData.label
-            accessibleDescription: "Power action"
+            accessibleDescription: root.powerDescription(modelData.label)
             onActiveFocusChanged: {
               if (activeFocus) root.activePowerIndex = index
               else if (!hovered && root.activePowerIndex === index) root.activePowerIndex = -1
@@ -634,10 +602,10 @@ PanelWindow {
 
         ActionButton {
           id: lockPowerButton
-          width: (parent.width - 4 * root.actionGap) / 5
-          height: width
+          width: (parent.width - 2 * root.actionGap) / 3
+          height: Math.max(80, Config.controlHitSize)
           iconLabel: "lock"
-          labelText: ""
+          labelText: "Lock"
           selected: root.activePowerIndex === root.lockPowerIndex
           horizontalContent: false
           tooltipText: "Lock screen"
@@ -653,6 +621,38 @@ PanelWindow {
           }
           onActivated: root.requestLock()
         }
+
+        ActionButton {
+          id: settingsPowerButton
+          width: (parent.width - 2 * root.actionGap) / 3
+          height: Math.max(80, Config.controlHitSize)
+          iconLabel: "settings"
+          labelText: "Settings"
+          horizontalContent: false
+          selected: root.activePowerIndex === root.settingsPowerIndex
+          accessibleName: "Settings"
+          accessibleDescription: "Opens shell settings"
+          tooltipText: accessibleName
+          onActiveFocusChanged: {
+            if (activeFocus) root.activePowerIndex = root.settingsPowerIndex
+            else if (!hovered && root.activePowerIndex === root.settingsPowerIndex) root.activePowerIndex = -1
+          }
+          onHoveredChanged: {
+            if (hovered) root.activePowerIndex = root.settingsPowerIndex
+            else if (!activeFocus && root.activePowerIndex === root.settingsPowerIndex) root.activePowerIndex = -1
+          }
+          onActivated: root.settingsRequested()
+        }
+      }
+
+      Text {
+        width: parent.width
+        text: "ARROWS SELECT · ENTER CHOOSE · ESC CLOSE"
+        color: Colors.fgSurfaceVariant
+        font.family: "monospace"
+        font.pixelSize: Config.typeLabelSmallSize
+        font.letterSpacing: Config.typeMonoTracking
+        wrapMode: Text.Wrap
       }
     }
   }

@@ -21,8 +21,8 @@ PanelWindow {
   // Child popups provide the surface dimensions.
   property real surfaceWidth: Config.popupWidth
   property real surfaceHeight: 0
-  // readingSurface is opaque in Nothing Evolution; the translucent chrome
-  // surface let terminal text show through popup titles.
+
+
   property color surfaceColor: Colors.readingSurface
   readonly property alias bg: bg
   default property alias content: bg.data
@@ -40,8 +40,8 @@ PanelWindow {
   WlrLayershell.focusable: true
 
   anchors.left: true
-  // Nothing and Ghost pills need more clearance than the nominal bar width.
-  margins.left: (Config.barFormMetrics.pills && (Config.nothingDesign || Config.ghostTheme)
+
+  margins.left: (Config.barFormMetrics.pills && (false)
     ? Config.barWidth + 18 : Config.barWidth) + Config.barFormMetrics.edgeGap + Config.spacingMedium
   property int screenH: Screen.desktopAvailableHeight
 
@@ -57,16 +57,11 @@ PanelWindow {
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
         transX.x = 0
-        if (Config.liquidGlassTheme) {
-          bg.opacity = 0.0
-          reducedMotionEntryAnimation.start()
-        } else {
+        {
           bg.opacity = 1.0
         }
-      } else if (Config.material3Theme) {
-        materialEntryAnimation.restart()
       } else {
-        entryAnimation.start()
+        materialEntryAnimation.restart()
       }
       shown()
     }
@@ -103,14 +98,8 @@ PanelWindow {
       color: root.surfaceColor
       clip: true
       border.width: Config.themeBorderWidth
-      border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-        ? Colors.styleOutline
-        : Colors.outlineVariant
+      border.color: Colors.outlineVariant
 
-      GlassSheen {
-        anchors.fill: parent
-        radius: parent.radius
-      }
 
       transform: [
         Translate { id: transX; x: 0 },

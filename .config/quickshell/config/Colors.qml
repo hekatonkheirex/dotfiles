@@ -78,8 +78,6 @@ QtObject {
   property bool systemDark: false
   property bool darkMode: themePreference === 1 ? false : (themePreference === 2 ? true : systemDark)
 
-  // Collapsed shim kept while bar/settings/AppearanceTab.qml still reads it.
-  readonly property bool paletteSourceSelectable: true
   readonly property bool fixedPaletteActive: Settings.colorSource === "fixed"
   readonly property string resolvedPaletteVariant: PaletteCatalog.resolveVariant(
     Settings.colorPalette,
@@ -95,16 +93,6 @@ QtObject {
     ? ("Fixed · " + paletteFamilyLabel + " · " + paletteVariantLabel)
     : (dynamicPaletteLoaded ? "Live (wallpaper)" : "Live (fallback)")
 
-  // Ghost colors kept only while bar/ call sites still read them (dead
-  // branches behind Config.ghostTheme; removed in Task 9).
-  readonly property color ghostHairline: darkMode
-    ? Qt.rgba(120/255, 220/255, 208/255, 0.16)
-    : Qt.rgba(0/255, 107/255, 99/255, 0.16)
-  readonly property color ghostHairlineStrong: darkMode
-    ? Qt.rgba(120/255, 220/255, 208/255, 0.32)
-    : Qt.rgba(0/255, 107/255, 99/255, 0.32)
-  readonly property color ghostCyan: darkMode ? "#57d9cc" : "#006d67"
-  readonly property color ghostMuted: darkMode ? "#678984" : "#4f6260"
 
   function authoredMaterialPalette(mode) {
     var dark = mode === "dark"
@@ -447,50 +435,9 @@ QtObject {
   property color shadow:                  paletteRole(darkMode ? "dark" : "light", "shadow", darkMode ? d_shadow : l_shadow)
   property color scrim:                   paletteRole(darkMode ? "dark" : "light", "scrim", darkMode ? d_scrim : l_scrim)
 
-  // Liquid Glass roles kept only while bar/ call sites still read them,
-  // collapsed to the non-glass values (removed in Task 9).
-  readonly property bool liquidGlassOpaque: false
-  // Monochrome bar foregrounds, separate from the palette: pure white in dark
-  // mode and pure black in light mode.
-  readonly property color barForeground: darkMode ? "#ffffff" : "#000000"
-  readonly property color barForegroundMuted: Qt.rgba(
-    darkMode ? 1 : 0,
-    darkMode ? 1 : 0,
-    darkMode ? 1 : 0,
-    darkMode ? 0.72 : 0.68
-  )
-  readonly property color liquidGlassRegular: Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b,
-        // Retain glass while keeping text readable over black wallpaper.
-        darkMode ? 0.55 : 0.60)
-  readonly property color liquidGlassClear: Qt.rgba(surfaceContainerLow.r, surfaceContainerLow.g, surfaceContainerLow.b,
-        darkMode ? 0.45 : 0.50)
-  readonly property color liquidGlassRaised: Qt.rgba(surfaceContainer.r, surfaceContainer.g, surfaceContainer.b,
-        darkMode ? 0.60 : 0.65)
-  readonly property color liquidGlassControl: Qt.rgba(surfaceContainerHigh.r, surfaceContainerHigh.g, surfaceContainerHigh.b,
-        darkMode ? 0.95 : 0.85)
-  // macOS-style controls use neutral inactive chrome and a light control
-  // thumb; active controls supply their own semantic accent color.
-  readonly property color liquidGlassControlTrack: Qt.rgba(barForeground.r, barForeground.g, barForeground.b, darkMode ? 0.30 : 0.22)
-  readonly property color liquidGlassControlThumb: Qt.rgba(1, 1, 1, darkMode ? 0.90 : 0.94)
-  readonly property color liquidGlassHighlight: Qt.rgba(1, 1, 1, darkMode ? 0.14 : 0.34)
-  readonly property color liquidGlassShade: Qt.rgba(0, 0, 0, darkMode ? 0.16 : 0.05)
-  readonly property color liquidGlassEdge: Qt.rgba(1, 1, 1, darkMode ? 0.18 : 0.30)
-  readonly property color liquidGlassEdgeStrong: Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, darkMode ? 0.30 : 0.22)
-  readonly property color liquidGlassShadow: Qt.rgba(0, 0, 0, darkMode ? 0.34 : 0.18)
 
-  // Style helpers collapsed to the elena (Material) roles. Kept while bar/
-  // call sites still read them; Tasks 5 to 8 switch the readers to the roles.
-  readonly property color styleInk: outline
-  readonly property color styleOutline: outlineVariant
-  readonly property color styleOutlineStrong: outline
-  readonly property color styleShadow: "transparent"
-  readonly property color styleSurface: surfaceContainerHigh
-  readonly property color chromeSurface: styleSurface
+  readonly property color chromeSurface: surfaceContainerHigh
   readonly property color readingSurface: chromeSurface
-  readonly property color styleSurfaceRaised: surfaceContainerHigh
-  readonly property color styleControl: surfaceContainerHigh
-  readonly property color styleAccent: primary
-  readonly property color styleAccentText: fgPrimary
   // Fixed palette families intentionally reuse their source palette's surface
   // tones for M3 containers. Some families therefore have the same value for
   // secondaryContainer and the surrounding settings surface. Keep navigation
@@ -500,7 +447,6 @@ QtObject {
     ? Qt.tint(surfaceContainerLow, Qt.rgba(primaryFixed.r, primaryFixed.g, primaryFixed.b, darkMode ? 0.22 : 0.12))
     : secondaryContainer
   readonly property color navigationContent: fixedPaletteActive ? fgSurface : fgSecondaryContainer
-  readonly property color styleSelectedText: styleAccentText
 
   // Semantic status roles. Components should use these aliases instead of
   // introducing local status colors.

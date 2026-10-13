@@ -12,8 +12,7 @@ Flickable {
   property QtObject root: null
   property QtObject notificationPopup: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property bool material3Theme: Config.material3Theme
-  readonly property int segmentedButtonGap: notificationsTab.material3Theme ? 0 : Config.spacingSmall
+  readonly property int segmentedButtonGap: 0
   anchors.fill: parent
   visible: root.currentTab === 8
   clip: true
@@ -52,7 +51,7 @@ Flickable {
       Layout.preferredHeight: behaviorCol.implicitHeight + Config.spacingSmall * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
@@ -80,7 +79,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Do Not Disturb"
@@ -101,7 +100,7 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : (Config.ghostTheme ? 132 : 110)
+            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : (110)
             Layout.leftMargin: Config.spacingSmall
           }
 
@@ -115,7 +114,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -153,14 +152,14 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: notificationsTab.compactLayout ? 82 : (Config.ghostTheme ? 132 : 110)
+            Layout.preferredWidth: notificationsTab.compactLayout ? 82 : (110)
             Layout.leftMargin: Config.spacingSmall
           }
 
           Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: Config.material3Theme ? Math.max(Config.controlHitSize,
-              Config.typeLabelMediumLineHeight + (Config.materialCompact ? 16 : 24)) : 36
+            Layout.preferredHeight: Math.max(Config.controlHitSize,
+              Config.typeLabelMediumLineHeight + (24))
 
             Row {
               anchors.fill: parent
@@ -212,7 +211,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Quiet hours"
@@ -250,7 +249,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -300,7 +299,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -335,7 +334,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Critical notification bypass"
@@ -363,7 +362,7 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : (Config.ghostTheme ? 132 : 110)
+            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : (110)
             Layout.leftMargin: Config.spacingCompact
           }
 
@@ -377,7 +376,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion

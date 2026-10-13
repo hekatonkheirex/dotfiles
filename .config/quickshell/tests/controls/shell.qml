@@ -42,6 +42,11 @@ ShellRoot {
         x: 20; y: 320; value: 0.5; iconLabel: "settings"; accessibleName: "Test level"
         onIconClicked: win.badgeClicks++
       }
+      LevelTile {
+        id: mutedTile
+        x: 100; y: 320; value: 0.5; muted: true
+        iconLabel: "volume_off"; accessibleName: "Muted level"
+      }
     }
 
     Timer {
@@ -66,6 +71,11 @@ ShellRoot {
         // Fill must follow the tile's rounded bottom corners.
         stage.expect("level-corner-round", 21, 377, Colors.surface)
         stage.expect("level-empty-85pct", 49, 320 + 58 * 0.15, Colors.surfaceContainerHighest)
+        stage.expect("muted-level-stripe", 110, 330,
+          Qt.tint(Colors.surfaceContainerHighest,
+            Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.35)))
+        stage.expect("muted-level-between-stripes", 115, 330, Colors.surfaceContainerHighest)
+        stage.expect("muted-level-corner-round", 101, 321, Colors.surface)
       })
     }
 
@@ -86,6 +96,13 @@ ShellRoot {
         console.log("BEHAVE badge-tooltip-from-accessibleName "
           + (badge.tooltipText === "Test level" && badge.accessibleName === "Test level" ? 1 : 0))
         console.log("BEHAVE badge-hit-box-at-least-48 " + (badge.height >= 48 ? 1 : 0))
+        mutedTile.muted = false
+        waitForRendering(mutedTile)
+        var restored = grabImage(stage).pixel(110, 363)
+        console.log("BEHAVE unmute-restores-level "
+          + (Math.abs(restored.r - Colors.primary.r) < 0.02
+            && Math.abs(restored.g - Colors.primary.g) < 0.02
+            && Math.abs(restored.b - Colors.primary.b) < 0.02 ? 1 : 0))
         Qt.quit()
       }
     }

@@ -226,7 +226,7 @@ Item {
         checked: root.btOn
         activeColor: Colors.primary
         surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.styleOutlineStrong
+        outline: Colors.outline
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Bluetooth enabled"
@@ -254,7 +254,7 @@ Item {
         activeColor: Colors.primary
         surfaceContainerHigh: Colors.surfaceContainerHigh
         surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.styleOutlineStrong
+        outline: Colors.outline
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Bluetooth discoverable"
@@ -541,15 +541,15 @@ Item {
         id: itemRow
         width: parent.width
         leadingIcon: "bluetooth"
-        leadingIconColor: Config.nothingDesign && !Config.nothingEvolution ? Colors.fgSurface : Colors.primary
+        leadingIconColor: Colors.primary
         title: model.name
         subtitle: model.mac
         accessibleName: model.name + " Bluetooth device"
 
         Item {
           id: deviceActionArea
-          width: Config.material3Theme ? Config.controlHitSize * 2 + Config.spacingCompact : 60
-          height: Config.material3Theme ? Config.controlHitSize : 32
+          width: (Config.controlHitSize * 2 + Config.spacingCompact)
+          height: Config.controlHitSize
           anchors.verticalCenter: parent.verticalCenter
           readonly property bool showActions: itemRow.hovered || disconnectButton.hovered || renameButton.hovered
 

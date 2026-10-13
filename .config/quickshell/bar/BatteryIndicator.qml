@@ -8,7 +8,7 @@ import "../config"
 StatusIndicator {
   id: root
 
-  accentColor: Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
+  accentColor: (Colors.primary)
   accessibleName: "Battery"
 
   readonly property var batteryDevice: BatteryService.batteryDevice
@@ -18,18 +18,8 @@ StatusIndicator {
       || batteryDevice.state === UPowerDeviceState.PendingCharge)
   readonly property bool discharging: batteryDevice && !charging
     && batteryDevice.state !== UPowerDeviceState.FullyCharged
-  readonly property bool lowCharge: Config.ghostTheme && discharging && pct >= 0 && pct <= 20
-  iconColor: Config.ghostTheme && discharging && pct >= 0 && pct <= 10
-    ? Colors.destructive
-    : (lowCharge ? Colors.warning
-      : (Config.ghostTheme && charging ? Colors.success
-        : (Config.liquidGlassTheme ? Colors.barForeground
-          : (Config.ghostTheme && !root.active ? Colors.fgSurfaceVariant : root.accentColor))))
-  // Warning, critical and charging states keep their signal color; the
-  // resting Ghost/dwm value reads white.
-  labelColor: (Config.ghostTheme || Config.dwmTheme) && !lowCharge && !charging
-    && !(discharging && pct >= 0 && pct <= 10)
-    ? (Colors.darkMode ? "#ffffff" : Colors.fgSurface) : iconColor
+  iconColor: root.accentColor
+  labelColor: iconColor
 
   iconLabel: {
     if (!batteryDevice) return "battery_unknown"

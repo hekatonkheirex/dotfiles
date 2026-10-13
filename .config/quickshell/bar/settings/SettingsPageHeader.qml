@@ -14,22 +14,18 @@ ColumnLayout {
 
   Text {
     Layout.fillWidth: true
-    text: Config.ghostTheme ? pageHeader.pageTitle.toUpperCase() : pageHeader.pageTitle
+    text: pageHeader.pageTitle
     color: Colors.fgSurface
     font.family: Config.displayFontFamily
     font.pixelSize: pageHeader.width < 360 ? Config.typeHeadlineSmallSize
-      : (Config.ghostTheme ? Config.typeHeadlineSmallSize + 2
-        : (Config.nothingDesign && !Config.nothingEvolution
-          ? Config.typeHeadlineMediumSize : Config.typeHeadlineLargeSize))
-    font.weight: Config.material3Theme ? Config.typeMediumWeight
-      : (Config.ghostTheme ? Config.typeMediumWeight : Config.themeFontWeight)
-    font.letterSpacing: Config.ghostTheme ? Config.typeMonoTracking : Config.typeHeadlineTracking
-    lineHeight: Config.ghostTheme ? Config.typeHeadlineMediumLineHeight
-      : Config.typeHeadlineLargeLineHeight
+      : ((Config.typeHeadlineLargeSize))
+    font.weight: Config.typeMediumWeight
+    font.letterSpacing: Config.typeHeadlineTracking
+    lineHeight: Config.typeHeadlineLargeLineHeight
     lineHeightMode: Text.FixedHeight
     // NType 82 Headline draws a very narrow space, so "Display & Input" reads
     // "Display&Input".
-    font.wordSpacing: Config.nothingDesign && !Config.nothingEvolution ? 8 : 0
+    font.wordSpacing: 0
     wrapMode: Text.WordWrap
   }
 

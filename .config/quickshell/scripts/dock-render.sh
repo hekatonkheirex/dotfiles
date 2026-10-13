@@ -7,9 +7,9 @@ set -euo pipefail
 root=$(realpath "${DOCK_RENDER_ROOT:-${1:-$(dirname "$0")/..}}")
 home=$(mktemp -d); trap 'rm -rf "$home"' EXIT
 mkdir -p "$home/.config/quickshell" "$home/cfg"
-cp -r "$root/config" "$root/bar" "$root/resources" "$home/cfg/"
+cp -r "$root/config" "$root/bar" "$home/cfg/"
 cp "$root/tests/dock/shell.qml" "$home/cfg/shell.qml"
-printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapan","colorVariant":"auto","themePreference":2}\n' \
+printf '{"colorSource":"fixed","colorPalette":"elenapan","colorVariant":"auto","themePreference":2}\n' \
   > "$home/.config/quickshell/settings.json"
 HOME="$home" GOLDEN_OUT="$home/dock.png" QS_NO_RELOAD_POPUP=1 \
   timeout 30 qs -p "$home/cfg/shell.qml" >"$home/qs.log" 2>&1 || true

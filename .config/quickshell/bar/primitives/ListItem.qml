@@ -25,38 +25,23 @@ Rectangle {
   property bool navigationItem: false
   property bool navigationFocused: false
   property int trailingSpacing: Config.spacingCompact
-  readonly property bool material3Style: Config.material3Theme
   readonly property bool materialNavigationItem: root.navigationItem
-    && root.material3Style
+    && true
   readonly property bool materialStatusItem: root.statusActive
     && !root.selected
     && !root.navigationItem
-    && root.material3Style
+    && true
   readonly property bool stateHighlighted: root.selected || root.statusActive
   readonly property color selectedContainerColor: root.materialNavigationItem
     ? Colors.secondaryContainer
     : (root.materialStatusItem
       ? Colors.surfaceContainerHighest
-      : (root.material3Style
-        ? Colors.secondaryContainer
-        : (Config.ghostTheme
-          ? (root.statusActive && !root.selected
-            ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
-            : Colors.styleAccent)
-          : (Config.nothingDesign
-            ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.16)
-            : Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.15)))))
+      : (Colors.secondaryContainer))
   readonly property color selectedContentColor: root.materialNavigationItem
     ? Colors.fgSecondaryContainer
     : (root.materialStatusItem
       ? Colors.fgSurface
-      : (root.material3Style
-        ? Colors.fgSecondaryContainer
-        : (Config.ghostTheme
-          ? (root.statusActive && !root.selected ? Colors.fgSurface : Colors.styleAccentText)
-          : (Config.nothingEvolution
-            ? Colors.styleSelectedText
-            : (Config.nothingDesign ? Colors.styleInk : Colors.primary)))))
+      : (Colors.fgSecondaryContainer))
   property color leadingIconColor: root.stateHighlighted
     ? root.selectedContentColor
     : Colors.fgSurface
@@ -75,14 +60,12 @@ Rectangle {
     if (root.toggleControl !== null) root.toggleControl.activate()
   }
 
-  implicitHeight: root.material3Style
-    ? Math.max(Config.controlHitSize, textColumn.implicitHeight + Config.materialRowPadding,
+  implicitHeight: Math.max(Config.controlHitSize, textColumn.implicitHeight + Config.materialRowPadding,
       trailingRow.implicitHeight + Config.materialRowPadding)
-    : (root.navigationItem ? 48 : 44)
   height: implicitHeight
-  Layout.minimumHeight: root.material3Style ? implicitHeight : 0
+  Layout.minimumHeight: implicitHeight
   radius: root.materialNavigationItem ? height / 2
-    : (Config.liquidGlassTheme ? Config.shapeCompact : Config.shapeMedium)
+    : (Config.shapeMedium)
   activeFocusOnTab: root.enabled && (root.toggleControl === null || root.toggleControl.enabled)
   opacity: root.enabled ? 1.0 : 0.38
 
@@ -117,22 +100,18 @@ Rectangle {
       return root.activeFocus ? Qt.tint("transparent", Colors.focusOverlay) : "transparent"
     }
   }
-  color: root.material3Style ? rowEffect.color : rowEffect.targetColor
+  color: rowEffect.color
   border.color: root.materialNavigationItem
     ? "transparent"
-    : (root.materialStatusItem || (root.material3Style && root.stateHighlighted)
+    : (root.materialStatusItem || (root.stateHighlighted)
       ? "transparent"
-      : (Config.ghostTheme
-        ? Colors.styleOutlineStrong
-        : (Config.nothingDesign
-          ? (root.stateHighlighted ? Colors.styleOutlineStrong : "transparent")
-          : (root.stateHighlighted ? Colors.primary : "transparent"))))
+      : (((root.stateHighlighted ? Colors.primary : "transparent"))))
   border.width: root.materialNavigationItem ? 0
-    : (root.materialStatusItem || (root.material3Style && root.stateHighlighted)
+    : (root.materialStatusItem || (root.stateHighlighted)
       ? 0 : Config.themeBorderWidth)
 
   Behavior on color {
-    enabled: !root.material3Style
+    enabled: false
     ColorAnimation { duration: Config.animationDuration }
   }
 
@@ -143,7 +122,7 @@ Rectangle {
     radius: root.radius
     color: "transparent"
     border.width: root.activeFocus && !root.navigationItem ? 2 : 0
-    border.color: Config.ghostTheme || Config.nothingDesign ? Colors.styleOutlineStrong : Colors.primary
+    border.color: Colors.primary
     visible: border.width > 0
     z: 5
   }
@@ -197,7 +176,7 @@ Rectangle {
           : (root.stateHighlighted ? root.selectedContentColor : root.leadingIconColor)
         iconOpacity: root.leadingIconOpacity
         iconSize: root.materialNavigationItem ? 20
-          : (root.navigationItem && Config.liquidGlassTheme ? Config.iconSize : Config.iconSize + 6)
+          : (root.navigationItem && false ? Config.iconSize : Config.iconSize + 6)
         filled: root.stateHighlighted
       }
     }
@@ -251,24 +230,22 @@ Rectangle {
         font.letterSpacing: Config.typeBodyTracking
         lineHeight: Config.typeBodyLargeLineHeight
         lineHeightMode: Text.FixedHeight
-        wrapMode: root.material3Style && !root.navigationItem ? Text.Wrap : Text.NoWrap
-        elide: root.material3Style && !root.navigationItem ? Text.ElideNone : Text.ElideRight
+        wrapMode: !root.navigationItem ? Text.Wrap : Text.NoWrap
+        elide: !root.navigationItem ? Text.ElideNone : Text.ElideRight
       }
 
       Text {
         Layout.fillWidth: true
         visible: root.subtitle !== ""
         text: root.subtitle
-        color: Config.ghostTheme && root.selected
-          ? root.selectedContentColor
-          : Colors.fgSurfaceVariant
+        color: Colors.fgSurfaceVariant
         font.family: Config.fontFamily
         font.pixelSize: Config.typeLabelMediumSize
         font.letterSpacing: Config.typeLabelTracking
         lineHeight: Config.typeLabelMediumLineHeight
         lineHeightMode: Text.FixedHeight
-        wrapMode: root.material3Style ? Text.WordWrap : Text.NoWrap
-        elide: root.material3Style ? Text.ElideNone : Text.ElideRight
+        wrapMode: Text.WordWrap
+        elide: Text.ElideNone
       }
     }
 

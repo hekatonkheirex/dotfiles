@@ -6,11 +6,11 @@ Text {
   Layout.fillWidth: true
   Layout.topMargin: Config.spacingSmall
   Layout.bottomMargin: Config.spacingCompact
-  color: Config.material3Theme ? Colors.primary : Colors.fgSurface
+  color: Colors.primary
   font.family: Config.fontFamily
   font.pixelSize: Config.typeTitleMediumSize
   font.weight: Config.typeMediumWeight
-  font.letterSpacing: Config.ghostTheme ? Config.typeMonoTracking : Config.typeTitleTracking
-  font.capitalization: Config.ghostTheme ? Font.AllUppercase : Font.MixedCase
+  font.letterSpacing: Config.typeTitleTracking
+  font.capitalization: Font.MixedCase
   wrapMode: Text.WordWrap
 }

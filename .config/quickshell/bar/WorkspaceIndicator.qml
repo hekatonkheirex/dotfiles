@@ -33,16 +33,7 @@ Item {
   readonly property string focusedWindowCleanTitle: focusedWindowTitle.replace(/^[←-⯿\uD800-\uDFFF\s]+/, "")
   readonly property string focusedWindowInfo: focusedWindowCleanTitle !== "" ? focusedWindowCleanTitle : focusedWindowAppId
   readonly property string focusedWindowProgram: formatProgramName(focusedWindowAppId)
-  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassOpaque
-  readonly property color workspaceGroupColor: root.flatLiquidChrome
-    ? "transparent"
-    : (Config.liquidGlassTheme
-      ? Colors.liquidGlassClear
-    : (Settings.themeStyle === "material3"
-      && Colors.fixedPaletteActive
-      && Settings.colorPalette === "tokyonight"
-      ? Colors.surfaceContainer
-      : Colors.surfaceContainerHighest))
+  readonly property color workspaceGroupColor: ((Colors.surfaceContainerHighest))
 
   readonly property string wmType: Config.wmType
   readonly property bool compositorIntegration: Config.isNiri || Config.isMango
@@ -52,13 +43,11 @@ Item {
     "expressive", "pill", "rounded", "circle", "dots", "numbers",
     "magic", "kanji", "rings", "aurora", "pacman"
   ]
-  readonly property string workspaceStyle: Config.dwmTheme ? "numbers"
-    : (workspaceStyleValues.indexOf(Settings.workspaceShape) >= 0
+  readonly property string workspaceStyle: (workspaceStyleValues.indexOf(Settings.workspaceShape) >= 0
       ? Settings.workspaceShape
       : "expressive")
-  // dwm draws tags straight on the bar: no capsule track behind the numbers.
-  readonly property bool dwmFlatTrack: Config.dwmTheme && root.workspaceStyle === "numbers"
-  // Compatibility name for the original four shape bindings.
+
+
   readonly property string workspaceShape: workspaceStyle
   readonly property string workspaceCount: ["active", "5", "10"].indexOf(Settings.workspaceCount) >= 0
     ? Settings.workspaceCount
@@ -96,40 +85,36 @@ Item {
   readonly property bool legacyWorkspaceShape: ["expressive", "pill", "rounded", "circle"].indexOf(root.workspaceStyle) >= 0
 
   function workspaceMarkerFill(item) {
-    if (item.isFocused) return Colors.styleAccent
-    if (item.isOccupied) return Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.24)
-    return Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.14)
+    if (item.isFocused) return Colors.primary
+    if (item.isOccupied) return Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.24)
+    return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.14)
   }
 
   function workspaceMarkerColor(item) {
-    if (Config.liquidGlassTheme && !item.isFocused && !item.isOccupied)
-      return Colors.barForegroundMuted
-    if (Config.ghostTheme && !item.isFocused)
-      return item.isOccupied ? Colors.fgSurfaceVariant : Colors.styleOutlineStrong
+
+
     return item.isFocused || item.isOccupied
-      ? Colors.styleAccent
-      : Colors.styleOutlineStrong
+      ? Colors.primary
+      : Colors.outline
   }
 
   function workspaceMarkerTextColor(item) {
-    if (Config.liquidGlassTheme && !item.isFocused)
-      return item.isOccupied ? Colors.barForeground : Colors.barForegroundMuted
-    if (item.isFocused) return Colors.styleAccentText
+
+    if (item.isFocused) return Colors.fgPrimary
     if (item.isOccupied) return Colors.fgSurface
     return Qt.rgba(Colors.fgSurfaceVariant.r, Colors.fgSurfaceVariant.g, Colors.fgSurfaceVariant.b, 0.68)
   }
 
   function numberedWorkspaceFill(item) {
     if (item.isFocused)
-      return Colors.styleAccent
+      return Colors.primary
     return "transparent"
   }
 
   function numberedWorkspaceTextColor(item) {
     if (item.isFocused)
-      return Colors.styleAccentText
-    if (Config.dwmTheme)
-      return item.isOccupied ? Colors.fgSurface : Colors.fgSurfaceVariant
+      return Colors.fgPrimary
+
     return Colors.fgSurfaceVariant
   }
 
@@ -369,7 +354,6 @@ Item {
   }
 
 
-
   onVisibleChanged: {
     if (visible) {
       if (root.compositorIntegration) {
@@ -575,19 +559,12 @@ Item {
     height: root.horizontal
       ? Math.min(34, Math.max(0, parent.height - Config.spacingSmall))
       : Math.min(parent.height, Math.max(0, grid.implicitHeight + Config.spacingSmall * 2))
-    radius: root.dwmFlatTrack ? 0 : Math.min(Config.shapeLarge, width / 2, height / 2)
-    color: root.dwmFlatTrack ? "transparent" : root.workspaceGroupColor
-    border.width: root.flatLiquidChrome || root.dwmFlatTrack ? 0 : Config.themeBorderWidth
-    border.color: root.flatLiquidChrome
-      ? "transparent"
-      : (Config.liquidGlassTheme ? Colors.styleOutline : Colors.outlineVariant)
+    radius: Math.min(Config.shapeLarge, width / 2, height / 2)
+    color: root.workspaceGroupColor
+    border.width: Config.themeBorderWidth
+    border.color: (Colors.outlineVariant)
     clip: true
 
-    GlassSheen {
-      anchors.fill: parent
-      radius: parent.radius
-      glassEnabled: !root.flatLiquidChrome
-    }
   }
 
   Grid {
@@ -669,41 +646,28 @@ Item {
               ? (root.horizontal ? 10 : Math.min(32, delegateItem.height - 4))
               : (root.horizontal ? 4 : (modelData.isOccupied ? 10 : 6)))
             : (delegateItem.active ? 28 : (modelData.isOccupied ? 10 : 6))
-          radius: Config.ghostTheme
-            ? 0
-            : (root.workspaceShape === "rounded"
+          radius: (root.workspaceShape === "rounded"
               ? Math.min(Config.shapeMedium, width / 2, height / 2)
               : Math.min(width, height) / 2)
 
           color: {
-            if (modelData.isFocused) return Config.nothingEvolution
-              ? Colors.styleAccent
-              : (Config.nothingDesign
-                ? Colors.fgSurface
-                : (Config.liquidGlassTheme ? Colors.barForeground : Colors.styleAccent))
+            if (modelData.isFocused) return ((Colors.primary))
             var base = modelData.isOccupied
-              ? (Config.nothingEvolution
-                ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.72)
-                : (Config.liquidGlassTheme ? Colors.barForegroundMuted : Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.55)))
-              : (Config.nothingEvolution
-                ? Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.45)
-                : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.2))
+              ? ((Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.55)))
+              : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2))
             return Qt.tint(base, wsMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
           }
-          border.width: root.integrated || root.flatLiquidChrome
+          border.width: root.integrated || false
             ? 0
-            : (Config.nothingEvolution
-              ? ((modelData.isFocused || wsMouse.containsMouse) ? Config.themeBorderWidth : 0)
-              : (Config.nothingDesign ? 0
-                : (modelData.isFocused ? 0 : Config.themeBorderWidth)))
+            : (((modelData.isFocused ? 0 : Config.themeBorderWidth)))
           border.color: {
-            if (root.flatLiquidChrome) return "transparent"
-            if (Config.liquidGlassTheme) return Colors.barForeground
-            if (Config.ghostTheme) return Colors.styleOutline
-            if (Config.nothingEvolution) return Colors.styleOutline
-            if (Config.nothingDesign) return "transparent"
+
+
+
+
+
             if (modelData.isFocused) return "transparent"
-            return Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, modelData.isOccupied ? 0.3 : 0.1)
+            return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, modelData.isOccupied ? 0.3 : 0.1)
           }
 
           Behavior on width {
@@ -750,10 +714,10 @@ Item {
           height: 16
           radius: height / 2
           color: modelData.isFocused
-            ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.20)
+            ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.20)
             : modelData.isOccupied
-              ? Qt.rgba(Colors.styleAccent.r, Colors.styleAccent.g, Colors.styleAccent.b, 0.18)
-              : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.06)
+              ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.18)
+              : Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.06)
         }
 
         Rectangle {
@@ -763,8 +727,8 @@ Item {
           height: 8
           radius: height / 2
           color: modelData.isFocused || modelData.isOccupied
-            ? Colors.styleAccent
-            : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.34)
+            ? Colors.primary
+            : Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.34)
         }
 
         // Numbers: a connected navigation track in both orientations; the
@@ -773,14 +737,14 @@ Item {
           id: numberedWorkspaceShadow
           visible: root.workspaceStyle === "numbers"
             && modelData.isFocused
-            && !Config.ghostTheme
-            && !Config.dwmTheme
+            && true
+            && true
           anchors.centerIn: parent
           anchors.verticalCenterOffset: root.horizontal ? 2 : 0
           anchors.horizontalCenterOffset: 0
           width: root.horizontal ? root.numberedWorkspaceWidth(modelData) : root.numberedVerticalWidth
           height: root.horizontal ? grid.height : root.numberedWorkspaceHeight(modelData)
-          radius: Config.ghostTheme || Config.dwmTheme ? 0 : Math.min(width, height) / 2
+          radius: (Math.min(width, height) / 2)
           color: Qt.rgba(Colors.shadow.r, Colors.shadow.g, Colors.shadow.b, 0.14)
           z: 0
         }
@@ -793,16 +757,16 @@ Item {
             ? root.numberedWorkspaceWidth(modelData)
             : root.numberedVerticalWidth
           height: root.horizontal ? grid.height : root.numberedWorkspaceHeight(modelData)
-          radius: Config.ghostTheme || Config.dwmTheme ? 0 : Math.min(width, height) / 2
+          radius: (Math.min(width, height) / 2)
           color: root.numberedWorkspaceFill(modelData)
           border.width: wsMouse.containsMouse && !modelData.isFocused ? Config.themeBorderWidth : 0
-          border.color: Colors.styleOutline
+          border.color: Colors.outlineVariant
           z: 1
 
           Row {
             visible: root.horizontal
             anchors.centerIn: parent
-            anchors.verticalCenterOffset: Config.nothingDesign && !Config.nothingEvolution ? 5 : 1
+            anchors.verticalCenterOffset: 1
             spacing: modelData.isOccupied && !modelData.isFocused ? 4 : 0
 
             Text {
@@ -817,25 +781,16 @@ Item {
             }
 
             Rectangle {
-              visible: modelData.isOccupied && !modelData.isFocused && !Config.dwmTheme
+              visible: modelData.isOccupied && !modelData.isFocused && true
               width: 6
               height: 6
               radius: 3
               color: Colors.tertiary
               anchors.verticalCenter: parent.verticalCenter
-              anchors.verticalCenterOffset: Config.nothingDesign && !Config.nothingEvolution ? -5 : -1
+              anchors.verticalCenterOffset: -1
             }
           }
 
-          // dwm marks occupied tags with a small square in the top-left corner.
-          Rectangle {
-            visible: Config.dwmTheme && root.horizontal && modelData.isOccupied
-            x: 2
-            y: 2
-            width: 4
-            height: 4
-            color: modelData.isFocused ? Colors.styleAccentText : Colors.fgSurface
-          }
 
           Text {
             id: verticalWorkspaceLabel
@@ -890,13 +845,11 @@ Item {
             ? ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"][modelData.idx - 1]
             : String(modelData.idx)
           color: root.workspaceMarkerColor(modelData)
-          opacity: Config.ghostTheme
-            ? (modelData.isFocused ? 1.0 : (modelData.isOccupied ? 0.58 : 0.25))
-            : (modelData.isFocused ? 1.0 : (modelData.isOccupied ? 0.72 : 0.36))
+          opacity: (modelData.isFocused ? 1.0 : (modelData.isOccupied ? 0.72 : 0.36))
           font.family: "Noto Sans CJK JP"
           font.pixelSize: modelData.isFocused ? 15 : 13
           renderType: Text.NativeRendering
-          font.weight: Config.ghostTheme && modelData.isFocused ? Font.Bold : Font.Normal
+          font.weight: Font.Normal
         }
 
         // Frame: a stable numeral row with an outline around the focused cell.
@@ -908,7 +861,7 @@ Item {
           radius: Config.shapeCompact
           color: "transparent"
           border.width: modelData.isFocused || wsMouse.containsMouse ? Config.themeBorderWidth : 0
-          border.color: Colors.styleAccent
+          border.color: Colors.primary
 
           Text {
             anchors.centerIn: parent

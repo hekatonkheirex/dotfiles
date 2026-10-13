@@ -5,75 +5,15 @@ script_dir=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 # shellcheck source=theme-sync-lock.sh
 source "$script_dir/theme-sync-lock.sh"
 
-# Mode changes select already-generated assets. Liquid Glass also refreshes the
-# shared Matugen files here so btop's single mode-specific file cannot lag
-# behind an automatic light/dark switch.
 mode="${1:-auto}"
 notify_mode="${2:-}"
-ui_style="${3:-}"
-sync_sddm="${4:-}"
+sync_sddm="${3:-}"
 
-if [[ -z "$ui_style" ]] && command -v jq >/dev/null 2>&1; then
-  ui_style=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || printf 'material3')
+if ! bash "$script_dir/sync-niri-shape.sh"; then
+  printf 'Could not clear the obsolete Niri shape override; keeping the existing file.\n' >&2
 fi
 
-sync_mango_liquid_glass_blur() {
-  local decorations_file="$HOME/.config/mango/decorations.conf"
-  [[ -f "$decorations_file" ]] || return 0
-
-  local passes=2
-  local radius=5
-  if [[ "$1" == "liquid-glass" ]]; then
-    passes=3
-    radius=10
-  fi
-
-  # Keep Mango's hand-maintained decoration file as the source of truth while
-  # switching only the blur intensity that belongs to Liquid Glass.
-  sed -i -E \
-    -e "s|^(blur_params_num_passes[[:space:]]*=[[:space:]]*).*$|\\1${passes}|" \
-    -e "s|^(blur_params_radius[[:space:]]*=[[:space:]]*).*$|\\1${radius}|" \
-    "$decorations_file"
-}
-
-if ! sync_mango_liquid_glass_blur "$ui_style"; then
-  printf 'Could not synchronize Mango Liquid Glass blur settings; keeping the existing values.\n' >&2
-fi
-
-if ! bash "$script_dir/sync-niri-shape.sh" "$ui_style"; then
-  printf 'Could not synchronize Niri window shape; keeping the existing style.kdl.\n' >&2
-fi
-
-fixed_terminal_assets="$script_dir/ensure-style-terminal-assets.sh"
-if [[ -f "$fixed_terminal_assets" ]] &&
-   ! bash "$fixed_terminal_assets"; then
-  printf 'Fixed style terminal assets could not be prepared; keeping existing assets.\n' >&2
-fi
-
-if [[ "$ui_style" == "liquid-glass" ]]; then
-  resolved_mode="$mode"
-  if [[ "$resolved_mode" == "auto" ]]; then
-    resolved_mode=$("$HOME/.local/bin/auto-detect-theme.sh" 2>/dev/null || printf 'auto')
-  fi
-
-  terminal_refresh="$script_dir/sync-active-palette.sh"
-  if [[ ( "$resolved_mode" == "light" || "$resolved_mode" == "dark" ) &&
-        -f "$HOME/.cache/matugen/current_palette.json" &&
-        -f "$terminal_refresh" ]]; then
-    if ! bash "$terminal_refresh" --terminal-only "$resolved_mode"; then
-      printf 'Liquid Glass Matugen terminal refresh failed; keeping the existing terminal assets.\n' >&2
-    fi
-  fi
-
-  # Keep the established desktop synchronizer responsible for the external
-  # terminal, editor, monitor, compositor, and optional SDDM assets. Passing
-  # Material 3 preserves the existing Matugen paths. MacTahoe then supplies
-  # the Liquid Glass GTK/icon/Kvantum/cursor companion.
-  fallback_args=("$mode" "$notify_mode" material3)
-  [[ -n "$sync_sddm" ]] && fallback_args+=("$sync_sddm")
-  "$HOME/.local/bin/sync-theme-mode.sh" "${fallback_args[@]}"
-  bash "$script_dir/sync-mactahoe-theme.sh" "$resolved_mode"
-  exit 0
-fi
-
-exec "$HOME/.local/bin/sync-theme-mode.sh" "$@"
+# This is the external Matugen asset family, not a selectable shell style.
+args=("$mode" "$notify_mode" material3)
+[[ -n "$sync_sddm" ]] && args+=("$sync_sddm")
+exec "$HOME/.local/bin/sync-theme-mode.sh" "${args[@]}"

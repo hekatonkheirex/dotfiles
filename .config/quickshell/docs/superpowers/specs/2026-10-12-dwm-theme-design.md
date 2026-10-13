@@ -1,5 +1,7 @@
 # dwm theme (bar + dmenu)
 
+Superseded by `docs/superpowers/specs/2026-10-13-elena-only-controls-design.md`.
+
 Date: 2026-10-12
 
 ## Outcome

@@ -74,7 +74,7 @@ PopupBase {
         activeColor: Colors.primary
         surfaceContainerHigh: Colors.surfaceContainerHigh
         surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.styleOutlineStrong
+        outline: Colors.outline
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Volume enabled"
@@ -92,7 +92,7 @@ PopupBase {
       activeColor: Colors.primary
       surfaceContainerHigh: Colors.surfaceContainerHigh
       surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.styleOutlineStrong
+        outline: Colors.outline
         focusColor: Colors.primary
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
@@ -139,7 +139,7 @@ PopupBase {
         activeColor: Colors.primary
         surfaceContainerHigh: Colors.surfaceContainerHigh
         surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.styleOutlineStrong
+        outline: Colors.outline
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Microphone enabled"
@@ -155,7 +155,7 @@ PopupBase {
       activeColor: Colors.primary
       surfaceContainerHigh: Colors.surfaceContainerHigh
       surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.styleOutlineStrong
+        outline: Colors.outline
         focusColor: Colors.primary
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion

@@ -46,8 +46,8 @@ PanelWindow {
     || ((osdType === "volume" || osdType === "mic" || osdType === "bluetooth") && muted)
     ? signalColor : Colors.fgSurface
 
-  implicitWidth: Config.ghostTheme ? 300 : (Config.nothingDesign ? 276 : (Config.liquidGlassTheme ? 296 : 300))
-  implicitHeight: Config.ghostTheme ? (root.meterVisible ? 108 : 94) : (Config.liquidGlassTheme ? 92 : (Config.nothingDesign ? 104 : 120))
+  implicitWidth: ((300))
+  implicitHeight: ((120))
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
   WlrLayershell.namespace: Config.layerNamespace("osd")
@@ -60,7 +60,7 @@ PanelWindow {
 
   Behavior on osdOpacity {
     NumberAnimation {
-      duration: Config.liquidGlassTheme ? Config.transientFadeDuration : Config.motionMedium
+      duration: Config.motionMedium
     }
   }
 
@@ -222,171 +222,30 @@ PanelWindow {
     radius: Config.shapeLarge
     opacity: root.osdOpacity
     color: {
-      if (Config.ghostTheme) return Colors.styleSurfaceRaised
-      if (Config.liquidGlassTheme) return Colors.liquidGlassRegular
+
+
       var c = Colors.chromeSurface
       return Qt.rgba(c.r, c.g, c.b, 0.92)
     }
     border.width: Config.themeBorderWidth
-    border.color: Config.ghostTheme ? Colors.styleOutlineStrong : Colors.styleOutline
+    border.color: Colors.outlineVariant
 
-    GlassSheen {
-      anchors.fill: parent
-      radius: parent.radius
-    }
 
-    Item {
-      visible: Config.ghostTheme
-      anchors.fill: parent
 
-      Rectangle {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        width: 38
-        height: 2
-        color: Colors.ghostCyan
-      }
-      Rectangle {
-        anchors.right: parent.right
-        anchors.top: parent.top
-        width: 16
-        height: 2
-        color: Colors.ghostCyan
-      }
-      Rectangle {
-        anchors.right: parent.right
-        anchors.top: parent.top
-        width: 2
-        height: 12
-        color: Colors.ghostCyan
-      }
-      Rectangle {
-        anchors.left: parent.left
-        anchors.bottom: parent.bottom
-        width: 14
-        height: 2
-        color: Colors.ghostCyan
-      }
-
-      Text {
-        anchors.left: parent.left
-        anchors.leftMargin: 16
-        anchors.top: parent.top
-        anchors.topMargin: 10
-        width: parent.width - 112
-        text: "OSD / " + root.osdTitle.toUpperCase()
-        color: Colors.fgSurfaceVariant
-        font.family: Config.monoFontFamily
-        font.pixelSize: Config.typeLabelSmallSize
-        font.letterSpacing: Config.typeMonoTracking
-        elide: Text.ElideRight
-      }
-      Text {
-        anchors.right: parent.right
-        anchors.rightMargin: 16
-        anchors.top: parent.top
-        anchors.topMargin: 10
-        text: root.meterVisible ? "LEVEL" : "STATUS"
-        color: Colors.ghostMuted
-        font.family: Config.monoFontFamily
-        font.pixelSize: Config.typeLabelSmallSize
-        font.letterSpacing: Config.typeMonoTracking
-      }
-      Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
-        y: 32
-        height: 1
-        color: Colors.ghostHairline
-      }
-
-      Rectangle {
-        x: 16
-        y: 43
-        width: 38
-        height: 38
-        color: Colors.styleControl
-        border.width: 1
-        border.color: Colors.ghostHairlineStrong
-        IconGlyph {
-          anchors.centerIn: parent
-          iconLabel: root.symbol
-          iconSize: 23
-          iconColor: root.signalColor
-        }
-      }
-      Text {
-        x: 66
-        y: 46
-        width: parent.width - 82
-        height: 36
-        verticalAlignment: Text.AlignVCenter
-        text: root.readout
-        color: root.readoutColor
-        font.family: Config.monoFontFamily
-        font.pixelSize: Config.typeHeadlineSmallSize
-        font.weight: Config.typeStrongWeight
-        elide: Text.ElideRight
-      }
-      Repeater {
-        model: 11
-        Rectangle {
-          visible: root.meterVisible
-          x: 16 + index * (osdSurface.width - 32) / 10
-          y: osdSurface.height - 19
-          width: 1
-          height: index % 5 === 0 ? 5 : 3
-          color: Colors.ghostHairlineStrong
-        }
-      }
-    }
-
-    Row {
-      visible: Config.liquidGlassTheme
-      anchors.centerIn: parent
-      spacing: Config.spacingMedium
-
-      IconGlyph {
-        anchors.verticalCenter: parent.verticalCenter
-        iconLabel: root.symbol
-        iconSize: Config.ghostTheme ? 24 : 28
-        iconColor: root.signalColor
-      }
-
-      Column {
-        spacing: Config.ghostTheme ? 2 : Config.spacingCompact
-        Text {
-          text: root.osdTitle
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeLabelMediumSize
-          font.letterSpacing: Config.ghostTheme ? Config.typeMonoTracking : Config.typeLabelTracking
-        }
-        Text {
-          text: root.readout
-          color: root.readoutColor
-          font.family: Config.fontFamily
-          font.pixelSize: Config.ghostTheme ? Config.typeHeadlineSmallSize : Config.typeHeadlineMediumSize
-          font.weight: Config.typeStrongWeight
-        }
-      }
-    }
 
     Column {
-      visible: !Config.ghostTheme && !Config.liquidGlassTheme
+      visible: true
       anchors.centerIn: parent
       anchors.verticalCenterOffset: root.meterVisible ? -6 : 0
-      spacing: Config.nothingDesign ? Config.spacingCompact : Config.spacingSmall
+      spacing: Config.spacingSmall
 
       IconGlyph {
         anchors.horizontalCenter: parent.horizontalCenter
         iconLabel: root.symbol
-        iconSize: Config.material3Theme ? 32 : 26
+        iconSize: 32
         iconColor: root.signalColor
         // The outline sun matches the bar indicator; the filled one is a solid disc.
-        filled: Config.material3Theme && osdType !== "brightness"
+        filled: osdType !== "brightness"
       }
 
       Text {
@@ -402,8 +261,8 @@ PanelWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         text: root.readout
         color: root.readoutColor
-        font.family: Config.nothingDesign && root.continuous ? Config.dotFontFamily : Config.fontFamily
-        font.pixelSize: Config.nothingDesign ? Config.typeHeadlineMediumSize : Config.typeHeadlineSmallSize
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeHeadlineSmallSize
         font.weight: Config.typeStrongWeight
         font.letterSpacing: Config.typeHeadlineTracking
       }
@@ -413,11 +272,11 @@ PanelWindow {
       visible: root.meterVisible
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.bottom: parent.bottom
-      anchors.bottomMargin: Config.ghostTheme ? 10 : 14
-      width: parent.width - (Config.ghostTheme ? 32 : 48)
-      height: Config.ghostTheme ? 2 : (Config.nothingDesign ? 3 : (Config.liquidGlassTheme ? 3 : 6))
-      radius: Config.ghostTheme || Config.nothingDesign ? 0 : height / 2
-      color: Config.ghostTheme ? Colors.ghostHairlineStrong : Colors.surfaceContainerHighest
+      anchors.bottomMargin: 14
+      width: parent.width - (48)
+      height: ((6))
+      radius: (height / 2)
+      color: Colors.surfaceContainerHighest
 
       Rectangle {
         width: parent.width * Math.max(0, Math.min(1, root.value))

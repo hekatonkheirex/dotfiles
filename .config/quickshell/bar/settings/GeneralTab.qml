@@ -11,8 +11,7 @@ Flickable {
   id: generalTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property string themeClockZone: Config.ghostTheme && root && root.isHorizontal
-    ? "end" : "middle"
+  readonly property string themeClockZone: "middle"
   readonly property var barWidgetInfo: ({
     launcher: { key: "ccShowLauncher", icon: "apps", title: "Launcher" },
     workspaces: { key: "ccShowWorkspaces", icon: "workspaces", title: "Workspaces" },
@@ -66,7 +65,7 @@ Flickable {
 
     GridLayout {
       Layout.fillWidth: true
-      columns: Config.material3Theme && generalTab.width >= 800 ? 2 : 1
+      columns: generalTab.width >= 800 ? 2 : 1
       columnSpacing: Config.spacingLarge
       rowSpacing: Config.spacingLarge
 
@@ -87,7 +86,7 @@ Flickable {
         Layout.preferredHeight: behaviorCol.implicitHeight + Config.spacingSmall * 2
         radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.styleOutline
+        outlineColor: Colors.outlineVariant
         outlineWidth: Config.themeBorderWidth
 
         ColumnLayout {
@@ -108,7 +107,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
+              outline: Colors.outline
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "Reduced motion"
@@ -116,27 +115,6 @@ Flickable {
             }
           }
 
-          ListItem {
-            Layout.fillWidth: true
-            leadingIcon: "blur_on"
-            title: "Reduce transparency"
-            subtitle: Settings.reduceTransparency
-              ? "Glass and Evolution surfaces are opaque"
-              : "Glass and Evolution show the backdrop"
-            toggleControl: transparencySwitch
-            SwitchControl {
-              id: transparencySwitch
-              checked: Settings.reduceTransparency
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Reduce transparency"
-              onToggled: { Settings.reduceTransparency = !Settings.reduceTransparency; Settings.save() }
-            }
-          }
 
           ListItem {
             Layout.fillWidth: true
@@ -150,7 +128,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
+              outline: Colors.outline
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "Show uptime"
@@ -179,7 +157,7 @@ Flickable {
         Layout.preferredHeight: clockCol.implicitHeight + Config.spacingSmall * 2
         radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.styleOutline
+        outlineColor: Colors.outlineVariant
         outlineWidth: Config.themeBorderWidth
 
         ColumnLayout {
@@ -200,7 +178,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
+              outline: Colors.outline
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "24-hour clock"
@@ -220,7 +198,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
+              outline: Colors.outline
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "Show seconds"
@@ -240,7 +218,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
+              outline: Colors.outline
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "Week starts Monday"
@@ -250,7 +228,7 @@ Flickable {
 
           GridLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: Config.material3Theme ? implicitHeight : (generalTab.compactLayout ? 64 : 44)
+            Layout.preferredHeight: implicitHeight
             columns: generalTab.compactLayout ? 1 : 2
             columnSpacing: Config.spacingSmall
             rowSpacing: Config.spacingCompact
@@ -266,12 +244,12 @@ Flickable {
               lineHeightMode: Text.FixedHeight
               Layout.fillWidth: generalTab.compactLayout
               Layout.preferredWidth: generalTab.compactLayout ? 0
-                : (Config.material3Theme ? Math.max(80, implicitWidth) : 80)
+                : (Math.max(80, implicitWidth))
               Layout.minimumWidth: generalTab.compactLayout ? 0
-                : (Config.material3Theme ? implicitWidth : 80)
-              Layout.minimumHeight: Config.material3Theme ? Config.typeBodyLargeLineHeight : 0
+                : (implicitWidth)
+              Layout.minimumHeight: Config.typeBodyLargeLineHeight
               Layout.preferredHeight: generalTab.compactLayout
-                ? (Config.material3Theme ? Config.typeBodyLargeLineHeight : 20) : 44
+                ? (Config.typeBodyLargeLineHeight) : 44
               verticalAlignment: Text.AlignVCenter
               elide: Text.ElideRight
               Layout.leftMargin: Config.spacingSmall
@@ -315,7 +293,7 @@ Flickable {
       Layout.preferredHeight: barContentsCol.implicitHeight + Config.spacingSmall * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
@@ -391,7 +369,7 @@ Flickable {
       Layout.preferredHeight: weatherCol.implicitHeight + Config.spacingMedium * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
@@ -434,8 +412,8 @@ Flickable {
           Item {
             width: Math.min(160, Math.max(96,
               generalTab.width - 56))
-            height: Config.material3Theme ? Math.max(Config.controlHitSize,
-              Config.typeLabelMediumLineHeight + (Config.materialCompact ? 16 : 24)) : 36
+            height: Math.max(Config.controlHitSize,
+              Config.typeLabelMediumLineHeight + (24))
 
             Row {
               anchors.fill: parent
@@ -528,7 +506,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Use IP geolocation"
@@ -566,7 +544,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion

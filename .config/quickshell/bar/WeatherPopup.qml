@@ -28,7 +28,6 @@ PopupBase {
   // Without a reading every tile would show "--", so the popup collapses to
   // the status banner (and a shortcut to fix it) in all themes.
   readonly property bool hasReading: root.temp !== "" && root.temp.indexOf("--") !== 0
-  readonly property bool ghostHasReading: root.hasReading
 
   Binding {
     target: WeatherService
@@ -87,7 +86,7 @@ PopupBase {
       Layout.preferredHeight: 48
       radius: Config.shapeMedium
       color: root.status === "offline" ? Colors.errorContainer : Colors.surfaceContainer
-      border.color: root.status === "offline" ? Colors.error : Colors.styleOutline
+      border.color: root.status === "offline" ? Colors.error : Colors.outlineVariant
       border.width: Config.themeBorderWidth
 
       RowLayout {
@@ -135,8 +134,8 @@ PopupBase {
       visible: root.status === "unavailable"
       Layout.alignment: Qt.AlignLeft
       Layout.preferredWidth: 220
-      // Nothing and Ghost stack icon over label, which needs the extra height.
-      Layout.preferredHeight: Config.material3Theme || Config.liquidGlassTheme ? 40 : 60
+
+      Layout.preferredHeight: 40
       iconLabel: "settings"
       labelText: "Open weather settings"
       horizontalContent: true
@@ -157,30 +156,22 @@ PopupBase {
       spacing: Config.spacingMedium
 
       Rectangle {
-        Layout.preferredWidth: Config.ghostTheme ? 280 : 220
+        Layout.preferredWidth: 220
         Layout.fillHeight: true
         radius: Config.shapeLarge
-        color: Config.ghostTheme ? Colors.styleSurfaceRaised : Colors.surfaceContainer
-        border.color: Config.ghostTheme ? Colors.ghostHairlineStrong : Colors.styleOutline
+        color: Colors.surfaceContainer
+        border.color: Colors.outlineVariant
         border.width: Config.themeBorderWidth
 
-        Rectangle {
-          visible: Config.ghostTheme
-          anchors.left: parent.left
-          anchors.top: parent.top
-          width: 38
-          height: 2
-          color: Colors.ghostCyan
-        }
 
         RowLayout {
           anchors.centerIn: parent
-          width: Config.ghostTheme ? parent.width - Config.spacingMedium * 2 : implicitWidth
+          width: implicitWidth
           spacing: Config.spacingLarge
 
           IconGlyph {
             iconLabel: Colors.weatherIcon(root.desc)
-            iconSize: Config.ghostTheme ? 72 : 64
+            iconSize: 64
             iconColor: Colors.weatherColor(root.desc)
             Layout.alignment: Qt.AlignVCenter
           }
@@ -194,7 +185,7 @@ PopupBase {
               text: root.temp
               color: Colors.fgSurface
               font.family: Config.fontFamily
-              font.pixelSize: Config.ghostTheme ? Config.typeDisplaySmallSize : Config.typeHeadlineLargeSize
+              font.pixelSize: Config.typeHeadlineLargeSize
               font.weight: Config.typeStrongWeight
               font.letterSpacing: Config.typeHeadlineTracking
             }
@@ -202,7 +193,7 @@ PopupBase {
             Text {
               text: root.desc
               color: Colors.fgSurfaceVariant
-              Layout.fillWidth: Config.ghostTheme
+              Layout.fillWidth: false
               font.family: Config.fontFamily
               font.pixelSize: Config.typeBodyMediumSize
               font.weight: Config.typeMediumWeight
@@ -212,12 +203,11 @@ PopupBase {
 
             Text {
               text: root.city || (root.status === "unavailable" ? "Location not configured" : "Location unavailable")
-              color: Config.ghostTheme ? Colors.fgSurfaceVariant
-                : Qt.rgba(Colors.fgSurfaceVariant.r, Colors.fgSurfaceVariant.g, Colors.fgSurfaceVariant.b, 0.5)
+              color: Qt.rgba(Colors.fgSurfaceVariant.r, Colors.fgSurfaceVariant.g, Colors.fgSurfaceVariant.b, 0.5)
               font.family: Config.fontFamily
               font.pixelSize: Config.typeLabelSmallSize
               font.letterSpacing: Config.typeLabelTracking
-              Layout.fillWidth: Config.ghostTheme
+              Layout.fillWidth: false
               elide: Text.ElideRight
             }
           }
@@ -228,8 +218,8 @@ PopupBase {
         Layout.fillWidth: true
         Layout.fillHeight: true
         radius: Config.shapeLarge
-        color: Config.ghostTheme ? Colors.styleSurface : Colors.surfaceContainer
-        border.color: Config.ghostTheme ? Colors.ghostHairline : Colors.styleOutline
+        color: Colors.surfaceContainer
+        border.color: Colors.outlineVariant
         border.width: Config.themeBorderWidth
 
         Text {
@@ -249,12 +239,12 @@ PopupBase {
           visible: root.hourly && root.hourly.length > 0
 
           Text {
-            text: Config.ghostTheme ? "HOURLY FORECAST" : "Hourly Forecast"
+            text: "Hourly Forecast"
             color: Colors.fgSurfaceVariant
-            font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
+            font.family: Config.fontFamily
             font.pixelSize: Config.typeLabelSmallSize
             font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.ghostTheme ? Config.typeMonoTracking : Config.typeLabelTracking
+            font.letterSpacing: Config.typeLabelTracking
           }
 
           RowLayout {
@@ -329,18 +319,10 @@ PopupBase {
           Layout.fillWidth: true
           Layout.preferredHeight: 50
           radius: Config.shapeMedium
-          color: Config.ghostTheme ? "transparent" : Colors.surfaceContainer
-          border.color: Colors.styleOutline
-          border.width: Config.ghostTheme ? 0 : Config.themeBorderWidth
+          color: Colors.surfaceContainer
+          border.color: Colors.outlineVariant
+          border.width: Config.themeBorderWidth
 
-          Rectangle {
-            visible: Config.ghostTheme
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            height: 1
-            color: Colors.ghostHairline
-          }
 
           RowLayout {
             anchors.centerIn: parent
@@ -394,9 +376,8 @@ PopupBase {
           Layout.fillWidth: true
           Layout.preferredHeight: 95
           radius: Config.shapeMedium
-          color: Config.ghostTheme ? (index === 0 ? Colors.styleSurfaceRaised : Colors.styleSurface) : Colors.surfaceContainer
-          border.color: Config.ghostTheme
-            ? (index === 0 ? Colors.ghostHairlineStrong : Colors.ghostHairline) : Colors.styleOutline
+          color: Colors.surfaceContainer
+          border.color: Colors.outlineVariant
           border.width: Config.themeBorderWidth
 
           ColumnLayout {

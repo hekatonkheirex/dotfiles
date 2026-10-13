@@ -10,8 +10,6 @@ Item {
   Canvas {
     id: symbol
     anchors.fill: parent
-    readonly property string style: Settings.themeStyle
-    onStyleChanged: requestPaint()
     onVisibleChanged: requestPaint()
     onWidthChanged: requestPaint()
     onHeightChanged: requestPaint()
@@ -30,39 +28,7 @@ Item {
       ctx.strokeStyle = root.ink;
       ctx.fillStyle = root.ink;
       ctx.lineCap = "butt";
-      if (symbol.style === "liquid-glass") {
-        ctx.lineWidth = 4.8;
-        ctx.lineJoin = "round";
-        ctx.beginPath();
-        for (var point = 0; point <= 360; point++) {
-          var t = 2 * Math.PI * point / 360;
-          var x = 50 + 29 * Math.sin(t) - 16 * Math.sin(5 * t);
-          var y = 50 - 29 * Math.cos(t) - 16 * Math.cos(5 * t);
-          if (point === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        ctx.stroke();
-      } else if (symbol.style === "material3") {
-        ctx.beginPath();
-        ctx.moveTo(50, 3);
-        ctx.bezierCurveTo(55, 32, 68, 45, 97, 50);
-        ctx.bezierCurveTo(68, 55, 55, 68, 50, 97);
-        ctx.bezierCurveTo(45, 68, 32, 55, 3, 50);
-        ctx.bezierCurveTo(32, 45, 45, 32, 50, 3);
-        ctx.closePath();
-        ctx.fill();
-      } else if (symbol.style === "nothing") {
-        // Six broad arms reproduce the reference asterisk without its backdrop.
-        ctx.lineWidth = 12;
-        ctx.beginPath();
-        for (var arm = 0; arm < 6; arm++) {
-          var angle = arm * Math.PI / 3 - Math.PI / 2;
-          ctx.moveTo(50, 50);
-          ctx.lineTo(50 + Math.cos(angle) * 42, 50 + Math.sin(angle) * 42);
-        }
-        ctx.stroke();
-      } else {
+      {
         // Angular sparkle: one large four-point star and two small ones.
         function star(cx, cy, outer, inner) {
           ctx.moveTo(cx, cy - outer);

@@ -1,0 +1,11 @@
+{
+  "themeStyle": "ghost",
+  "nothingVariant": "classic",
+  "materialCompact": true,
+  "materialTypeScale": 2,
+  "reduceTransparency": true,
+  "lockClockFace": "gooey",
+  "colorSource": "fixed",
+  "colorPalette": "elenapan",
+  "themePreference": 1
+}

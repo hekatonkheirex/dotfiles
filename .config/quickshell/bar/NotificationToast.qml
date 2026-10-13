@@ -29,9 +29,7 @@ PanelWindow {
   readonly property bool critical: !!notif && notif.urgency === NotificationUrgency.Critical
 
 
-  implicitWidth: Config.ghostTheme
-    ? Math.min(320, Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
-    : 280
+  implicitWidth: 280
   implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
@@ -71,16 +69,11 @@ PanelWindow {
       scaleTransform.xScale = 1.0
       scaleTransform.yScale = 1.0
       transX.x = 0
-      if (Config.liquidGlassTheme) {
-        bg.opacity = 0.0
-        reducedMotionEntryAnimation.start()
-      } else {
+      {
         bg.opacity = 1.0
       }
-    } else if (Config.material3Theme) {
-      materialEntryAnimation.restart()
     } else {
-      entryAnimation.start()
+      materialEntryAnimation.restart()
     }
   }
 
@@ -131,7 +124,7 @@ PanelWindow {
 
   MouseArea {
     anchors.fill: parent
-    enabled: !Config.ghostTheme || root.defaultAction !== null
+    enabled: true
     cursorShape: Qt.PointingHandCursor
     onClicked: {
       bg.forceActiveFocus()
@@ -149,26 +142,20 @@ PanelWindow {
     id: bg
     anchors.fill: parent
     radius: Config.popupRadius
-    activeFocusOnTab: !Config.ghostTheme
+    activeFocusOnTab: true
     color: Colors.chromeSurface
     border.width: root.critical ? Math.max(2, Config.themeBorderWidth) : Config.themeBorderWidth
-    border.color: root.critical ? (Config.ghostTheme ? Colors.destructive : Colors.error)
-      : (Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-        ? Colors.styleOutline : Colors.outlineVariant)
+    border.color: root.critical ? (Colors.error)
+      : (Colors.outlineVariant)
 
-    GlassSheen {
-      anchors.fill: parent
-      radius: parent.radius
-    }
 
-    Accessible.role: Config.ghostTheme ? Accessible.StaticText : Accessible.Button
+    Accessible.role: Accessible.Button
     Accessible.name: notif ? ((notif.appName || "Notification") + ": "
-      + (notif.summary || (Config.ghostTheme ? "Notification" : "Dismiss notification"))) : "Notification"
-    Accessible.description: Config.ghostTheme ? (notif ? (notif.body || "") : "") : "Dismiss notification"
+      + (notif.summary || ("Dismiss notification"))) : "Notification"
+    Accessible.description: "Dismiss notification"
 
     Keys.onPressed: function(event) {
-      if (!Config.ghostTheme
-          && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
+      if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
         root.dismiss()
         event.accepted = true
       }
@@ -244,11 +231,11 @@ PanelWindow {
         Rectangle {
           width: 20
           height: 20
-          radius: Config.ghostTheme ? 0 : 10
-          color: root.critical && !Config.ghostTheme ? Colors.errorContainer
-            : (Config.ghostTheme ? Colors.styleControl : Colors.primaryContainer)
-          border.width: Config.ghostTheme ? Config.themeBorderWidth : 0
-          border.color: root.critical ? Colors.destructive : Colors.styleOutlineStrong
+          radius: 10
+          color: root.critical && true ? Colors.errorContainer
+            : (Colors.primaryContainer)
+          border.width: 0
+          border.color: root.critical ? Colors.destructive : Colors.outline
 
           Text {
             anchors.centerIn: parent
@@ -257,9 +244,9 @@ PanelWindow {
               return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
             }
             color: root.critical
-              ? (Config.ghostTheme ? Colors.destructive : Colors.fgErrorContainer)
-              : (Config.ghostTheme ? Colors.styleAccent : Colors.fgPrimaryContainer)
-            font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
+              ? (Colors.fgErrorContainer)
+              : (Colors.fgPrimaryContainer)
+            font.family: Config.fontFamily
             font.pixelSize: Config.typeLabelSmallSize
             font.weight: Config.typeStrongWeight
           }
@@ -278,7 +265,7 @@ PanelWindow {
 
         Text {
           text: "now"
-          visible: !Config.ghostTheme
+          visible: true
           color: Colors.fgSurfaceVariant
           font.family: Config.fontFamily
           font.pixelSize: Config.typeLabelSmallSize
@@ -288,7 +275,7 @@ PanelWindow {
         // The wrapper keeps the header row at the visual size; Material's
         // 40/48px hit target overflows it instead of growing the header.
         Item {
-          readonly property int visualSize: Config.ghostTheme ? 36 : 28
+          readonly property int visualSize: 28
           implicitWidth: visualSize
           implicitHeight: visualSize
           Layout.alignment: Qt.AlignVCenter
@@ -296,7 +283,7 @@ PanelWindow {
           IconButton {
             anchors.centerIn: parent
             size: parent.visualSize
-            iconSize: Config.ghostTheme ? 16 : 14
+            iconSize: 14
             iconLabel: "close"
             iconColor: Colors.fgSurfaceVariant
             accessibleName: "Dismiss notification"
@@ -309,7 +296,7 @@ PanelWindow {
       Rectangle {
         Layout.fillWidth: true
         height: 1
-        color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.1)
+        color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.1)
       }
 
       ColumnLayout {
@@ -326,8 +313,8 @@ PanelWindow {
           font.letterSpacing: Config.typeTitleTracking
           lineHeight: Config.typeTitleSmallLineHeight
           lineHeightMode: Text.FixedHeight
-          wrapMode: Config.ghostTheme ? Text.WordWrap : Text.NoWrap
-          maximumLineCount: Config.ghostTheme ? 2 : 1
+          wrapMode: Text.NoWrap
+          maximumLineCount: 1
           elide: Text.ElideRight
           visible: text !== ""
         }
@@ -370,7 +357,7 @@ PanelWindow {
 
           delegate: ActionButton {
             required property var modelData
-            height: Config.material3Theme ? implicitHeight : 32
+            height: implicitHeight
             width: Math.max(72, (actionRow.width - actionRow.spacing * (actionRepeater.count - 1)) / actionRepeater.count)
             labelText: modelData.text
             horizontalContent: true

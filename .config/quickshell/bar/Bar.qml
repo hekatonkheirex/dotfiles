@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Layouts
 import QtQuick.Shapes
 import Quickshell
@@ -11,7 +10,6 @@ import "../config/BarForm.js" as BarForm
 import "../config/BarOrder.js" as BarOrder
 import "../config/ClockTiming.js" as ClockTiming
 import "primitives"
-import "themes/ghost" as Ghost
 
 PanelWindow {
   id: root
@@ -43,7 +41,7 @@ PanelWindow {
   readonly property bool dockedLeft: barPosition === "left"
   readonly property bool dockedRight: barPosition === "right"
   readonly property bool themeClockCentered: !Settings.barClockInFlow
-    && !root.oneLiner
+    && true
   readonly property var normalizedOrder: BarOrder.normalize(Settings.barWidgetOrder)
   readonly property var activeWidgets: ({
     launcher: Settings.ccShowLauncher,
@@ -64,7 +62,7 @@ PanelWindow {
     var slots = BarOrder.edgeOrder(Settings.barWidgetOrder, root.activeWidgets)
     if (!Settings.barClockInFlow) {
       slots = slots.filter(function(id) { return id !== "clock" })
-      if (root.oneLiner && Settings.ccShowClock) slots.push("clock")
+
     }
     return slots
   }
@@ -92,21 +90,7 @@ PanelWindow {
   readonly property real horizontalPillLength: root.wSize + Config.spacingSmall
   readonly property real verticalPillLength: root.wSize
   readonly property color barPanelColor: Colors.chromeSurface
-  readonly property bool glassForegroundShadowEnabled: Config.liquidGlassTheme
-    && !Colors.liquidGlassOpaque
 
-  // Shadow foreground alpha only; the persistent menu-bar surface stays open.
-  Component {
-    id: glassForegroundShadow
-    MultiEffect {
-      shadowEnabled: true
-      shadowColor: "black"
-      shadowOpacity: 0.32
-      shadowVerticalOffset: 1
-      blurMax: 4
-      shadowBlur: 0.75
-    }
-  }
 
   anchors {
     left: root.horizontal || root.dockedLeft
@@ -237,7 +221,7 @@ PanelWindow {
   function togglePopupByName(name) {
     // The sidebar has no anchor widget and only exists under elena.
     if (name === "sidebar") {
-      if (!Config.elenaTheme) return false
+
       openPopup = openPopup === "sidebar" ? "" : "sidebar"
       return true
     }
@@ -254,85 +238,40 @@ PanelWindow {
 
   readonly property bool pillsBar: Config.barFormMetrics.pills
   readonly property bool continuousBar: !root.pillsBar
-  readonly property bool groupedPills: root.pillsBar && root.horizontal && !Config.ghostTheme
+  readonly property bool groupedPills: root.pillsBar && root.horizontal && true
   // Geometry for the selected form (see config/BarForm.js).
   readonly property int edgeGap: Config.barFormMetrics.edgeGap
   readonly property int sideInset: Config.barFormMetrics.sideInset
   readonly property int shoulder: Config.barFormMetrics.shoulder
   readonly property bool flat: Config.barFormMetrics.flat
-  // Notch hugs its content: the body is as long as the three groups packed
-  // with the normal widget gap. Ghost keeps its stretched bar (its central
-  // cutout needs the room).
-  readonly property bool packed: root.shoulder > 0 && !Config.ghostTheme
+
+
+  readonly property bool packed: root.shoulder > 0 && true
   readonly property real packedLength: root.horizontal
     ? layout.implicitWidth + root.horizontalPillInset * 2
     : layout.implicitHeight + root.verticalPillInset * 2
   readonly property bool roundNear: Config.barFormMetrics.roundNear
-  readonly property bool glassEdge: root.continuousBar && Config.liquidGlassTheme && Colors.liquidGlassOpaque
   readonly property bool horizontalPillMode: root.horizontal && root.pillsBar
-  readonly property bool ghostHorizontalOneLiner: Config.ghostTheme && root.horizontal
-  readonly property bool dwmHorizontal: Config.dwmTheme && root.horizontal
-  // Ghost and dwm both render a single left-to-right row with the clock in
-  // the status run and no stacked date line.
-  readonly property bool oneLiner: root.ghostHorizontalOneLiner || root.dwmHorizontal
-  // Horizontal dwm always shows the focused window title; other styles follow the setting.
-  readonly property bool focusedShown: Settings.ccShowFocusedWindow || root.dwmHorizontal
+
+
+  readonly property bool focusedShown: Settings.ccShowFocusedWindow || false
   // The horizontal full bar follows the Hyprland layout's compact icon-plus
   // label controls. Vertical bars and stacked clock content stay unchanged.
   readonly property bool horizontalInlineContent: root.horizontalPillMode
     || (root.horizontal && root.continuousBar)
-    || root.oneLiner
-  // Ghost's horizontal clock shows only the time. Keep the minute row in
-  // vertical bars and the date below the time in other horizontal styles.
-  readonly property bool clockSecondaryVisible: !root.oneLiner
-  // Nothing and Ghost labels need more width than the bar is thick.
+    || false
+
+
   readonly property int verticalPillPanelWidth: !root.horizontal && root.pillsBar
-    && (Config.nothingDesign || Config.ghostTheme) ? Config.barWidth + 18 : Config.barWidth
+    && (false) ? Config.barWidth + 18 : Config.barWidth
   readonly property int horizontalPillInset: 6
   readonly property int verticalPillInset: 6
   readonly property int verticalWindowEdgeMargin: 0
   // elena: the surface is exactly the 8 px block row (barWidth is forced to
   // tagStripHeight in Config); no panel padding below it.
-  readonly property int normalPanelExtent: Config.elenaTheme ? Config.barWidth
-    : root.continuousBar
-    ? (Config.ghostTheme ? Config.barWidth : Config.barWidth + Config.spacingLarge) + root.edgeGap
-    : (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth)
+  readonly property int normalPanelExtent: Config.barWidth
   readonly property int verticalClockHeight: Math.max(Config.clockVerticalHeight, root.verticalPillLength)
 
-  // The historical Ghost bar kept a bounded negative-space region on the
-  // bar axis, centered whenever the surrounding content leaves enough room.
-  // The current GridLayout still owns the content flow; these coordinates
-  // only define the Ghost surface cutout and its decorative signal field.
-  readonly property real ghostGapAxisLength: root.horizontal ? barBg.width : barBg.height
-  readonly property real ghostGapAvailableStart: gapSpacer
-    ? (root.horizontal ? layout.x + gapSpacer.x : layout.y + gapSpacer.y)
-    : 0
-  readonly property real ghostGapAvailableEnd: root.ghostGapAvailableStart
-    + (gapSpacer ? (root.horizontal ? gapSpacer.width : gapSpacer.height) : 0)
-  readonly property real ghostGapAvailableLength: Math.max(
-    0,
-    root.ghostGapAvailableEnd - root.ghostGapAvailableStart
-  )
-  readonly property real ghostGapCenter: root.ghostGapAxisLength / 2
-  readonly property real ghostGapCenterClearance: Math.min(
-    root.ghostGapCenter - root.ghostGapAvailableStart,
-    root.ghostGapAvailableEnd - root.ghostGapCenter
-  )
-  // Reserve a portion of the flexible spacer for breathing room. The cutout
-  // shrinks as widgets consume space instead of claiming a fixed 300px.
-  readonly property real ghostGapLength: Math.max(
-    0,
-    Math.min(
-      root.horizontal ? 600 : 300,
-      root.ghostGapAvailableLength * 0.72,
-      2 * root.ghostGapCenterClearance
-    )
-  )
-  readonly property real ghostGapStart: root.ghostGapCenter - root.ghostGapLength / 2
-  readonly property real ghostGapEnd: root.ghostGapCenter + root.ghostGapLength / 2
-  readonly property bool ghostCentralGap: root.continuousBar
-    && Config.ghostTheme
-    && root.ghostGapLength > 0
 
   implicitHeight: root.normalPanelExtent
   implicitWidth: root.normalPanelExtent
@@ -350,7 +289,7 @@ PanelWindow {
       z: 1
       visible: root.shoulder > 0
       ShapePath {
-        // Follow the body: transparent for Liquid Glass and Ghost central gap.
+
         fillColor: barBg.color
         strokeColor: "transparent"
         strokeWidth: 0
@@ -364,7 +303,7 @@ PanelWindow {
       // the notch strokes one continuous outline around body and shoulders.
       ShapePath {
         fillColor: "transparent"
-        strokeColor: root.glassEdge ? Colors.styleOutline : "transparent"
+        strokeColor: "transparent"
         strokeWidth: Config.themeBorderWidth
         PathSvg {
           path: BarForm.outlinePath(root.shoulder, Config.barRadius, {
@@ -393,36 +332,13 @@ PanelWindow {
           ? Math.min(root.packedLength, parent.height - root.sideInset * 2)
           : parent.height - root.sideInset * 2)
       radius: (root.flat ? 0 : Config.barRadius)
-      // Liquid Glass keeps the menu-bar layer visually open; material is
-      // reserved for transient/interactive states below it.
-      color: root.continuousBar
-        && !Config.elenaTheme
-        && !root.ghostCentralGap
-        && (!Config.liquidGlassTheme || Colors.liquidGlassOpaque)
-        ? root.barPanelColor
-        : "transparent"
+
+
+      color: "transparent"
       // An opaque glass bar has a defined edge against windows.
-      border.width: root.glassEdge && root.shoulder === 0 ? Config.themeBorderWidth : 0
-      border.color: Colors.styleOutline
+      border.width: 0
+      border.color: Colors.outlineVariant
 
-      GlassSheen {
-        anchors.fill: parent
-        radius: barBg.radius
-        glassEnabled: !Config.liquidGlassTheme || Colors.liquidGlassOpaque
-      }
-
-      // Historical Ghost chrome: the panel edges step into the transparent
-      // center instead of ending on a straight, synthetic cut line.
-      Ghost.GapTransition {
-        visible: root.ghostCentralGap
-        width: root.horizontal ? parent.width : parent.height
-        height: root.horizontal ? parent.height : parent.width
-        anchors.centerIn: parent
-        rotation: root.horizontal ? 0 : 90
-        panelColor: root.barPanelColor
-        gapStart: root.ghostGapStart
-        gapEnd: root.ghostGapEnd
-      }
 
       // Square-off helper for the docked edge's near corner
       Rectangle {
@@ -448,35 +364,6 @@ PanelWindow {
         visible: width > 0 && !root.roundNear
       }
 
-      Item {
-        id: ghostGapRegion
-        visible: root.ghostCentralGap
-        x: root.horizontal ? root.ghostGapStart : 0
-        y: root.horizontal ? 0 : root.ghostGapStart
-        width: root.horizontal ? root.ghostGapLength : barBg.width
-        height: root.horizontal ? barBg.height : root.ghostGapLength
-        clip: true
-
-        Ghost.GapGlitch {
-          width: root.horizontal ? parent.width : parent.height
-          height: root.horizontal ? parent.height : parent.width
-          anchors.centerIn: parent
-          rotation: root.horizontal ? 0 : 90
-          colors_: Colors
-          motionEnabled: root.visible && !Config.reducedMotion
-        }
-
-        Ghost.GapTrace {
-          visible: root.horizontal
-          colors_: Colors
-          config: Config
-          horizontal: true
-          active: root.openPopup !== "" || mediaIndicator.mprisStatus === "Playing"
-          bridgeGap: root.openPopup === ""
-          gapStart: 0
-          gapEnd: width
-        }
-      }
 
       MouseArea {
         id: barMouseArea
@@ -554,7 +441,7 @@ PanelWindow {
       // barBg, so clicks reach only these blocks.
       TagStripBlocks {
         anchors.fill: parent
-        visible: Config.elenaTheme
+        visible: true
         z: 10
         workspaces: wsIndicator.visibleWorkspaces
         onActivated: function(idx) { wsIndicator.focusWorkspace(idx) }
@@ -562,10 +449,8 @@ PanelWindow {
 
       GridLayout {
         id: layout
-        opacity: Config.elenaTheme ? 0 : 1
-        enabled: !Config.elenaTheme
-        layer.enabled: root.glassForegroundShadowEnabled
-        layer.effect: glassForegroundShadow
+        opacity: 0
+        enabled: false
         flow: root.horizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
         anchors {
           left: parent.left
@@ -644,7 +529,7 @@ PanelWindow {
             : 0
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          visible: Settings.ccShowWorkspaces || Config.elenaTheme
+          visible: Settings.ccShowWorkspaces || true
 
           PillSurface {
             horizontal: root.horizontal
@@ -693,9 +578,7 @@ PanelWindow {
             labelText: wsIndicator.mangoLayoutName !== ""
               ? wsIndicator.mangoLayoutName
               : wsIndicator.mangoLayoutSymbol
-            accentColor: Config.nothingEvolution
-              ? Colors.styleAccent
-              : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
+            accentColor: (Colors.primary)
             accessibleName: "Layout"
             accessibleDescription: labelText !== ""
               ? labelText + " layout"
@@ -722,9 +605,8 @@ PanelWindow {
                 focusedWindowProgramText.implicitWidth,
                 focusedWindowDetailText.implicitWidth
               )
-          // Nothing gives the rotated focused-window label more breathing room.
-          readonly property int verticalInfoPadding: Config.nothingDesign
-            ? Config.spacingMedium * 2 : Config.spacingSmall + Config.spacingCompact
+
+          readonly property int verticalInfoPadding: (Config.spacingSmall + Config.spacingCompact)
           readonly property real verticalInfoHeight: Math.min(
             320,
             Math.max(root.verticalPillPanelWidth, windowInfoTextWidth + verticalInfoPadding)
@@ -786,9 +668,7 @@ PanelWindow {
             Text {
               id: focusedWindowProgramText
               text: focusedWindowWrapper.programText
-              color: Config.dwmTheme ? Colors.fgSurface : Config.liquidGlassTheme
-                ? Colors.barForeground
-                : (Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary))
+              color: (((Colors.primary)))
               font.family: Config.fontFamily
               font.pixelSize: Config.typeLabelMediumSize
               font.weight: Config.typeStrongWeight
@@ -809,7 +689,7 @@ PanelWindow {
             Text {
               id: focusedWindowDetailText
               text: focusedWindowWrapper.detailText
-              color: Config.liquidGlassTheme ? Colors.barForegroundMuted : Colors.fgSurfaceVariant
+              color: Colors.fgSurfaceVariant
               font.family: Config.fontFamily
               font.pixelSize: Config.typeLabelMediumSize
               font.letterSpacing: Config.typeLabelTracking
@@ -833,9 +713,8 @@ PanelWindow {
           id: gapSpacer
           Layout.column: root.horizontal ? root.barSlot("gap") : 0
           Layout.row: root.horizontal ? 0 : root.barSlot("gap")
-          // The ordered divider expands so end-edge widgets stay at the far
-          // edge. Vertical bars also need a full-width spacer to keep the
-          // rotated Ghost effect from collapsing.
+
+
           Layout.fillWidth: true
           Layout.fillHeight: true
           // Packed (notch): the spacer is exactly the middle group, so only
@@ -849,30 +728,7 @@ PanelWindow {
           Layout.preferredHeight: root.horizontal ? parent.height : 0
           clip: true
 
-          // Restore the historical Ghost gap treatment inside the current
-          // flexible spacer. The spacer remains layout-owned; the effect is
-          // strictly decorative and cannot change popup geometry.
-          Ghost.GapGlitch {
-            id: ghostGapGlitch
-            visible: Config.ghostTheme && !root.continuousBar
-            width: root.horizontal ? parent.width : parent.height
-            height: root.horizontal ? parent.height : parent.width
-            anchors.centerIn: parent
-            rotation: root.horizontal ? 0 : 90
-            colors_: Colors
-            motionEnabled: root.visible && !Config.reducedMotion
-          }
 
-          Ghost.GapTrace {
-            visible: Config.ghostTheme && !root.continuousBar && root.horizontal
-            colors_: Colors
-            config: Config
-            horizontal: true
-            active: root.openPopup !== "" || mediaIndicator.mprisStatus === "Playing"
-            bridgeGap: root.openPopup === ""
-            gapStart: 0
-            gapEnd: width
-          }
         }
 
         Item {
@@ -1182,7 +1038,7 @@ PanelWindow {
             id: notifIndicator
             anchors.fill: parent
             notificationCount: root.notificationCount
-            active: root.openPopup === "notification" || (!Config.liquidGlassTheme && (!Config.ghostTheme || root.horizontal) && root.notificationCount > 0)
+            active: root.openPopup === "notification" || (root.notificationCount > 0)
             horizontal: root.horizontal
             integrated: root.continuousBar
             onClicked: function(mouse) {
@@ -1242,10 +1098,8 @@ PanelWindow {
       // cannot pull middle widgets away from the screen midpoint.
       GridLayout {
         id: middleLayout
-        opacity: Config.elenaTheme ? 0 : 1
-        enabled: !Config.elenaTheme
-        layer.enabled: root.glassForegroundShadowEnabled
-        layer.effect: glassForegroundShadow
+        opacity: 0
+        enabled: false
         flow: root.horizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
         // Packed (notch): sit in the spacer, not at the screen midpoint.
         x: root.horizontal
@@ -1267,19 +1121,12 @@ PanelWindow {
 
       Item {
         id: clockWrapper
-        opacity: Config.elenaTheme ? 0 : 1
-        enabled: !Config.elenaTheme
-        layer.enabled: root.glassForegroundShadowEnabled
-        layer.effect: glassForegroundShadow
+        opacity: 0
+        enabled: false
         // The clock stays outside both layouts to preserve its popup anchor,
         // but its slot participates in whichever region owns it.
         width: root.horizontal
-          ? (root.oneLiner
-            ? Math.max(
-                root.pillsBar ? root.horizontalPillLength : root.wSize,
-                clockContent.implicitWidth + Config.spacingSmall * 2
-              )
-            : Math.max(
+          ? (Math.max(
                 112,
                 root.wSize * 2.5,
                 root.pillsBar ? root.horizontalPillLength : 0
@@ -1329,54 +1176,38 @@ PanelWindow {
           GridLayout {
             id: clockContent
             anchors.centerIn: parent
-            columns: root.oneLiner && root.clockSecondaryVisible ? 2 : 1
-            rows: root.oneLiner
-              ? 1
-              : (root.clockSecondaryVisible ? 2 : 1)
-            flow: root.oneLiner && root.clockSecondaryVisible
-              ? GridLayout.LeftToRight
-              : GridLayout.TopToBottom
+            columns: 1
+            rows: (2)
+            flow: GridLayout.TopToBottom
             // Ndot's line-height metrics reserve descent space below each
             // digit row that the visible glyphs never use, which skews
             // Qt's naive vertical centering low. Nudge up to compensate.
-            anchors.verticalCenterOffset: Config.nothingDesign && !Config.nothingEvolution && !root.horizontalPillMode ? -4 : 0
-            columnSpacing: root.oneLiner && root.clockSecondaryVisible
-              ? Config.spacingCompact
-              : 0
-            rowSpacing: root.clockSecondaryVisible && !root.oneLiner
-              ? Config.clockLineSpacing
-              : 0
+            anchors.verticalCenterOffset: 0
+            columnSpacing: 0
+            rowSpacing: Config.clockLineSpacing
 
             Text {
               text: root.horizontal
                 ? root.displayNow().toLocaleString(Qt.locale(), root.clockFormat())
                 : root.displayNow().toLocaleString(Qt.locale(), Settings.clock24h ? "HH" : "h")
-              color: (Config.ghostTheme || Config.dwmTheme) && root.horizontal
-                ? Colors.fgSurface
-                : (Config.liquidGlassTheme
-                  ? Colors.barForeground
-                  : (Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)))
-              font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
-              font.pixelSize: Config.clockPrimarySize + (Config.ghostTheme && root.horizontal ? 1 : 0)
-              font.weight: Config.ghostTheme && !root.horizontal ? Font.Medium
-                : (Config.dwmTheme ? Font.Normal : Config.nothingEvolution ? Font.Medium : (Config.nothingDesign ? Font.Normal : Font.Bold))
+              color: (((Colors.primary)))
+              font.family: Config.fontFamily
+              font.pixelSize: Config.clockPrimarySize + (0)
+              font.weight: (((Font.Bold)))
               Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             }
 
             Text {
-              visible: root.clockSecondaryVisible
+              visible: true
               text: root.horizontal
                 ? root.displayNow().toLocaleDateString(Qt.locale(), "ddd, d MMM")
                 : root.displayNow().toLocaleString(Qt.locale(), "mm")
-              color: Config.liquidGlassTheme ? Colors.barForegroundMuted : Colors.fgSurfaceVariant
-              font.family: Config.nothingDesign
-                ? (root.horizontal ? Config.monoFontFamily : Config.dotFontFamily)
-                : Config.fontFamily
+              color: Colors.fgSurfaceVariant
+              font.family: Config.fontFamily
               font.pixelSize: root.horizontal
                 ? Config.clockSecondarySize
                 : Config.clockPrimarySize
-              font.weight: Config.ghostTheme && !root.horizontal ? Font.Medium
-                : (root.horizontal ? Font.Medium : Font.Bold)
+              font.weight: (root.horizontal ? Font.Medium : Font.Bold)
               Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             }
           }
@@ -1386,9 +1217,7 @@ PanelWindow {
             radius: Config.shapeMedium
             color: "transparent"
             border.width: clockWidget.activeFocus ? Config.themeFocusBorderWidth : 0
-            border.color: Config.liquidGlassTheme
-              ? Colors.barForeground
-              : ((Config.nothingDesign || Config.ghostTheme) ? Colors.styleOutline : Colors.primary)
+            border.color: (Colors.primary)
           }
 
           MouseArea {

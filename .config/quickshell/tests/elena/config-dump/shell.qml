@@ -30,8 +30,7 @@ ShellRoot {
       parent.ticks++
       if (parent.ticks > 100) { console.log("DUMP-ERR settings never loaded"); Qt.quit() }
       else if (Settings.initialLoadComplete && parent.ticks >= 5) {
-        if (!Config.elenaTheme) { console.log("DUMP-ERR elena style not active"); Qt.quit() }
-        else parent.dump()
+        parent.dump()
       }
     }
   }

@@ -48,8 +48,8 @@ ListItem {
     iconLabel: "arrow_upward"
     iconSize: 18
     variant: "text"
-    width: Config.material3Theme ? Config.controlHitSize : 32
-    height: Config.material3Theme ? Config.controlHitSize : 32
+    width: Config.controlHitSize
+    height: Config.controlHitSize
     enabled: row.movedOrder(-1) !== row.savedOrder
     accessibleName: "Move " + row.title + " toward start"
     tooltipText: accessibleName
@@ -60,8 +60,8 @@ ListItem {
     iconLabel: "arrow_downward"
     iconSize: 18
     variant: "text"
-    width: Config.material3Theme ? Config.controlHitSize : 32
-    height: Config.material3Theme ? Config.controlHitSize : 32
+    width: Config.controlHitSize
+    height: Config.controlHitSize
     enabled: row.movedOrder(1) !== row.savedOrder
     accessibleName: "Move " + row.title + " toward end"
     tooltipText: accessibleName
@@ -72,8 +72,8 @@ ListItem {
     iconSize: 18
     variant: "text"
     selected: row.middleActive
-    width: Config.material3Theme ? Config.controlHitSize : 32
-    height: Config.material3Theme ? Config.controlHitSize : 32
+    width: Config.controlHitSize
+    height: Config.controlHitSize
     accessibleName: row.middleActive
       ? "Move " + row.title + " to end"
       : "Move " + row.title + " to middle"
@@ -87,7 +87,7 @@ ListItem {
     activeColor: Colors.primary
     surfaceContainerHigh: Colors.surfaceContainerHigh
     surfaceContainerHighest: Colors.surfaceContainerHighest
-    outline: Colors.styleOutlineStrong
+    outline: Colors.outline
     motionDuration: Config.motionMedium
     reducedMotion: Config.reducedMotion
     accessibleName: "Show " + row.title

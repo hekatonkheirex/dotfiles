@@ -22,6 +22,6 @@ ToolTip {
     radius: Config.shapeCompact
     color: Colors.surfaceContainerHighest
     border.width: 1
-    border.color: Colors.styleOutline
+    border.color: Colors.outlineVariant
   }
 }

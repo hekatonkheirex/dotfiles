@@ -140,3 +140,16 @@ center music window.
 No new commands. After this change Settings > Appearance has no style picker;
 palette, accent and bar settings are unchanged. Cold restart recommended after
 the final stage: `systemctl --user restart quickshell.service`.
+
+The controls golden compares only `elena.png`; historical baselines for removed
+styles are ignored. Palette synchronization no longer reads the persisted style
+key, so stale keys cannot disable Matugen terminal updates. The popup IPC gate
+checks the sidebar and launcher list without switching styles.
+
+The muted LevelTile cue is a rounded-clipped diagonal pattern. Its active level
+remains stored and returns on unmute; the render gate checks stripe pixels,
+clear pixels, rounded corners and the unmute transition.
+
+The old-style transparency toggle and alternate clock-face selector have no
+consumer in Elena and are removed with their settings, search entries and
+style-only development IPC endpoints. Reduced Motion and contrast remain.

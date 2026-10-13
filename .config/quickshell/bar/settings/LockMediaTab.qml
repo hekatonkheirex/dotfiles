@@ -10,8 +10,7 @@ Flickable {
   id: lockMediaTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property bool material3Theme: Config.material3Theme
-  readonly property int segmentedButtonGap: lockMediaTab.material3Theme ? 0 : Config.spacingCompact
+  readonly property int segmentedButtonGap: 0
   // Keep trailing idle sliders the same length as the shared settings rows.
   // The compact minimum preserves a usable control at the panel's minimum width.
   readonly property int standardizedSliderWidth: Math.max(
@@ -80,7 +79,7 @@ Flickable {
       Layout.preferredHeight: lockCol.implicitHeight + Config.spacingSmall * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
@@ -106,7 +105,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Show now playing on lock screen"
@@ -118,20 +117,18 @@ Flickable {
           Layout.fillWidth: true
           leadingIcon: "wallpaper"
           title: "Use current wallpaper"
-          subtitle: Config.liquidGlassTheme
-          ? "Liquid Glass always uses the current wallpaper with a strong blur"
-            : (Settings.lockUseWallpaper
+          subtitle: (Settings.lockUseWallpaper
               ? "Show the desktop wallpaper behind the lock screen"
               : "Use the animated lock-screen background")
           toggleControl: wallpaperSwitch
           SwitchControl {
             id: wallpaperSwitch
-            checked: Config.liquidGlassTheme || Settings.lockUseWallpaper
-            enabled: !Config.liquidGlassTheme
+            checked: Settings.lockUseWallpaper
+            enabled: true
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Use current wallpaper on lock screen"
@@ -139,57 +136,6 @@ Flickable {
           }
         }
 
-        ListItem {
-          Layout.fillWidth: true
-          visible: Config.nothingEvolution
-          // Stacked icon + label buttons need 48px; 36px clipped the label.
-          height: 60
-          leadingIcon: "schedule"
-          title: "Clock face"
-          subtitle: Settings.lockClockFace === "gooey"
-            ? "Gooey"
-            : "Micrographics"
-          accessibleName: "Lock screen clock face"
-          accessibleDescription: "Choose the Nothing Evolution lock screen clock face"
-
-          Item {
-            width: lockMediaTab.compactLayout ? 144 : 184
-            height: 48
-
-            Row {
-              anchors.fill: parent
-              spacing: lockMediaTab.segmentedButtonGap
-
-              Repeater {
-                model: [
-                  { value: "gooey", label: "Gooey" },
-                  { value: "micrographics", label: "Micro" }
-                ]
-
-                delegate: ActionButton {
-                  required property var modelData
-                  required property int index
-                  width: (parent.width - lockMediaTab.segmentedButtonGap) / 2
-                  height: parent.height
-                  labelText: modelData.label
-                  iconLabel: modelData.value === "gooey" ? "bubble_chart" : "data_object"
-                  iconSize: 15
-                  contentSpacing: Config.spacingCompact
-                  horizontalContent: false
-                  selected: Settings.lockClockFace === modelData.value
-                  checkable: true
-                  grouped: true
-                  groupPosition: index === 0 ? "first" : "last"
-                  accessibleName: modelData.label + " clock face"
-                  onActivated: {
-                    Settings.lockClockFace = modelData.value
-                    Settings.save()
-                  }
-                }
-              }
-            }
-          }
-        }
 
         RowLayout {
           Layout.fillWidth: true
@@ -215,7 +161,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -245,7 +191,7 @@ Flickable {
       Layout.preferredHeight: idleCol.implicitHeight + Config.spacingSmall * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
@@ -280,7 +226,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -315,7 +261,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -354,7 +300,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Caffeine mode"

@@ -11,6 +11,4 @@ qmllint shell.qml \
   bar/settings/*.qml \
   bar/primitives/*.qml \
   bar/sidebar/*.qml \
-  bar/themes/material3/*.qml \
-  bar/themes/nothing/*.qml \
-  bar/themes/ghost/*.qml
+  bar/controls/*.qml

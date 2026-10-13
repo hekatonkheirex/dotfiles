@@ -22,13 +22,12 @@ SettingsCard {
     : powerProfileAcDefault
   readonly property bool powerProfileAuto: powerProfileAutoSwitchEnabled && powerProfile !== ""
     && powerProfile === automaticPowerProfile
-  readonly property bool material3Theme: Config.material3Theme
 
   Layout.fillWidth: true
   Layout.preferredHeight: powerProfileColumn.implicitHeight + Config.spacingMedium * 2
   radius: Config.settingsCardRadius
   surfaceColor: Colors.surfaceContainer
-  outlineColor: Colors.styleOutline
+  outlineColor: Colors.outlineVariant
   outlineWidth: Config.themeBorderWidth
 
   function parsePowerProfile(value) {
@@ -183,9 +182,7 @@ SettingsCard {
     GridLayout {
       Layout.fillWidth: true
       columns: card.compactLayout ? 2 : 4
-      columnSpacing: card.material3Theme
-        ? 0
-        : Config.spacingCompact
+      columnSpacing: 0
       rowSpacing: Config.spacingCompact
 
       ActionButton {

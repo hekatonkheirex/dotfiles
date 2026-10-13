@@ -1,8 +1,6 @@
-// Value, keyboard, and accessibility behaviour shared by every SliderControl
-// implementation (material3/ and styled/). Implementations extend this and add
-// colours, geometry, pointer handling, and visuals. They emit changed() through
-// setValue(); adjustmentKey() fires before a keyboard adjustment so an
-// implementation can show its focus ring.
+// Elena slider value, keyboard and accessibility behavior. The visual
+// implementation emits changed() through setValue(); adjustmentKey() lets it
+// display the keyboard focus ring before changing the value.
 import QtQuick
 import "../../config"
 

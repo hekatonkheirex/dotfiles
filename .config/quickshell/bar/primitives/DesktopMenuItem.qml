@@ -5,7 +5,7 @@ import "../../config"
 MenuItem {
   id: root
   implicitWidth: Math.max(220, contentItem.implicitWidth + leftPadding + rightPadding)
-  implicitHeight: Config.material3Theme ? Config.controlHitSize : 36
+  implicitHeight: Config.controlHitSize
   leftPadding: Config.spacingMedium
   rightPadding: Config.spacingMedium
   font.family: Config.fontFamily

@@ -129,8 +129,8 @@ ColumnLayout {
             iconLabel: "arrow_upward"
             iconSize: 18
             variant: "text"
-            width: Config.material3Theme ? Config.controlHitSize : 32
-            height: Config.material3Theme ? Config.controlHitSize : 32
+            width: Config.controlHitSize
+            height: Config.controlHitSize
             enabled: pinRow.index > 0
             accessibleName: "Move " + pinRow.title + " earlier"
             tooltipText: accessibleName
@@ -140,8 +140,8 @@ ColumnLayout {
             iconLabel: "arrow_downward"
             iconSize: 18
             variant: "text"
-            width: Config.material3Theme ? Config.controlHitSize : 32
-            height: Config.material3Theme ? Config.controlHitSize : 32
+            width: Config.controlHitSize
+            height: Config.controlHitSize
             enabled: pinRow.index < root.pinned.length - 1
             accessibleName: "Move " + pinRow.title + " later"
             tooltipText: accessibleName
@@ -151,8 +151,8 @@ ColumnLayout {
             iconLabel: "close"
             iconSize: 18
             variant: "text"
-            width: Config.material3Theme ? Config.controlHitSize : 32
-            height: Config.material3Theme ? Config.controlHitSize : 32
+            width: Config.controlHitSize
+            height: Config.controlHitSize
             accessibleName: "Unpin " + pinRow.title
             tooltipText: accessibleName
             onActivated: root.remove(pinRow.index)

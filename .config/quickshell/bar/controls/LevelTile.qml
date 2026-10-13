@@ -25,6 +25,7 @@ Item {
     // clip only cuts to the bounding box, so the fill is a full-height rounded
     // rect inside a box of fill height: the bottom corners follow the radius.
     Item {
+      visible: !root.muted
       anchors.bottom: parent.bottom
       width: parent.width
       height: parent.height * Math.max(0, Math.min(1, root.value))
@@ -35,6 +36,34 @@ Item {
         height: tile.height
         radius: tile.radius
         color: root.muted ? Colors.outline : root.accent
+      }
+    }
+    Canvas {
+      anchors.fill: parent
+      visible: root.muted
+      property color stripeColor: Colors.outline
+      onStripeColorChanged: if (visible) requestPaint()
+      onWidthChanged: if (visible) requestPaint()
+      onHeightChanged: if (visible) requestPaint()
+      onVisibleChanged: if (visible) requestPaint()
+      onPaint: {
+        var ctx = getContext("2d")
+        ctx.clearRect(0, 0, width, height)
+        ctx.save()
+        ctx.beginPath()
+        var radius = Math.min(tile.radius, width / 2, height / 2)
+        ctx.roundedRect(0, 0, width, height, radius, radius)
+        ctx.clip()
+        ctx.globalAlpha = 0.35
+        ctx.strokeStyle = stripeColor
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        for (var x = -Math.ceil(height / 10) * 10; x < width; x += 10) {
+          ctx.moveTo(x, 0)
+          ctx.lineTo(x + height, height)
+        }
+        ctx.stroke()
+        ctx.restore()
       }
     }
   }

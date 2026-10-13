@@ -20,7 +20,7 @@ ListItem {
   property string statusMessage: ""
   signal writeFailed(string message)
 
-  height: Config.material3Theme ? implicitHeight : 60
+  height: implicitHeight
   toggleControl: remoteSwitch
   Layout.fillWidth: true
 
@@ -31,7 +31,7 @@ ListItem {
     activeColor: Colors.primary
     surfaceContainerHigh: Colors.surfaceContainerHigh
     surfaceContainerHighest: Colors.surfaceContainerHighest
-    outline: Colors.styleOutlineStrong
+    outline: Colors.outline
     motionDuration: Config.motionMedium
     reducedMotion: Config.reducedMotion
     accessibleName: root.title

@@ -3,7 +3,7 @@
 # an unknown name returns false, and dismissPopups clears the state.
 set -u
 fail=0
-for n in audio brightness media weather llm battery notification calendar quickmenu launcher; do
+for n in audio brightness media weather llm battery notification calendar quickmenu launcher sidebar; do
   qs ipc call shell dismissPopups >/dev/null; sleep 0.4
   r=$(qs ipc call shell popup "$n"); c=$(qs ipc call shell currentPopup)
   if [ "$r" = true ] && [ "$c" = "$n" ]; then echo "ok   $n"; else echo "FAIL $n (popup=$r current=$c)"; fail=1; fi
@@ -11,17 +11,8 @@ done
 qs ipc call shell dismissPopups >/dev/null
 [ "$(qs ipc call shell popup nope)" = false ] && echo "ok   unknown -> false" || { echo "FAIL unknown name"; fail=1; }
 [ -z "$(qs ipc call shell currentPopup)" ] && echo "ok   dismissed" || { echo "FAIL not dismissed"; fail=1; }
-# In-memory style switch (never saved) round-trips.
-[ "$(qs ipc call shell style ghost "")" = ghost ] && echo "ok   style ghost" || { echo "FAIL style ghost"; fail=1; }
-# dwm turns the launcher into the strip; material3 restores the list.
-qs ipc call shell style dwm "" >/dev/null; sleep 0.5
-[ "$(qs ipc call shell launcherMode)" = strip ] && echo "ok   dwm launcherMode strip" || { echo "FAIL dwm launcherMode"; fail=1; }
-qs ipc call shell dismissPopups >/dev/null; sleep 0.4
-r=$(qs ipc call shell popup launcher); c=$(qs ipc call shell currentPopup)
-[ "$r" = true ] && [ "$c" = launcher ] && echo "ok   dwm popup launcher" || { echo "FAIL dwm popup launcher (popup=$r current=$c)"; fail=1; }
-qs ipc call shell dismissPopups >/dev/null
-qs ipc call shell style material3 "" >/dev/null; sleep 0.5
-[ "$(qs ipc call shell launcherMode)" = list ] && echo "ok   material3 launcherMode list" || { echo "FAIL material3 launcherMode"; fail=1; }
+# Elena keeps the launcher list; style switching no longer exists.
+[ "$(qs ipc call shell launcherMode)" = list ] && echo "ok   launcherMode list" || { echo "FAIL launcherMode"; fail=1; }
 # In-memory Settings tab selection round-trips (restores the persisted value).
 orig=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.config/quickshell/settings.json')))['lastSettingsTab'])")
 [ "$(qs ipc call shell settingsTab 5)" = 5 ] && echo "ok   settingsTab" || { echo "FAIL settingsTab"; fail=1; }

@@ -9,7 +9,6 @@ Item {
   property real contentWidth: 0
   property real contentHeight: 0
   property real verticalInset: 6
-  readonly property bool flatLiquidSurface: Config.liquidGlassTheme && !Colors.liquidGlassOpaque
 
   anchors {
     fill: root.fitContent ? null : parent
@@ -30,22 +29,10 @@ Item {
   Rectangle {
     id: surface
     anchors.fill: parent
-    radius: Config.ghostTheme ? 0 : (root.horizontal ? height / 2 : width / 2)
-    color: root.flatLiquidSurface ? "transparent"
-      : (Config.liquidGlassTheme ? Colors.liquidGlassClear
-        : (Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surfaceContainerHigh))
-    border.color: root.flatLiquidSurface ? "transparent"
-      : (Config.liquidGlassTheme || Config.ghostTheme || Config.nothingEvolution
-        ? Colors.styleOutline
-        : (Config.nothingDesign ? "transparent"
-          : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.18)))
-    border.width: root.flatLiquidSurface ? 0
-      : (Config.nothingEvolution ? Config.themeBorderWidth : (Config.nothingDesign ? 0 : 1))
+    radius: (root.horizontal ? height / 2 : width / 2)
+    color: ((Colors.surfaceContainerHigh))
+    border.color: ((Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.18)))
+    border.width: ((1))
   }
 
-  GlassSheen {
-    anchors.fill: surface
-    radius: surface.radius
-    glassEnabled: !root.flatLiquidSurface
-  }
 }

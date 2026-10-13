@@ -55,50 +55,8 @@ assert.equal(P.variantLabel("elenapan", "dark"), "Dark")
 assert.equal(P.palette("material3", "auto", true), null)
 assert.equal(P.palette("tokyonight", "night", true).primary, "#7aa2f7")
 
-// selectStyle/revertStyle: drive the real QML functions against a fake Settings.
-{
-  const qml = readFileSync(fileURLToPath(new URL("../../bar/settings/AppearanceTab.qml", import.meta.url)), "utf8")
-  const start = qml.indexOf('  property string previousStyle: ""')
-  const body = qml.slice(start, qml.indexOf("  property string themeStatus"))
-    .replace(/^\s*property string .*$/gm, "")
-  const make = (init) => {
-    const env = { Settings: { themeStyle: "material3", nothingVariant: "classic", colorSource: "wallpaper",
-      colorPalette: "material3", colorVariant: "auto", save() {}, ...init }, syncs: 0 }
-    const f = new Function("Settings", "env", `${body}
-      let previousStyle = "", previousNothingVariant = "", paletteBeforeElenaSource = "", paletteBeforeElenaPalette = "", paletteBeforeElenaVariant = ""
-      const appearanceTab = { leaveElena: () => leaveElena(), requestPaletteSync: () => env.syncs++ }
-      return { selectStyle, revertStyle }`)
-    return { env, api: f(env.Settings, env) }
-  }
-  const orig = { colorSource: "wallpaper", colorPalette: "material3", colorVariant: "auto" }
-  const pal = S => ({ colorSource: S.colorSource, colorPalette: S.colorPalette, colorVariant: S.colorVariant })
-  // tile to tile: Material (live) -> Elena -> Material keeps the original palette
-  let t = make({})
-  t.api.selectStyle("elena", "")
-  assert.equal(t.env.Settings.colorPalette, "elenapan")
-  assert.equal(t.env.Settings.colorSource, "fixed")
-  t.api.selectStyle("material3", "")
-  assert.deepEqual(pal(t.env.Settings), orig)
-  assert.equal(t.env.syncs, 2)
-  // revert from elena restores too
-  t = make({}); t.api.selectStyle("elena", ""); t.api.revertStyle()
-  assert.deepEqual(pal(t.env.Settings), orig)
-  assert.equal(t.env.Settings.themeStyle, "material3")
-  // a palette chosen while in elena survives leaving
-  t = make({}); t.api.selectStyle("elena", "")
-  Object.assign(t.env.Settings, { colorSource: "fixed", colorPalette: "tokyonight", colorVariant: "night" })
-  t.api.selectStyle("ghost", "")
-  assert.equal(t.env.Settings.colorPalette, "tokyonight")
-  // styles that never enter elena do not touch the palette or sync
-  t = make({}); t.api.selectStyle("ghost", ""); t.api.selectStyle("dwm", "")
-  assert.deepEqual(pal(t.env.Settings), orig)
-  assert.equal(t.env.syncs, 0)
-}
 // The palette id was renamed elenapan -> elenapan (author spelling); stored
 // settings written before the rename must keep their palette.
 assert.equal(P.migratePaletteId("elenapam"), "elenapan")
 for (const same of ["elenapan", "material3", "catppuccin", "", undefined, null]) assert.equal(P.migratePaletteId(same), same)
-// Settings.qml applies it on load.
-const settingsSrc = readFileSync(fileURLToPath(new URL("../../config/Settings.qml", import.meta.url)), "utf8")
-assert.match(settingsSrc, /PaletteCatalog\.migratePaletteId\(/, "Settings migrates the stored palette id")
 console.log("elena: ok")

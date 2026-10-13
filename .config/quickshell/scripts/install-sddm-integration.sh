@@ -11,8 +11,8 @@ usage() {
   cat <<'EOF'
 Usage: install-sddm-integration.sh [--dry-run]
 
-Install the root-owned SDDM bridge and its polkit policy used by Quickshell's
-style selector. SDDM theme assets are installed by their own theme projects.
+Install the root-owned light/dark Matugen SDDM bridge and its polkit policy.
+SDDM theme assets are installed by their own theme project.
 EOF
 }
 
@@ -43,8 +43,8 @@ if [[ ! -f "$policy_source" ]]; then
   printf 'Missing polkit policy source: %s\n' "$policy_source" >&2
   exit 1
 fi
-if ! grep -Fq 'ghost)' "$helper_source" || ! grep -Fq 'theme_name="Ghost-SDDM"' "$helper_source"; then
-  printf 'SDDM bridge source does not contain Ghost support: %s\n' "$helper_source" >&2
+if ! grep -Fq 'theme_name="Material3-Expressive-Dynamic-SDDM"' "$helper_source"; then
+  printf 'SDDM bridge source does not contain the Matugen greeter: %s\n' "$helper_source" >&2
   exit 1
 fi
 if ! grep -Fq '<annotate key="org.freedesktop.policykit.exec.path">/usr/local/libexec/quickshell-sync-sddm-theme</annotate>' "$policy_source"; then

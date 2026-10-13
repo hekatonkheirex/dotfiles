@@ -6,7 +6,6 @@ import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
 import "primitives"
-import "themes/nothing" as Nothing
 import "../config"
 
 Item {
@@ -29,66 +28,36 @@ Item {
       currentWallpaperProc.running = root.wallpaperRequested
     }
   }
-  readonly property color accentColor: Config.nothingEvolution ? Colors.styleAccent : Colors.primary
+  readonly property color accentColor: Colors.primary
   // Lock screen sits on a fixed dark photo scrim independent of the desktop's
   // light/dark mode, so text stays fixed light for legibility rather than
   // following Colors.fgSurface (which flips with darkMode and would go
-  // near-black in light mode). Read the dark-scheme on_surface role through
-  // Colors so Nothing keeps its fixed text while other styles track Matugen.
+  // near-black in light mode). Read the dark-scheme on_surface role directly.
   readonly property color textColor: Colors.paletteRole("dark", "on_surface", Colors.d_onSurface)
   readonly property color mutedText: Qt.rgba(textColor.r, textColor.g, textColor.b, 0.7)
   readonly property color errorColor: Colors.destructive
-  readonly property bool flatLockMode: Config.nothingDesign || Config.ghostTheme
-  readonly property color flatBackground: root.flatLockMode
-    ? (Colors.darkMode ? Colors.background : Colors.inverseSurface)
-    : Colors.bg
+  readonly property color flatBackground: Colors.bg
   readonly property real inputRadius: Config.shapeMedium
-  readonly property color inputFill: Config.ghostTheme
-    ? Qt.rgba(Colors.ghostCyan.r, Colors.ghostCyan.g, Colors.ghostCyan.b, 0.10)
-    : Qt.rgba(1, 1, 1, 0.12)
-  readonly property color inputBorder: Config.ghostTheme
-    ? Colors.styleOutlineStrong : Qt.rgba(1, 1, 1, 0.2)
+  readonly property color inputFill: Qt.rgba(1, 1, 1, 0.12)
+  readonly property color inputBorder: Qt.rgba(1, 1, 1, 0.2)
   readonly property int lockAvatarSize: 96
-  readonly property int lockFieldWidth: Config.liquidGlassTheme ? 320 : 280
-  readonly property int lockFieldHeight: Config.liquidGlassTheme ? 52 : 48
-  readonly property real lockFieldRadius: Config.liquidGlassTheme ? Config.shapeLarge : root.inputRadius
-  readonly property color lockFieldFill: Config.liquidGlassTheme ? Colors.liquidGlassControl : root.inputFill
-  readonly property color lockFieldBorder: Config.liquidGlassTheme ? Colors.liquidGlassEdge : root.inputBorder
-  readonly property int liquidGlassClockSize: Math.max(92, Settings.lockClockSize)
-  // The macOS lock identity uses a stable blue instead of the wallpaper's
-  // generated accent, so the account marker stays recognizable on every photo.
-  readonly property color liquidGlassAvatarColor: "#2f80ed"
+  readonly property int lockFieldWidth: 280
+  readonly property int lockFieldHeight: 48
+  readonly property real lockFieldRadius: root.inputRadius
+  readonly property color lockFieldFill: root.inputFill
+  readonly property color lockFieldBorder: root.inputBorder
 
   readonly property string home: Quickshell.env("HOME")
   property date now: new Date()
-  readonly property string liquidGlassDateText: {
-    var d = root.now
-    var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    return days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate()
-  }
-  readonly property string liquidGlassTimeText: {
-    var d = root.now
-    var hours = d.getHours()
-    if (!Settings.clock24h) hours = hours % 12 || 12
-    return (Settings.clock24h ? hours.toString().padStart(2, "0") : hours.toString())
-      + ":" + d.getMinutes().toString().padStart(2, "0")
-  }
   property string wallpaperSource: ""
   property bool wallpaperReady: false
-  // Liquid Glass follows Apple's lock-screen treatment: its photo backdrop is
-  // part of the style, while the shared wallpaper preference remains an
-  // opt-in for the other styles.
-  readonly property bool wallpaperRequested: Settings.lockUseWallpaper || Config.liquidGlassTheme
+  readonly property bool wallpaperRequested: Settings.lockUseWallpaper
   readonly property bool wallpaperVisible: root.wallpaperRequested && root.wallpaperReady
-  readonly property bool wallpaperBlurred: root.wallpaperVisible && Config.liquidGlassTheme
   readonly property int wallpaperBlurMax: 64
 
   Process {
     id: currentWallpaperProc
     command: ["sh", "-c", "awww query 2>/dev/null | sed -n 's/.*image: //p' | head -1"]
-    // Query while Liquid Glass is active so the lock surface has the current
-    // wallpaper ready on its first frame instead of flashing the fallback.
     running: root.wallpaperRequested
     stdout: StdioCollector {
       onStreamFinished: {
@@ -128,9 +97,6 @@ Item {
       currentWallpaperProc.running = root.wallpaperRequested
     }
     function onLockUseWallpaperChanged() {
-      refreshWallpaper()
-    }
-    function onThemeStyleChanged() {
       refreshWallpaper()
     }
   }
@@ -176,7 +142,6 @@ Item {
   property string lockPassword: ""
   property string lockInputText: ""
   property string lockError: ""
-  property bool liquidGlassLoginPrompted: false
   property bool authenticated: false
   property string pendingPowerLabel: ""
   property var pendingPowerCommand: []
@@ -201,7 +166,6 @@ Item {
   function lockScreen() {
     clearPassword()
     lockError = ""
-    liquidGlassLoginPrompted = false
     authenticated = false
     cancelPowerAction()
 
@@ -221,7 +185,6 @@ Item {
   function unlockSession() {
     authenticated = true
     clearPassword()
-    liquidGlassLoginPrompted = false
     root.locked = false
     if (Config.isNiri) sessionLock.locked = false
     updateReloadWatchState()
@@ -321,286 +284,6 @@ Item {
     }
   }
 
-  Component {
-    id: liquidGlassLockLayout
-
-    FocusScope {
-      anchors.fill: parent
-      // Keep the outer focus scope active after the identity is clicked so the
-      // newly-created password input can receive focus on the first click.
-      focus: root.locked
-      activeFocusOnTab: true
-
-      // Without this the lock surface has no active-focus item until the
-      // first click, so keystrokes never reach the handler below.
-      Component.onCompleted: forceActiveFocus()
-
-      Keys.onPressed: function(event) {
-        if (!root.liquidGlassLoginPrompted
-            && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
-          root.liquidGlassLoginPrompted = true
-          event.accepted = true
-        } else if (!root.liquidGlassLoginPrompted
-            && event.text.length === 1
-            && event.text.charCodeAt(0) > 32 && event.text.charCodeAt(0) !== 127
-            && !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))) {
-          // Typing without clicking the avatar opens the password field and
-          // keeps the first character instead of dropping it.
-          root.lockInputText = event.text
-          root.lockPassword = event.text
-          root.liquidGlassLoginPrompted = true
-          event.accepted = true
-        }
-      }
-
-      Timer {
-        id: liquidGlassPasswordFocusTimer
-        interval: 0
-        repeat: false
-        onTriggered: {
-          if (root.liquidGlassLoginPrompted
-              && liquidGlassPasswordField.item
-              && liquidGlassPasswordField.item.input) {
-            liquidGlassPasswordField.item.input.forceActiveFocus()
-          }
-        }
-      }
-
-      Connections {
-        target: root
-        function onLiquidGlassLoginPromptedChanged() {
-          if (root.liquidGlassLoginPrompted) {
-            liquidGlassPasswordFocusTimer.restart()
-          }
-        }
-      }
-
-      Column {
-        anchors {
-          top: parent.top
-          horizontalCenter: parent.horizontalCenter
-          topMargin: Math.max(96, Math.round(parent.height * 0.20))
-        }
-        spacing: Config.spacingSmall
-
-        Text {
-          anchors.horizontalCenter: parent.horizontalCenter
-          text: root.liquidGlassDateText
-          color: root.textColor
-          font.family: Config.fontFamily
-          font.pixelSize: Math.max(18, Config.typeHeadlineSmallSize + 2)
-          font.weight: Font.DemiBold
-          font.letterSpacing: 0.1
-        }
-
-        Text {
-          anchors.horizontalCenter: parent.horizontalCenter
-          text: root.liquidGlassTimeText
-          color: root.textColor
-          font.family: Config.fontFamily
-          font.pixelSize: root.liquidGlassClockSize
-          font.weight: Font.Light
-          font.letterSpacing: -1.2
-          style: Text.Normal
-        }
-
-        Row {
-          anchors.horizontalCenter: parent.horizontalCenter
-          spacing: Config.spacingSmall
-          visible: Settings.lockShowMedia && root.lockMprisTitle !== ""
-
-          IconGlyph {
-            iconLabel: root.lockMprisStatus === "Playing" ? "pause" : "play_arrow"
-            iconSize: 16
-            iconColor: Qt.rgba(root.textColor.r, root.textColor.g, root.textColor.b, 0.7)
-            anchors.verticalCenter: parent.verticalCenter
-          }
-
-          Text {
-            text: root.lockMprisTitle + (root.lockMprisArtist ? " - " + root.lockMprisArtist : "")
-            color: Qt.rgba(root.textColor.r, root.textColor.g, root.textColor.b, 0.7)
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            elide: Text.ElideRight
-            width: Math.min(implicitWidth, 320)
-            anchors.verticalCenter: parent.verticalCenter
-          }
-        }
-      }
-
-      Column {
-        anchors {
-          horizontalCenter: parent.horizontalCenter
-          bottom: parent.bottom
-          bottomMargin: Math.max(40, Math.round(parent.height * 0.05))
-        }
-        width: 320
-        spacing: Config.spacingSmall
-
-        Item {
-          width: parent.width
-          height: root.lockAvatarSize + Config.spacingMedium * 2 + 38
-
-          Column {
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: Config.spacingMedium
-
-            Rectangle {
-              anchors.horizontalCenter: parent.horizontalCenter
-              width: root.lockAvatarSize
-              height: root.lockAvatarSize
-              radius: width / 2
-              clip: true
-              color: root.liquidGlassAvatarColor
-              border.width: 1
-              border.color: Qt.rgba(1, 1, 1, 0.34)
-
-              Image {
-                id: liquidGlassProfileImage
-                anchors.fill: parent
-                source: "file://" + root.home + "/Pictures/profile.jpg"
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                sourceSize: Qt.size(256, 256)
-                visible: status === Image.Ready
-                // Item.clip only clips to the bounding rectangle, so round the
-                // photo with a mask.
-                layer.enabled: true
-                layer.effect: MultiEffect {
-                  maskEnabled: true
-                  maskSource: liquidGlassAvatarMask
-                }
-              }
-
-              Rectangle {
-                id: liquidGlassAvatarMask
-                anchors.fill: parent
-                radius: width / 2
-                visible: false
-                layer.enabled: true
-              }
-
-              Text {
-                anchors.centerIn: parent
-                text: root.username().charAt(0).toUpperCase()
-                color: "white"
-                font.family: Config.fontFamily
-                font.pixelSize: 40
-                font.weight: Font.Normal
-                visible: liquidGlassProfileImage.status !== Image.Ready
-              }
-            }
-
-            Text {
-              anchors.horizontalCenter: parent.horizontalCenter
-              text: root.username()
-              color: root.textColor
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyLargeSize
-              font.weight: Font.DemiBold
-            }
-
-            Text {
-              anchors.horizontalCenter: parent.horizontalCenter
-              text: "Click to log in"
-              color: Qt.rgba(root.textColor.r, root.textColor.g, root.textColor.b, 0.66)
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyMediumSize
-              visible: !root.liquidGlassLoginPrompted
-            }
-          }
-
-          MouseArea {
-            anchors.fill: parent
-            enabled: !root.liquidGlassLoginPrompted
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.liquidGlassLoginPrompted = true
-          }
-        }
-
-        Loader {
-          id: liquidGlassPasswordField
-          active: root.liquidGlassLoginPrompted
-          visible: active
-          focus: active
-          width: parent.width
-          height: active ? 52 : 0
-          onLoaded: {
-            if (item && item.input) item.input.forceActiveFocus()
-          }
-          sourceComponent: Component {
-            FocusScope {
-              id: liquidGlassPasswordScope
-              width: 320
-              height: 52
-              focus: true
-              property alias input: passwordInput
-
-              Component.onCompleted: passwordInput.forceActiveFocus()
-
-              Rectangle {
-                anchors.fill: parent
-                radius: Config.shapeLarge
-                color: Colors.liquidGlassControl
-                border.width: 1
-                border.color: Colors.liquidGlassEdge
-              }
-
-              GlassSheen {
-                anchors.fill: parent
-                radius: Config.shapeLarge
-              }
-
-              TextInput {
-                id: passwordInput
-                anchors {
-                  fill: parent
-                  leftMargin: Config.spacingLarge
-                  rightMargin: Config.spacingLarge
-                }
-                color: root.textColor
-                font.family: Config.fontFamily
-                font.pixelSize: Config.typeBodyLargeSize + 4
-                font.letterSpacing: 4
-                text: root.lockInputText
-                clip: true
-                echoMode: TextInput.Password
-                passwordCharacter: "\u25CF"
-                focus: true
-                activeFocusOnPress: true
-                cursorVisible: true
-                verticalAlignment: Qt.AlignVCenter
-                selectByMouse: true
-                // A seeded first keystroke must not leave the cursor before it.
-                Component.onCompleted: cursorPosition = text.length
-
-                onTextChanged: {
-                  root.lockPassword = text
-                  root.lockInputText = text
-                  root.lockError = ""
-                }
-
-                Keys.onPressed: function(event) {
-                  if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    root.tryLockAuth()
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        Text {
-          anchors.horizontalCenter: parent.horizontalCenter
-          text: root.lockError
-          color: root.errorColor
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeBodyMediumSize
-          visible: root.lockError.length > 0
-        }
-      }
-    }
-  }
 
   WlSessionLock {
     id: sessionLock
@@ -618,7 +301,6 @@ Item {
         root.lockPassword = ""
         root.lockInputText = ""
         root.lockError = ""
-        root.liquidGlassLoginPrompted = false
         root.authenticated = false
       } else {
         root.cancelPowerAction()
@@ -658,30 +340,28 @@ Item {
           // The lock surface is exactly the output size, so blur padding
           // would be clipped at the top and bottom edges.
           autoPaddingEnabled: false
-          blurEnabled: root.wallpaperBlurred
-          blur: root.wallpaperBlurred ? 1.0 : 0.0
+          blurEnabled: false
+          blur: 0.0
           blurMax: root.wallpaperBlurMax
         }
 
         AnimatedBackground {
           anchors.fill: parent
           running: root.locked
-          motionEnabled: !Config.liquidGlassTheme
-          flatMode: root.flatLockMode || Config.liquidGlassTheme
-          flatColor: Config.liquidGlassTheme ? Colors.d_background : root.flatBackground
+          motionEnabled: true
+          flatMode: false
+          flatColor: root.flatBackground
           visible: !root.wallpaperVisible
         }
 
         Rectangle {
           anchors.fill: parent
-          color: Config.liquidGlassTheme
-            ? Qt.rgba(0, 0, 0, 0.14)
-            : Qt.rgba(0, 0, 0, 0.15)
+          color: Qt.rgba(0, 0, 0, 0.15)
         }
 
         Rectangle {
           anchors.fill: parent
-          visible: !Config.liquidGlassTheme && (!root.flatLockMode || root.wallpaperVisible)
+          visible: true
           gradient: Gradient {
             orientation: Gradient.Vertical
             GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.5) }
@@ -693,7 +373,7 @@ Item {
         Column {
           anchors.centerIn: parent
           spacing: Config.spacingLarge
-          visible: !Config.liquidGlassTheme
+          visible: true
 
             Rectangle {
               anchors.horizontalCenter: parent.horizontalCenter
@@ -701,9 +381,9 @@ Item {
               height: root.lockAvatarSize
               radius: width / 2
               clip: true
-              border.width: Config.liquidGlassTheme ? 1 : 3
-              border.color: Config.liquidGlassTheme ? Colors.liquidGlassEdgeStrong : accentColor
-              color: Config.liquidGlassTheme ? Colors.liquidGlassRaised : Colors.primaryContainer
+              border.width: 3
+              border.color: accentColor
+              color: Colors.primaryContainer
 
               Image {
                 id: profileImage
@@ -736,7 +416,7 @@ Item {
               Text {
                 anchors.centerIn: parent
                 text: root.username().charAt(0).toUpperCase()
-                color: Config.liquidGlassTheme ? textColor : Colors.fgPrimaryContainer
+                color: Colors.fgPrimaryContainer
                 font.family: Config.fontFamily
                 font.pixelSize: Config.typeDisplaySmallSize
                 font.weight: Config.typeStrongWeight
@@ -745,48 +425,29 @@ Item {
               }
             }
 
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: root.username()
-            color: textColor
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeHeadlineSmallSize
-            font.weight: Config.typeStrongWeight
-            visible: Config.liquidGlassTheme
-          }
 
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            visible: !Config.nothingEvolution && !Config.liquidGlassTheme
-            height: Config.liquidGlassTheme ? 0 : implicitHeight
+            visible: true
+            height: implicitHeight
             text: {
               var d = root.now
               return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
             }
             color: textColor
-            font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
+            font.family: Config.fontFamily
             font.pixelSize: Settings.lockClockSize
-            font.weight: Config.nothingDesign ? Font.Normal : Font.Bold
+            font.weight: Font.Bold
             font.letterSpacing: 0
-            style: root.flatLockMode ? Text.Normal : Text.Sunken
-            styleColor: root.flatLockMode ? "transparent" : Qt.rgba(0, 0, 0, 0.3)
+            style: Text.Sunken
+            styleColor: Qt.rgba(0, 0, 0, 0.3)
           }
 
-          Nothing.ClockFace {
-            anchors.horizontalCenter: parent.horizontalCenter
-            visible: Config.nothingEvolution && root.locked
-            face: Settings.lockClockFace
-            now: root.now
-            clockSize: Settings.lockClockSize
-            faceWidth: root.lockFieldWidth
-            primaryColor: root.accentColor
-            secondaryColor: root.mutedText
-          }
 
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            visible: !Config.nothingEvolution && !Config.liquidGlassTheme
-            height: Config.liquidGlassTheme ? 0 : implicitHeight
+            visible: true
+            height: implicitHeight
             text: {
               var d = root.now
               var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -835,13 +496,9 @@ Item {
             height: root.lockFieldHeight
             radius: root.lockFieldRadius
             color: root.lockFieldFill
-            border.width: Config.liquidGlassTheme ? 1 : Config.themeBorderWidth
+            border.width: Config.themeBorderWidth
             border.color: root.lockFieldBorder
 
-            GlassSheen {
-              anchors.fill: parent
-              radius: parent.radius
-            }
 
             Text {
               anchors {
@@ -909,12 +566,12 @@ Item {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyLargeLineHeight
             lineHeightMode: Text.FixedHeight
-            opacity: root.flatLockMode && root.lockError.length === 0 ? 0 : 1
-            visible: root.flatLockMode ? opacity > 0 : root.lockError.length > 0
+            opacity: 1
+            visible: (root.lockError.length > 0)
 
             Behavior on opacity {
               NumberAnimation {
-                duration: root.flatLockMode ? Config.motionShort : 0
+                duration: 0
                 easing.type: Easing.OutCubic
               }
             }
@@ -942,7 +599,7 @@ Item {
               iconLabel: "power_settings_new"
               iconColor: mutedText
               variant: "outlined"
-              borderColor: Config.liquidGlassTheme ? Colors.liquidGlassEdgeStrong : Qt.rgba(1, 1, 1, 0.3)
+              borderColor: Qt.rgba(1, 1, 1, 0.3)
               accessibleName: "Suspend computer"
               tooltipText: "Suspend computer"
               onClicked: root.requestPowerAction("Suspend", ["systemctl", "suspend"])
@@ -974,14 +631,6 @@ Item {
           }
         }
 
-        Loader {
-          anchors.fill: parent
-          active: Config.liquidGlassTheme
-          visible: active
-          focus: active
-          activeFocusOnTab: active
-          sourceComponent: liquidGlassLockLayout
-        }
 
         PowerConfirmation {
           id: lockPowerConfirmation
@@ -1036,30 +685,28 @@ Item {
         source: fallbackWallpaperImage
         visible: root.wallpaperVisible
         autoPaddingEnabled: false
-        blurEnabled: root.wallpaperBlurred
-        blur: root.wallpaperBlurred ? 1.0 : 0.0
+        blurEnabled: false
+        blur: 0.0
         blurMax: root.wallpaperBlurMax
       }
 
       AnimatedBackground {
         anchors.fill: parent
         running: root.locked
-        motionEnabled: !Config.liquidGlassTheme
-        flatMode: root.flatLockMode || Config.liquidGlassTheme
-        flatColor: Config.liquidGlassTheme ? Colors.d_background : root.flatBackground
+        motionEnabled: true
+        flatMode: false
+        flatColor: root.flatBackground
         visible: !root.wallpaperVisible
       }
 
       Rectangle {
         anchors.fill: parent
-        color: Config.liquidGlassTheme
-          ? Qt.rgba(0, 0, 0, 0.14)
-          : Qt.rgba(0, 0, 0, 0.15)
+        color: Qt.rgba(0, 0, 0, 0.15)
       }
 
       Rectangle {
         anchors.fill: parent
-        visible: !Config.liquidGlassTheme && (!root.flatLockMode || root.wallpaperVisible)
+        visible: true
         gradient: Gradient {
           orientation: Gradient.Vertical
           GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.5) }
@@ -1071,40 +718,30 @@ Item {
       Column {
         anchors.centerIn: parent
         spacing: Config.spacingLarge
-        visible: !Config.liquidGlassTheme
+        visible: true
 
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
-          visible: !Config.nothingEvolution && !Config.liquidGlassTheme
-          height: Config.liquidGlassTheme ? 0 : implicitHeight
+          visible: true
+          height: implicitHeight
           text: {
             var d = root.now
             return d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0")
           }
           color: root.textColor
-          font.family: Config.nothingDesign ? Config.dotFontFamily : Config.fontFamily
+          font.family: Config.fontFamily
           font.pixelSize: Settings.lockClockSize
-          font.weight: Config.nothingDesign ? Font.Normal : Font.Bold
+          font.weight: Font.Bold
           font.letterSpacing: 0
-          style: root.flatLockMode ? Text.Normal : Text.Sunken
-          styleColor: root.flatLockMode ? "transparent" : Qt.rgba(0, 0, 0, 0.3)
+          style: Text.Sunken
+          styleColor: Qt.rgba(0, 0, 0, 0.3)
         }
 
-        Nothing.ClockFace {
-          anchors.horizontalCenter: parent.horizontalCenter
-          visible: Config.nothingEvolution && root.locked
-          face: Settings.lockClockFace
-          now: root.now
-          clockSize: Settings.lockClockSize
-          faceWidth: root.lockFieldWidth
-          primaryColor: root.accentColor
-          secondaryColor: root.mutedText
-        }
 
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
-          visible: !Config.nothingEvolution && !Config.liquidGlassTheme
-          height: Config.liquidGlassTheme ? 0 : implicitHeight
+          visible: true
+          height: implicitHeight
           text: {
             var d = root.now
             var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -1119,58 +756,6 @@ Item {
           lineHeightMode: Text.FixedHeight
         }
 
-        Loader {
-          active: Config.liquidGlassTheme
-          visible: active
-          anchors.horizontalCenter: parent.horizontalCenter
-          sourceComponent: Component {
-            Column {
-              width: 320
-              spacing: Config.spacingSmall
-
-              Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: root.lockAvatarSize
-                height: root.lockAvatarSize
-                radius: width / 2
-                clip: true
-                color: Colors.liquidGlassRaised
-                border.width: 1
-                border.color: Colors.liquidGlassEdgeStrong
-
-                Image {
-                  id: fallbackProfileImage
-                  anchors.fill: parent
-                  source: "file://" + root.home + "/Pictures/profile.jpg"
-                  fillMode: Image.PreserveAspectCrop
-                  asynchronous: true
-                  sourceSize: Qt.size(256, 256)
-                  visible: status === Image.Ready
-                }
-
-                Text {
-                  anchors.centerIn: parent
-                  text: root.username().charAt(0).toUpperCase()
-                  color: root.textColor
-                  font.family: Config.fontFamily
-                  font.pixelSize: Config.typeDisplaySmallSize
-                  font.weight: Config.typeStrongWeight
-                  font.letterSpacing: Config.typeDisplayTracking
-                  visible: fallbackProfileImage.status !== Image.Ready
-                }
-              }
-
-              Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: root.username()
-                color: root.textColor
-                font.family: Config.fontFamily
-                font.pixelSize: Config.typeHeadlineSmallSize
-                font.weight: Config.typeStrongWeight
-              }
-            }
-          }
-        }
 
         Row {
           anchors.horizontalCenter: parent.horizontalCenter
@@ -1206,13 +791,9 @@ Item {
           height: root.lockFieldHeight
           radius: root.lockFieldRadius
           color: root.lockFieldFill
-          border.width: Config.liquidGlassTheme ? 1 : Config.themeBorderWidth
+          border.width: Config.themeBorderWidth
           border.color: root.lockFieldBorder
 
-          GlassSheen {
-            anchors.fill: parent
-            radius: parent.radius
-          }
 
           Text {
             anchors {
@@ -1280,12 +861,12 @@ Item {
           font.letterSpacing: Config.typeBodyTracking
           lineHeight: Config.typeBodyLargeLineHeight
           lineHeightMode: Text.FixedHeight
-          opacity: root.flatLockMode && root.lockError.length === 0 ? 0 : 1
-          visible: root.flatLockMode ? opacity > 0 : root.lockError.length > 0
+          opacity: 1
+          visible: (root.lockError.length > 0)
 
           Behavior on opacity {
             NumberAnimation {
-              duration: root.flatLockMode ? Config.motionShort : 0
+              duration: 0
               easing.type: Easing.OutCubic
             }
           }
@@ -1303,62 +884,8 @@ Item {
           opacity: 0.8
         }
 
-        Loader {
-          active: Config.liquidGlassTheme
-          visible: active
-          anchors.horizontalCenter: parent.horizontalCenter
-          sourceComponent: Component {
-            Row {
-              spacing: Config.spacingExtraLarge
-
-              IconButton {
-                size: 40
-                iconSize: 20
-                iconLabel: "power_settings_new"
-                iconColor: root.mutedText
-                variant: "outlined"
-                borderColor: Colors.liquidGlassEdgeStrong
-                accessibleName: "Suspend computer"
-                tooltipText: "Suspend computer"
-                onClicked: root.requestPowerAction("Suspend", ["systemctl", "suspend"])
-              }
-
-              IconButton {
-                size: 40
-                iconSize: 20
-                iconLabel: "restart_alt"
-                iconColor: root.mutedText
-                variant: "outlined"
-                borderColor: Colors.liquidGlassEdgeStrong
-                accessibleName: "Restart computer"
-                tooltipText: "Restart computer"
-                onClicked: root.requestPowerAction("Restart", ["systemctl", "reboot"])
-              }
-
-              IconButton {
-                size: 40
-                iconSize: 20
-                iconLabel: "power_off"
-                iconColor: root.mutedText
-                variant: "outlined"
-                borderColor: Colors.liquidGlassEdgeStrong
-                accessibleName: "Power off computer"
-                tooltipText: "Power off computer"
-                onClicked: root.requestPowerAction("Power off", ["systemctl", "poweroff"])
-              }
-            }
-          }
-        }
       }
 
-      Loader {
-        anchors.fill: parent
-        active: Config.liquidGlassTheme
-        visible: active
-        focus: active
-        activeFocusOnTab: active
-        sourceComponent: liquidGlassLockLayout
-      }
 
       PowerConfirmation {
         id: fallbackLockPowerConfirmation
@@ -1372,8 +899,8 @@ Item {
         dialogColor: Qt.rgba(0, 0, 0, 0.88)
         dialogTextColor: root.textColor
         dialogSecondaryTextColor: root.mutedText
-        dialogBorderColor: Colors.liquidGlassEdgeStrong
-        cancelColor: Colors.liquidGlassControl
+        dialogBorderColor: Qt.rgba(Colors.fgSurface.r, Colors.fgSurface.g, Colors.fgSurface.b, Colors.darkMode ? 0.30 : 0.22)
+        cancelColor: Qt.rgba(Colors.surfaceContainerHigh.r, Colors.surfaceContainerHigh.g, Colors.surfaceContainerHigh.b, Colors.darkMode ? 0.95 : 0.85)
         cancelTextColor: root.textColor
         confirmColor: root.accentColor
         confirmTextColor: Colors.fgPrimary

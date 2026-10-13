@@ -15,7 +15,7 @@ names() { # property names declared in a QML file (properties only, not aliases 
 dump_once() {
   local home; home=$(mktemp -d)
   mkdir -p "$home/.config/quickshell" "$home/cfg"
-  cp -r "$root/config" "$root/resources" "$home/cfg/" 2>/dev/null || cp -r "$root/config" "$home/cfg/"
+  cp -r "$root/config" "$home/cfg/"
   cp "$root/tests/elena/config-dump/shell.qml" "$home/cfg/shell.qml"
   {
     printf '.pragma library\nvar config = ['
@@ -24,8 +24,8 @@ dump_once() {
     names "$root/config/Colors.qml" | sed 's/.*/"&"/' | paste -sd, -
     printf '];\n'
   } > "$home/cfg/names.js"
-  printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapan","themePreference":1}\n' \
-    > "$home/.config/quickshell/settings.json"
+  # Unknown legacy settings must not select a removed style or density.
+  cp "$root/tests/elena/config-dump.legacy.json" "$home/.config/quickshell/settings.json"
   HOME="$home" XDG_CURRENT_DESKTOP=niri XDG_SESSION_DESKTOP=niri timeout 40 qs -p "$home/cfg/shell.qml" 2>&1 \
     | sed -n 's/^.*DUMP //p' | head -1
   rm -rf "$home"

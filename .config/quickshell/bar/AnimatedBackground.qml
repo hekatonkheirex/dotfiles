@@ -6,8 +6,8 @@ Item {
   clip: true
 
   property bool running: true
-  // Liquid Glass keeps the soft static material backdrop but avoids ambient
-  // motion; Ghost and Material 3 retain their existing animated backgrounds.
+
+
   property bool motionEnabled: true
   property bool transparentBg: false
   property bool flatMode: false

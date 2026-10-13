@@ -8,32 +8,19 @@ usage() {
   cat <<'EOF'
 Usage: verify-ui-suite.sh [options]
 
-Verify the user-installed GTK, icon, Kvantum, cursor, terminal, btop, and
-Neovim pieces of the five-style UI suite, plus the MacTahoe GTK/icon/Kvantum/cursor
-companion used by Liquid Glass. SDDM is checked through its existing system integration
-verifier unless --skip-sddm is supplied.
+Verify the palette-driven GTK, icon, Kvantum and terminal companions.
+SDDM is checked through its existing system integration verifier unless
+--skip-sddm is supplied.
 
 Options:
   --skip-sddm    Skip system-wide SDDM checks
-  --skip-cursors Skip Ghost and MacTahoe cursor checks
-  --skip-nvim    Skip the Neovim plugin checks
 EOF
 }
 
-skip_cursors=0
-skip_nvim=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --skip-sddm)
       skip_sddm=1
-      shift
-      ;;
-    --skip-cursors)
-      skip_cursors=1
-      shift
-      ;;
-    --skip-nvim)
-      skip_nvim=1
       shift
       ;;
     -h|--help)
@@ -67,15 +54,6 @@ check_file() {
   fi
 }
 
-check_dir() {
-  local path=$1
-  local label=${2:-$path}
-  if [[ -d "$path" ]]; then
-    pass_check "$label"
-  else
-    fail_check "$label ($path)"
-  fi
-}
 
 check_gtk_theme() {
   local theme=$1
@@ -106,81 +84,29 @@ check_kvantum_theme() {
   check_file "$HOME/.config/Kvantum/$theme/$theme.svg" "$theme Kvantum SVG"
 }
 
-check_mactahoe_kvantum_theme() {
-  local theme=$1
-  check_file "$HOME/.config/Kvantum/MacTahoe/$theme.kvconfig" "$theme MacTahoe Kvantum config"
-  check_file "$HOME/.config/Kvantum/MacTahoe/$theme.svg" "$theme MacTahoe Kvantum SVG"
-}
 
-check_cursor_theme() {
-  local theme=$1
-  if [[ -f "$HOME/.local/share/icons/$theme/index.theme" ||
-        -f "$HOME/.icons/$theme/index.theme" ]]; then
-    pass_check "$theme cursor metadata"
-  else
-    fail_check "$theme cursor metadata"
-  fi
-}
-
-for theme in \
-  Material3-Expressive-Dynamic Material3-Expressive-Dynamic-Dark \
-  Nothing-OS Nothing-OS-Dark \
-  Ghost-Light Ghost-Dark \
-  MacTahoe-Light MacTahoe-Dark; do
+for theme in Material3-Expressive-Dynamic Material3-Expressive-Dynamic-Dark; do
   check_gtk_theme "$theme"
 done
 
-for theme in \
-  Material3-Expressive-Dynamic-Icons Material3-Expressive-Dynamic-Dark-Icons \
-  Nothing-Light-Icons Nothing-Dark-Icons \
-  Ghost-Light-Icons Ghost-Dark-Icons \
-  MacTahoe-light MacTahoe-dark; do
+for theme in Material3-Expressive-Dynamic-Icons Material3-Expressive-Dynamic-Dark-Icons; do
   check_icon_theme "$theme"
 done
 
-for theme in \
-  Material3-Expressive-Dynamic Material3-Expressive-Dynamic-Dark \
-  Nothing-OS Nothing-OS-Dark \
-  Ghost Ghost-Dark; do
+for theme in Material3-Expressive-Dynamic Material3-Expressive-Dynamic-Dark; do
   check_kvantum_theme "$theme"
 done
 
-for theme in MacTahoe MacTahoeDark; do
-  check_mactahoe_kvantum_theme "$theme"
-done
-
-if (( ! skip_cursors )); then
-  check_dir "$HOME/.icons/ghost-section9/cursors" 'Ghost cursor theme'
-  check_cursor_theme MacTahoe-cursors
-  check_cursor_theme MacTahoe-dark-cursors
-else
-  printf 'SKIP Ghost and MacTahoe cursor checks (--skip-cursors)\n'
-fi
-check_file "$HOME/.config/btop/themes/ghost.theme" 'Ghost btop theme'
-if (( ! skip_nvim )); then
-  check_file "$HOME/.config/nvim/lua/plugins/ghost.lua" 'Ghost Neovim plugin declaration'
-  check_dir "$HOME/.local/share/nvim/lazy/ghost-nvim" 'Ghost Neovim plugin checkout'
-else
-  printf 'SKIP Neovim checks (--skip-nvim)\n'
-fi
 
 for file in \
   "$HOME/.config/kitty/matugen-light.conf" \
-  "$HOME/.config/kitty/matugen-dark.conf" \
-  "$HOME/.config/kitty/nothing-light.conf" \
-  "$HOME/.config/kitty/nothing-dark.conf" \
-  "$HOME/.config/kitty/ghost-light.conf" \
-  "$HOME/.config/kitty/ghost-dark.conf"; do
+  "$HOME/.config/kitty/matugen-dark.conf"; do
   check_file "$file" "Kitty style asset $(basename "$file")"
 done
 
 for file in \
   "$HOME/.config/starship/matugen-light.toml" \
-  "$HOME/.config/starship/matugen-dark.toml" \
-  "$HOME/.config/starship/nothing-light.toml" \
-  "$HOME/.config/starship/nothing-dark.toml" \
-  "$HOME/.config/starship/ghost-light.toml" \
-  "$HOME/.config/starship/ghost-dark.toml"; do
+  "$HOME/.config/starship/matugen-dark.toml"; do
   check_file "$file" "Starship style asset $(basename "$file")"
 done
 

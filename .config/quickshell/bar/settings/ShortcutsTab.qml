@@ -40,10 +40,8 @@ Flickable {
     implicitWidth: keyText.implicitWidth + Config.spacingLarge
     implicitHeight: 22
     radius: Config.shapeMedium
-    color: Config.nothingDesign || Config.ghostTheme
-      ? Colors.styleControl
-      : Colors.surfaceContainerHighest
-    border.color: Colors.styleOutline
+    color: Colors.surfaceContainerHighest
+    border.color: Colors.outlineVariant
     border.width: Config.themeBorderWidth
 
     Text {
@@ -53,7 +51,7 @@ Flickable {
       color: Colors.fgSurface
       font.family: Config.fontFamily
       font.pixelSize: Config.textCaptionSize
-      font.weight: Config.nothingDesign || Config.ghostTheme ? Config.themeFontWeight : Font.Medium
+      font.weight: Font.Medium
     }
   }
 
@@ -85,7 +83,7 @@ Flickable {
     Layout.preferredHeight: rowsCol.implicitHeight + Config.spacingLarge * 2
     radius: Config.settingsCardRadius
     surfaceColor: Colors.surfaceContainer
-    outlineColor: Colors.styleOutline
+    outlineColor: Colors.outlineVariant
     outlineWidth: Config.themeBorderWidth
 
     ColumnLayout {

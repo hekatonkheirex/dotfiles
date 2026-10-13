@@ -11,7 +11,6 @@ import "config"
 import "config/BarForm.js" as BarForm
 import "config/DockModel.js" as DockModel
 import "bar"
-import "ui" as Ui
 
 ShellRoot {
   id: shell
@@ -82,8 +81,8 @@ ShellRoot {
   }
 
   property string barPosition: "top"
-  // Horizontal placements are rendered as one left-to-right row by Bar.qml.
-  // Keep Ghost's selected edge intact instead of forcing every Ghost bar to top.
+
+
   readonly property bool isHorizontal: shell.barPosition === "top"
     || shell.barPosition === "bottom"
   property bool paletteActivationComplete: false
@@ -125,20 +124,10 @@ ShellRoot {
       Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-theme-mode-locked.sh",
       shell.themeModeName(Settings.themePreference),
       "",
-      Settings.themeStyle,
       "--sync-sddm"
     ])
   }
 
-  function syncUiStyle() {
-    Quickshell.execDetached([
-      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-theme-mode-locked.sh",
-      shell.themeModeName(Settings.themePreference),
-      "--quiet",
-      Settings.themeStyle,
-      "--sync-sddm"
-    ])
-  }
 
   function startInitialThemeSync() {
     if (!shell.paletteActivationComplete
@@ -192,8 +181,7 @@ ShellRoot {
     command: [
       Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-theme-mode-locked.sh",
       shell.themeModeName(Settings.themePreference),
-      "--quiet",
-      Settings.themeStyle
+      "--quiet"
     ]
     running: false
     onExited: (exitCode) => {
@@ -207,10 +195,6 @@ ShellRoot {
     function onThemePreferenceChanged() {
       if (!Settings.initialLoadComplete) return
       shell.syncThemeMode()
-    }
-    function onThemeStyleChanged() {
-      if (!Settings.initialLoadComplete) return
-      shell.syncUiStyle()
     }
   }
 
@@ -341,11 +325,6 @@ ShellRoot {
     id: lockScreen
   }
 
-  Ui.WelcomeScreen {
-    id: welcomeScreen
-    colors_: Colors
-    config: Config
-  }
 
   IpcHandler {
     id: ipc
@@ -364,9 +343,6 @@ ShellRoot {
       shell.requestLock()
     }
 
-    function welcome() {
-      welcomeScreen.show()
-    }
 
     function quickmenu() {
       if (bar.horizontal) {
@@ -392,15 +368,6 @@ ShellRoot {
       return bar.togglePopupByName(name)
     }
 
-    // Dev/testing: switch UI style in memory only (never saved). Use
-    // style("material3", "") to return. Persisted style stays whatever
-    // settings.json says until the next explicit change in the UI.
-    function style(name: string, variant: string): string {
-      Settings.themeStyle = name
-      if (name === "nothing") Settings.nothingVariant = variant
-      return Settings.themeStyle
-    }
-
     // Dev/testing: switch the bar form in memory (full, fit, dock, notch,
     // pill). Unknown names normalize to full. Not saved.
     function barForm(form: string): string {
@@ -408,12 +375,6 @@ ShellRoot {
       return Settings.barForm
     }
 
-    // Dev/testing: toggle Reduce Transparency in memory (the opaque Liquid
-    // Glass bar only exists with it on). Not saved.
-    function reduceTransparency(on: bool): bool {
-      Settings.reduceTransparency = on
-      return Settings.reduceTransparency
-    }
 
     // Dev/testing: select a Settings tab (0-11) in memory. Not saved unless
     // something else calls Settings.save().
@@ -432,22 +393,16 @@ ShellRoot {
       return settingsPanel.devForgetName
     }
 
-    // Dev/testing: pick the Nothing Evolution lock clock face ("gooey" or
-    // "micrographics") in memory only; settings.json is not touched.
-    function lockFace(name: string): string {
-      Settings.lockClockFace = name
-      return Settings.lockClockFace
-    }
 
-    // Dev/testing: "strip" under dwm (dmenu strip), else "list".
+    // Dev/testing: Elena uses the launcher list.
     function launcherMode(): string {
-      return launcherPopup.dmenu ? "strip" : "list"
+      return "list"
     }
 
     // Dev/testing: submit the sidebar search with `text` (same path as Enter).
-    // False outside the elena style.
+    // Locked sessions reject the request.
     function sidebarSearch(text: string): bool {
-      if (!Config.elenaTheme || lockScreen.locked) return false
+      if (lockScreen.locked) return false
       shell.openLauncherWith(text)
       return true
     }
@@ -559,7 +514,7 @@ ShellRoot {
   NotificationToast {
     id: notificationToast
     notificationServer: notifServer
-    barPosition: Config.elenaTheme ? "top" : shell.barPosition
+    barPosition: "top"
     screen: bar.screen
   }
 
@@ -593,7 +548,7 @@ ShellRoot {
   Bar {
     id: bar
     // elena is a top-edge block row; the saved position stays untouched.
-    barPosition: Config.elenaTheme ? "top" : shell.barPosition
+    barPosition: "top"
     notificationCount: notificationPopup.count
     sessionLocked: lockScreen.locked || lockScreen.compositorLocked
     // Wait for persisted settings before exposing the panel so the first
@@ -657,15 +612,20 @@ ShellRoot {
   }
 
   Sidebar {
-    visible: bar.openPopup === "sidebar" && Config.elenaTheme && !lockScreen.locked
+    visible: bar.openPopup === "sidebar" && true && !lockScreen.locked
     screen: bar.screen
     onDismissed: bar.openPopup = ""
     onSearchSubmitted: function(text) { shell.openLauncherWith(text) }
+    onSettingsRequested: function(tab) {
+      if (lockScreen.locked) return
+      settingsPanel.currentTab = tab
+      bar.openPopup = "settings"
+    }
   }
 
   Dock {
     id: dock
-    visible: Config.elenaTheme && bar.visible && !lockScreen.locked
+    visible: bar.visible && !lockScreen.locked
     screen: bar.screen
     items: DockModel.dockItems(DockModel.normalizePinned(Settings.dockPinned), WindowService.windows)
     workspaceEmpty: WindowService.workspaceEmpty
@@ -674,12 +634,6 @@ ShellRoot {
     onItemCycled: function(appId, direction) { shell.dockCycle(appId, direction) }
   }
 
-  Connections {
-    target: Config
-    function onElenaThemeChanged() {
-      if (!Config.elenaTheme && bar.openPopup === "sidebar") bar.openPopup = ""
-    }
-  }
 
   LlmUsagePopup {
     visible: bar.openPopup === "llm" && !lockScreen.locked
@@ -815,7 +769,6 @@ ShellRoot {
     screen: bar.screen
     visible: bar.openPopup === "launcher" && !lockScreen.locked
     anchorY: bar.popupAnchorY
-    barHorizontal: bar.horizontal
     onDismissed: bar.openPopup = ""
     onWallpapersRequested: function(query) {
       shell.wallpaperFilmstripQuery = query
@@ -823,10 +776,10 @@ ShellRoot {
     }
 
     anchors.left: true
-    anchors.right: dmenu
-    anchors.top: !dmenu || !bar.dockedBottom
-    anchors.bottom: dmenu && bar.dockedBottom
-    margins.left: dmenu ? 0 : shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    margins.top: dmenu ? 0 : shell.popupMarginTop(implicitHeight, bar.screen.height)
+    anchors.right: false
+    anchors.top: true
+    anchors.bottom: false
+    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
+    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 }

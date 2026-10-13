@@ -86,7 +86,7 @@ Flickable {
       Layout.preferredHeight: outputsColumn.implicitHeight + Config.spacingMedium * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
@@ -96,7 +96,7 @@ Flickable {
         spacing: Config.spacingSmall
 
         SettingsSectionLabel {
-          text: Config.ghostTheme ? "OUTPUTS" : "Outputs"
+          text: "Outputs"
         }
 
         Repeater {
@@ -115,7 +115,7 @@ Flickable {
 
               IconGlyph {
                 iconLabel: "monitor"
-                iconColor: Colors.styleAccent
+                iconColor: Colors.primary
                 iconSize: Config.iconSize + 4
                 Layout.alignment: Qt.AlignVCenter
               }
@@ -166,11 +166,11 @@ Flickable {
               cliFile: "outputs"; cliField: "transform"; extraArgs: [modelData]
               label: "Transform"
               leadingIcon: "screen_rotation"
-              // Ghost's mono face and Evolution's Geist cut "Flipped 270°" at
-              // three columns.
+
+
               optionColumns: displayInputTab.compactLayout
                 ? 1
-                : (Config.ghostTheme || Config.nothingEvolution ? 2 : 3)
+                : (3)
               options: displayInputTab.transformOptions
               onWriteFailed: displayInputTab.onFieldFailed(message)
             }
@@ -205,7 +205,7 @@ Flickable {
       Layout.preferredHeight: mangoNoteText.implicitHeight + Config.spacingMedium * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       Text {
@@ -230,7 +230,7 @@ Flickable {
       Layout.preferredHeight: inputColumn.implicitHeight + Config.spacingMedium * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
@@ -240,7 +240,7 @@ Flickable {
         spacing: Config.spacingMedium
 
         SettingsSectionLabel {
-          text: Config.ghostTheme ? "INPUT" : "Input"
+          text: "Input"
         }
 
         ColumnLayout {

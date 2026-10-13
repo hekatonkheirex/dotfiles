@@ -16,7 +16,6 @@ Item {
   property bool integrated: false
 
   property int visibleCount: 0
-  readonly property bool flatLiquidChrome: Config.liquidGlassTheme && !Colors.liquidGlassOpaque
   readonly property real preferredLength: visibleCount * (Config.widgetSize)
 
   Layout.preferredWidth: horizontal ? preferredLength : (Config.widgetSize)
@@ -38,30 +37,12 @@ Item {
     clip: true
     color: systemTrayAreaRoot.integrated
       ? "transparent"
-      : (systemTrayAreaRoot.flatLiquidChrome
-        ? "transparent"
-        : (Config.liquidGlassTheme
-          ? Colors.liquidGlassClear
-        : (Config.nothingDesign || Config.ghostTheme
-          ? Colors.styleSurface
-          : Colors.surfaceContainerHigh)))
-    border.color: systemTrayAreaRoot.flatLiquidChrome
-      ? "transparent"
-      : (Config.ghostTheme || Config.liquidGlassTheme
-        ? Colors.styleOutline
-      : (Config.nothingDesign
-        ? "transparent"
-        : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)))
-    border.width: systemTrayAreaRoot.integrated || Config.nothingDesign || systemTrayAreaRoot.flatLiquidChrome
+      : (((Colors.surfaceContainerHigh)))
+    border.color: ((Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)))
+    border.width: systemTrayAreaRoot.integrated || false || false
       ? 0
       : Config.themeBorderWidth
 
-    GlassSheen {
-      anchors.fill: parent
-      radius: parent.radius
-      visible: !systemTrayAreaRoot.integrated
-      glassEnabled: !systemTrayAreaRoot.flatLiquidChrome
-    }
   }
 
   GridLayout {
@@ -156,7 +137,7 @@ Item {
           anchors.centerIn: parent
           visible: trayIconDelegate.showImLabel
           text: trayIconDelegate.imLabel
-          color: Config.liquidGlassTheme ? Colors.barForeground : Colors.primary
+          color: Colors.primary
           font.family: Config.fontFamily
           font.pixelSize: Config.typeLabelMediumSize
           font.weight: Font.Medium
@@ -175,7 +156,7 @@ Item {
           layer.enabled: trayIconDelegate.tintIcon
           layer.effect: MultiEffect {
             colorization: 1.0
-            colorizationColor: Config.liquidGlassTheme ? Colors.barForeground : Colors.primary
+            colorizationColor: Colors.primary
           }
         }
 
@@ -190,7 +171,7 @@ Item {
           layer.enabled: trayIconDelegate.tintIcon
           layer.effect: MultiEffect {
             colorization: 1.0
-            colorizationColor: Config.liquidGlassTheme ? Colors.barForeground : Colors.primary
+            colorizationColor: Colors.primary
           }
         }
 
@@ -199,9 +180,7 @@ Item {
           radius: Config.shapeMedium
           color: "transparent"
           border.width: trayIconDelegate.activeFocus ? Config.themeFocusBorderWidth : 0
-          border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-            ? Colors.styleOutline
-            : Colors.primary
+          border.color: Colors.primary
         }
 
         QsMenuAnchor {

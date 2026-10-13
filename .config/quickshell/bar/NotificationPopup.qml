@@ -9,9 +9,7 @@ import "../config"
 PopupBase {
   id: root
   surfaceColor: Colors.readingSurface
-  surfaceWidth: Config.ghostTheme
-    ? Math.min(400, Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
-    : Config.popupWidth
+  surfaceWidth: Config.popupWidth
 
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500)
 
@@ -159,7 +157,7 @@ PopupBase {
           height: Math.min(400, contentHeight)
           model: root.notifications
           visible: count > 0
-          spacing: Config.ghostTheme ? Config.spacingCompact : Config.spacingSmall
+          spacing: Config.spacingSmall
           clip: true
           ScrollBar.vertical: SettingsScrollBar { scrollTarget: notifList }
 
@@ -168,20 +166,18 @@ PopupBase {
               required property int index
               required property var modelData
               width: parent.width
-              height: mainContainer.implicitHeight + (Config.ghostTheme ? Config.spacingCompact : Config.spacingSmall)
+              height: mainContainer.implicitHeight + (Config.spacingSmall)
 
               readonly property var notif: modelData
 
               Rectangle {
                 id: mainContainer
                 width: parent.width
-                implicitHeight: cardLayout.implicitHeight + (Config.ghostTheme ? Config.spacingLarge : Config.spacingExtraLarge)
+                implicitHeight: cardLayout.implicitHeight + (Config.spacingExtraLarge)
                 radius: Config.shapeLarge
-                color: Config.liquidGlassTheme && !Colors.liquidGlassOpaque
-                  ? Qt.rgba(1, 1, 1, Colors.darkMode ? 0.07 : 0.30)
-                  : Colors.surfaceContainer
+                color: Colors.surfaceContainer
                 border.width: Config.themeBorderWidth
-                border.color: Colors.styleOutline
+                border.color: Colors.outlineVariant
 
                 // Click-through for the app's "default" action while the
                 // notification is live (open the chat, the file, ...).
@@ -207,7 +203,7 @@ PopupBase {
                     top: parent.top
                     leftMargin: Config.spacingLarge
                     rightMargin: Config.spacingLarge
-                    topMargin: Config.ghostTheme ? Config.spacingSmall : Config.spacingMedium
+                    topMargin: Config.spacingMedium
                   }
                   spacing: Config.spacingSmall
 
@@ -218,10 +214,10 @@ PopupBase {
                     Rectangle {
                       width: 20
                       height: 20
-                      radius: Config.ghostTheme ? 0 : width / 2
-                      color: Config.ghostTheme ? Colors.styleControl : Colors.primaryContainer
-                      border.width: Config.ghostTheme ? Config.themeBorderWidth : 0
-                      border.color: Colors.styleOutlineStrong
+                      radius: (width / 2)
+                      color: Colors.primaryContainer
+                      border.width: 0
+                      border.color: Colors.outline
 
                       Text {
                         anchors.centerIn: parent
@@ -229,8 +225,8 @@ PopupBase {
                           var app = notif ? (notif.appName || "") : ""
                           return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
                         }
-                        color: Config.ghostTheme ? Colors.styleAccent : Colors.fgPrimaryContainer
-                        font.family: Config.ghostTheme ? Config.monoFontFamily : Config.fontFamily
+                        color: Colors.fgPrimaryContainer
+                        font.family: Config.fontFamily
                         font.pixelSize: Config.typeLabelSmallSize
                         font.weight: Config.typeStrongWeight
                         font.letterSpacing: Config.typeLabelTracking
@@ -254,7 +250,7 @@ PopupBase {
                       font.family: Config.fontFamily
                       font.pixelSize: Config.typeLabelSmallSize
                       font.letterSpacing: Config.typeLabelTracking
-                      opacity: Config.ghostTheme ? 1 : 0.72
+                      opacity: 0.72
                       Layout.alignment: Qt.AlignVCenter
                     }
 
@@ -272,7 +268,7 @@ PopupBase {
                   Rectangle {
                     Layout.fillWidth: true
                     height: 1
-                    color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.1)
+                    color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.1)
                   }
 
                   ColumnLayout {
@@ -289,8 +285,8 @@ PopupBase {
                       font.letterSpacing: Config.typeTitleTracking
                       lineHeight: Config.typeTitleSmallLineHeight
                       lineHeightMode: Text.FixedHeight
-                      wrapMode: Config.ghostTheme ? Text.WordWrap : Text.NoWrap
-                      maximumLineCount: Config.ghostTheme ? 2 : 1
+                      wrapMode: Text.NoWrap
+                      maximumLineCount: 1
                       elide: Text.ElideRight
                       visible: text !== ""
                     }
@@ -333,7 +329,7 @@ PopupBase {
 
                       delegate: ActionButton {
                         required property var modelData
-                        height: Config.material3Theme ? implicitHeight : 32
+                        height: implicitHeight
                         width: Math.max(72, (historyActionRow.width - historyActionRow.spacing * (historyActionRepeater.count - 1)) / historyActionRepeater.count)
                         labelText: modelData.text
                         horizontalContent: true

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compare two config dumps. Usage: config-dump-compare.py BASE NEW ALLOW.json
 
-ALLOW.json: {"removed": ["Config.nothingDesign", ...], "removedPrefixes": [...],
+ALLOW.json: {"removed": ["Config.legacyFlag", ...], "removedPrefixes": [...],
              "changed": {"Config.shapeLarge": [16, 20]}}
 Exit 1 when a key disappears, changes value, or appears without being allowed.
 """

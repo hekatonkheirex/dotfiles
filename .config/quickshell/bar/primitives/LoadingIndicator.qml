@@ -9,15 +9,10 @@ Item {
   property int size: 32
   property bool contained: false
   property bool running: true
-  property color indicatorColor: root.material3Style
-    ? Colors.primary
-    : (Config.nothingDesign || Config.ghostTheme ? Colors.styleAccent : Colors.primary)
-  property color containerColor: root.material3Style
-    ? Colors.primaryContainer
-    : Colors.styleControl
+  property color indicatorColor: Colors.primary
+  property color containerColor: Colors.primaryContainer
   property string accessibleName: "Loading"
   property string accessibleDescription: "Work in progress"
-  readonly property bool material3Style: Config.material3Theme
 
   implicitWidth: root.size
   implicitHeight: root.size
@@ -45,7 +40,7 @@ Item {
 
     ExpressiveShape {
       anchors.fill: parent
-      visible: root.material3Style
+      visible: true
       fillColor: root.indicatorColor
       shape: "softBurst"
       targetMorphProgress: root.running ? 1.0 : 0.0
@@ -54,7 +49,7 @@ Item {
     Item {
       id: classicIndicatorShape
       anchors.fill: parent
-      visible: !root.material3Style
+      visible: false
 
       Rectangle {
         anchors.centerIn: parent

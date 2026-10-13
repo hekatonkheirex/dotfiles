@@ -328,7 +328,7 @@ Item {
         checked: root.wifiOn
         activeColor: Colors.primary
         surfaceContainerHighest: Colors.surfaceContainerHighest
-        outline: Colors.styleOutlineStrong
+        outline: Colors.outline
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
         accessibleName: "Wi-Fi enabled"
@@ -573,12 +573,12 @@ Item {
               SwitchControl {
                 id: autoConnectSwitch
                 width: 52
-                height: Config.material3Theme ? Config.controlHitSize : 32
+                height: Config.controlHitSize
                 checked: model.autoconnect
                 activeColor: Colors.primary
                 surfaceContainerHigh: Colors.surfaceContainerHigh
                 surfaceContainerHighest: Colors.surfaceContainerHighest
-                outline: Colors.styleOutlineStrong
+                outline: Colors.outline
                 motionDuration: Config.motionMedium
                 reducedMotion: Config.reducedMotion
                 accessibleName: "Autoconnect to " + model.name
@@ -587,8 +587,8 @@ Item {
 
               IconButton {
                 id: forgetButton
-                width: Config.material3Theme ? Config.controlHitSize : 32
-                height: Config.material3Theme ? Config.controlHitSize : 32
+                width: Config.controlHitSize
+                height: Config.controlHitSize
                 size: 32
                 iconSize: 18
                 iconLabel: "delete"

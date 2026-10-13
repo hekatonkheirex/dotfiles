@@ -7,7 +7,7 @@ import "../config"
 StatusIndicator {
   id: root
 
-  accentColor: Config.nothingEvolution ? Colors.styleAccent : (Config.nothingDesign ? Colors.fgSurface : Colors.primary)
+  accentColor: (Colors.primary)
   accessibleName: "Media"
   tooltipText: root.mprisTitle ? (root.mprisTitle + (root.mprisArtist ? " - " + root.mprisArtist : "")) : "No media playing"
 

@@ -7,7 +7,7 @@ Item {
   id: root
   visible: false
   property color targetColor: "transparent"
-  property bool animate: Config.material3Theme && !Config.reducedMotion
+  property bool animate: !Config.reducedMotion
   property bool ready: false
   readonly property color color: animate ? Qt.rgba(red, green, blue, alpha) : targetColor
   property real red: targetColor.r

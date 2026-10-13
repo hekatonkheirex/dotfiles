@@ -18,21 +18,8 @@ QtObject {
   readonly property bool isMango: wmType === "mango"
   // elena is the only UI style. The bar is the top-edge row of workspace
   // blocks (barWidth = tagStripHeight, form full, top).
-  readonly property bool elenaTheme: true
-  // Collapsed style flags kept only while bar/ call sites still read them
-  // (Tasks 5 to 8 remove the readers, Task 9 removes these).
-  readonly property bool nothingDesign: false
-  readonly property bool nothingEvolution: false
-  readonly property bool ghostTheme: false
-  readonly property bool dwmTheme: false
-  readonly property bool liquidGlassTheme: false
-  readonly property bool material3Theme: true
-  readonly property bool materialCompact: false
   readonly property bool spatialMotion: true
   readonly property bool expressiveMotion: true
-  readonly property real evolutionSurfaceAlpha: 0.86
-  readonly property real evolutionRaisedAlpha: 0.92
-  readonly property real evolutionControlAlpha: 0.86
   readonly property int tagStripHeight: 8
 
   function layerNamespace(kind) {
@@ -80,7 +67,6 @@ QtObject {
     }
   }
 
-  readonly property string sfSymbolsFont: "SF Pro Text"
 
   property int iconSize: Settings.iconSize
   property int fontPixelSize: Settings.fontPixelSize

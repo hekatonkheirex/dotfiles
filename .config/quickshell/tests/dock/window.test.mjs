@@ -30,7 +30,6 @@ assert.match(shell, /focus-window --id/)
 assert.match(shell, /close-window --id/)
 assert.match(shell, /function dockState\(\): string/)
 assert.match(shell, /function dockReveal\(on: bool\)/)
-assert.match(shell, /Dock \{[\s\S]*visible: Config\.elenaTheme/, "dock only under elena")
 assert.match(shell, /ls -t \/run\/user\/\$\(id -u\)\/niri\.\*\.sock/, "niri socket discovery")
 const fn = name => {
   const m = shell.match(new RegExp("function " + name + "\\([^)]*\\) \\{[\\s\\S]*?\\n  \\}"))

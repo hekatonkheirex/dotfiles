@@ -7,12 +7,12 @@ if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
 fi
 
 if [[ $# -ne 2 ]]; then
-  printf 'Usage: %s <light|dark> <material3|nothing|ghost>\n' "$0" >&2
+  printf 'Usage: %s <light|dark> <material3>\n' "$0" >&2
   exit 2
 fi
 
 mode=$1
-ui_style=$2
+asset_family=$2
 
 case "$mode" in
   light|dark) ;;
@@ -22,25 +22,14 @@ case "$mode" in
     ;;
 esac
 
-case "$ui_style" in
-  nothing)
-    theme_name="Nothing-OS-SDDM"
-    [[ "$mode" == "dark" ]] && theme_name="Nothing-OS-Dark-SDDM"
-    ;;
-  material3)
-    theme_name="Material3-Expressive-Dynamic-SDDM"
-    [[ "$mode" == "dark" ]] && theme_name="Material3-Expressive-Dynamic-Dark-SDDM"
-    ;;
-  ghost)
-    # Ghost recovered one dark-only greeter. Keep it selected for both desktop
-    # modes; the greeter itself owns its fixed HUD palette.
-    theme_name="Ghost-SDDM"
-    ;;
-  *)
-    printf 'Unsupported UI style for SDDM: %s\n' "$ui_style" >&2
-    exit 2
-    ;;
-esac
+# The external synchronizer identifies its generated Matugen family by this
+# name. Quickshell itself has no style selector.
+if [[ "$asset_family" != "material3" ]]; then
+  printf 'Unsupported SDDM asset family: %s\n' "$asset_family" >&2
+  exit 2
+fi
+theme_name="Material3-Expressive-Dynamic-SDDM"
+[[ "$mode" == "dark" ]] && theme_name="Material3-Expressive-Dynamic-Dark-SDDM"
 
 theme_dir="/usr/share/sddm/themes/$theme_name"
 for required_file in Main.qml metadata.desktop theme.conf; do

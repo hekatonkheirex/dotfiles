@@ -1,7 +1,5 @@
-// Input, focus, and accessibility behaviour shared by every ActionButton
-// implementation (material3/ and styled/). Implementations extend this, supply
-// horizontalContent, Accessible.description, colours, and visuals, and read
-// root.hovered / root.pressed for pointer state.
+// Elena action-button input, focus and accessibility. The visual implementation
+// supplies layout and colors and reads hovered / pressed for pointer state.
 import QtQuick
 import "../../config"
 import "../primitives"

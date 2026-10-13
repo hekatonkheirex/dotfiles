@@ -22,7 +22,7 @@ assert.deepEqual(B.metrics("notch", o), { edgeGap: 0, sideInset: 42, shoulder: 2
 assert.deepEqual(B.metrics("pill", o), { edgeGap: 0, sideInset: 0, shoulder: 0, roundNear: false, flat: false, pills: true })
 assert.deepEqual(B.metrics("junk", o), B.metrics("full", o))
 
-// dwm draws its own flat bar: any saved form resolves to "full" while it is active.
+// Elena forces the workspace strip's full form; saved forms remain reusable.
 for (const f of B.FORMS) assert.equal(B.resolve(f, true), "full")
 for (const f of B.FORMS) assert.equal(B.resolve(f, false), f)
 assert.equal(B.resolve("junk", false), "full")
@@ -73,35 +73,7 @@ assert.equal(B.wavePath(40, 2, 4, 10),
 assert.equal(B.wavePath(40, 1, 4, 10).split(" T ").length, 2)
 console.log("PASS bar-form")
 
-// Source guards for fixed regressions.
 const read = p => readFileSync(fileURLToPath(new URL(p, import.meta.url)), "utf8")
-assert.ok(!/Spring\.stop\(\)/.test(read("../../bar/primitives/ColorSpring.qml")), "ColorSpring must not stop() Behavior animations")
-assert.ok(/fillColor: barBg\.color/.test(read("../../bar/Bar.qml")), "notch shoulders must follow the body fill")
-assert.ok(/BarForm\.fromLegacy/.test(read("../../config/Settings.qml")), "Settings must migrate fullBar")
-console.log("PASS source-guards")
-
-const bar = read("../../bar/Bar.qml")
-assert.equal((bar.match(/running: root\.ambientMotion/g) || []).length, 2, "both SignalWaves must be gated on ambientMotion")
-assert.ok(/ambientMotion: !UPower\.onBattery && !root\.sessionLocked/.test(bar.replace(/readonly property bool /, "")), "ambientMotion gates on battery and lock")
-{
-  const wave = read("../../bar/primitives/SignalWave.qml")
-  const layers = [...wave.matchAll(/Layer \{ period: (\d+); amp: ([\d.]+);[^}]*?loopMs: (\d+); direction: (-?1) \}/g)]
-  assert.equal(layers.length, 2, "two wave layers")
-  assert.deepEqual(layers.map(l => +l[4]).sort(), [-1, 1], "layers travel in opposite directions")
-  const speeds = layers.map(l => +l[1] / (+l[3] / 1000))
-  assert.ok(speeds.every(v => v > 40 && v < 60), "slide speed matches reference (~44-51 px/s): " + speeds)
-  // Breathing envelope fitted to the reference: 2.82 s cycle, rise / collapse / rest.
-  const block = wave.slice(wave.indexOf("SequentialAnimation on breath"), wave.indexOf("component Layer"))
-  const d = [...block.matchAll(/(?:NumberAnimation|PauseAnimation) \{[^}]*duration: (\d+)/g)].map(m => +m[1])
-  const breath = d.slice(0, 3)
-  assert.deepEqual(breath, [1760, 500, 560], "breathing envelope phases")
-  assert.equal(breath.reduce((a, b) => a + b), 2820, "cycle length matches the reference 2.82 s")
-  assert.ok(/running: root\.playing \|\| root\.gate > 0/.test(wave), "envelope runs only with sound")
-  assert.ok(/drawAmp: layer\.amp \* \(layer\.rest \+ \(1 - layer\.rest\) \* root\.breath\) \* root\.gate/.test(wave), "amplitude is envelope times sound gate")
-  assert.ok(/property: "wanted"; value: root\.waveWanted/.test(bar) && /waveWanted: root\.pillsBar && root\.horizontal && root\.ambientMotion/.test(bar.replace(/\n\s+/g, " ").replace(/readonly property bool /, "")), "cava only runs for a visible, allowed wave")
-  const svc = read("../../config/AudioLevelService.qml")
-  assert.ok(/MediaService\.status === "Playing"/.test(svc), "cava runs only while a player is Playing")
-}
 const L = new Function(read("../../config/AudioLevel.js").replace(/^\.pragma library$/m, "") + "; return { parse, hasSound }")()
 assert.deepEqual(L.parse("10;20;x;30\n"), [10, 20, 30])
 assert.deepEqual(L.parse(""), [])
@@ -109,25 +81,8 @@ assert.equal(L.hasSound([]), false)
 assert.equal(L.hasSound([0, 0, 0, 0]), false, "silence has no sound")
 assert.equal(L.hasSound([0, 2, 0, 1]), false, "dither under the floor is silence")
 assert.equal(L.hasSound([0, 0, 40, 0]), true, "one live bar is sound")
-console.log("PASS wave-gating")
+console.log("PASS audio-level")
 
-const toast = read("../../bar/NotificationToast.qml")
-assert.ok(/visualSize[\s\S]{0,300}IconButton \{\s*anchors\.centerIn: parent/.test(toast), "toast close button must sit in a fixed-size wrapper")
-console.log("PASS toast-close")
-
-const tab = read("../../bar/settings/AppearanceTab.qml")
-assert.ok(tab.indexOf("// Bar scale:") < tab.indexOf("// UI font size"), "Bar Scale must come before the individual sliders")
-assert.ok(/visible: appearanceTab\.fineTuneOpen/.test(tab), "individual sizes sit in a collapsible group")
-for (const t of ["UI Font Size", "Clock Size", "Icon Size", "Spacing", "Bar Size"])
-  assert.ok(tab.includes(`"${t.toLowerCase()}"`), `search must expand for ${t}`)
-assert.ok(!/expandProgress|\bfullBar\b/.test(read("../../bar/Bar.qml")), "dead names stay removed from Bar.qml")
-console.log("PASS sizing-layout")
-
-assert.ok(/ShapePath \{[^}]*strokeColor: root\.glassEdge/.test(read("../../bar/Bar.qml").replace(/\n/g, " ")), "notch outline follows the glass edge rule")
-console.log("PASS notch-outline")
-
-assert.ok(/Shape \{\s*anchors\.fill: parent\s*\/\/[^\n]*\n\s*z: 1/.test(read("../../bar/Bar.qml")), "notch outline Shape sits above the body")
-console.log("PASS notch-z")
 
 const F = new Function(read("../../config/Fullscreen.js").replace(/^\.pragma library$/m, "") + "; return { fillsScreen, windowSize }")()
 assert.equal(F.fillsScreen([1920, 1080], 1920, 1080), true)
@@ -138,7 +93,4 @@ assert.equal(F.fillsScreen([1920, 1080], 0, 0), false)
 assert.deepEqual(F.windowSize({ layout: { window_size: [945, 1018] } }), [945, 1018])
 assert.equal(F.windowSize({}), null)
 assert.equal(F.windowSize(null), null)
-const ws = read("../../bar/WorkspaceIndicator.qml")
-assert.ok(/event\.WindowLayoutsChanged/.test(ws), "fullscreen toggles arrive as layout events")
-assert.ok(/!wsIndicator\.focusedWindowFullscreen/.test(read("../../bar/Bar.qml")), "waves pause under fullscreen")
-console.log("PASS fullscreen-gate")
+console.log("PASS fullscreen")

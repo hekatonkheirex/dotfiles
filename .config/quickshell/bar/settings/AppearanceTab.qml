@@ -14,7 +14,6 @@ Flickable {
   id: appearanceTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property bool material3Theme: Config.material3Theme
   property bool fineTuneOpen: false
   readonly property var fineTuneTitles: ["ui font size", "clock size", "icon size", "spacing", "bar size"]
   // Settings search calls this before locating a target; true means the
@@ -27,36 +26,11 @@ Flickable {
     return true
   }
   readonly property int optionButtonGap: Config.themeOptionGap
-  readonly property int segmentedButtonGap: appearanceTab.material3Theme ? 0 : appearanceTab.optionButtonGap
+  readonly property int segmentedButtonGap: 0
   // Stacked icon + label choices keep breathing room at the global type scale.
-  readonly property int optionButtonHeight: material3Theme
-    ? Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + (Config.materialCompact ? 16 : 24)) : 48
-  readonly property int uiStyleColumns: width < 260 ? 1 : (width < 720 ? 2 : 7)
-  readonly property int uiStyleRows: Math.ceil(7 / uiStyleColumns)
+  readonly property int optionButtonHeight: Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + (24))
   // Keep the selector model independent of palette roles: a new JS array
   // recreates every button, including the one handling the style change.
-  readonly property var styleChoices: [
-    { value: "material3", variant: "", icon: "auto_awesome", label: "Material" },
-    { value: "nothing", variant: "classic", icon: "grid_3x3", label: "Classic" },
-    { value: "nothing", variant: "evolution", icon: "layers", label: "Evolution" },
-    { value: "ghost", variant: "", icon: "network_intelligence", label: "Ghost" },
-    { value: "liquid-glass", variant: "", icon: "blur_on", label: "Liquid" },
-    { value: "dwm", variant: "", icon: "terminal", label: "dwm" },
-    { value: "elena", variant: "", icon: "palette", label: "Elena" }
-  ]
-  readonly property var selectedStylePreview: {
-    var value = Settings.themeStyle
-    var variant = Settings.nothingVariant
-    if (value === "nothing" && variant === "classic")
-      return { value: value, variant: variant, surface: "#f0f0ee", panel: "#ffffff", ink: "#1a1a1a", accent: "#d71920", onAccent: "#ffffff", font: "NType 82" }
-    if (value === "ghost")
-      return { value: value, variant: "", surface: "#0d1418", panel: "#152328", ink: "#cdeeea", accent: "#57d9cc", onAccent: "#0d1418", font: "JetBrains Mono" }
-    if (value === "dwm")
-      return { value: value, variant: "", surface: Colors.surfaceContainerLowest, panel: Colors.surfaceContainerLow, ink: Colors.fgSurface, accent: Colors.primary, onAccent: Colors.fgPrimary, font: "monospace" }
-    if (value === "nothing" || value === "liquid-glass")
-      return { value: value, variant: variant, surface: Colors.styleSurface, panel: Colors.styleSurfaceRaised, ink: Colors.styleInk, accent: Colors.styleAccent, onAccent: Colors.styleAccentText, font: value === "nothing" ? "Geist" : "Roboto Flex" }
-    return { value: "material3", variant: "", surface: Colors.surfaceContainerLow, panel: Colors.surfaceContainerHigh, ink: Colors.fgSurface, accent: Colors.primary, onAccent: Colors.fgPrimary, font: "Roboto Flex" }
-  }
   readonly property var workspaceCountOptions: [
     { value: "active", icon: "dynamic_feed", label: "Active", description: "Show the workspaces currently known to Niri" },
     { value: "5", icon: "looks_5", label: "1–5", description: "Show workspaces one through five" },
@@ -84,68 +58,7 @@ Flickable {
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: appearanceTab }
 
-  property string previousStyle: ""
-  property string previousNothingVariant: ""
-  // Palette the user had before elena applied its own; empty when elena did
-  // not change it.
-  property string paletteBeforeElenaSource: ""
-  property string paletteBeforeElenaPalette: ""
-  property string paletteBeforeElenaVariant: ""
 
-  // Call after themeStyle has left elena. Puts the user's palette back unless
-  // they picked another one while in elena. Returns true when it changed.
-  function leaveElena() {
-    if (paletteBeforeElenaPalette === "") return false
-    var restore = Settings.colorSource === "fixed" && Settings.colorPalette === "elenapan"
-    if (restore) {
-      Settings.colorSource = paletteBeforeElenaSource
-      Settings.colorPalette = paletteBeforeElenaPalette
-      Settings.colorVariant = paletteBeforeElenaVariant
-    }
-    paletteBeforeElenaSource = ""
-    paletteBeforeElenaPalette = ""
-    paletteBeforeElenaVariant = ""
-    return restore
-  }
-
-  function selectStyle(style, variant) {
-    if (Settings.themeStyle === style
-        && (style !== "nothing" || Settings.nothingVariant === variant)) return
-    var wasElena = Settings.themeStyle === "elena"
-    previousStyle = Settings.themeStyle
-    previousNothingVariant = Settings.nothingVariant
-    Settings.themeStyle = style
-    if (style === "nothing") Settings.nothingVariant = variant
-    var paletteChanged = false
-    if (wasElena && style !== "elena") {
-      paletteChanged = appearanceTab.leaveElena()
-    } else if (style === "elena" && Settings.colorPalette !== "elenapan") {
-      // elena ships its own fixed palette. The palette controls can still
-      // switch it to Live (wallpaper) afterwards.
-      paletteBeforeElenaSource = Settings.colorSource
-      paletteBeforeElenaPalette = Settings.colorPalette
-      paletteBeforeElenaVariant = Settings.colorVariant
-      Settings.colorSource = "fixed"
-      Settings.colorPalette = "elenapan"
-      Settings.colorVariant = "auto"
-      paletteChanged = true
-    }
-    Settings.save()
-    if (paletteChanged) appearanceTab.requestPaletteSync()
-  }
-
-  function revertStyle() {
-    if (previousStyle === "") return
-    var style = previousStyle
-    var variant = previousNothingVariant
-    var wasElena = Settings.themeStyle === "elena"
-    previousStyle = ""
-    Settings.themeStyle = style
-    Settings.nothingVariant = variant
-    var paletteChanged = wasElena && style !== "elena" && appearanceTab.leaveElena()
-    Settings.save()
-    if (paletteChanged) appearanceTab.requestPaletteSync()
-  }
   property string themeStatus: ""
   property bool resetConfirm: false
   property string wmStatusMessage: ""
@@ -175,7 +88,7 @@ Flickable {
       ? "Rendering fixed palette..."
       : "Reloading colors..."
 
-    if (Settings.colorSource === "fixed" && Colors.paletteSourceSelectable) {
+    if (Settings.colorSource === "fixed") {
       if (!Colors.writeFixedMatugenPalette()) {
         appearanceTab.paletteSyncPending = false
         appearanceTab.themeStatus = "Fixed palette unavailable"
@@ -277,10 +190,10 @@ Flickable {
           Text {
             Layout.fillWidth: true
             text: "General UI"
-            color: Config.material3Theme ? Colors.primary : Colors.fgSurface
+            color: Colors.primary
             font.family: Config.fontFamily
             font.pixelSize: Config.typeTitleLargeSize
-            font.weight: Config.material3Theme ? Config.typeMediumWeight : Config.typeStrongWeight
+            font.weight: Config.typeMediumWeight
             font.letterSpacing: Config.typeTitleTracking
             lineHeight: Config.typeTitleLargeLineHeight
             lineHeightMode: Text.FixedHeight
@@ -339,7 +252,7 @@ Flickable {
         Layout.preferredHeight: wallpaperRow.implicitHeight + Config.spacingExtraLarge * 2
         radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.styleOutline
+        outlineColor: Colors.outlineVariant
         outlineWidth: Config.themeBorderWidth
 
         RowLayout {
@@ -405,298 +318,6 @@ Flickable {
       }
 
       // UI Style card
-      SettingsCard {
-        variant: "filled"
-        Layout.fillWidth: true
-        Layout.preferredHeight: uiStyleColumn.implicitHeight + Config.spacingExtraLarge * 2
-        radius: Config.settingsCardRadius
-        surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.styleOutline
-        outlineWidth: Config.themeBorderWidth
-
-        ColumnLayout {
-          id: uiStyleColumn
-          anchors.fill: parent
-          anchors.margins: Config.spacingExtraLarge
-          spacing: Config.spacingMedium
-
-          Text {
-            text: "UI Style"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeTitleLargeSize
-            font.weight: Config.typeStrongWeight
-            font.letterSpacing: Config.typeTitleTracking
-            lineHeight: Config.typeTitleLargeLineHeight
-            lineHeightMode: Text.FixedHeight
-          }
-
-          Text {
-            text: "Choose a shell style. Changes apply and save automatically."
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-          }
-
-          Item {
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignLeft
-            Layout.preferredWidth: 0
-            Layout.minimumWidth: 0
-            Layout.maximumWidth: parent.width
-            Layout.preferredHeight: (appearanceTab.optionButtonHeight + Config.spacingSmall) * appearanceTab.uiStyleRows
-              + appearanceTab.optionButtonGap * (appearanceTab.uiStyleRows - 1)
-            height: Layout.preferredHeight
-
-            GridLayout {
-              id: styleGrid
-              anchors.left: parent.left
-              anchors.right: parent.right
-              anchors.top: parent.top
-              anchors.bottom: parent.bottom
-              anchors.leftMargin: Config.spacingCompact
-              anchors.rightMargin: Config.spacingCompact
-              clip: true
-              columns: appearanceTab.uiStyleColumns
-              rows: appearanceTab.uiStyleRows
-              columnSpacing: appearanceTab.optionButtonGap
-              rowSpacing: appearanceTab.optionButtonGap
-
-              Repeater {
-                model: appearanceTab.styleChoices
-
-                delegate: Item {
-                  id: styleTile
-                  required property var modelData
-                  required property int index
-                  readonly property bool centerLast: appearanceTab.uiStyleColumns === 2
-                    && index === appearanceTab.styleChoices.length - 1
-                    && appearanceTab.styleChoices.length % 2 === 1
-                  readonly property bool ghost: modelData.value === "ghost"
-                  readonly property bool selectedStyle: Settings.themeStyle === modelData.value
-                    && (modelData.value !== "nothing" || Settings.nothingVariant === modelData.variant)
-                  Layout.fillWidth: !centerLast
-                  Layout.fillHeight: true
-                  Layout.columnSpan: centerLast ? 2 : 1
-                  Layout.preferredWidth: centerLast ? (styleGrid.width - styleGrid.columnSpacing) / 2 : -1
-                  Layout.alignment: centerLast ? Qt.AlignHCenter : Qt.AlignLeft
-                  Layout.minimumWidth: 0
-
-                  Rectangle {
-                    anchors.fill: parent
-                    radius: styleTile.ghost ? 0 : Config.shapeMedium
-                    color: styleTile.selectedStyle
-                      ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.10)
-                      : "transparent"
-                    // The filled button is the selection cue; only Ghost's square
-                    // chrome keeps an extra outline.
-                    border.width: styleTile.selectedStyle && styleTile.ghost ? 2 : 0
-                    border.color: Colors.primary
-                    Behavior on border.width {
-                      NumberAnimation { duration: Config.motionShort }
-                    }
-                    Behavior on color {
-                      ColorAnimation { duration: Config.motionShort }
-                    }
-                  }
-
-                  ActionButton {
-                    anchors.fill: parent
-                    anchors.margins: Config.spacingCompact
-                    iconLabel: modelData.icon
-                    iconSize: 15
-                    contentSpacing: Config.spacingSmall
-                    horizontalContent: true
-                    labelText: modelData.label
-                    selected: styleTile.selectedStyle
-                    checkable: true
-                    variant: "text"
-                    accessibleName: (modelData.value === "nothing" ? "Nothing " : "") + modelData.label + " UI style"
-                    accessibleDescription: selected ? "Selected" : "Use the " + modelData.label + " UI style; revert is available below"
-                    onActivated: appearanceTab.selectStyle(modelData.value, modelData.variant)
-                  }
-                }
-              }
-            }
-          }
-
-          GridLayout {
-            Layout.fillWidth: true
-            columns: appearanceTab.uiStyleColumns === 7 ? 2 : 1
-            columnSpacing: Config.spacingMedium
-            rowSpacing: Config.spacingSmall
-
-            Text {
-              text: Settings.themeStyle === "nothing" && Settings.nothingVariant === "evolution"
-                ? "Geist type, adaptive wallpaper colour, and translucent layers"
-                : (Settings.themeStyle === "nothing"
-                  ? "Neutral surfaces, rounded controls, and signal accents"
-                  : (Settings.themeStyle === "ghost"
-                    ? "Void panels, cyan hairlines, and a Section 9 HUD"
-                    : (Settings.themeStyle === "liquid-glass"
-                      ? "Translucent functional surfaces, clear controls, and adaptive contrast"
-                      : (Settings.themeStyle === "dwm"
-                        ? "Flat tag bar, plain status text, and a one-line dmenu strip in wallpaper colours"
-                        : (Settings.themeStyle === "elena"
-                          ? "Navy cards, pink, purple and cyan accents, and a colour-block workspace strip"
-                          : "Rounded surfaces, tonal elevation, and expressive motion")))))
-              color: Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyMediumSize
-              font.letterSpacing: Config.typeBodyTracking
-              lineHeight: Config.typeBodyMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-              wrapMode: Text.WordWrap
-              Layout.fillWidth: true
-              Layout.minimumWidth: 0
-            }
-
-            ActionButton {
-              Layout.alignment: appearanceTab.uiStyleColumns === 7 ? Qt.AlignRight : Qt.AlignLeft
-              Layout.preferredWidth: Math.min(160, uiStyleColumn.width)
-              Layout.preferredHeight: 40
-              visible: appearanceTab.previousStyle !== ""
-              labelText: "Revert style"
-              variant: "outlined"
-              accessibleName: "Revert to previous UI style"
-              onActivated: appearanceTab.revertStyle()
-            }
-          }
-
-          Rectangle {
-            id: surfacePreview
-            readonly property var style: appearanceTab.selectedStylePreview
-            readonly property bool ghost: style.value === "ghost"
-            readonly property bool classic: style.value === "nothing" && style.variant === "classic"
-            readonly property bool glass: style.value === "liquid-glass"
-            readonly property bool dwm: style.value === "dwm"
-            Layout.fillWidth: true
-            Layout.preferredHeight: 152
-            radius: (ghost || dwm) ? 0 : (glass ? 16 : (classic ? 4 : 12))
-            color: style.surface
-            border.width: ghost || classic ? 1 : 0
-            border.color: style.accent
-            clip: true
-
-            Rectangle {
-              anchors.left: parent.left
-              anchors.right: parent.right
-              anchors.top: parent.top
-              height: 26
-              color: surfacePreview.style.panel
-
-              Text {
-                anchors.left: parent.left
-                anchors.leftMargin: 12
-                anchors.verticalCenter: parent.verticalCenter
-                text: surfacePreview.ghost ? "S9 / 01  ·  09:41" : "09:41   •   01  02  03"
-                font.family: surfacePreview.style.font
-                font.pixelSize: 11
-                color: surfacePreview.style.ink
-              }
-              Rectangle {
-                anchors.right: parent.right
-                anchors.rightMargin: 12
-                anchors.verticalCenter: parent.verticalCenter
-                width: surfacePreview.ghost ? 26 : 38
-                height: surfacePreview.ghost ? 2 : 6
-                radius: surfacePreview.ghost || surfacePreview.classic ? 0 : 3
-                color: surfacePreview.style.accent
-              }
-            }
-
-            Row {
-              anchors.left: parent.left
-              anchors.right: parent.right
-              anchors.top: parent.top
-              anchors.bottom: parent.bottom
-              anchors.margins: 12
-              anchors.topMargin: 38
-              spacing: 12
-
-              Rectangle {
-                id: previewLauncher
-                width: Math.max(0, (parent.width - 12) * 0.55)
-                height: parent.height
-                radius: surfacePreview.ghost ? 0 : (surfacePreview.classic ? 4 : 12)
-                color: surfacePreview.style.panel
-                border.width: surfacePreview.ghost || surfacePreview.classic ? 1 : 0
-                border.color: surfacePreview.style.accent
-
-                Column {
-                  anchors.fill: parent
-                  anchors.margins: 12
-                  spacing: 9
-                  Text {
-                    text: surfacePreview.ghost ? "SEARCH_ / LAUNCHER" : "Search apps"
-                    color: surfacePreview.style.ink
-                    font.family: surfacePreview.style.font
-                    font.pixelSize: surfacePreview.ghost ? 11 : 13
-                    font.weight: Font.Medium
-                  }
-                  Rectangle {
-                    width: parent.width
-                    height: 26
-                    radius: surfacePreview.ghost || surfacePreview.classic ? 0 : 9
-                    color: surfacePreview.style.accent
-                    Text {
-                      anchors.left: parent.left
-                      anchors.leftMargin: 10
-                      anchors.verticalCenter: parent.verticalCenter
-                      text: "Files"
-                      font.family: surfacePreview.style.font
-                      font.pixelSize: 12
-                      color: surfacePreview.style.onAccent
-                    }
-                  }
-                  Text {
-                    text: "Terminal"
-                    color: surfacePreview.style.ink
-                    font.family: surfacePreview.style.font
-                    font.pixelSize: 12
-                  }
-                }
-              }
-
-              Rectangle {
-                width: Math.max(0, parent.width - previewLauncher.width - 12)
-                height: 72
-                radius: surfacePreview.ghost ? 0 : (surfacePreview.classic ? 4 : 12)
-                color: surfacePreview.style.panel
-                border.width: surfacePreview.ghost || surfacePreview.classic ? 1 : 0
-                border.color: surfacePreview.style.accent
-
-                Column {
-                  anchors.fill: parent
-                  anchors.margins: 10
-                  spacing: 7
-                  Text {
-                    text: surfacePreview.ghost ? "SIGNAL / NOTICE" : "Notification"
-                    color: surfacePreview.style.ink
-                    font.family: surfacePreview.style.font
-                    font.pixelSize: 11
-                    font.weight: Font.Medium
-                  }
-                  Rectangle {
-                    width: Math.min(90, parent.width * 0.8)
-                    height: 3
-                    radius: surfacePreview.ghost || surfacePreview.classic ? 0 : 2
-                    color: surfacePreview.style.accent
-                  }
-                  Text {
-                    text: "New message"
-                    color: surfacePreview.style.ink
-                    font.family: surfacePreview.style.font
-                    font.pixelSize: 11
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
 
       Loader {
         id: sizingCardLoader
@@ -711,10 +332,10 @@ Flickable {
 
         Text {
           text: "Color & Theme"
-          color: Config.material3Theme ? Colors.primary : Colors.fgSurface
+          color: Colors.primary
           font.family: Config.fontFamily
           font.pixelSize: Config.typeTitleLargeSize
-          font.weight: Config.material3Theme ? Config.typeMediumWeight : Config.typeStrongWeight
+          font.weight: Config.typeMediumWeight
           font.letterSpacing: Config.typeTitleTracking
           lineHeight: Config.typeTitleLargeLineHeight
           lineHeightMode: Text.FixedHeight
@@ -741,7 +362,7 @@ Flickable {
         Layout.preferredHeight: Math.max(184, colorSchemeColumn.implicitHeight + Config.spacingLarge * 2)
         radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.styleOutline
+        outlineColor: Colors.outlineVariant
         outlineWidth: Config.themeBorderWidth
 
         ColumnLayout {
@@ -797,7 +418,7 @@ Flickable {
                   horizontalContent: false
                   labelText: modelData.label
                   selected: Settings.colorSource === modelData.value
-                  enabled: Colors.paletteSourceSelectable
+                  enabled: true
                   checkable: true
                   grouped: true
                   groupPosition: index === 0 ? "first" : "last"
@@ -1017,9 +638,7 @@ Flickable {
           }
 
           Text {
-            text: !Colors.paletteSourceSelectable
-              ? "The selected UI style owns its palette"
-              : Colors.paletteSource
+            text: Colors.paletteSource
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
             font.pixelSize: Config.typeLabelSmallSize
@@ -1086,7 +705,7 @@ Flickable {
         Layout.preferredHeight: accentColumn.implicitHeight + Config.spacingLarge * 2
         radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.styleOutline
+        outlineColor: Colors.outlineVariant
         outlineWidth: Config.themeBorderWidth
 
         ColumnLayout {
@@ -1215,10 +834,10 @@ Flickable {
 
       Text {
         text: "Bar"
-        color: Config.material3Theme ? Colors.primary : Colors.fgSurface
+        color: Colors.primary
         font.family: Config.fontFamily
         font.pixelSize: Config.typeTitleLargeSize
-        font.weight: Config.material3Theme ? Config.typeMediumWeight : Config.typeStrongWeight
+        font.weight: Config.typeMediumWeight
         font.letterSpacing: Config.typeTitleTracking
         lineHeight: Config.typeTitleLargeLineHeight
         lineHeightMode: Text.FixedHeight
@@ -1254,7 +873,7 @@ Flickable {
         Layout.preferredHeight: barPlacementColumn.implicitHeight + Config.spacingPage
         radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.styleOutline
+        outlineColor: Colors.outlineVariant
         outlineWidth: Config.themeBorderWidth
 
           ColumnLayout {
@@ -1331,7 +950,7 @@ Flickable {
         Layout.preferredHeight: barFormColumn.implicitHeight + Config.spacingPage
         radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.styleOutline
+        outlineColor: Colors.outlineVariant
         outlineWidth: Config.themeBorderWidth
 
           ColumnLayout {
@@ -1361,8 +980,8 @@ Flickable {
               Layout.alignment: Qt.AlignHCenter
               Layout.preferredHeight: appearanceTab.optionButtonHeight
               height: appearanceTab.optionButtonHeight
-              enabled: !Config.dwmTheme
-              opacity: Config.dwmTheme ? 0.45 : 1
+              enabled: true
+              opacity: 1
 
               Row {
                 anchors.fill: parent
@@ -1402,7 +1021,7 @@ Flickable {
             Text {
               Layout.fillWidth: true
               text: {
-                if (Config.dwmTheme) return "dwm uses a full bar"
+
                 var forms = { full: "Edge to edge", fit: "Inset rounded frame",
                   dock: "Open desktop edge", notch: "Flowing shoulders",
                   pill: "Grouped pills and signal line" }
@@ -1431,7 +1050,7 @@ Flickable {
         Layout.preferredHeight: workspaceShapeColumn.implicitHeight + Config.spacingLarge * 2
         radius: Config.settingsCardRadius
         surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.styleOutline
+        outlineColor: Colors.outlineVariant
         outlineWidth: Config.themeBorderWidth
 
         ColumnLayout {
@@ -1484,7 +1103,7 @@ Flickable {
 
             Row {
               anchors.fill: parent
-              spacing: appearanceTab.material3Theme ? 0 : appearanceTab.optionButtonGap
+              spacing: 0
 
               Repeater {
                 model: appearanceTab.workspaceCountOptions
@@ -1492,7 +1111,7 @@ Flickable {
                 delegate: ActionButton {
                   required property var modelData
                   required property int index
-                  width: (parent.width - (appearanceTab.material3Theme ? 0 : appearanceTab.optionButtonGap * 2)) / 3
+                  width: (parent.width - (0)) / 3
                   height: parent.height
                   iconLabel: modelData.icon
                   iconSize: 15
@@ -1531,8 +1150,8 @@ Flickable {
             columns: appearanceTab.compactLayout ? 2 : 4
             columnSpacing: appearanceTab.optionButtonGap
             rowSpacing: appearanceTab.optionButtonGap
-            enabled: !Config.dwmTheme
-            opacity: Config.dwmTheme ? 0.45 : 1
+            enabled: true
+            opacity: 1
 
             Repeater {
               model: appearanceTab.workspaceStyleOptions
@@ -1559,16 +1178,6 @@ Flickable {
             }
           }
 
-          Text {
-            visible: Config.dwmTheme
-            text: "dwm shows tag numbers"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
-            font.letterSpacing: Config.typeLabelTracking
-            horizontalAlignment: Text.AlignHCenter
-            Layout.fillWidth: true
-          }
         }
       }
 
@@ -1586,7 +1195,7 @@ Flickable {
       implicitHeight: sizingColumn.implicitHeight + Config.spacingMedium * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
@@ -1606,22 +1215,6 @@ Flickable {
           lineHeightMode: Text.FixedHeight
         }
 
-        ListItem {
-          Layout.fillWidth: true
-          visible: appearanceTab.material3Theme
-          title: "Compact desktop density"
-          subtitle: "Smaller control spacing for precise pointer input. Text size stays unchanged."
-          toggleControl: desktopDensitySwitch
-          SwitchControl {
-            id: desktopDensitySwitch
-            checked: Settings.materialCompact
-            accessibleName: "Compact desktop density"
-            onToggled: {
-              Settings.materialCompact = !Settings.materialCompact
-              Settings.save()
-            }
-          }
-        }
 
         // Bar scale: drives bar size, font, icon and spacing together
         RowLayout {
@@ -1642,7 +1235,7 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
+            Layout.preferredWidth: (appearanceTab.compactLayout ? 64 : 90)
           }
 
           SliderControl {
@@ -1655,7 +1248,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             focusColor: Colors.primary
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
@@ -1748,9 +1341,8 @@ Flickable {
               font.letterSpacing: Config.typeBodyTracking
               lineHeight: Config.typeBodyMediumLineHeight
               lineHeightMode: Text.FixedHeight
-              // Ghost's mono face is wider; keep the label clear of the track.
-              Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
-                : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
+
+              Layout.preferredWidth: Math.max(90, implicitWidth)
             }
 
             SliderControl {
@@ -1763,7 +1355,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
+              outline: Colors.outline
               focusColor: Colors.primary
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
@@ -1800,9 +1392,8 @@ Flickable {
               font.letterSpacing: Config.typeBodyTracking
               lineHeight: Config.typeBodyMediumLineHeight
               lineHeightMode: Text.FixedHeight
-              // Ghost's mono face is wider; keep the label clear of the track.
-              Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
-                : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
+
+              Layout.preferredWidth: Math.max(90, implicitWidth)
             }
 
             SliderControl {
@@ -1815,7 +1406,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
+              outline: Colors.outline
               focusColor: Colors.primary
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
@@ -1852,9 +1443,8 @@ Flickable {
               font.letterSpacing: Config.typeBodyTracking
               lineHeight: Config.typeBodyMediumLineHeight
               lineHeightMode: Text.FixedHeight
-              // Ghost's mono face is wider; keep the label clear of the track.
-              Layout.preferredWidth: Config.material3Theme ? Math.max(90, implicitWidth)
-                : (Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90))
+
+              Layout.preferredWidth: Math.max(90, implicitWidth)
             }
 
             SliderControl {
@@ -1867,7 +1457,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
+              outline: Colors.outline
               focusColor: Colors.primary
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
@@ -1904,8 +1494,8 @@ Flickable {
               font.letterSpacing: Config.typeBodyTracking
               lineHeight: Config.typeBodyMediumLineHeight
               lineHeightMode: Text.FixedHeight
-              // Ghost's mono face is wider; keep the label clear of the track.
-              Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
+
+              Layout.preferredWidth: (appearanceTab.compactLayout ? 64 : 90)
             }
 
             SliderControl {
@@ -1918,7 +1508,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
+              outline: Colors.outline
               focusColor: Colors.primary
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
@@ -1955,8 +1545,8 @@ Flickable {
               font.letterSpacing: Config.typeBodyTracking
               lineHeight: Config.typeBodyMediumLineHeight
               lineHeightMode: Text.FixedHeight
-              // Ghost's mono face is wider; keep the label clear of the track.
-              Layout.preferredWidth: Config.ghostTheme ? 112 : (appearanceTab.compactLayout ? 64 : 90)
+
+              Layout.preferredWidth: (appearanceTab.compactLayout ? 64 : 90)
             }
 
             SliderControl {
@@ -1969,7 +1559,7 @@ Flickable {
               activeColor: Colors.primary
               surfaceContainerHigh: Colors.surfaceContainerHigh
               surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.styleOutlineStrong
+              outline: Colors.outline
               focusColor: Colors.primary
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
@@ -2035,7 +1625,7 @@ Flickable {
       Layout.preferredHeight: mangoWmNoteText.implicitHeight + Config.spacingMedium * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       Text {
@@ -2061,7 +1651,7 @@ Flickable {
       Layout.preferredHeight: wmColumn.implicitHeight + Config.spacingMedium * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {

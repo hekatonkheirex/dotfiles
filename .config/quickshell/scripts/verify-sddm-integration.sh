@@ -51,10 +51,10 @@ fail_check() {
   failures=$((failures + 1))
 }
 
-if [[ -f "$helper_source" ]] && grep -Fq 'ghost)' "$helper_source" && grep -Fq 'theme_name="Ghost-SDDM"' "$helper_source"; then
-  pass_check 'source bridge contains Ghost support'
+if [[ -f "$helper_source" ]] && grep -Fq 'theme_name="Material3-Expressive-Dynamic-SDDM"' "$helper_source"; then
+  pass_check 'source bridge contains the Matugen greeter'
 else
-  fail_check "source bridge contains Ghost support ($helper_source)"
+  fail_check "source bridge contains the Matugen greeter ($helper_source)"
 fi
 
 if [[ -f "$policy_source" ]] && grep -Fq '<annotate key="org.freedesktop.policykit.exec.path">/usr/local/libexec/quickshell-sync-sddm-theme</annotate>' "$policy_source"; then
@@ -85,9 +85,6 @@ if (( ! bridge_only )); then
   themes=(
     Material3-Expressive-Dynamic-SDDM
     Material3-Expressive-Dynamic-Dark-SDDM
-    Nothing-OS-SDDM
-    Nothing-OS-Dark-SDDM
-    Ghost-SDDM
   )
   for theme in "${themes[@]}"; do
     missing=()

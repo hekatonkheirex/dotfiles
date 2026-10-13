@@ -29,15 +29,15 @@ PanelWindow {
   property int currentTab: Math.max(0, Math.min(tabCount - 1, Settings.lastSettingsTab))
   property int focusedTab: currentTab
   property double openTime: 0
-  readonly property bool compactLayout: root.implicitWidth < (Config.ghostTheme ? 800 : 760)
+  readonly property bool compactLayout: root.implicitWidth < (760)
   // The rail contracts before page controls do; long labels retain their
   // accessible names and hover tooltips at the minimum panel width.
   readonly property int sidebarWidth: root.implicitWidth <= 480 ? 108
     : (root.implicitWidth < 700 ? 132
-      : (root.compactLayout ? 184 : (Config.material3Theme ? 240 : 280)))
+      : (root.compactLayout ? 184 : (240)))
   readonly property int sidebarRowSpacing: Config.spacingCompact
   readonly property int contentMargin: root.implicitHeight < 540 ? Config.spacingMedium
-    : (Config.material3Theme ? Config.spacingLarge : Config.spacingExtraLarge)
+    : (Config.spacingLarge)
   readonly property real centeredLeftMargin: Math.max(Config.spacingLarge, (desktopW - root.implicitWidth) / 2)
   // Float the panel the same gap off the bar that popups use instead of
   // letting a tall panel sit flush against it.
@@ -87,7 +87,6 @@ PanelWindow {
     { tab: 0, category: "System details", icon: "person", title: "Machine info", anchor: "Machine", subtitle: "Hostname, OS, kernel, CPU, and GPU" },
     { tab: 0, category: "System details", icon: "wifi", title: "Network status", anchor: "Network", subtitle: "IP address and connection details" },
     { tab: 1, category: "Motion", icon: "motion_photos_off", title: "Reduced motion", subtitle: "Use shorter, calmer transitions" },
-    { tab: 1, category: "Motion", icon: "blur_on", title: "Reduce transparency", subtitle: "Opaque surfaces for Liquid Glass and Nothing Evolution" },
     { tab: 1, category: "Clock", icon: "schedule", title: "Show uptime", subtitle: "Show uptime on the Account tab" },
     { tab: 1, category: "Clock", icon: "schedule", title: "24-hour clock", subtitle: "Use a 24-hour clock format" },
     { tab: 1, category: "Clock", icon: "timer", title: "Show seconds", subtitle: "Display seconds in the bar clock" },
@@ -97,10 +96,9 @@ PanelWindow {
     { tab: 1, category: "Weather and location", icon: "location_on", title: "Weather location", anchor: "Manual weather location", subtitle: "Set a city or town for weather" },
     { tab: 1, category: "Weather and location", icon: "update", title: "Weather refresh interval", subtitle: "Choose how often weather refreshes" },
     { tab: 1, category: "Weather and location", icon: "thermostat", title: "Temperature units", anchor: "Metric units", subtitle: "Use metric or imperial units" },
-    { tab: 2, category: "General UI", icon: "auto_awesome", title: "UI Style", subtitle: "Material, Nothing Classic, Evolution, Ghost, or Liquid Glass" },
     { tab: 2, category: "Color and theme", icon: "palette", title: "Color source", subtitle: "Live wallpaper colors or a fixed palette" },
     { tab: 2, category: "Color and theme", icon: "dark_mode", title: "Color mode", subtitle: "Automatic, light, or dark" },
-    { tab: 2, category: "Color and theme", icon: "palette", title: "Color palette", anchor: "Palette family", subtitle: "Material 3, Catppuccin, Gruvbox, or TokyoNight" },
+    { tab: 2, category: "Color and theme", icon: "palette", title: "Color palette", anchor: "Palette family", subtitle: "Elenapan, Catppuccin, Gruvbox, or TokyoNight" },
     { tab: 2, category: "Color and theme", icon: "contrast", title: "Contrast", subtitle: "Standard, medium, or high contrast" },
     { tab: 2, category: "Bar", icon: "dock_to_bottom", title: "Bar placement", subtitle: "Top, bottom, left, or right" },
     { tab: 2, category: "Bar", icon: "view_week", title: "Bar form", subtitle: "Full, fit, dock, notch, or pill" },
@@ -108,7 +106,6 @@ PanelWindow {
     { tab: 2, category: "Workspaces", icon: "shapes", title: "Workspace marker style", anchor: "Workspace buttons", subtitle: "Choose expressive, pill, rounded, circle, dots, glyph, or other shapes" },
     { tab: 2, category: "Dock", icon: "dock_to_bottom", title: "Dock pinned apps", anchor: "Dock pinned apps", subtitle: "Apps the Elena dock always shows" },
     { tab: 2, category: "Sizing", icon: "format_size", title: "UI Font Size", subtitle: "Adjust the shell's base text size" },
-    { tab: 2, category: "Sizing", icon: "density_small", title: "Compact desktop density", subtitle: "Smaller Material controls without changing text size" },
     { tab: 2, category: "Sizing", icon: "schedule", title: "Clock Size", subtitle: "Adjust the bar clock size" },
     { tab: 2, category: "Sizing", icon: "photo_size_select_small", title: "Icon Size", subtitle: "Adjust shared icon sizing" },
     { tab: 2, category: "Sizing", icon: "space_bar", title: "Spacing", subtitle: "Adjust the shell density" },
@@ -132,7 +129,6 @@ PanelWindow {
     { tab: 6, category: "Media popup", icon: "touch_app", title: "Controls always visible", subtitle: "Keep media controls visible when paused" },
     { tab: 7, category: "Lock screen", icon: "music_note", title: "Show now playing", subtitle: "Show the current track on the lock screen" },
     { tab: 7, category: "Lock screen", icon: "wallpaper", title: "Use current wallpaper", subtitle: "Use the active wallpaper on the lock screen" },
-    { tab: 7, category: "Lock screen", icon: "schedule", title: "Clock face", subtitle: "Choose the lock-screen clock style" },
     { tab: 7, category: "Idle and power", icon: "lock", title: "Lock after inactivity", subtitle: "Set the idle lock timeout" },
     { tab: 7, category: "Idle and power", icon: "bedtime", title: "Suspend after inactivity", subtitle: "Set the idle suspend timeout" },
     { tab: 7, category: "Power", icon: "bolt", title: "Power Profiles", anchor: "Power profiles", subtitle: "Choose the automatic power profile" },
@@ -282,7 +278,7 @@ PanelWindow {
                            Math.max(Config.settingsMinHeight, Settings.settingsPanelHeight > 0 ? Settings.settingsPanelHeight : Config.settingsDefaultHeight))
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: Config.layerNamespace(Config.liquidGlassTheme ? "settings" : "popup")
+  WlrLayershell.namespace: Config.layerNamespace("popup")
   WlrLayershell.layer: WlrLayer.Top
 
   // Center the panel until the user moves it. A resized panel stays anchored to
@@ -528,16 +524,11 @@ PanelWindow {
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
         transX.x = 0
-        if (Config.liquidGlassTheme) {
-          bg.opacity = 0.0
-          reducedMotionEntryAnimation.start()
-        } else {
+        {
           bg.opacity = 1.0
         }
-      } else if (Config.material3Theme) {
-        materialEntryAnimation.restart()
       } else {
-        entryAnimation.start()
+        materialEntryAnimation.restart()
       }
       focusRequestTimer.restart()
       root.focusedTab = root.currentTab
@@ -655,29 +646,22 @@ PanelWindow {
       anchors.fill: parent
       radius: Config.borderRadius
       color: {
-        if (Config.nothingEvolution) return Colors.readingSurface
-        if (Config.liquidGlassTheme) {
-          var glass = Colors.chromeSurface
-          return Qt.rgba(glass.r, glass.g, glass.b, Math.max(glass.a, 0.68))
-        }
-        return Config.nothingDesign || Config.ghostTheme ? Colors.styleSurface : Colors.surface
+
+
+        return Colors.surface
       }
       clip: true
       // Material gets a hairline too: the panel floats over arbitrary
       // windows and has no room for a shadow inside its own surface.
-      border.width: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-        ? Config.themeBorderWidth
-        : 1
-      border.color: Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-        ? Colors.styleOutline
-        : Colors.outlineVariant
+      border.width: 1
+      border.color: Colors.outlineVariant
 
       Rectangle {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         width: root.contentMargin + root.sidebarWidth + Config.spacingMedium
-        visible: Config.material3Theme
+        visible: true
         radius: bg.radius
         color: Colors.surfaceContainerLow
 
@@ -689,10 +673,6 @@ PanelWindow {
           width: parent.radius
           color: parent.color
         }
-      }
-      GlassSheen {
-        anchors.fill: parent
-        radius: parent.radius
       }
 
       transform: [
@@ -796,7 +776,7 @@ PanelWindow {
           text: "Settings"
           color: Colors.fgSurface
           font.family: Config.displayFontFamily
-          font.pixelSize: Config.nothingEvolution ? Config.typeHeadlineSmallSize : Config.typeHeadlineMediumSize
+          font.pixelSize: Config.typeHeadlineMediumSize
           font.weight: Config.themeFontWeight
           font.letterSpacing: Config.typeHeadlineTracking
           lineHeight: Config.typeHeadlineMediumLineHeight
@@ -1081,7 +1061,7 @@ PanelWindow {
           id: sidebarDivider
           Layout.preferredWidth: 1
           Layout.fillHeight: true
-          color: Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.12)
+          color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.12)
         }
 
         // Page content gets its own quiet gutter after the navigation rail.

@@ -33,7 +33,7 @@ Flickable {
       Layout.preferredHeight: mediaCol.implicitHeight + Config.spacingSmall * 2
       radius: Config.settingsCardRadius
       surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.styleOutline
+      outlineColor: Colors.outlineVariant
       outlineWidth: Config.themeBorderWidth
 
       ColumnLayout {
@@ -59,7 +59,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Show album art"
@@ -79,7 +79,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Show progress bar"
@@ -99,7 +99,7 @@ Flickable {
             activeColor: Colors.primary
             surfaceContainerHigh: Colors.surfaceContainerHigh
             surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.styleOutlineStrong
+            outline: Colors.outline
             motionDuration: Config.motionMedium
             reducedMotion: Config.reducedMotion
             accessibleName: "Media controls always visible"

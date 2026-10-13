@@ -1,7 +1,5 @@
-// Input, focus, and accessibility behaviour shared by every SwitchControl
-// implementation (material3/ and styled/). Implementations extend this and add
-// colours, geometry, and visuals; read root.hovered / root.pressed / root.active
-// for pointer state.
+// Elena switch input, focus and accessibility. The visual implementation
+// reads hovered / pressed / active for pointer state.
 import QtQuick
 import "../../config"
 

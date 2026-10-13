@@ -96,9 +96,7 @@ live_cache_file="$cache_dir/live_palette.json"
 fixed_cache_file="$cache_dir/fixed_palette.json"
 matugen_bin="${MATUGEN_BIN:-/usr/bin/matugen}"
 theme_generator="$HOME/.local/bin/generate-all-themes.sh"
-# Route palette-triggered mode changes through the tracked wrapper so Liquid
-# Glass can pair its Quickshell surfaces with the installed MacTahoe
-# GTK/icons/Kvantum/cursor assets.
+# Route palette-triggered mode changes through the tracked desktop wrapper.
 theme_sync="$HOME/.config/quickshell/scripts/sync-theme-mode-locked.sh"
 
 mkdir -p "$cache_dir"
@@ -270,19 +268,11 @@ apply_accent_override() {
 # Keep the existing Matugen Kitty, Starship, and btop paths in sync with the
 # active cache. These are generated in place so Kitty's existing include and
 # btop's existing color_theme setting continue to work without introducing a
-# second set of variant files. Liquid Glass intentionally keeps these same
-# Matugen consumers; only Quickshell's own surfaces and the GTK/icon/Qt
-# companion change. Terminals share the Matugen path.
+# second set of variant files.
 refresh_matugen_terminal_assets() {
-  local scheme ui_style
+  local scheme
   scheme=$(cat "$HOME/.config/quickshell/colorscheme" 2>/dev/null || printf 'matugen')
-  ui_style=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || printf 'material3')
-
   [[ "$scheme" == "matugen" ]] || return 0
-  case "$ui_style" in
-    material3|liquid-glass|dwm|elena) ;;
-    *) return 0 ;;
-  esac
 
   if ! command -v jq >/dev/null 2>&1; then
     printf 'jq is required to refresh Matugen terminal assets.\n' >&2
@@ -559,12 +549,10 @@ EOF
   fi
   [[ "$active_mode" == "light" || "$active_mode" == "dark" ]] || active_mode=dark
 
-  if [[ "$ui_style" == "material3" || "$ui_style" == "liquid-glass" || "$ui_style" == "dwm" || "$ui_style" == "elena" ]]; then
-    write_kitty_theme light
-    write_kitty_theme dark
-    write_starship_theme light
-    write_starship_theme dark
-  fi
+  write_kitty_theme light
+  write_kitty_theme dark
+  write_starship_theme light
+  write_starship_theme dark
   write_btop_theme "$active_mode"
 }
 
