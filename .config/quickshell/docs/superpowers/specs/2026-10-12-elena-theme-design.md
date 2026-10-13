@@ -1,15 +1,15 @@
-# elena theme (elenapam AwesomeWM rice, phase 1: tag strip)
+# elena theme (elenapan AwesomeWM rice, phase 1: tag strip)
 
 Date: 2026-10-12
 
 ## Outcome
-Selecting "elena" in Settings > Appearance applies the elenapam palette and
+Selecting "elena" in Settings > Appearance applies the elenapan palette (id `elenapam`) and
 turns the bar into a thin row of colored workspace blocks along the top
 screen edge. Measured by: style tile selects, `Settings.themeStyle === "elena"`, screenshot
 shows the strip with focused/occupied/empty blocks matching the layout below,
 clicking a block focuses that workspace.
 
-Reference: elenapam's AwesomeWM rice (dark navy cards, pink/mint/cyan/purple
+Reference: elenapan's AwesomeWM rice (github.com/elenapan/dotfiles) (dark navy cards, pink/mint/cyan/purple
 accents, colored tag blocks on the top edge). Phase 1 covers the palette and
 the block row only.
 

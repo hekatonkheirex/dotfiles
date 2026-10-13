@@ -49,7 +49,7 @@ const roles = Object.keys(P.palette("tokyonight", "night", true))
 for (const k of roles) assert.ok(dark[k], `elenapam missing role ${k}`)
 for (const v of ["auto", "dark", "light", "junk", undefined]) assert.equal(P.resolveVariant("elenapam", v, true), "dark")
 assert.ok(P.fixedFamilyOptions().some(f => f.value === "elenapam"))
-assert.equal(P.familyLabel("elenapam"), "Elenapam")
+assert.equal(P.familyLabel("elenapam"), "Elenapan")
 assert.equal(P.variantLabel("elenapam", "dark"), "Dark")
 // existing families untouched
 assert.equal(P.palette("material3", "auto", true), null)

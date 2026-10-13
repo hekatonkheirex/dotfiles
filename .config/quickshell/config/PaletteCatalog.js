@@ -9,7 +9,8 @@ var familyList = [
   { value: "catppuccin", label: "Catppuccin", icon: "palette" },
   { value: "gruvbox", label: "Gruvbox", icon: "tonality" },
   { value: "tokyonight", label: "TokyoNight", icon: "nights_stay" },
-  { value: "elenapam", label: "Elenapam", icon: "palette" }
+  // id stays "elenapam" (persisted in settings.json); the author is elenapan.
+  { value: "elenapam", label: "Elenapan", icon: "palette" }
 ]
 
 var variantLists = {
@@ -329,8 +330,9 @@ function tokyonightPalette(variant) {
   return semanticPalette(s, a)
 }
 
-// elenapam: navy cards with pink, purple and cyan accents (the AwesomeWM rice
-// by elenapam). Dark only; light mode reuses it.
+// elenapam (id) / Elenapan (label): navy cards with pink, purple and cyan
+// accents, after the AwesomeWM rice by elenapan (github.com/elenapan/dotfiles,
+// colorscheme `amarena`). Dark only; light mode reuses it.
 function elenapamPalette() {
   var s = {
     base: "#1a1f2b", dim: "#151922", bright: "#2a3140", lowest: "#131720",
