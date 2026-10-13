@@ -22,6 +22,9 @@ QtObject {
   property int chargeLimit: -1
   readonly property bool held: batteryDevice
     && batteryDevice.state === UPowerDeviceState.PendingCharge
+  readonly property bool charging: batteryDevice
+    && (batteryDevice.state === UPowerDeviceState.Charging
+      || batteryDevice.state === UPowerDeviceState.PendingCharge)
   // pending-charge means plugged in but held by a charge threshold.
   readonly property string heldLabel: chargeLimit > 0
     ? "Holding at " + chargeLimit + "% limit" : "Plugged in, holding charge"

@@ -18,9 +18,10 @@ QtObject {
   property bool indicatorActive: false
   property bool popupActive: false
   property bool sidebarActive: false
+  property bool barActive: false
   property bool watcherEnabled: true
 
-  readonly property bool sinkActive: indicatorActive || popupActive || sidebarActive
+  readonly property bool sinkActive: indicatorActive || popupActive || sidebarActive || barActive
   readonly property bool micActive: popupActive || sidebarActive
 
   function pollSink() {

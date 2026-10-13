@@ -94,6 +94,21 @@ QtObject {
     : (dynamicPaletteLoaded ? "Live (wallpaper)" : "Live (fallback)")
 
 
+  // Reference-rice accent slots mapped onto this palette. The bottom bar and
+  // the dock cycle this ramp; change the table here, not in the bar.
+  function elenaAccent(n) {
+    switch (n) {
+    case 1: return error
+    case 2: return secondary
+    case 3: return tertiary
+    case 4: return primary
+    case 5: return inversePrimary
+    case 6: return fgTertiaryContainer
+    case 8: return outline
+    default: return primary
+    }
+  }
+
   function authoredMaterialPalette(mode) {
     var dark = mode === "dark"
     return {

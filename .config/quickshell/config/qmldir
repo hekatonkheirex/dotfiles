@@ -11,3 +11,5 @@ singleton MediaService 1.0 MediaService.qml
 singleton Settings 1.0 Settings.qml
 singleton WeatherService 1.0 WeatherService.qml
 singleton WindowService 1.0 WindowService.qml
+singleton BottomBarFonts 1.0 BottomBarFonts.qml
+singleton NetworkStatusService 1.0 NetworkStatusService.qml

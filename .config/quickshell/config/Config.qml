@@ -21,6 +21,10 @@ QtObject {
   readonly property bool spatialMotion: true
   readonly property bool expressiveMotion: true
   readonly property int tagStripHeight: 8
+  // The bottom bar follows the reference rice's dpi() scale (1.5 on 1080p).
+  readonly property real elenaScale: 1.5
+  function dp(n) { return Math.round(n * elenaScale) }
+  readonly property int bottomBarHeight: dp(43)
 
   function layerNamespace(kind) {
     return "quickshell-" + kind
