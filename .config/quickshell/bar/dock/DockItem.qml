@@ -18,11 +18,16 @@ Item {
   readonly property int itemMargin: 8
   readonly property int indicatorGap: 8
 
+  property real wheelAccum: 0
+
   signal activated()
   signal closeRequested()
   signal cycled(int direction)
 
-  readonly property var entry: DesktopEntries.heuristicLookup(root.appId)
+  // Reading applications.values.length makes this re-run when the desktop-entry
+  // database finishes loading, not only when appId changes.
+  readonly property var entry: DesktopEntries.applications.values.length >= 0
+    ? DesktopEntries.heuristicLookup(root.appId) : null
   readonly property string iconSource: root.entry && root.entry.icon !== ""
     ? Quickshell.iconPath(root.entry.icon, true) : ""
   readonly property color indicatorColor: root.urgent ? Colors.error : root.accent
@@ -107,7 +112,17 @@ Item {
       else root.activated()
     }
     onWheel: function(wheel) {
-      root.cycled(wheel.angleDelta.y > 0 ? -1 : 1)
+      const dy = wheel.angleDelta.y
+      if (dy === 0) return
+      // Reset on direction flip; one cycle per full 120 notch, so a touchpad
+      // swipe of many small deltas does not skip through every window.
+      if ((dy > 0) !== (root.wheelAccum > 0)) root.wheelAccum = 0
+      root.wheelAccum += dy
+      while (Math.abs(root.wheelAccum) >= 120) {
+        const dir = root.wheelAccum > 0 ? -1 : 1
+        root.wheelAccum -= root.wheelAccum > 0 ? 120 : -120
+        root.cycled(dir)
+      }
     }
   }
 }
