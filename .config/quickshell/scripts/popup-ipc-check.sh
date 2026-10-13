@@ -11,8 +11,6 @@ done
 qs ipc call shell dismissPopups >/dev/null
 [ "$(qs ipc call shell popup nope)" = false ] && echo "ok   unknown -> false" || { echo "FAIL unknown name"; fail=1; }
 [ -z "$(qs ipc call shell currentPopup)" ] && echo "ok   dismissed" || { echo "FAIL not dismissed"; fail=1; }
-# Elena keeps the launcher list; style switching no longer exists.
-[ "$(qs ipc call shell launcherMode)" = list ] && echo "ok   launcherMode list" || { echo "FAIL launcherMode"; fail=1; }
 # In-memory Settings tab selection round-trips (restores the persisted value).
 orig=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.config/quickshell/settings.json')))['lastSettingsTab'])")
 [ "$(qs ipc call shell settingsTab 5)" = 5 ] && echo "ok   settingsTab" || { echo "FAIL settingsTab"; fail=1; }

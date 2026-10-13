@@ -123,10 +123,10 @@ TestCase {
     var saved = BarOrder.normalize("").join(",")
     compare(BarOrder.zone(BarOrder.moveClock(saved, -1, "middle"), "clock"), "start")
     compare(BarOrder.zone(BarOrder.moveClock(saved, 1, "middle"), "clock"), "end")
-    var ghostUp = BarOrder.moveClock(saved, -1, "end")
-    compare(BarOrder.zone(ghostUp, "clock"), "end")
-    verify(BarOrder.normalize(ghostUp).indexOf("clock")
-      < BarOrder.normalize(ghostUp).indexOf("notifications"))
+    var endUp = BarOrder.moveClock(saved, -1, "end")
+    compare(BarOrder.zone(endUp, "clock"), "end")
+    verify(BarOrder.normalize(endUp).indexOf("clock")
+      < BarOrder.normalize(endUp).indexOf("notifications"))
   }
 
 }

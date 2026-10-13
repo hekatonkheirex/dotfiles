@@ -41,7 +41,6 @@ PanelWindow {
   readonly property bool dockedLeft: barPosition === "left"
   readonly property bool dockedRight: barPosition === "right"
   readonly property bool themeClockCentered: !Settings.barClockInFlow
-    && true
   readonly property var normalizedOrder: BarOrder.normalize(Settings.barWidgetOrder)
   readonly property var activeWidgets: ({
     launcher: Settings.ccShowLauncher,
@@ -62,7 +61,6 @@ PanelWindow {
     var slots = BarOrder.edgeOrder(Settings.barWidgetOrder, root.activeWidgets)
     if (!Settings.barClockInFlow) {
       slots = slots.filter(function(id) { return id !== "clock" })
-
     }
     return slots
   }
@@ -85,12 +83,10 @@ PanelWindow {
     return Math.max(0, slots.indexOf(id))
   }
 
-
   readonly property real wSize: Config.widgetSize
   readonly property real horizontalPillLength: root.wSize + Config.spacingSmall
   readonly property real verticalPillLength: root.wSize
   readonly property color barPanelColor: Colors.chromeSurface
-
 
   anchors {
     left: root.horizontal || root.dockedLeft
@@ -219,9 +215,8 @@ PanelWindow {
   // IPC entry point: open (or toggle closed) a bar popup by name, anchored to
   // its indicator exactly as a click would. Returns false for unknown names.
   function togglePopupByName(name) {
-    // The sidebar has no anchor widget and only exists under elena.
+    // The sidebar has no anchor widget.
     if (name === "sidebar") {
-
       openPopup = openPopup === "sidebar" ? "" : "sidebar"
       return true
     }
@@ -238,32 +233,27 @@ PanelWindow {
 
   readonly property bool pillsBar: Config.barFormMetrics.pills
   readonly property bool continuousBar: !root.pillsBar
-  readonly property bool groupedPills: root.pillsBar && root.horizontal && true
+  readonly property bool groupedPills: root.pillsBar && root.horizontal
   // Geometry for the selected form (see config/BarForm.js).
   readonly property int edgeGap: Config.barFormMetrics.edgeGap
   readonly property int sideInset: Config.barFormMetrics.sideInset
   readonly property int shoulder: Config.barFormMetrics.shoulder
   readonly property bool flat: Config.barFormMetrics.flat
 
-
-  readonly property bool packed: root.shoulder > 0 && true
+  readonly property bool packed: root.shoulder > 0
   readonly property real packedLength: root.horizontal
     ? layout.implicitWidth + root.horizontalPillInset * 2
     : layout.implicitHeight + root.verticalPillInset * 2
   readonly property bool roundNear: Config.barFormMetrics.roundNear
   readonly property bool horizontalPillMode: root.horizontal && root.pillsBar
 
-
-  readonly property bool focusedShown: Settings.ccShowFocusedWindow || false
+  readonly property bool focusedShown: Settings.ccShowFocusedWindow
   // The horizontal full bar follows the Hyprland layout's compact icon-plus
   // label controls. Vertical bars and stacked clock content stay unchanged.
   readonly property bool horizontalInlineContent: root.horizontalPillMode
     || (root.horizontal && root.continuousBar)
-    || false
 
-
-  readonly property int verticalPillPanelWidth: !root.horizontal && root.pillsBar
-    && (false) ? Config.barWidth + 18 : Config.barWidth
+  readonly property int verticalPillPanelWidth: Config.barWidth
   readonly property int horizontalPillInset: 6
   readonly property int verticalPillInset: 6
   readonly property int verticalWindowEdgeMargin: 0
@@ -271,7 +261,6 @@ PanelWindow {
   // tagStripHeight in Config); no panel padding below it.
   readonly property int normalPanelExtent: Config.barWidth
   readonly property int verticalClockHeight: Math.max(Config.clockVerticalHeight, root.verticalPillLength)
-
 
   implicitHeight: root.normalPanelExtent
   implicitWidth: root.normalPanelExtent
@@ -281,7 +270,6 @@ PanelWindow {
   Item {
     anchors.fill: parent
 
-
     // Notch form: concave shoulders flow from the screen edge into the body.
     Shape {
       anchors.fill: parent
@@ -289,7 +277,6 @@ PanelWindow {
       z: 1
       visible: root.shoulder > 0
       ShapePath {
-
         fillColor: barBg.color
         strokeColor: "transparent"
         strokeWidth: 0
@@ -333,12 +320,9 @@ PanelWindow {
           : parent.height - root.sideInset * 2)
       radius: (root.flat ? 0 : Config.barRadius)
 
-
       color: "transparent"
-      // An opaque glass bar has a defined edge against windows.
       border.width: 0
       border.color: Colors.outlineVariant
-
 
       // Square-off helper for the docked edge's near corner
       Rectangle {
@@ -363,7 +347,6 @@ PanelWindow {
         color: barBg.color
         visible: width > 0 && !root.roundNear
       }
-
 
       MouseArea {
         id: barMouseArea
@@ -529,7 +512,7 @@ PanelWindow {
             : 0
           Layout.fillHeight: root.horizontal
           Layout.alignment: root.horizontal ? Qt.AlignVCenter : Qt.AlignTop
-          visible: Settings.ccShowWorkspaces || true
+          visible: true
 
           PillSurface {
             horizontal: root.horizontal
@@ -668,7 +651,7 @@ PanelWindow {
             Text {
               id: focusedWindowProgramText
               text: focusedWindowWrapper.programText
-              color: (((Colors.primary)))
+              color: Colors.primary
               font.family: Config.fontFamily
               font.pixelSize: Config.typeLabelMediumSize
               font.weight: Config.typeStrongWeight
@@ -714,7 +697,6 @@ PanelWindow {
           Layout.column: root.horizontal ? root.barSlot("gap") : 0
           Layout.row: root.horizontal ? 0 : root.barSlot("gap")
 
-
           Layout.fillWidth: true
           Layout.fillHeight: true
           // Packed (notch): the spacer is exactly the middle group, so only
@@ -727,8 +709,6 @@ PanelWindow {
           Layout.preferredWidth: root.horizontal ? 0 : parent.width
           Layout.preferredHeight: root.horizontal ? parent.height : 0
           clip: true
-
-
         }
 
         Item {
@@ -1118,7 +1098,6 @@ PanelWindow {
         z: 2
       }
 
-
       Item {
         id: clockWrapper
         opacity: 0
@@ -1177,12 +1156,8 @@ PanelWindow {
             id: clockContent
             anchors.centerIn: parent
             columns: 1
-            rows: (2)
+            rows: 2
             flow: GridLayout.TopToBottom
-            // Ndot's line-height metrics reserve descent space below each
-            // digit row that the visible glyphs never use, which skews
-            // Qt's naive vertical centering low. Nudge up to compensate.
-            anchors.verticalCenterOffset: 0
             columnSpacing: 0
             rowSpacing: Config.clockLineSpacing
 
@@ -1190,10 +1165,10 @@ PanelWindow {
               text: root.horizontal
                 ? root.displayNow().toLocaleString(Qt.locale(), root.clockFormat())
                 : root.displayNow().toLocaleString(Qt.locale(), Settings.clock24h ? "HH" : "h")
-              color: (((Colors.primary)))
+              color: Colors.primary
               font.family: Config.fontFamily
-              font.pixelSize: Config.clockPrimarySize + (0)
-              font.weight: (((Font.Bold)))
+              font.pixelSize: Config.clockPrimarySize
+              font.weight: Font.Bold
               Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             }
 
@@ -1232,5 +1207,4 @@ PanelWindow {
       }
     }
   }
-
 }

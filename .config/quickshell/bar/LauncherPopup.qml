@@ -15,12 +15,10 @@ PanelWindow {
 
   property int anchorY: 0
 
-
   signal dismissed()
   // "@" hands off to the full-width wallpaper filmstrip; the text typed after
   // it travels along as the initial jump query.
   signal wallpapersRequested(string query)
-
 
   implicitWidth: Math.min(Config.launcherWidth,
     Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
@@ -285,7 +283,6 @@ PanelWindow {
     }
   }
 
-
   Component.onCompleted: {
     filteredModel.clear()
     desktopProc.running = true
@@ -326,7 +323,6 @@ PanelWindow {
   function serializeArgv(value) {
     return JSON.stringify(root.normalizeArgv(value))
   }
-
 
   function runLauncherScript(name) {
     Quickshell.execDetached(["bash", Quickshell.env("HOME") + "/.config/quickshell/scripts/" + name])
@@ -730,16 +726,12 @@ PanelWindow {
         root.filterApps()
         searchInputControl.input.cursorPosition = q.length
       }
-      if (Config.reducedMotion || false) {
-        entryAnimation.stop()
+      if (Config.reducedMotion) {
         materialEntryAnimation.stop()
-        reducedMotionEntryAnimation.stop()
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
         transX.x = 0
-        {
-          bg.opacity = 1.0
-        }
+        bg.opacity = 1.0
       } else {
         materialEntryAnimation.restart()
       }
@@ -770,7 +762,6 @@ PanelWindow {
     onTriggered: root.refreshClipboard()
   }
 
-
   Rectangle {
     id: bg
     anchors.fill: parent
@@ -783,7 +774,6 @@ PanelWindow {
       radius: bg.radius
     }
 
-
     transform: [
       Translate { id: transX; x: 0 },
       Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
@@ -795,45 +785,6 @@ PanelWindow {
       scaleTarget: scaleTransform
       translationTarget: transX
     }
-
-    ParallelAnimation {
-      id: entryAnimation
-      NumberAnimation {
-        target: scaleTransform
-        properties: "xScale,yScale"
-        from: Config.surfaceEntryScale
-        to: 1.0
-        duration: Config.surfaceEntryDuration
-        easing.type: Config.themeMotionEasing
-      }
-      NumberAnimation {
-        target: transX
-        property: "x"
-        from: Config.surfaceEntryOffset
-        to: 0
-        duration: Config.surfaceEntryDuration
-        easing.type: Config.themeMotionEasing
-      }
-      NumberAnimation {
-        target: bg
-        property: "opacity"
-        from: 0.0
-        to: 1.0
-        duration: Config.surfaceOpacityDuration
-        easing.type: Easing.OutCubic
-      }
-    }
-
-    NumberAnimation {
-      id: reducedMotionEntryAnimation
-      target: bg
-      property: "opacity"
-      from: 0.0
-      to: 1.0
-      duration: Config.reducedMotionFadeDuration
-      easing.type: Easing.OutCubic
-    }
-
 
     ColumnLayout {
       id: clipItem
@@ -862,7 +813,7 @@ PanelWindow {
       Shortcut {
         sequences: ["Shift+F10", "Menu"]
         context: Qt.WindowShortcut
-        enabled: root.visible && root.selectedResult !== null && true
+        enabled: root.visible && root.selectedResult !== null
         onActivated: resultMenu.popup(appList, appList.width / 2, appList.height / 2)
       }
 
@@ -938,7 +889,6 @@ PanelWindow {
         onEscapePressed: root.dismissed()
         onUpPressed: root.moveSelection(-1)
         onDownPressed: root.moveSelection(1)
-
       }
 
       // Prefix shortcuts live under the field instead of crowding the placeholder.
@@ -1120,7 +1070,6 @@ PanelWindow {
         font.letterSpacing: Config.typeMonoTracking
         wrapMode: Text.Wrap
       }
-
     }
   }
 

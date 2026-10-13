@@ -22,7 +22,6 @@ Item {
   Layout.preferredHeight: horizontal ? (Config.widgetSize) : preferredLength
   visible: visibleCount > 0
 
-
   Rectangle {
     id: traySurface
     visible: false // no pill behind tray icons
@@ -37,12 +36,11 @@ Item {
     clip: true
     color: systemTrayAreaRoot.integrated
       ? "transparent"
-      : (((Colors.surfaceContainerHigh)))
-    border.color: ((Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)))
-    border.width: systemTrayAreaRoot.integrated || false || false
+      : Colors.surfaceContainerHigh
+    border.color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
+    border.width: systemTrayAreaRoot.integrated
       ? 0
       : Config.themeBorderWidth
-
   }
 
   GridLayout {

@@ -46,8 +46,8 @@ PanelWindow {
     || ((osdType === "volume" || osdType === "mic" || osdType === "bluetooth") && muted)
     ? signalColor : Colors.fgSurface
 
-  implicitWidth: ((300))
-  implicitHeight: ((120))
+  implicitWidth: 300
+  implicitHeight: 120
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
   WlrLayershell.namespace: Config.layerNamespace("osd")
@@ -215,23 +215,17 @@ PanelWindow {
     }
   }
 
-
   Rectangle {
     id: osdSurface
     anchors.fill: parent
     radius: Config.shapeLarge
     opacity: root.osdOpacity
     color: {
-
-
       var c = Colors.chromeSurface
       return Qt.rgba(c.r, c.g, c.b, 0.92)
     }
     border.width: Config.themeBorderWidth
     border.color: Colors.outlineVariant
-
-
-
 
     Column {
       visible: true
@@ -274,7 +268,7 @@ PanelWindow {
       anchors.bottom: parent.bottom
       anchors.bottomMargin: 14
       width: parent.width - (48)
-      height: ((6))
+      height: 6
       radius: (height / 2)
       color: Colors.surfaceContainerHighest
 

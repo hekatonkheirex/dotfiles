@@ -59,4 +59,11 @@ assert.equal(P.palette("tokyonight", "night", true).primary, "#7aa2f7")
 // settings written before the rename must keep their palette.
 assert.equal(P.migratePaletteId("elenapam"), "elenapan")
 for (const same of ["elenapan", "material3", "catppuccin", "", undefined, null]) assert.equal(P.migratePaletteId(same), same)
+const read = rel => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8")
+const settingsSrc = read("../../config/Settings.qml")
+assert.match(settingsSrc, /PaletteCatalog\.migratePaletteId\(/, "Settings migrates the stored palette id")
+
+// QuickMenu grid is 3 columns x 2 rows: Up and Down jump a row in opposite directions.
+const quickMenu = read("../../bar/QuickMenu.qml")
+assert.match(quickMenu, /Key_Up \? -3 : 3/, "QuickMenu Up moves back one row, Down forward")
 console.log("elena: ok")

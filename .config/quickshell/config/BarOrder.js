@@ -45,8 +45,8 @@ function move(value, id, direction, clockInFlow) {
   return items.join(",")
 }
 
-// Material and vertical bars center an untouched clock; horizontal Ghost
-// keeps it at the end. The first arrow starts from that visible position.
+// Material and vertical bars center an untouched clock; horizontal bars
+// keep it at the end. The first arrow starts from that visible position.
 function moveClock(value, direction, themeZone) {
   var items = normalize(value)
   items.splice(items.indexOf("clock"), 1)

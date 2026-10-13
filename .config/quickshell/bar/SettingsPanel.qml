@@ -518,15 +518,11 @@ PanelWindow {
     if (visible) {
       idleCheck.running = true
       if (Config.reducedMotion) {
-        entryAnimation.stop()
         materialEntryAnimation.stop()
-        reducedMotionEntryAnimation.stop()
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
         transX.x = 0
-        {
-          bg.opacity = 1.0
-        }
+        bg.opacity = 1.0
       } else {
         materialEntryAnimation.restart()
       }
@@ -640,14 +636,11 @@ PanelWindow {
       }
     }
 
-
     Rectangle {
       id: bg
       anchors.fill: parent
       radius: Config.borderRadius
       color: {
-
-
         return Colors.surface
       }
       clip: true
@@ -687,44 +680,6 @@ PanelWindow {
         translationTarget: transX
       }
 
-      ParallelAnimation {
-        id: entryAnimation
-        NumberAnimation {
-          target: scaleTransform
-          properties: "xScale,yScale"
-          from: Config.surfaceEntryScale
-          to: 1.0
-          duration: Config.surfaceEntryDuration
-          easing.type: Config.themeMotionEasing
-        }
-        NumberAnimation {
-          target: transX
-          property: "x"
-          from: Config.surfaceEntryOffset
-          to: 0
-          duration: Config.surfaceEntryDuration
-          easing.type: Config.themeMotionEasing
-        }
-        NumberAnimation {
-          target: bg
-          property: "opacity"
-          from: 0.0
-          to: 1.0
-          duration: Config.surfaceOpacityDuration
-          easing.type: Easing.OutCubic
-        }
-      }
-
-      NumberAnimation {
-        id: reducedMotionEntryAnimation
-        target: bg
-        property: "opacity"
-        from: 0.0
-        to: 1.0
-        duration: Config.reducedMotionFadeDuration
-        easing.type: Easing.OutCubic
-      }
-
       Item {
         id: windowHeader
         anchors {
@@ -742,7 +697,7 @@ PanelWindow {
           id: dragHandle
           anchors.fill: parent
           hoverEnabled: true
-          enabled: root.visible && !entryAnimation.running && !materialEntryAnimation.running
+          enabled: root.visible && !materialEntryAnimation.running
           cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
 
           property point pressPoint
@@ -916,7 +871,6 @@ PanelWindow {
                     ToolTip.visible: root.sidebarWidth < 200 && navigationRow.hovered
                     ToolTip.text: modelData.label
                     ToolTip.delay: 550
-
 
                     Keys.priority: Keys.BeforeItem
 
@@ -1179,7 +1133,7 @@ PanelWindow {
       z: 1000
       cursorShape: Qt.SizeFDiagCursor
       hoverEnabled: true
-      enabled: !entryAnimation.running && !materialEntryAnimation.running
+      enabled: !materialEntryAnimation.running
 
       property point pressLocal
       property real startWidth: 0
@@ -1233,6 +1187,5 @@ PanelWindow {
       }
     }
   }
-
 }
 }

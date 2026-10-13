@@ -24,7 +24,7 @@ Item {
   property real iconOpacity: 1.0
   property string labelText: ""
   property real labelOpacity: 1.0
-  property color accentColor: ((Colors.primary))
+  property color accentColor: Colors.primary
   property color iconColor: (root.accentColor)
 
   property color labelColor: (root.accentColor)
@@ -38,7 +38,6 @@ Item {
   property string badgeText: ""
   property color badgeColor: Colors.error
   property color badgeTextColor: Colors.fgError
-
 
   readonly property bool numericLabel: /^-?\d+%?$/.test(root.labelText)
   // Compensate for the extra ascent/descent in the icon font and numeric
@@ -83,7 +82,6 @@ Item {
   Accessible.focusable: root.activeFocusOnTab
   Accessible.focused: root.activeFocus
 
-
   Keys.onPressed: function(event) {
     if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
       root.clicked(null)
@@ -112,7 +110,7 @@ Item {
       topMargin: root.horizontal ? 6 : 0
       bottomMargin: root.horizontal ? 6 : 0
     }
-    radius: ((root.horizontal ? height / 2 : width / 2))
+    radius: root.horizontal ? height / 2 : width / 2
     clip: true
     color: {
       var overlay = mouseArea.pressed ? Colors.pressOverlay
@@ -121,28 +119,21 @@ Item {
       var base = root.integrated
         ? "transparent"
         : ((root.borderOnHoverOnly
-          ? (("transparent"))
+          ? "transparent"
           : root.inactiveBg))
       return Qt.tint(base, overlay)
     }
     border.color: {
-
-
-
-
       if (root.active) return root.activeFocus ? Colors.focusOverlay : "transparent"
       if (root.borderOnHoverOnly && !mouseArea.containsMouse && !root.activeFocus) return "transparent"
       return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.15)
     }
-    border.width: root.integrated || false
-      ? (0)
-      : (Config.themeBorderWidth)
+    border.width: root.integrated ? 0 : Config.themeBorderWidth
 
     Behavior on color {
       ColorAnimation { duration: Config.animationDuration }
     }
   }
-
 
   GridLayout {
     id: contentLayout
@@ -198,7 +189,6 @@ Item {
       opacity: root.labelOpacity
       color: root.labelColor
       font.family: Config.fontFamily
-
 
       font.pixelSize: Config.typeLabelMediumSize
       font.weight: (Font.Medium)
@@ -257,5 +247,4 @@ Item {
     }
     onWheel: function(wheelEvent) { root.wheel(wheelEvent) }
   }
-
 }

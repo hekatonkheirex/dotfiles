@@ -26,11 +26,9 @@ Rectangle {
   property bool navigationFocused: false
   property int trailingSpacing: Config.spacingCompact
   readonly property bool materialNavigationItem: root.navigationItem
-    && true
   readonly property bool materialStatusItem: root.statusActive
     && !root.selected
     && !root.navigationItem
-    && true
   readonly property bool stateHighlighted: root.selected || root.statusActive
   readonly property color selectedContainerColor: root.materialNavigationItem
     ? Colors.secondaryContainer
@@ -175,8 +173,7 @@ Rectangle {
           ? (root.selected ? Colors.primary : Colors.fgSurfaceVariant)
           : (root.stateHighlighted ? root.selectedContentColor : root.leadingIconColor)
         iconOpacity: root.leadingIconOpacity
-        iconSize: root.materialNavigationItem ? 20
-          : (root.navigationItem && false ? Config.iconSize : Config.iconSize + 6)
+        iconSize: root.materialNavigationItem ? 20 : Config.iconSize + 6
         filled: root.stateHighlighted
       }
     }
@@ -255,5 +252,4 @@ Rectangle {
       Layout.alignment: Qt.AlignVCenter
     }
   }
-
 }

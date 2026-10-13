@@ -28,7 +28,6 @@ PanelWindow {
   }
   readonly property bool critical: !!notif && notif.urgency === NotificationUrgency.Critical
 
-
   implicitWidth: 280
   implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge
   color: "transparent"
@@ -63,15 +62,11 @@ PanelWindow {
     if (!isPersistent(n))
       dismissTimer.restart()
     if (Config.reducedMotion) {
-      entryAnimation.stop()
       materialEntryAnimation.stop()
-      reducedMotionEntryAnimation.stop()
       scaleTransform.xScale = 1.0
       scaleTransform.yScale = 1.0
       transX.x = 0
-      {
-        bg.opacity = 1.0
-      }
+      bg.opacity = 1.0
     } else {
       materialEntryAnimation.restart()
     }
@@ -137,7 +132,6 @@ PanelWindow {
     }
   }
 
-
   Rectangle {
     id: bg
     anchors.fill: parent
@@ -147,7 +141,6 @@ PanelWindow {
     border.width: root.critical ? Math.max(2, Config.themeBorderWidth) : 0
     border.color: Colors.error
     DashedFrame { anchors.fill: parent; active: root.visible && !root.critical; radius: bg.radius }
-
 
     Accessible.role: Accessible.Button
     Accessible.name: notif ? ((notif.appName || "Notification") + ": "
@@ -175,44 +168,6 @@ PanelWindow {
       initialOffset: Config.toastEntryOffset
     }
 
-    ParallelAnimation {
-      id: entryAnimation
-      NumberAnimation {
-        target: scaleTransform
-        properties: "xScale,yScale"
-        from: Config.toastEntryScale
-        to: 1.0
-        duration: Config.toastEntryDuration
-        easing.type: Config.themeMotionEasing
-      }
-      NumberAnimation {
-        target: transX
-        property: "x"
-        from: Config.toastEntryOffset
-        to: 0
-        duration: Config.toastEntryDuration
-        easing.type: Config.themeMotionEasing
-      }
-      NumberAnimation {
-        target: bg
-        property: "opacity"
-        from: 0.0
-        to: 1.0
-        duration: Config.surfaceOpacityDuration
-        easing.type: Easing.OutCubic
-      }
-    }
-
-    NumberAnimation {
-      id: reducedMotionEntryAnimation
-      target: bg
-      property: "opacity"
-      from: 0.0
-      to: 1.0
-      duration: Config.reducedMotionFadeDuration
-      easing.type: Easing.OutCubic
-    }
-
     ColumnLayout {
       id: cardLayout
       anchors {
@@ -232,8 +187,7 @@ PanelWindow {
           width: 20
           height: 20
           radius: 10
-          color: root.critical && true ? Colors.errorContainer
-            : (Colors.primaryContainer)
+          color: root.critical ? Colors.errorContainer : Colors.primaryContainer
           border.width: 0
           border.color: root.critical ? Colors.destructive : Colors.outline
 

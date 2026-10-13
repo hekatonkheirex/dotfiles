@@ -394,11 +394,6 @@ ShellRoot {
     }
 
 
-    // Dev/testing: Elena uses the launcher list.
-    function launcherMode(): string {
-      return "list"
-    }
-
     // Dev/testing: submit the sidebar search with `text` (same path as Enter).
     // Locked sessions reject the request.
     function sidebarSearch(text: string): bool {
@@ -612,7 +607,7 @@ ShellRoot {
   }
 
   Sidebar {
-    visible: bar.openPopup === "sidebar" && true && !lockScreen.locked
+    visible: bar.openPopup === "sidebar" && !lockScreen.locked
     screen: bar.screen
     onDismissed: bar.openPopup = ""
     onSearchSubmitted: function(text) { shell.openLauncherWith(text) }

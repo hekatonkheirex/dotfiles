@@ -33,7 +33,7 @@ Item {
   readonly property string focusedWindowCleanTitle: focusedWindowTitle.replace(/^[←-⯿\uD800-\uDFFF\s]+/, "")
   readonly property string focusedWindowInfo: focusedWindowCleanTitle !== "" ? focusedWindowCleanTitle : focusedWindowAppId
   readonly property string focusedWindowProgram: formatProgramName(focusedWindowAppId)
-  readonly property color workspaceGroupColor: ((Colors.surfaceContainerHighest))
+  readonly property color workspaceGroupColor: Colors.surfaceContainerHighest
 
   readonly property string wmType: Config.wmType
   readonly property bool compositorIntegration: Config.isNiri || Config.isMango
@@ -46,7 +46,6 @@ Item {
   readonly property string workspaceStyle: (workspaceStyleValues.indexOf(Settings.workspaceShape) >= 0
       ? Settings.workspaceShape
       : "expressive")
-
 
   readonly property string workspaceShape: workspaceStyle
   readonly property string workspaceCount: ["active", "5", "10"].indexOf(Settings.workspaceCount) >= 0
@@ -91,15 +90,12 @@ Item {
   }
 
   function workspaceMarkerColor(item) {
-
-
     return item.isFocused || item.isOccupied
       ? Colors.primary
       : Colors.outline
   }
 
   function workspaceMarkerTextColor(item) {
-
     if (item.isFocused) return Colors.fgPrimary
     if (item.isOccupied) return Colors.fgSurface
     return Qt.rgba(Colors.fgSurfaceVariant.r, Colors.fgSurfaceVariant.g, Colors.fgSurfaceVariant.b, 0.68)
@@ -353,7 +349,6 @@ Item {
     requestFocusedWindowRefresh()
   }
 
-
   onVisibleChanged: {
     if (visible) {
       if (root.compositorIntegration) {
@@ -564,7 +559,6 @@ Item {
     border.width: Config.themeBorderWidth
     border.color: (Colors.outlineVariant)
     clip: true
-
   }
 
   Grid {
@@ -651,21 +645,16 @@ Item {
               : Math.min(width, height) / 2)
 
           color: {
-            if (modelData.isFocused) return ((Colors.primary))
+            if (modelData.isFocused) return Colors.primary
             var base = modelData.isOccupied
-              ? ((Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.55)))
+              ? Qt.rgba(Colors.primary.r, Colors.primary.g, Colors.primary.b, 0.55)
               : (Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.2))
             return Qt.tint(base, wsMouse.containsMouse ? Colors.hoverOverlay : Qt.rgba(0, 0, 0, 0))
           }
-          border.width: root.integrated || false
+          border.width: root.integrated
             ? 0
-            : (((modelData.isFocused ? 0 : Config.themeBorderWidth)))
+            : (modelData.isFocused ? 0 : Config.themeBorderWidth)
           border.color: {
-
-
-
-
-
             if (modelData.isFocused) return "transparent"
             return Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, modelData.isOccupied ? 0.3 : 0.1)
           }
@@ -737,8 +726,6 @@ Item {
           id: numberedWorkspaceShadow
           visible: root.workspaceStyle === "numbers"
             && modelData.isFocused
-            && true
-            && true
           anchors.centerIn: parent
           anchors.verticalCenterOffset: root.horizontal ? 2 : 0
           anchors.horizontalCenterOffset: 0
@@ -781,7 +768,7 @@ Item {
             }
 
             Rectangle {
-              visible: modelData.isOccupied && !modelData.isFocused && true
+              visible: modelData.isOccupied && !modelData.isFocused
               width: 6
               height: 6
               radius: 3
@@ -790,7 +777,6 @@ Item {
               anchors.verticalCenterOffset: -1
             }
           }
-
 
           Text {
             id: verticalWorkspaceLabel

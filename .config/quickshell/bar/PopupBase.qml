@@ -22,7 +22,6 @@ PanelWindow {
   property real surfaceWidth: Config.popupWidth
   property real surfaceHeight: 0
 
-
   property color surfaceColor: Colors.readingSurface
   readonly property alias bg: bg
   default property alias content: bg.data
@@ -41,8 +40,7 @@ PanelWindow {
 
   anchors.left: true
 
-  margins.left: (Config.barFormMetrics.pills && (false)
-    ? Config.barWidth + 18 : Config.barWidth) + Config.barFormMetrics.edgeGap + Config.spacingMedium
+  margins.left: Config.barWidth + Config.barFormMetrics.edgeGap + Config.spacingMedium
   property int screenH: Screen.desktopAvailableHeight
 
   anchors.top: true
@@ -51,15 +49,11 @@ PanelWindow {
   onVisibleChanged: {
     if (visible) {
       if (Config.reducedMotion) {
-        entryAnimation.stop()
         materialEntryAnimation.stop()
-        reducedMotionEntryAnimation.stop()
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
         transX.x = 0
-        {
-          bg.opacity = 1.0
-        }
+        bg.opacity = 1.0
       } else {
         materialEntryAnimation.restart()
       }
@@ -90,7 +84,6 @@ PanelWindow {
       onDismissed: root.dismissed()
     }
 
-
     Rectangle {
       id: bg
       anchors.fill: parent
@@ -99,7 +92,6 @@ PanelWindow {
       clip: true
       border.width: Config.themeBorderWidth
       border.color: Colors.outlineVariant
-
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -111,44 +103,6 @@ PanelWindow {
         surfaceTarget: bg
         scaleTarget: scaleTransform
         translationTarget: transX
-      }
-
-      ParallelAnimation {
-        id: entryAnimation
-        NumberAnimation {
-          target: scaleTransform
-          properties: "xScale,yScale"
-          from: Config.surfaceEntryScale
-          to: 1.0
-          duration: Config.surfaceEntryDuration
-          easing.type: Config.themeMotionEasing
-        }
-        NumberAnimation {
-          target: transX
-          property: "x"
-          from: Config.surfaceEntryOffset
-          to: 0
-          duration: Config.surfaceEntryDuration
-          easing.type: Config.themeMotionEasing
-        }
-        NumberAnimation {
-          target: bg
-          property: "opacity"
-          from: 0.0
-          to: 1.0
-          duration: Config.surfaceOpacityDuration
-          easing.type: Easing.OutCubic
-        }
-      }
-
-      NumberAnimation {
-        id: reducedMotionEntryAnimation
-        target: bg
-        property: "opacity"
-        from: 0.0
-        to: 1.0
-        duration: Config.reducedMotionFadeDuration
-        easing.type: Easing.OutCubic
       }
     }
   }

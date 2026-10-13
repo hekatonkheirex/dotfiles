@@ -168,7 +168,6 @@ PanelWindow {
     Quickshell.execDetached(option.cmd)
   }
 
-
   implicitWidth: Config.popupWidth
   visible: false
   implicitHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500)
@@ -273,13 +272,10 @@ PanelWindow {
     if (visible) {
       if (Config.reducedMotion) {
         entryAnimation.stop()
-        reducedMotionEntryAnimation.stop()
         scaleTransform.xScale = 1.0
         scaleTransform.yScale = 1.0
         transX.x = 0
-        {
-          bg.opacity = 1.0
-        }
+        bg.opacity = 1.0
       } else {
         entryAnimation.start()
       }
@@ -331,7 +327,8 @@ PanelWindow {
       } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Right
           || event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
         var len = root.powerOptions.length + 2
-        var delta = event.key === Qt.Key_Left ? -1 : (event.key === Qt.Key_Right ? 1 : 3)
+        // 3 columns x 2 rows: Up/Down jump a row (wrapping), Left/Right step one.
+        var delta = event.key === Qt.Key_Left ? -1 : (event.key === Qt.Key_Right ? 1 : (event.key === Qt.Key_Up ? -3 : 3))
         var nextIndex = root.activePowerIndex < 0 ? 0 : (root.activePowerIndex + delta + len) % len
         root.focusPower(nextIndex)
         event.accepted = true
@@ -349,7 +346,6 @@ PanelWindow {
       }
     }
 
-
     Rectangle {
       id: bg
       anchors.fill: parent
@@ -357,7 +353,6 @@ PanelWindow {
       color: Colors.surface
       clip: true
       DashedFrame { anchors.fill: parent; active: root.visible; radius: bg.radius }
-
 
       transform: [
         Translate { id: transX; x: 0 },
@@ -390,16 +385,6 @@ PanelWindow {
           duration: Config.surfaceOpacityDuration
           easing.type: Easing.OutCubic
         }
-      }
-
-      NumberAnimation {
-        id: reducedMotionEntryAnimation
-        target: bg
-        property: "opacity"
-        from: 0.0
-        to: 1.0
-        duration: Config.reducedMotionFadeDuration
-        easing.type: Easing.OutCubic
       }
 
       Column {
@@ -529,7 +514,6 @@ PanelWindow {
             root.showControlHint("Do Not Disturb", Settings.doNotDisturb, hovered || activeFocus)
           }
         }
-
       }
 
         Rectangle {
@@ -656,6 +640,5 @@ PanelWindow {
       }
     }
   }
-
   }
 }

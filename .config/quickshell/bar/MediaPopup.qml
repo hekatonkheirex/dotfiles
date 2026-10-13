@@ -104,7 +104,7 @@ PopupBase {
       Layout.alignment: Qt.AlignHCenter
       width: 200
       height: 200
-      visible: Settings.mediaShowAlbumArt && (true)
+      visible: Settings.mediaShowAlbumArt
 
       Canvas {
         id: vizCanvas
@@ -120,8 +120,6 @@ PopupBase {
           ctx.clearRect(0, 0, width, height);
           var bars = root.cavaBarValues;
           if (!bars || bars.length === 0) return;
-
-
 
           var cx = width / 2;
           var cy = height / 2;
@@ -187,7 +185,6 @@ PopupBase {
           asynchronous: true
           sourceSize: Qt.size(width * 2, height * 2)
 
-
           layer.enabled: true
           layer.effect: MultiEffect {
             maskEnabled: true
@@ -252,7 +249,7 @@ PopupBase {
     RowLayout {
       Layout.fillWidth: true
       spacing: Config.spacingSmall
-      visible: Settings.mediaShowProgressBar && (true)
+      visible: Settings.mediaShowProgressBar
 
       Text {
         text: root.formatTime(root.elapsedSeconds)
@@ -273,7 +270,6 @@ PopupBase {
         dotRadius: 4
         trackLineWidth: 2
       }
-
 
       Text {
         text: root.mprisLengthStr
