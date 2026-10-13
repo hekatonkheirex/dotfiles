@@ -3,9 +3,9 @@ import QtQml
 import Quickshell.Io
 import "WindowState.js" as WindowState
 
-// niri event-stream state for the elena dock. The stream runs only while the
-// elena style is active; stopping it for any reason resets the state so a
-// stale "workspace empty" can never show the dock under another style.
+// niri event-stream state for the elena dock. The stream always runs; when it
+// ends, the state resets (so a stale "workspace empty" never shows the dock)
+// and a retry restarts it after retryMs.
 QtObject {
   id: root
 
@@ -13,12 +13,11 @@ QtObject {
   readonly property var windows: root.state.windows
   readonly property var focusedWindowId: root.state.focusedWindowId
   readonly property bool workspaceEmpty: WindowState.workspaceEmpty(root.state)
-  readonly property bool running: Config.elenaTheme
 
   property int retryMs: 1000
-  // True between a stream ending under elena and the retry firing. Part of the
+  // True between a stream ending and the retry firing. Part of the
   // Process.running binding so a restart never needs an imperative assignment
-  // (which would break the elenaTheme binding for good).
+  // (which would break the binding for good).
   property bool backoff: false
 
   function feed(line) {
@@ -34,17 +33,15 @@ QtObject {
 
   property Process stream: Process {
     command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) exec niri msg -j event-stream"]
-    running: Config.elenaTheme && !root.backoff
+    running: !root.backoff
     stdout: SplitParser {
       onRead: function(line) { root.feed(line) }
     }
     onRunningChanged: {
       if (running) return
       root.state = WindowState.empty()
-      if (Config.elenaTheme) {
-        root.backoff = true
-        retry.restart()
-      }
+      root.backoff = true
+      retry.restart()
     }
   }
 
@@ -53,6 +50,4 @@ QtObject {
     repeat: false
     onTriggered: root.backoff = false
   }
-
-  onRunningChanged: if (!running) { backoff = false; retry.stop() }
 }

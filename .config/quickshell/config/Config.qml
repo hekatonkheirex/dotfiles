@@ -16,39 +16,33 @@ QtObject {
   }
   readonly property bool isNiri: wmType === "niri"
   readonly property bool isMango: wmType === "mango"
-  // UI style is separate from the desktop palette. Material 3 and Liquid
-  // Glass consume Matugen roles; Nothing Classic and Ghost use authored
-  // palettes, while Nothing Evolution uses the adaptive cache.
-  readonly property bool nothingDesign: Settings.themeStyle === "nothing"
-  readonly property bool nothingEvolution: nothingDesign && Settings.nothingVariant === "evolution"
-  readonly property bool ghostTheme: Settings.themeStyle === "ghost"
-  readonly property bool dwmTheme: Settings.themeStyle === "dwm"
-  // elena rides the Material control path (material3Theme stays true); this
-  // flag gates its palette default and the bar, which becomes the top-edge
-  // row of workspace blocks (barWidth = tagStripHeight, form full, top).
-  readonly property bool elenaTheme: Settings.themeStyle === "elena"
+  // elena is the only UI style. The bar is the top-edge row of workspace
+  // blocks (barWidth = tagStripHeight, form full, top).
+  readonly property bool elenaTheme: true
+  // Collapsed style flags kept only while bar/ call sites still read them
+  // (Tasks 5 to 8 remove the readers, Task 9 removes these).
+  readonly property bool nothingDesign: false
+  readonly property bool nothingEvolution: false
+  readonly property bool ghostTheme: false
+  readonly property bool dwmTheme: false
+  readonly property bool liquidGlassTheme: false
+  readonly property bool material3Theme: true
+  readonly property bool materialCompact: false
+  readonly property bool spatialMotion: true
+  readonly property bool expressiveMotion: true
+  readonly property real evolutionSurfaceAlpha: 0.86
+  readonly property real evolutionRaisedAlpha: 0.92
+  readonly property real evolutionControlAlpha: 0.86
   readonly property int tagStripHeight: 8
-  readonly property bool liquidGlassTheme: Settings.themeStyle === "liquid-glass"
-  readonly property bool material3Theme: !nothingDesign && !ghostTheme && !liquidGlassTheme && !dwmTheme
 
-  // Liquid Glass transient surfaces retain compositor glass blur, except
-  // the full-screen click-outside shield, which Niri excludes explicitly.
-  // The persistent bar stays on the standard panel namespace. The lock
-  // surface owns its own full-screen wallpaper blur.
   function layerNamespace(kind) {
-    return liquidGlassTheme && kind !== "panel"
-      ? "quickshell-liquid-glass-" + kind
-      : "quickshell-" + kind
+    return "quickshell-" + kind
   }
 
-  // Compact X390 geometry and shared spacing used by active surfaces.
-  // Live-adjustable via the Appearance settings tab's Bar Size slider.
-  // Ghost uses the same selected thickness as other styles; its geometry
-  // stays square rather than capping the rail at 34px.
-  readonly property int barWidth: elenaTheme ? tagStripHeight : Settings.barSize
+  readonly property int barWidth: tagStripHeight
   readonly property int widgetSize: barWidth
-  // Geometry of the selected bar form (full, fit, dock, notch, pill).
-  readonly property var barFormMetrics: BarForm.metrics(BarForm.resolve(Settings.barForm, dwmTheme || elenaTheme), {
+  // elena draws its own flat bar: the saved form is kept but resolves to full.
+  readonly property var barFormMetrics: BarForm.metrics(BarForm.resolve(Settings.barForm, true), {
     barWidth: barWidth, spacingSmall: spacingSmall, spacingLarge: spacingLarge
   })
   // Live-adjustable via the Appearance settings tab (single density scale);
@@ -61,34 +55,18 @@ QtObject {
   property int spacingLarge: Math.round(16 * spacingScale)
   property int spacingExtraLarge: Math.round(24 * spacingScale)
   property int spacingPage: Math.round(32 * spacingScale)
-  // Explicit desktop density changes geometry, never the user's type scale.
-  readonly property bool materialCompact: material3Theme && Settings.materialCompact
-  readonly property int controlHitSize: materialCompact ? 40 : 48
-  readonly property int materialRowPadding: materialCompact ? spacingSmall : spacingLarge
-  readonly property int settingsContentMaxWidth: material3Theme ? 1120 : settingsMaxWidth
+  readonly property int controlHitSize: 48
+  readonly property int materialRowPadding: spacingLarge
+  readonly property int settingsContentMaxWidth: 1120
   // Reserve visual breathing room between tab content and the outer settings
   // scrollbar, which is intentionally overlaid on the Flickable edge.
   readonly property int settingsScrollbarGutter: spacingMedium
 
-  // Classic keeps its NType display and mono labels, but uses a readable
-  // sans for dense settings copy instead of setting paragraphs in display type.
-  readonly property string fontFamily: nothingEvolution
-    ? "Geist"
-    : (nothingDesign ? "Noto Sans" : (ghostTheme ? "JetBrains Mono" : (dwmTheme ? "monospace" : "Roboto Flex")))
-  readonly property string monoFontFamily: nothingEvolution
-    ? "Geist Mono"
-    : (nothingDesign ? "NType 82 Mono" : (ghostTheme ? "JetBrains Mono" : (dwmTheme ? "monospace" : "Roboto Flex")))
-  readonly property string displayFontFamily: nothingEvolution
-    ? "Geist"
-    : (nothingDesign ? "NType 82 Headline" : fontFamily)
-  // Evolution dials dot-matrix typography back to intentional accent areas;
-  // compact clocks and numeric readouts use Geist Mono instead.
-  readonly property string dotFontFamily: nothingEvolution
-    ? "Geist Mono"
-    : (nothingDesign ? "Ndot 57" : displayFontFamily)
-  // Material 3 and Ghost use outlined icons; Nothing uses rounded symbols.
-  // Liquid Glass uses SF glyphs from the locally installed SF Pro Text font.
-  readonly property string iconFont: nothingDesign ? "Material Symbols Rounded" : "Material Symbols Outlined"
+  readonly property string fontFamily: "Roboto Flex"
+  readonly property string monoFontFamily: "Roboto Flex"
+  readonly property string displayFontFamily: fontFamily
+  readonly property string dotFontFamily: displayFontFamily
+  readonly property string iconFont: "Material Symbols Outlined"
   readonly property int iconWeight: 400
   readonly property int iconGrade: 0
   function iconVariableAxes(fill, pixelSize) {
@@ -107,44 +85,39 @@ QtObject {
   property int iconSize: Settings.iconSize
   property int fontPixelSize: Settings.fontPixelSize
 
-  // Material's baseline type scale follows the existing font-size preference.
-  // Keep the other styles' compact mappings independent of Material density.
+  // The type scale follows the font-size preference (Settings.fontPixelSize).
   readonly property real materialTypeScale: Math.max(0.85, fontPixelSize / 12)
-  readonly property int typeLabelSmallSize: material3Theme ? Math.round(11 * materialTypeScale)
-    : (nothingDesign && !nothingEvolution ? Math.max(12, fontPixelSize) : Math.max(8, fontPixelSize - 1))
-  readonly property int typeLabelMediumSize: material3Theme ? Math.round(12 * materialTypeScale)
-    : fontPixelSize + (ghostTheme ? 1 : 0)
-  readonly property int typeLabelLargeSize: material3Theme ? Math.round(14 * materialTypeScale) : fontPixelSize + 2
-  readonly property int typeBodySmallSize: material3Theme ? Math.round(12 * materialTypeScale)
-    : (nothingDesign && !nothingEvolution ? Math.max(12, fontPixelSize) : Math.max(10, fontPixelSize - 1))
-  readonly property int typeBodyMediumSize: material3Theme ? Math.round(14 * materialTypeScale)
-    : fontPixelSize + (ghostTheme ? 2 : 1)
-  readonly property int typeBodyLargeSize: material3Theme ? Math.round(16 * materialTypeScale) : fontPixelSize + 3
-  readonly property int typeTitleSmallSize: material3Theme ? Math.round(14 * materialTypeScale) : fontPixelSize + 2
-  readonly property int typeTitleMediumSize: material3Theme ? Math.round(16 * materialTypeScale) : fontPixelSize + 3
-  readonly property int typeTitleLargeSize: material3Theme ? Math.round(22 * materialTypeScale) : fontPixelSize + 5
-  readonly property int typeHeadlineSmallSize: material3Theme ? Math.round(24 * materialTypeScale) : fontPixelSize + 8
-  readonly property int typeHeadlineMediumSize: material3Theme ? Math.round(28 * materialTypeScale) : fontPixelSize + 12
-  readonly property int typeHeadlineLargeSize: material3Theme ? Math.round(32 * materialTypeScale) : fontPixelSize + 16
-  readonly property int typeDisplaySmallSize: material3Theme ? Math.round(36 * materialTypeScale) : fontPixelSize + 20
-  readonly property int typeDisplayMediumSize: material3Theme ? Math.round(45 * materialTypeScale) : fontPixelSize + 28
-  readonly property int typeDisplayLargeSize: material3Theme ? Math.round(57 * materialTypeScale) : fontPixelSize + 36
+  readonly property int typeLabelSmallSize: Math.round(11 * materialTypeScale)
+  readonly property int typeLabelMediumSize: Math.round(12 * materialTypeScale)
+  readonly property int typeLabelLargeSize: Math.round(14 * materialTypeScale)
+  readonly property int typeBodySmallSize: Math.round(12 * materialTypeScale)
+  readonly property int typeBodyMediumSize: Math.round(14 * materialTypeScale)
+  readonly property int typeBodyLargeSize: Math.round(16 * materialTypeScale)
+  readonly property int typeTitleSmallSize: Math.round(14 * materialTypeScale)
+  readonly property int typeTitleMediumSize: Math.round(16 * materialTypeScale)
+  readonly property int typeTitleLargeSize: Math.round(22 * materialTypeScale)
+  readonly property int typeHeadlineSmallSize: Math.round(24 * materialTypeScale)
+  readonly property int typeHeadlineMediumSize: Math.round(28 * materialTypeScale)
+  readonly property int typeHeadlineLargeSize: Math.round(32 * materialTypeScale)
+  readonly property int typeDisplaySmallSize: Math.round(36 * materialTypeScale)
+  readonly property int typeDisplayMediumSize: Math.round(45 * materialTypeScale)
+  readonly property int typeDisplayLargeSize: Math.round(57 * materialTypeScale)
 
-  readonly property int typeLabelSmallLineHeight: material3Theme ? Math.round(16 * materialTypeScale) : 16
-  readonly property int typeLabelMediumLineHeight: material3Theme ? Math.round(16 * materialTypeScale) : 18
-  readonly property int typeLabelLargeLineHeight: material3Theme ? Math.round(20 * materialTypeScale) : 20
-  readonly property int typeBodySmallLineHeight: material3Theme ? Math.round(16 * materialTypeScale) : 16
-  readonly property int typeBodyMediumLineHeight: material3Theme ? Math.round(20 * materialTypeScale) : 19
-  readonly property int typeBodyLargeLineHeight: material3Theme ? Math.round(24 * materialTypeScale) : 22
-  readonly property int typeTitleSmallLineHeight: material3Theme ? Math.round(20 * materialTypeScale) : 18
-  readonly property int typeTitleMediumLineHeight: material3Theme ? Math.round(24 * materialTypeScale) : 20
-  readonly property int typeTitleLargeLineHeight: material3Theme ? Math.round(28 * materialTypeScale) : 22
-  readonly property int typeHeadlineSmallLineHeight: material3Theme ? Math.round(32 * materialTypeScale) : 24
-  readonly property int typeHeadlineMediumLineHeight: material3Theme ? Math.round(36 * materialTypeScale) : 28
-  readonly property int typeHeadlineLargeLineHeight: material3Theme ? Math.round(40 * materialTypeScale) : 32
-  readonly property int typeDisplaySmallLineHeight: material3Theme ? Math.round(44 * materialTypeScale) : 36
-  readonly property int typeDisplayMediumLineHeight: material3Theme ? Math.round(52 * materialTypeScale) : 44
-  readonly property int typeDisplayLargeLineHeight: material3Theme ? Math.round(64 * materialTypeScale) : 52
+  readonly property int typeLabelSmallLineHeight: Math.round(16 * materialTypeScale)
+  readonly property int typeLabelMediumLineHeight: Math.round(16 * materialTypeScale)
+  readonly property int typeLabelLargeLineHeight: Math.round(20 * materialTypeScale)
+  readonly property int typeBodySmallLineHeight: Math.round(16 * materialTypeScale)
+  readonly property int typeBodyMediumLineHeight: Math.round(20 * materialTypeScale)
+  readonly property int typeBodyLargeLineHeight: Math.round(24 * materialTypeScale)
+  readonly property int typeTitleSmallLineHeight: Math.round(20 * materialTypeScale)
+  readonly property int typeTitleMediumLineHeight: Math.round(24 * materialTypeScale)
+  readonly property int typeTitleLargeLineHeight: Math.round(28 * materialTypeScale)
+  readonly property int typeHeadlineSmallLineHeight: Math.round(32 * materialTypeScale)
+  readonly property int typeHeadlineMediumLineHeight: Math.round(36 * materialTypeScale)
+  readonly property int typeHeadlineLargeLineHeight: Math.round(40 * materialTypeScale)
+  readonly property int typeDisplaySmallLineHeight: Math.round(44 * materialTypeScale)
+  readonly property int typeDisplayMediumLineHeight: Math.round(52 * materialTypeScale)
+  readonly property int typeDisplayLargeLineHeight: Math.round(64 * materialTypeScale)
 
   // Qt expresses tracking in pixels. Keep display/headline tracking slightly
   // tight, leave body copy neutral, and give labels only a subtle separation.
@@ -181,24 +154,18 @@ QtObject {
     + clockLineSpacing
     + spacingMedium * 2
 
-  // Nothing uses soft corners; Liquid Glass uses restrained macOS-like
-  // geometry. Ghost keeps its square HUD panels.
   readonly property int shapeCompact: 8
   readonly property int shapeMedium: 12
   readonly property int shapeLarge: 20
-  // Keep Settings cards nested within the Evolution window's larger corners.
-  readonly property int settingsCardRadius: nothingEvolution ? shapeMedium : shapeLarge
+  readonly property int settingsCardRadius: shapeLarge
   readonly property int borderRadius: shapeLarge
-  readonly property int popupRadius: liquidGlassTheme ? 20 : borderRadius
-  readonly property int barRadius: liquidGlassTheme
-    ? shapeLarge
-    : (nothingEvolution ? shapeMedium : ((nothingDesign || ghostTheme) ? 0 : borderRadius))
+  readonly property int popupRadius: borderRadius
+  readonly property int barRadius: borderRadius
   readonly property int themeBorderWidth: 1
   readonly property int themeFocusBorderWidth: 2
-  readonly property int themeLabeledActionButtonHeight: (nothingDesign || ghostTheme) ? 64 : 48
-  readonly property int themeOptionGap: nothingEvolution || liquidGlassTheme ? spacingSmall : spacingCompact
-  readonly property int themeFontWeight: nothingEvolution || liquidGlassTheme
-    ? Font.Medium : (nothingDesign ? Font.Medium : Font.Normal)
+  readonly property int themeLabeledActionButtonHeight: 48
+  readonly property int themeOptionGap: spacingCompact
+  readonly property int themeFontWeight: Font.Normal
 
   // Motion is centralized here. reducedMotion mirrors the persisted Settings
   // singleton directly; compatibility consumers continue using animationDuration.
@@ -208,49 +175,24 @@ QtObject {
   readonly property int motionLong: reducedMotion ? 0 : 140
   readonly property int motionExtraLong: reducedMotion ? 0 : 220
   readonly property int animationDuration: motionMedium
-  // Workspace geometry responds to selection. Material can settle with a
-  // little spring, while Nothing and Ghost stop sharply and glass stays soft.
-  readonly property bool spatialMotion: !nothingDesign && !ghostTheme
-  readonly property bool expressiveMotion: spatialMotion && !liquidGlassTheme
-  readonly property real motionSpatialSpring: ghostTheme ? 24.0
-    : (nothingDesign ? 18.0 : (liquidGlassTheme ? 11.0 : 8.0))
-  readonly property real motionSpatialDamping: material3Theme ? 0.82 : 1.0
+  // Workspace geometry responds to selection with a little spring.
+  readonly property real motionSpatialSpring: 8.0
+  readonly property real motionSpatialDamping: 0.82
   readonly property real motionSpatialMass: 1.0
   readonly property real motionSpatialEpsilon: 0.01
   readonly property real motionEffectsSpring: 12.0
-  // One entrance grammar per style, shared by Settings, launcher and menus.
-  readonly property real surfaceEntryScale: ghostTheme || (nothingDesign && !nothingEvolution)
-    ? 1.0 : (nothingEvolution ? 0.98 : (liquidGlassTheme ? 0.97 : 0.985))
-  readonly property real surfaceEntryOffset: ghostTheme ? -8
-    : (nothingDesign ? -12 : (liquidGlassTheme ? -10 : -6))
-  readonly property int surfaceEntryDuration: reducedMotion ? 0
-    : (ghostTheme ? 90 : (nothingDesign ? (nothingEvolution ? 120 : 100)
-      : (liquidGlassTheme ? 160 : 190)))
-  readonly property int surfaceOpacityDuration: reducedMotion ? 0
-    : (ghostTheme ? 80 : (nothingDesign ? 95 : (liquidGlassTheme ? 110 : 140)))
-  readonly property real toastEntryScale: ghostTheme || (nothingDesign && !nothingEvolution)
-    ? 1.0 : (nothingEvolution ? 0.98 : (liquidGlassTheme ? 0.98 : 0.985))
-  readonly property real toastEntryOffset: ghostTheme ? 14
-    : (nothingDesign ? 22 : (liquidGlassTheme ? 18 : 8))
-  readonly property int toastEntryDuration: reducedMotion ? 0
-    : (ghostTheme ? 100 : (nothingDesign ? 120 : (liquidGlassTheme ? 160 : 190)))
-  // Reduced motion keeps a short opacity-only acknowledgement for Liquid
-  // Glass, while removing spatial movement, scale, and decorative morphs.
-  readonly property int reducedMotionFadeDuration: liquidGlassTheme && reducedMotion ? 80 : 0
-  readonly property int controlMotionDuration: liquidGlassTheme
-    ? (reducedMotion ? 0 : 120)
-    : (reducedMotion ? 0 : 150)
-  readonly property int transientFadeDuration: liquidGlassTheme
-    ? (reducedMotion ? reducedMotionFadeDuration : 160)
-    : (reducedMotion ? 0 : 300)
-  // Surface entrances use concise, theme-aware easing; interactive controls
-  // keep their own shorter motion tokens.
-  readonly property int themeMotionEasing: (nothingDesign || ghostTheme || liquidGlassTheme)
-    ? Easing.OutCubic
-    : Easing.OutBack
-  readonly property real evolutionSurfaceAlpha: 0.86
-  readonly property real evolutionRaisedAlpha: 0.92
-  readonly property real evolutionControlAlpha: 0.86
+  // One entrance grammar shared by Settings, launcher and menus.
+  readonly property real surfaceEntryScale: 0.985
+  readonly property real surfaceEntryOffset: -6
+  readonly property int surfaceEntryDuration: reducedMotion ? 0 : 190
+  readonly property int surfaceOpacityDuration: reducedMotion ? 0 : 140
+  readonly property real toastEntryScale: 0.985
+  readonly property real toastEntryOffset: 8
+  readonly property int toastEntryDuration: reducedMotion ? 0 : 190
+  readonly property int reducedMotionFadeDuration: 0
+  readonly property int controlMotionDuration: reducedMotion ? 0 : 150
+  readonly property int transientFadeDuration: reducedMotion ? 0 : 300
+  readonly property int themeMotionEasing: Easing.OutBack
 
   readonly property int popupWidth: 340
   readonly property int launcherWidth: 460
@@ -260,7 +202,7 @@ QtObject {
   // Shared label column for remote settings rows. Sized for the longest
   // current label while allowing larger type settings to preserve full text.
   readonly property int settingsRowLabelWidth: 200
-  readonly property int settingsMaxWidth: material3Theme ? 1440 : 1100
+  readonly property int settingsMaxWidth: 1440
   readonly property int settingsDefaultWidth: 1100
   readonly property int settingsDefaultHeight: 900
   readonly property int volumeStep: 5

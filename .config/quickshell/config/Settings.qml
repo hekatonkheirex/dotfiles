@@ -74,7 +74,6 @@ FileView {
     reduceMotion: false,
     reduceTransparency: false,
     spacingScale: 1.0,
-    materialCompact: false,
     systemShowUptime: true,
     colorSource: "live",
     colorPalette: "material3",
@@ -82,8 +81,6 @@ FileView {
     colorContrast: "standard",
     accentPalette: "",
     accentActive: "",
-    themeStyle: "nothing",
-    nothingVariant: "evolution",
     lockClockFace: "micrographics",
     themePreference: 0,
     timezone: "",
@@ -135,11 +132,6 @@ FileView {
     var normalizedPins = DockModel.pinnedToCsv(dockPinned)
     if (normalizedPins !== dockPinned) {
       dockPinned = normalizedPins
-      needsSave = true
-    }
-    if (themeStyle === "neo-brutalism") {
-      themeStyle = "nothing"
-      nothingVariant = "evolution"
       needsSave = true
     }
     if (needsSave) root.save()
@@ -201,7 +193,6 @@ FileView {
   property alias notificationToastDurationMs: adapter.notificationToastDurationMs
   property alias reduceMotion: adapter.reduceMotion
   property alias spacingScale: adapter.spacingScale
-  property alias materialCompact: adapter.materialCompact
   property alias systemShowUptime: adapter.systemShowUptime
   property alias colorSource: adapter.colorSource
   property alias colorPalette: adapter.colorPalette
@@ -209,14 +200,19 @@ FileView {
   property alias colorContrast: adapter.colorContrast
   property alias accentPalette: adapter.accentPalette
   property alias accentActive: adapter.accentActive
-  property alias nothingVariant: adapter.nothingVariant
-  property alias themeStyle: adapter.themeStyle
   property alias themePreference: adapter.themePreference
   property alias timezone: adapter.timezone
   property alias weatherAllowIpGeolocation: adapter.weatherAllowIpGeolocation
   property alias weatherLocation: adapter.weatherLocation
   property alias weatherRefreshIntervalMinutes: adapter.weatherRefreshIntervalMinutes
   property alias weatherUnits: adapter.weatherUnits
+
+  // elena is the only UI style. These are no longer persisted (stale keys in
+  // settings.json are ignored); read-only shims stay while bar/ and shell.qml
+  // still read them (Tasks 5 to 8 remove the readers, Task 9 the shims).
+  readonly property string themeStyle: "elena"
+  readonly property string nothingVariant: "evolution"
+  readonly property bool materialCompact: false
 
   function save() {
     root.writeAdapter()
@@ -230,7 +226,6 @@ FileView {
     iconSize = root.defaults.iconSize
     reduceTransparency = root.defaults.reduceTransparency
     spacingScale = root.defaults.spacingScale
-    materialCompact = root.defaults.materialCompact
     workspaceShape = root.defaults.workspaceShape
     workspaceCount = root.defaults.workspaceCount
     colorSource = root.defaults.colorSource
@@ -239,8 +234,6 @@ FileView {
     colorContrast = root.defaults.colorContrast
     accentPalette = root.defaults.accentPalette
     accentActive = root.defaults.accentActive
-    themeStyle = root.defaults.themeStyle
-    nothingVariant = root.defaults.nothingVariant
     lockClockFace = root.defaults.lockClockFace
     themePreference = root.defaults.themePreference
   }
@@ -355,7 +348,6 @@ FileView {
     property real notificationToastDurationMs: root.defaults.notificationToastDurationMs
     property bool reduceMotion: root.defaults.reduceMotion
     property real spacingScale: root.defaults.spacingScale
-    property bool materialCompact: root.defaults.materialCompact
     property bool systemShowUptime: root.defaults.systemShowUptime
     // Live reads the wallpaper-generated Matugen roles; fixed selects a
     // curated semantic palette from PaletteCatalog.js.
@@ -367,10 +359,6 @@ FileView {
     // empty active keeps the style default.
     property string accentPalette: root.defaults.accentPalette
     property string accentActive: root.defaults.accentActive
-    // Nothing Classic remains selectable until Evolution's release and review;
-    // Evolution uses wallpaper-aware roles.
-    property string themeStyle: root.defaults.themeStyle
-    property string nothingVariant: root.defaults.nothingVariant
     property string lockClockFace: root.defaults.lockClockFace
     // 0 = auto, 1 = light, 2 = dark.
     property int themePreference: root.defaults.themePreference

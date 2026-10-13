@@ -198,19 +198,10 @@ ShellRoot {
         keyClick(Qt.Key_PageDown)
         win.check("slider: page down lowers value", win.sliderValue < 1)
 
-        var comfortableWidth = icon.width
-        var bodySize = Config.typeBodyLargeSize
-        Settings.materialCompact = true
-        wait(100)
-        win.check("density: smaller targets preserve readable type",
-          icon.width < comfortableWidth && Config.typeBodyLargeSize === bodySize)
-        var beforeCompactClick = win.clicks
+        var beforeEdgeClick = win.clicks
         mouseClick(icon, icon.width / 2, icon.height - 1)
-        win.check("density: entire compact target remains interactive",
-          win.clicks === beforeCompactClick + 1)
-        Settings.materialCompact = false
-        wait(100)
-        win.check("density: comfortable targets restore", icon.width === comfortableWidth)
+        win.check("hit target: entire 48px target is interactive",
+          icon.width === Config.controlHitSize && win.clicks === beforeEdgeClick + 1)
 
         icon.tooltipText = "Tooltip visibility check"
         mouseMove(icon, icon.width / 2, icon.height / 2)

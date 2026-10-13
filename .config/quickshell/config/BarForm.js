@@ -7,8 +7,8 @@
 //   dock  narrower body flush with the edge, open desktop at both ends
 //   notch dock body with concave shoulders flowing into the edge
 //   pill  no bar surface, each widget floats in its own pill; horizontal bars
-//         group widgets in outlined capsules joined by a signal wave (Ghost and
-//         vertical bars get per-widget pills only)
+//         group widgets in outlined capsules joined by a signal wave (vertical
+//         bars get per-widget pills only)
 var FORMS = ["full", "fit", "dock", "notch", "pill"]
 
 // Settings written before barForm existed stored `fullBar` (false = pills).
@@ -20,9 +20,10 @@ function normalize(value) {
   return FORMS.indexOf(value) >= 0 ? value : "full"
 }
 
-// dwm and elena draw their own flat bar: the saved form is kept but not applied.
-function resolve(form, dwm) {
-  return dwm ? "full" : normalize(form)
+// A style that draws its own flat bar (elena: Config passes true) keeps the
+// saved form but does not apply it.
+function resolve(form, flat) {
+  return flat ? "full" : normalize(form)
 }
 
 // edgeGap: space between the screen edge and the bar (reserved by the panel).

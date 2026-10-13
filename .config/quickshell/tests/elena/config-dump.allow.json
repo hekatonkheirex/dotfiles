@@ -1,4 +1,10 @@
-{"removed": [], "removedPrefixes": [], "changed": {
+{"removed": [
+  "Colors.dwmTheme"],
+ "removedPrefixes": [
+  "Colors.ghost",
+  "Colors.nothing",
+  "Colors.liquidGlass"],
+ "changed": {
   "Config.shapeLarge": [16, 20],
   "Config.borderRadius": [16, 20],
   "Config.popupRadius": [16, 20],
