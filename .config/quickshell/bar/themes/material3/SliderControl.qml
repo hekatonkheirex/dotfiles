@@ -1,7 +1,7 @@
 import QtQuick
 import "../../../config"
 import "."
-import "../shared"
+import "../../controls"
 import "../../primitives"
 // Liquid Glass reuses this accessible control and supplies its material roles
 // through the facade; the HIG slider remains a flat control within that system.

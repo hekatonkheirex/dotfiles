@@ -1,7 +1,7 @@
 import QtQuick
 import "../../../config"
 import "."
-import "../shared"
+import "../../controls"
 import "../../primitives"
 
 SwitchBase {

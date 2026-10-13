@@ -105,52 +105,50 @@ ShellRoot {
         win.check("action: mouse click activates", win.actions === 3)
         mouseClick(actionOff)
         win.check("action: disabled ignores click", win.actions === 3)
-        if (Config.material3Theme) {
-          mouseMove(win.contentItem, win.width - 2, win.height - 2)
-          wait(300)
-          mouseMove(tonalIcon, tonalIcon.width / 2, tonalIcon.height / 2)
-          wait(300)
-          var image = grabImage(win.contentItem)
-          var sample = tonalIcon.mapToItem(win.contentItem, tonalIcon.width / 2, tonalIcon.height / 2 - 10)
-          var hovered = image.pixel(sample.x, sample.y)
-          var expectedHover = Qt.tint(Colors.secondaryContainer, Colors.hoverOverlay)
-          win.check("tonal icon: hover preserves container tone",
-            Math.abs(hovered.r - expectedHover.r) < 0.02
-              && Math.abs(hovered.g - expectedHover.g) < 0.02
-              && Math.abs(hovered.b - expectedHover.b) < 0.02)
-          mouseMove(win.contentItem, win.width - 2, win.height - 2)
-          tonalIcon.selected = true
-          var selected = grabImage(win.contentItem).pixel(sample.x, sample.y)
-          var selectedDeadline = Date.now() + 2000
-          // Assert the settled state, not a frame-time-dependent spring midpoint.
-          while (Date.now() < selectedDeadline
-              && (Math.abs(selected.r - Colors.primary.r) >= 0.02
-                || Math.abs(selected.g - Colors.primary.g) >= 0.02
-                || Math.abs(selected.b - Colors.primary.b) >= 0.02)) {
-            wait(16)
-            selected = grabImage(win.contentItem).pixel(sample.x, sample.y)
-          }
-          win.check("selected icon: idle is not pressed",
-            Math.abs(selected.r - Colors.primary.r) < 0.02
-              && Math.abs(selected.g - Colors.primary.g) < 0.02
-              && Math.abs(selected.b - Colors.primary.b) < 0.02)
-          // Interrupt an in-flight color effect: reduced motion must snap it.
-          tonalIcon.selected = false
-          Config.reducedMotion = true
-          waitForRendering(tonalIcon)
-          var reduced = grabImage(win.contentItem).pixel(sample.x, sample.y)
-          win.check("reduced motion: interrupted color settles immediately",
-            Math.abs(reduced.r - Colors.secondaryContainer.r) < 0.02
-              && Math.abs(reduced.g - Colors.secondaryContainer.g) < 0.02
-              && Math.abs(reduced.b - Colors.secondaryContainer.b) < 0.02)
-          Config.reducedMotion = false
-          win.check("icon: minimum input target", icon.width >= 48 && icon.height >= 48)
-          var beforeEdgeClick = win.clicks
-          mouseClick(icon, icon.width / 2, 46)
-          win.check("icon: click below compact visual activates", win.clicks === beforeEdgeClick + 1)
-          win.clicks = 0
-          win.check("switch: minimum input target", sw.width >= 48 && sw.height >= 48)
+        mouseMove(win.contentItem, win.width - 2, win.height - 2)
+        wait(300)
+        mouseMove(tonalIcon, tonalIcon.width / 2, tonalIcon.height / 2)
+        wait(300)
+        var image = grabImage(win.contentItem)
+        var sample = tonalIcon.mapToItem(win.contentItem, tonalIcon.width / 2, tonalIcon.height / 2 - 10)
+        var hovered = image.pixel(sample.x, sample.y)
+        var expectedHover = Qt.tint(Colors.secondaryContainer, Colors.hoverOverlay)
+        win.check("tonal icon: hover preserves container tone",
+          Math.abs(hovered.r - expectedHover.r) < 0.02
+            && Math.abs(hovered.g - expectedHover.g) < 0.02
+            && Math.abs(hovered.b - expectedHover.b) < 0.02)
+        mouseMove(win.contentItem, win.width - 2, win.height - 2)
+        tonalIcon.selected = true
+        var selected = grabImage(win.contentItem).pixel(sample.x, sample.y)
+        var selectedDeadline = Date.now() + 2000
+        // Assert the settled state, not a frame-time-dependent spring midpoint.
+        while (Date.now() < selectedDeadline
+            && (Math.abs(selected.r - Colors.primary.r) >= 0.02
+              || Math.abs(selected.g - Colors.primary.g) >= 0.02
+              || Math.abs(selected.b - Colors.primary.b) >= 0.02)) {
+          wait(16)
+          selected = grabImage(win.contentItem).pixel(sample.x, sample.y)
         }
+        win.check("selected icon: idle is not pressed",
+          Math.abs(selected.r - Colors.primary.r) < 0.02
+            && Math.abs(selected.g - Colors.primary.g) < 0.02
+            && Math.abs(selected.b - Colors.primary.b) < 0.02)
+        // Interrupt an in-flight color effect: reduced motion must snap it.
+        tonalIcon.selected = false
+        Config.reducedMotion = true
+        waitForRendering(tonalIcon)
+        var reduced = grabImage(win.contentItem).pixel(sample.x, sample.y)
+        win.check("reduced motion: interrupted color settles immediately",
+          Math.abs(reduced.r - Colors.secondaryContainer.r) < 0.02
+            && Math.abs(reduced.g - Colors.secondaryContainer.g) < 0.02
+            && Math.abs(reduced.b - Colors.secondaryContainer.b) < 0.02)
+        Config.reducedMotion = false
+        win.check("icon: minimum input target", icon.width >= 48 && icon.height >= 48)
+        var beforeEdgeClick = win.clicks
+        mouseClick(icon, icon.width / 2, 46)
+        win.check("icon: click below compact visual activates", win.clicks === beforeEdgeClick + 1)
+        win.clicks = 0
+        win.check("switch: minimum input target", sw.width >= 48 && sw.height >= 48)
 
         // A click focuses the implementation item inside the facade, so the
         // key checks follow a click.
@@ -197,21 +195,19 @@ ShellRoot {
         keyClick(Qt.Key_PageDown)
         win.check("slider: page down lowers value", win.sliderValue < 1)
 
-        if (Config.material3Theme) {
-          var comfortableWidth = icon.width
-          var bodySize = Config.typeBodyLargeSize
-          Settings.materialCompact = true
-          wait(100)
-          win.check("density: smaller targets preserve readable type",
-            icon.width < comfortableWidth && Config.typeBodyLargeSize === bodySize)
-          var beforeCompactClick = win.clicks
-          mouseClick(icon, icon.width / 2, icon.height - 1)
-          win.check("density: entire compact target remains interactive",
-            win.clicks === beforeCompactClick + 1)
-          Settings.materialCompact = false
-          wait(100)
-          win.check("density: comfortable targets restore", icon.width === comfortableWidth)
-        }
+        var comfortableWidth = icon.width
+        var bodySize = Config.typeBodyLargeSize
+        Settings.materialCompact = true
+        wait(100)
+        win.check("density: smaller targets preserve readable type",
+          icon.width < comfortableWidth && Config.typeBodyLargeSize === bodySize)
+        var beforeCompactClick = win.clicks
+        mouseClick(icon, icon.width / 2, icon.height - 1)
+        win.check("density: entire compact target remains interactive",
+          win.clicks === beforeCompactClick + 1)
+        Settings.materialCompact = false
+        wait(100)
+        win.check("density: comfortable targets restore", icon.width === comfortableWidth)
 
         icon.tooltipText = "Tooltip visibility check"
         mouseMove(icon, icon.width / 2, icon.height / 2)

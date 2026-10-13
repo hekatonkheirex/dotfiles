@@ -1,12 +1,9 @@
-// Theme facade. Material 3, Nothing, and Ghost controls share an API;
-// Liquid Glass uses Material control geometry.
 import QtQml
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../../config"
-import "../themes/material3" as Material3
-import "../themes/styled" as Styled
+import "../controls"
 
 FocusScope {
   id: root
@@ -15,9 +12,7 @@ FocusScope {
   property int size: 32
   property int iconSize: 18
   property string variant: "standard"
-  readonly property bool material3Theme: Config.material3Theme
   property color iconColor: {
-    if (!root.material3Theme) return root.selected ? Colors.styleAccentText : Colors.fgSurface
     if (root.selected) return Colors.fgPrimary
     return root.variant === "filled"
       ? Colors.fgSurface
@@ -26,23 +21,16 @@ FocusScope {
   property color hoverColor: Qt.tint("transparent", Colors.hoverOverlay)
   property color pressColor: Qt.tint("transparent", Colors.pressOverlay)
   property color backgroundColor: {
-    if (!root.material3Theme) {
-      if (root.selected) return Colors.styleAccent
-      if (Config.liquidGlassTheme)
-        return Colors.liquidGlassOpaque ? Colors.liquidGlassClear : Qt.rgba(1, 1, 1, Colors.darkMode ? 0.10 : 0.40)
-      return "transparent"
-    }
     if (root.selected) return Colors.primary
     return root.variant === "filled"
       ? Colors.surfaceContainerHighest
       : (root.variant === "tonal" ? Colors.secondaryContainer : "transparent")
   }
-  property color borderColor: root.material3Theme ? Colors.outline : Colors.styleOutline
+  property color borderColor: Colors.outline
   property bool outlined: root.variant === "outlined" && !root.selected
   property bool selected: false
   property bool checkable: false
-  property real radius: Config.liquidGlassTheme || Config.nothingDesign
-    ? Config.shapeCompact : size / 2
+  property real radius: size / 2
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""
@@ -50,10 +38,10 @@ FocusScope {
   signal clicked(var mouse)
   signal wheel(var wheel)
 
-  implicitWidth: root.material3Theme ? Math.max(Config.controlHitSize, size) : size
-  implicitHeight: root.material3Theme ? Math.max(Config.controlHitSize, size) : size
-  Layout.minimumWidth: root.material3Theme ? Config.controlHitSize : 0
-  Layout.minimumHeight: root.material3Theme ? Config.controlHitSize : 0
+  implicitWidth: Math.max(Config.controlHitSize, size)
+  implicitHeight: Math.max(Config.controlHitSize, size)
+  Layout.minimumWidth: Config.controlHitSize
+  Layout.minimumHeight: Config.controlHitSize
   activeFocusOnTab: root.enabled
 
   readonly property bool hovered: implementation.item ? implementation.item.hovered : false
@@ -63,19 +51,12 @@ FocusScope {
     id: implementation
     focus: true
     anchors.fill: parent
-    sourceComponent: (Config.ghostTheme || Config.nothingDesign)
-      ? styledImplementation : materialImplementation
+    sourceComponent: elenaImplementation
   }
 
   Component {
-    id: materialImplementation
-    Material3.IconButton {}
-  }
-
-
-  Component {
-    id: styledImplementation
-    Styled.IconButton {}
+    id: elenaImplementation
+    ElenaIconButton {}
   }
 
   Binding { target: implementation.item; property: "iconLabel"; value: root.iconLabel }

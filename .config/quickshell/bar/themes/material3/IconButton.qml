@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import "../../../config"
 import "."
-import "../shared"
+import "../../controls"
 import "../../primitives"
 
 IconButtonBase {

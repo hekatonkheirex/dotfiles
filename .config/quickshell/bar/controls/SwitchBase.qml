@@ -3,7 +3,7 @@
 // colours, geometry, and visuals; read root.hovered / root.pressed / root.active
 // for pointer state.
 import QtQuick
-import "../../../config"
+import "../../config"
 
 Item {
   id: root

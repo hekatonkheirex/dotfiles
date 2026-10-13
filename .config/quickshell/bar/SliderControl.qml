@@ -1,22 +1,18 @@
-// Material 3, Nothing, and Ghost sliders share an API; Liquid Glass uses a
-// dedicated linear treatment of the Material implementation.
 import QtQml
 import QtQuick
 import "../config"
-import "themes/material3" as Material3
-import "themes/styled" as Styled
+import "controls"
 
 FocusScope {
   id: root
 
   property real value: 0.5
   property bool muted: false
-  readonly property bool material3Theme: Config.material3Theme
   property color activeColor: Colors.primary
-  property color surfaceContainerHigh: Config.liquidGlassTheme ? Colors.liquidGlassRaised : Colors.surfaceContainerHigh
-  property color surfaceContainerHighest: Config.liquidGlassTheme ? Colors.liquidGlassControl : Colors.surfaceContainerHighest
-  property color outline: root.material3Theme ? Colors.outline : Colors.styleOutlineStrong
-  property color focusColor: root.material3Theme ? Colors.primary : activeColor
+  property color surfaceContainerHigh: Colors.surfaceContainerHigh
+  property color surfaceContainerHighest: Colors.surfaceContainerHighest
+  property color outline: Colors.outline
+  property color focusColor: Colors.primary
   property color hoverOverlay: Colors.hoverOverlay
   property color pressOverlay: Colors.pressOverlay
   property int motionDuration: Config.controlMotionDuration
@@ -46,24 +42,12 @@ FocusScope {
     id: implementation
     focus: true
     anchors.fill: parent
-    sourceComponent: Config.liquidGlassTheme ? liquidImplementation
-      : ((Config.ghostTheme || Config.nothingDesign || Config.dwmTheme) ? styledImplementation : materialImplementation)
+    sourceComponent: elenaImplementation
   }
 
   Component {
-    id: materialImplementation
-    Material3.SliderControl {}
-  }
-
-  Component {
-    id: liquidImplementation
-    Material3.SliderControl { liquidGlass: true }
-  }
-
-
-  Component {
-    id: styledImplementation
-    Styled.SliderControl {}
+    id: elenaImplementation
+    ElenaSliderControl {}
   }
 
   Binding { target: implementation.item; property: "value"; value: root.value }

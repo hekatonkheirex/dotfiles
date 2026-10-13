@@ -1,12 +1,9 @@
-// Theme facade. Material 3, Nothing, and Ghost implementations live in
-// separate folders; Liquid Glass reuses Material control geometry.
 import QtQml
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../../config"
-import "../themes/material3" as Material3
-import "../themes/styled" as Styled
+import "../controls"
 
 FocusScope {
   id: root
@@ -19,75 +16,44 @@ FocusScope {
   property string groupPosition: "single"
   property string labelText: ""
   property string variant: "tonal"
-  // Material 3 standard buttons place a leading icon beside the label. The
-  // expressive themes keep their existing stacked treatment by default.
-  property bool horizontalContent: Config.material3Theme || Config.liquidGlassTheme
+  // Standard buttons place a leading icon beside the label.
+  property bool horizontalContent: true
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""
-  // Opt-in only: Material 3 can add an expressive selected-state halo while
-  // the other theme implementations keep their native treatment.
+  // Opt-in only: adds an expressive selected-state halo.
   property bool expressiveSelectedShape: false
-  readonly property bool material3Theme: Config.material3Theme
-  readonly property bool segmented: root.material3Theme
-    && root.grouped
-    && root.groupPosition !== "single"
+  readonly property bool segmented: root.grouped && root.groupPosition !== "single"
   readonly property bool textVariant: root.variant === "text" || root.variant === "quiet"
   readonly property bool filled: root.selected || root.variant === "filled"
   property real iconSize: Config.iconSize + 4
   property real contentSpacing: Config.spacingMedium
   property color iconColor: {
     if (root.segmented) return root.selected ? Colors.fgSecondaryContainer : Colors.fgSurfaceVariant
-    if (root.filled) return Config.ghostTheme || Config.nothingDesign || Config.liquidGlassTheme
-      ? Colors.styleAccentText : Colors.fgPrimary
-    return root.material3Theme && root.variant === "tonal"
-      ? Colors.fgSecondaryContainer
-      : (root.material3Theme ? Colors.primary : Colors.fgSurfaceVariant)
+    if (root.filled) return Colors.fgPrimary
+    return root.variant === "tonal" ? Colors.fgSecondaryContainer : Colors.primary
   }
   property real radius: root.segmented
     ? Math.max(0, root.height / 2)
     : root.grouped
-    ? ((Config.ghostTheme || Config.dwmTheme) ? 0 : (root.selected ? Math.max(0, root.height / 2) : Config.shapeCompact))
-    : ((Config.ghostTheme || Config.dwmTheme) ? 0
-      : (Config.liquidGlassTheme || Config.nothingDesign
-        ? Config.shapeCompact : (root.horizontalContent ? 20 : Config.shapeMedium)))
+    ? (root.selected ? Math.max(0, root.height / 2) : Config.shapeCompact)
+    : (root.horizontalContent ? 20 : Config.shapeMedium)
   property color color: {
     var overlay = root.pressed ? Colors.pressOverlay
       : (root.hovered ? Colors.hoverOverlay
         : (root.activeFocus ? Colors.focusOverlay : Qt.rgba(0, 0, 0, 0)))
-    var base
-    if (root.material3Theme) {
-      base = root.segmented
-        ? (root.selected ? Colors.secondaryContainer : Colors.surfaceContainerLow)
-        : (root.filled
-          ? Colors.primary
-          : (root.textVariant || root.variant === "outlined"
-            ? "transparent"
-            : (root.variant === "elevated" ? Colors.surfaceContainerLow : Colors.secondaryContainer)))
-    } else {
-      base = root.filled
-        ? Colors.styleAccent
-        : (root.textVariant
-          ? (Config.liquidGlassTheme && root.variant === "text" ? "transparent" : Colors.styleSurface)
-          : (Config.liquidGlassTheme
-            ? (Colors.liquidGlassOpaque ? Colors.liquidGlassClear : Qt.rgba(1, 1, 1, Colors.darkMode ? 0.10 : 0.40))
-            : Colors.styleSurfaceRaised))
-    }
+    var base = root.segmented
+      ? (root.selected ? Colors.secondaryContainer : Colors.surfaceContainerLow)
+      : (root.filled
+        ? Colors.primary
+        : (root.textVariant || root.variant === "outlined"
+          ? "transparent"
+          : (root.variant === "elevated" ? Colors.surfaceContainerLow : Colors.secondaryContainer)))
     return Qt.tint(base, overlay)
   }
-  property color borderColor: {
-    if (root.material3Theme) {
-      return root.segmented || (root.variant === "outlined" && !root.filled)
-        ? Colors.outline
-        : "transparent"
-    }
-    return Config.nothingDesign || Config.ghostTheme || Config.liquidGlassTheme
-      ? Colors.styleOutlineStrong
-      : (root.filled || root.textVariant
-        ? "transparent"
-        : (root.variant === "outlined" ? Colors.styleOutlineStrong
-          : Qt.rgba(Colors.styleOutlineStrong.r, Colors.styleOutlineStrong.g, Colors.styleOutlineStrong.b, 0.15)))
-  }
+  property color borderColor: root.segmented || (root.variant === "outlined" && !root.filled)
+    ? Colors.outline
+    : "transparent"
   property real borderWidth: 1
 
   signal activated()
@@ -99,10 +65,9 @@ FocusScope {
       event.accepted = true
     }
   }
-  implicitHeight: root.material3Theme
-    ? Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + (Config.materialCompact ? 16 : 24)) : 0
-  Layout.minimumHeight: root.material3Theme ? implicitHeight : 0
-  Layout.minimumWidth: root.material3Theme ? Config.controlHitSize : 0
+  implicitHeight: Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + 24)
+  Layout.minimumHeight: implicitHeight
+  Layout.minimumWidth: Config.controlHitSize
 
   readonly property bool hovered: implementation.item ? implementation.item.hovered : false
   readonly property bool pressed: implementation.item ? implementation.item.pressed : false
@@ -111,18 +76,12 @@ FocusScope {
     id: implementation
     focus: true
     anchors.fill: parent
-    sourceComponent: (Config.ghostTheme || Config.nothingDesign)
-      ? styledImplementation : materialImplementation
+    sourceComponent: elenaImplementation
   }
 
   Component {
-    id: materialImplementation
-    Material3.ActionButton {}
-  }
-
-  Component {
-    id: styledImplementation
-    Styled.ActionButton {}
+    id: elenaImplementation
+    ElenaActionButton {}
   }
 
   Binding { target: implementation.item; property: "iconLabel"; value: root.iconLabel }
@@ -145,7 +104,7 @@ FocusScope {
     target: implementation.item
     property: "expressiveSelectedShape"
     value: root.expressiveSelectedShape
-    when: root.material3Theme && implementation.item !== null
+    when: implementation.item !== null
   }
   Binding { target: implementation.item; property: "iconSize"; value: root.iconSize }
   Binding { target: implementation.item; property: "contentSpacing"; value: root.contentSpacing }

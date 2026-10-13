@@ -1,24 +1,20 @@
-// Material 3, Nothing, Ghost, and dwm switches share an API; Liquid Glass uses
-// a compact treatment of the Material implementation.
 import QtQml
 import QtQuick
 import QtQuick.Layouts
 import "../config"
-import "themes/material3" as Material3
-import "themes/styled" as Styled
+import "controls"
 
 FocusScope {
   id: root
 
   property bool checked: false
-  readonly property bool material3Theme: Config.material3Theme
   property color activeColor: Colors.primary
-  property color activeContentColor: root.material3Theme ? Colors.fgPrimary : Colors.styleAccentText
+  property color activeContentColor: Colors.fgPrimary
   property color checkmarkColor: activeColor
-  property color surfaceContainerHigh: Config.liquidGlassTheme ? Colors.liquidGlassRaised : Colors.surfaceContainerHigh
-  property color surfaceContainerHighest: Config.liquidGlassTheme ? Colors.liquidGlassControl : Colors.surfaceContainerHighest
-  property color outline: root.material3Theme ? Colors.outline : Colors.styleOutlineStrong
-  property color focusColor: root.material3Theme ? Colors.primary : activeColor
+  property color surfaceContainerHigh: Colors.surfaceContainerHigh
+  property color surfaceContainerHighest: Colors.surfaceContainerHighest
+  property color outline: Colors.outline
+  property color focusColor: Colors.primary
   property color hoverOverlay: Colors.hoverOverlay
   property color pressOverlay: Colors.pressOverlay
   property int motionDuration: Config.controlMotionDuration
@@ -33,11 +29,11 @@ FocusScope {
   }
 
   width: 52
-  height: root.material3Theme ? Config.controlHitSize : 32
+  height: Config.controlHitSize
   implicitWidth: 52
-  implicitHeight: root.material3Theme ? Config.controlHitSize : 32
-  Layout.minimumWidth: root.material3Theme ? Config.controlHitSize : 0
-  Layout.minimumHeight: root.material3Theme ? Config.controlHitSize : 0
+  implicitHeight: Config.controlHitSize
+  Layout.minimumWidth: Config.controlHitSize
+  Layout.minimumHeight: Config.controlHitSize
   activeFocusOnTab: true
 
   readonly property bool hovered: implementation.item ? implementation.item.hovered : false
@@ -48,24 +44,12 @@ FocusScope {
     id: implementation
     focus: true
     anchors.fill: parent
-    sourceComponent: Config.liquidGlassTheme ? liquidImplementation
-      : ((Config.ghostTheme || Config.nothingDesign || Config.dwmTheme) ? styledImplementation : materialImplementation)
+    sourceComponent: elenaImplementation
   }
 
   Component {
-    id: materialImplementation
-    Material3.SwitchControl {}
-  }
-
-  Component {
-    id: liquidImplementation
-    Material3.SwitchControl { liquidGlass: true }
-  }
-
-
-  Component {
-    id: styledImplementation
-    Styled.SwitchControl {}
+    id: elenaImplementation
+    ElenaSwitchControl {}
   }
 
   Binding { target: implementation.item; property: "checked"; value: root.checked }

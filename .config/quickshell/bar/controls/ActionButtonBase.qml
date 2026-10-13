@@ -1,29 +1,32 @@
-// Input, focus, and accessibility behaviour shared by every IconButton
-// implementation (material3/ and styled/). Implementations extend this and add
-// only theme-specific properties and visuals; read root.hovered / root.pressed
-// for pointer state.
+// Input, focus, and accessibility behaviour shared by every ActionButton
+// implementation (material3/ and styled/). Implementations extend this, supply
+// horizontalContent, Accessible.description, colours, and visuals, and read
+// root.hovered / root.pressed for pointer state.
 import QtQuick
-import "../../primitives"
+import "../../config"
+import "../primitives"
 
 Item {
   id: root
 
   property string iconLabel: ""
-  property int size: 32
-  property int iconSize: 18
-  property string variant: "standard"
   property bool selected: false
   property bool checkable: false
+  property bool grouped: false
+  property string groupPosition: "single"
+  property string labelText: ""
+  property string variant: "tonal"
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""
+  property bool expressiveSelectedShape: false
+  readonly property bool filled: root.selected || root.variant === "filled"
+  property real iconSize: Config.iconSize + 4
+  property real contentSpacing: Config.spacingMedium
 
-  signal clicked(var mouse)
-  signal wheel(var wheel)
+  signal activated()
 
-  implicitWidth: size
-  implicitHeight: size
-  activeFocusOnTab: root.enabled
+  activeFocusOnTab: true
   opacity: root.enabled ? 1.0 : 0.38
 
   readonly property bool hovered: mouseArea.containsMouse
@@ -34,21 +37,18 @@ Item {
     visible: root.visible && root.enabled && (root.hovered || root.activeFocus) && text !== ""
   }
 
-  Accessible.role: root.checkable ? Accessible.CheckBox : Accessible.Button
+  Accessible.role: root.grouped && root.checkable
+    ? Accessible.RadioButton
+    : (root.checkable ? Accessible.CheckBox : Accessible.Button)
   Accessible.checkable: root.checkable
   Accessible.checked: root.checkable && root.selected
   Accessible.name: root.accessibleName !== ""
     ? root.accessibleName
-    : (root.tooltipText !== "" ? root.tooltipText : root.iconLabel)
-  Accessible.description: root.accessibleDescription !== ""
-    ? root.accessibleDescription
-    : (root.selected ? "Selected" : "")
-  Accessible.focusable: root.enabled
-  Accessible.focused: root.activeFocus
+    : (root.labelText !== "" ? root.labelText : (root.tooltipText !== "" ? root.tooltipText : root.iconLabel))
 
   Keys.onPressed: function(event) {
     if (root.enabled && (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
-      root.clicked(null)
+      root.activated()
       event.accepted = true
     }
   }
@@ -59,10 +59,9 @@ Item {
     hoverEnabled: true
     enabled: root.enabled
     cursorShape: Qt.PointingHandCursor
-    onClicked: function(mouse) {
+    onClicked: {
       root.forceActiveFocus()
-      root.clicked(mouse)
+      root.activated()
     }
-    onWheel: function(wheelEvent) { root.wheel(wheelEvent) }
   }
 }

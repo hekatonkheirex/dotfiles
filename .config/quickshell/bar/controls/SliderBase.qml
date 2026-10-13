@@ -4,7 +4,7 @@
 // setValue(); adjustmentKey() fires before a keyboard adjustment so an
 // implementation can show its focus ring.
 import QtQuick
-import "../../../config"
+import "../../config"
 
 Item {
   id: root
