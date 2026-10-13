@@ -2153,5 +2153,6 @@ Flickable {
       }
     }
 
+    DockSection { Layout.fillWidth: true }
   }
 }
