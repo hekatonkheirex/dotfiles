@@ -568,6 +568,12 @@ ShellRoot {
     margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
+  Sidebar {
+    visible: bar.openPopup === "sidebar" && Config.elenaTheme && !lockScreen.locked
+    screen: bar.screen
+    onDismissed: bar.openPopup = ""
+  }
+
   LlmUsagePopup {
     visible: bar.openPopup === "llm" && !lockScreen.locked
     anchorY: bar.popupAnchorY

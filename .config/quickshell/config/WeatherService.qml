@@ -23,12 +23,17 @@ QtObject {
   property string precipChance: "--%"
   property bool indicatorActive: false
   property bool popupActive: false
+  property bool sidebarActive: false
 
-  readonly property bool active: indicatorActive || popupActive
+  readonly property bool active: indicatorActive || popupActive || sidebarActive
   readonly property bool loading: weatherProcess.running
 
   onPopupActiveChanged: {
     if (root.popupActive) root.refresh()
+  }
+
+  onSidebarActiveChanged: {
+    if (root.sidebarActive) root.refresh()
   }
 
   property bool refreshPending: false
@@ -123,7 +128,7 @@ QtObject {
     }
 
     function onWeatherRefreshIntervalMinutesChanged() {
-      if (root.popupActive) root.refresh()
+      if (root.popupActive || root.sidebarActive) root.refresh()
     }
   }
 }

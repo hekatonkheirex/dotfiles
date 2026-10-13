@@ -235,6 +235,12 @@ PanelWindow {
   // IPC entry point: open (or toggle closed) a bar popup by name, anchored to
   // its indicator exactly as a click would. Returns false for unknown names.
   function togglePopupByName(name) {
+    // The sidebar has no anchor widget and only exists under elena.
+    if (name === "sidebar") {
+      if (!Config.elenaTheme) return false
+      openPopup = openPopup === "sidebar" ? "" : "sidebar"
+      return true
+    }
     var widgets = {
       audio: audioIndicator, brightness: brightnessIndicator, media: mediaIndicator,
       weather: weatherIndicator, battery: batteryIndicator, notification: notifIndicator,

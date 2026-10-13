@@ -16,10 +16,11 @@ QtObject {
   property string lengthStr: "0:00"
   property bool indicatorActive: false
   property bool popupActive: false
+  property bool sidebarActive: false
   property bool waveActive: false
   property bool monitorEnabled: true
 
-  readonly property bool active: indicatorActive || popupActive || waveActive
+  readonly property bool active: indicatorActive || popupActive || sidebarActive || waveActive
 
   onActiveChanged: {
     if (!root.active) monitorRetry.stop()

@@ -11,9 +11,10 @@ QtObject {
   property bool initialized: false
   property bool indicatorActive: false
   property bool popupActive: false
+  property bool sidebarActive: false
   property bool watcherEnabled: true
 
-  readonly property bool active: indicatorActive || popupActive
+  readonly property bool active: indicatorActive || popupActive || sidebarActive
 
   function poll() {
     if (!root.active) return
