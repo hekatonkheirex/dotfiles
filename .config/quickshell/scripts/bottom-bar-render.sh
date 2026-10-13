@@ -136,8 +136,13 @@ check("A alarm slash px (tertiary)", count(ab("A"), TER), 0, 0)
 check("B alarm slash px (tertiary)", count(ab("B"), TER), 150)
 check("B alarm pill px (container)", count(ab("B"), HIGH), 0, 20)
 
-# 9. glyphs are not tofu: the clock glyph (U+E92B) in A measures ~142 accent px
-check("A clock glyph accent px", count((20, 15, 75, 50), ERR), 100, 200)
+# 9. glyphs are not tofu or the wrong file: each button glyph of bar A (command,
+# star, headphones, shield, bell, bolt) measures 38..60 accent px at 12pt.
+glyphs = (("clock command", (20, ERR), 60), ("date star", (170, SEC), 45),
+          ("media headphones", (320, INVP), 38), ("network shield", (W - 430, PRI), 30),
+          ("alarms bell", (W - 280, TER), 54), ("battery bolt", (W - 130, FGTC), 38))
+for nm, (x, col), want in glyphs:
+    check(f"A {nm} glyph accent px", count((x, 15, x + 45, 50), col), int(want * 0.6), int(want * 1.6))
 
 if not all(checks):
     print(f"FAIL: {checks.count(False)} of {len(checks)} checks")

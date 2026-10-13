@@ -33,7 +33,16 @@ assert.match(net, /root\.monitor\.running = Qt\.binding\(/, "restart must re-bin
 assert.doesNotMatch(net, /monitor\.running = true/, "plain true drops the active gate")
 assert.match(rd("../../config/BatteryService.qml"), /charging: !!batteryDevice/)
 assert.match(rd("../../scripts/bar-font-check.sh"), /remix\.ttf/)
+assert.match(rd("../../scripts/bar-font-check.sh"), /icomoon-feather\.ttf/)
 const fonts = rd("../../config/BottomBarFonts.qml")
-assert.match(fonts, /readonly property string family: "ElenaIcons"/)
+assert.match(fonts, /readonly property string family: "ElenaIcons1"/)
+assert.match(fonts, /readonly property var families: \["ElenaIcons1", "ElenaIcons2", "ElenaIcons3"\]/)
+// Qt 6.12 Text has no font.families (config load fails); the fallback chain
+// comes from the fontconfig rule on ElenaIcons1, so Text sets font.family only.
+for (const f of ["BarButton", "DockGlyph"]) {
+  const q = rd(`../../bar/bottombar/${f}.qml`)
+  assert.match(q, /font\.family: .*BottomBarFonts\.family\b/, f)
+  assert.doesNotMatch(q, /font\.families/, f)
+}
 assert.doesNotMatch(fonts, /FontLoader/)
 console.log("bottom bar wiring (config): ok")
