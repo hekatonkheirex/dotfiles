@@ -49,7 +49,8 @@ QtObject {
 
   property Timer restart: Timer {
     interval: 2000
-    onTriggered: if (root.active) root.monitor.running = true
+    // Re-bind, not `= true`: a plain assignment would drop the active gate.
+    onTriggered: root.monitor.running = Qt.binding(function() { return root.active })
   }
 
   property Timer fallback: Timer {
