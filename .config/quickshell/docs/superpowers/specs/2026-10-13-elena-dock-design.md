@@ -109,3 +109,14 @@ No new top-level tab, so the settings-tabs gate keeps its tab list.
 Right-click window picker, drag-to-reorder on the dock, move-window-to-
 workspace, notification badges, per-output docks, tooltips, minimize (niri has
 none; click-on-focused cycles instead), the 2d dashboard, 2e, 2f.
+
+## Usage
+- Automatic: visible on an empty workspace, hidden while windows are open,
+  revealed by moving the pointer to the bottom edge. Left click launches or
+  focuses (clicking the focused app cycles its windows), middle click closes,
+  wheel cycles.
+- Pinned apps: Settings > Appearance > Dock pinned apps, or `dockPinned` (CSV of
+  niri `app_id`s) in settings.json. Default `brave-origin,kitty`.
+- Dev IPC: `qs ipc call shell dockState` (JSON: revealed, workspaceEmpty,
+  windows, items) and `qs ipc call shell dockReveal true|false`.
+- Inert outside the Elena style: no event stream, no window input.
