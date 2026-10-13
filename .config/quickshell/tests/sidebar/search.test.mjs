@@ -15,13 +15,30 @@ const start = launcher.indexOf("onVisibleChanged: {")
 assert.ok(start > 0, "launcher onVisibleChanged")
 const body = launcher.slice(start, start + 4000)
 const reset = body.indexOf("filteredModel.clear()")
-const apply = body.indexOf("root.initialQuery")
-const done = body.indexOf("root.voiceRecording = false")
-assert.ok(reset > 0 && apply > reset, "initialQuery is applied after the reset")
-assert.ok(done > apply, "initialQuery is applied before the visible branch ends")
-assert.match(body, /root\.initialQuery = ""/, "initialQuery is consumed")
-assert.match(body, /searchInputControl\.text = q/, "text goes through the input")
-assert.match(body, /root\.filterApps\(\)/, "results are filtered")
+
+// Hook block: from `if (root.initialQuery !== "")` to its matching closing brace.
+const hookStart = body.indexOf('if (root.initialQuery !== "")')
+assert.ok(hookStart > reset, "initialQuery is applied after the reset")
+let depth = 0, hookEnd = -1
+for (let i = body.indexOf("{", hookStart); i < body.length; i++) {
+  if (body[i] === "{") depth++
+  else if (body[i] === "}" && --depth === 0) { hookEnd = i; break }
+}
+assert.ok(hookEnd > hookStart, "hook block is closed")
+const hook = body.slice(hookStart, hookEnd + 1)
+const anim = body.indexOf("Config.reducedMotion || root.dmenu")
+assert.ok(anim > hookEnd, "initialQuery is applied before the entry animation block")
+assert.ok(body.indexOf("appendFilteredResult(appModel.get(i)") < hookStart, "applied after the app refill")
+assert.ok(hook.includes('root.initialQuery = ""'), "initialQuery is consumed")
+assert.ok(hook.includes("searchInputControl.text = q"), "text goes through the input")
+assert.ok(hook.includes("root.searchText = q"), "searchText is set")
+assert.ok(hook.includes("root.filterApps()"), "results are filtered")
+
+// Hidden branch (the else holding resultMenu.close(), after the hook) clears a stale query.
+const closeAt = body.indexOf("resultMenu.close()")
+assert.ok(closeAt > hookEnd, "hidden branch follows the hook")
+const hidden = body.slice(body.lastIndexOf("} else {", closeAt), closeAt)
+assert.ok(hidden.includes('root.initialQuery = ""'), "hidden branch clears a stale initialQuery")
 
 const helper = shell.slice(shell.indexOf("function openLauncherWith"))
 const set = helper.indexOf("launcherPopup.initialQuery = query")

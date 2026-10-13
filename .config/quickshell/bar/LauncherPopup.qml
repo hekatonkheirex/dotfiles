@@ -806,6 +806,8 @@ PanelWindow {
       root.voiceRecording = false
       root.voiceTranscribing = false
     } else {
+      // A query set while the launcher stayed hidden must not leak into the next open.
+      root.initialQuery = ""
       resultMenu.close()
       if (root.voiceRecording) {
         root.voiceRecording = false
