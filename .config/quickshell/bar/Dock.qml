@@ -36,7 +36,14 @@ PanelWindow {
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: Config.layerNamespace("dock")
   WlrLayershell.layer: WlrLayer.Top
-  mask: Region { item: zone }
+  // Union of a permanent 2 px full-width strip (the pointer reaching the
+  // bottom edge anywhere reveals the dock) and, while shown, a body-sized hit
+  // area. Region children combine (union) by default; Combine is explicit.
+  // Everything else passes clicks through to the windows underneath.
+  mask: Region {
+    item: strip
+    Region { item: bodyHit; intersection: Intersection.Combine }
+  }
 
   // Linger 400 ms after the pointer leaves before hiding.
   Timer {
@@ -46,15 +53,31 @@ PanelWindow {
   }
   onPointerInsideChanged: if (!root.pointerInside) holdTimer.restart()
 
-  // The hit area: 2 px strip when hidden, the whole body when shown.
+  // Spans the window so the handler sees the pointer on the strip or the
+  // body; input only arrives inside the mask anyway.
   Item {
-    id: zone
+    id: hoverArea
+    anchors.fill: parent
+    HoverHandler { id: pointer }
+  }
+
+  // Always-on reveal strip. Keep it full width: shrinking it to the body
+  // would flicker the dock hide/show at the edge.
+  Item {
+    id: strip
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    height: root.revealed ? root.bodyHeight : 2
+    height: 2
+  }
 
-    HoverHandler { id: pointer }
+  // Body-sized input area, empty while hidden.
+  Item {
+    id: bodyHit
+    anchors.horizontalCenter: parent.horizontalCenter
+    anchors.bottom: parent.bottom
+    width: root.revealed ? body.width : 0
+    height: root.revealed ? root.bodyHeight : 0
   }
 
   Item {
@@ -81,6 +104,7 @@ PanelWindow {
     DockContent {
       id: content
       items: root.items
+      active: root.revealed
       onItemActivated: function(appId) { root.itemActivated(appId) }
       onItemClosed: function(appId) { root.itemClosed(appId) }
       onItemCycled: function(appId, direction) { root.itemCycled(appId, direction) }

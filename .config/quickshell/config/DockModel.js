@@ -19,10 +19,15 @@ function pinnedToCsv(list) {
   return normalizePinned(list).join(",")
 }
 
+// niri app_id is case-sensitive and often differs in case from the desktop
+// entry's StartupWMClass, so every match goes through this key.
+function key(appId) { return String(appId).toLowerCase() }
+
 function windowsOf(windows, appId) {
+  var k = key(appId)
   var out = []
   for (var i = 0; i < (windows || []).length; i++) {
-    if (windows[i] && windows[i].appId === appId) out.push(windows[i])
+    if (windows[i] && windows[i].appId && key(windows[i].appId) === k) out.push(windows[i])
   }
   return out
 }
@@ -31,37 +36,46 @@ function byId(a, b) { return a.id - b.id }
 
 // Pinned apps first (settings order, shown even with no window), then running
 // apps in the order their first window opened (niri ids rise monotonically).
+// Pins and windows merge by lowercased key; the item shows the pinned spelling
+// when pinned, else the spelling of the app's first window.
 function dockItems(pinned, windows) {
   var pins = normalizePinned(pinned)
-  var seen = {}
-  var apps = []
   var list = windows || []
   var firstId = {}
+  var spelling = {}
+  var apps = []
   for (var i = 0; i < list.length; i++) {
     var w = list[i]
     if (!w || !w.appId) continue
-    if (firstId[w.appId] === undefined || w.id < firstId[w.appId]) firstId[w.appId] = w.id
-    if (!seen[w.appId]) { seen[w.appId] = true; apps.push(w.appId) }
+    var k = key(w.appId)
+    if (firstId[k] === undefined) apps.push(k)
+    if (firstId[k] === undefined || w.id < firstId[k]) { firstId[k] = w.id; spelling[k] = w.appId }
   }
+  var order = []
   var pinnedSet = {}
-  for (var p = 0; p < pins.length; p++) pinnedSet[pins[p]] = true
+  for (var p = 0; p < pins.length; p++) {
+    var pk = key(pins[p])
+    if (pinnedSet[pk]) continue
+    pinnedSet[pk] = true
+    order.push({ key: pk, appId: pins[p] })
+  }
   var rest = []
   for (var a = 0; a < apps.length; a++) if (!pinnedSet[apps[a]]) rest.push(apps[a])
   rest.sort(function(x, y) { return firstId[x] - firstId[y] })
+  for (var r = 0; r < rest.length; r++) order.push({ key: rest[r], appId: spelling[rest[r]] })
 
-  var order = pins.concat(rest)
   var items = []
   for (var o = 0; o < order.length; o++) {
-    var own = windowsOf(list, order[o]).sort(byId)
+    var own = windowsOf(list, order[o].key).sort(byId)
     var ids = []
     var focused = false
     var urgent = false
-    for (var k = 0; k < own.length; k++) {
-      ids.push(own[k].id)
-      if (own[k].focused) focused = true
-      if (own[k].urgent) urgent = true
+    for (var j = 0; j < own.length; j++) {
+      ids.push(own[j].id)
+      if (own[j].focused) focused = true
+      if (own[j].urgent) urgent = true
     }
-    items.push({ appId: order[o], pinned: !!pinnedSet[order[o]], count: own.length,
+    items.push({ appId: order[o].appId, pinned: !!pinnedSet[order[o].key], count: own.length,
                  windowIds: ids, focused: focused, urgent: urgent })
   }
   return items

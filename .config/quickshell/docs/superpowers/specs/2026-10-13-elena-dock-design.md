@@ -23,13 +23,15 @@ the focused app, pinned apps always shown, grouped by window class).
   leaves. Slide + fade with the existing motion tokens (instant under reduced
   motion).
 - **Hot zone.** One window only. The dock window is anchored to the bottom edge
-  and always mapped; its input mask is a 2 px strip at the very bottom edge
-  while hidden and the dock body while shown, so a hidden dock never steals
-  clicks from windows. The window reserves no space (`ExclusionMode.Ignore`)
+  and always mapped; its input mask is the union of a permanent 2 px full-width
+  strip at the very bottom edge (the pointer reaching the edge anywhere reveals
+  the dock) and, while shown, a body-sized hit area, so the dock never steals
+  clicks from windows outside its body. The window reserves no space (`ExclusionMode.Ignore`)
   and takes no keyboard focus.
 - **Items.** Pinned apps first, in the settings order, then running apps that
   are not pinned, in the order their first window opened. Items are keyed by
-  niri `app_id`; windows of one app share one item.
+  niri `app_id`, matched case-insensitively (pinned spelling wins for display);
+  windows of one app share one item.
 - **Indicators.** No window: none. Running and not focused: a dot. Focused: a
   wide bar. Urgent: the indicator pulses in the error accent. Indicator color
   cycles `primary`, `secondary`, `tertiary` by item position (same as the
@@ -50,13 +52,13 @@ the focused app, pinned apps always shown, grouped by window class).
   folds niri event-stream events (`WindowsChanged`, `WindowOpenedOrChanged`,
   `WindowClosed`, `WindowFocusChanged`, `WindowUrgencyChanged`,
   `WorkspaceActivated`, `WorkspacesChanged`) into
-  `{windows: [...], focusedWindowId, focusedWorkspaceId}` and never mutates its
+  `{windows: [...], focusedWindowId, focusedWorkspaceId, clock}` and never mutates its
   input. `workspaceEmpty(state)` derives the visibility input.
 - `config/WindowService.qml` (singleton): runs `niri msg -j event-stream` only
   while `Config.elenaTheme`, feeds `WindowState.applyEvent`, exposes `windows`,
-  `focusedWorkspaceEmpty`. Seeds from `niri msg -j windows` and
-  `niri msg -j workspaces` on start. Restarts with backoff like the other
-  services; no second poll while not elena.
+  `workspaceEmpty`. Seeds from the event stream's initial snapshot (no separate
+  `niri msg -j windows`/`workspaces` call). Retries on a fixed 1 s while elena
+  (no escalation); no second poll while not elena.
 - `config/DockModel.js` (`.pragma library`, pure): `normalizePinned(csv)`,
   `dockItems(pinned, windows)` -> `[{appId, pinned, count, windowIds, focused,
   urgent}]`, `relevantWindow(windows, appId)`, `nextWindow(windows, appId,
@@ -66,11 +68,12 @@ the focused app, pinned apps always shown, grouped by window class).
   launch). Normalized on load: trims, drops empties and duplicates.
 
 ## Settings UI
-New section "Dock" in the Appearance tab (`bar/settings/DockSection.qml`):
+New section "Dock", the last section of the Appearance tab (`bar/settings/DockSection.qml`):
 - The pinned list with remove and move-up/down buttons (the `BarOrderRow`
   pattern).
 - An "Add app" field that filters `DesktopEntries.applications` by name and
-  appends the chosen entry's id/StartupWMClass-style `app_id` guess; the row
+  appends the chosen entry's `app_id` guess (the entry id when it is reverse-DNS,
+  else StartupWMClass, else the id); the row
   shows the entry's icon and name.
 - A note that the dock only runs under the Elena style.
 - A search entry in `SettingsPanel.searchEntries` ("Dock pinned apps").

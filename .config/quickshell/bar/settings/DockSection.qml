@@ -48,7 +48,14 @@ ColumnLayout {
   }
 
   function guessAppId(entry) {
+    // Reverse-DNS ids (com.obsproject.Studio) are the app_id themselves.
+    if (entry.id.indexOf(".") >= 0) return entry.id
     return entry.startupClass !== "" ? entry.startupClass : entry.id
+  }
+
+  function isPinned(appId) {
+    var k = String(appId).toLowerCase()
+    return root.pinned.some(function(p) { return p.toLowerCase() === k })
   }
 
   function candidates() {
@@ -59,7 +66,7 @@ ColumnLayout {
       var e = list[i]
       if (!e || e.noDisplay) continue
       var appId = root.guessAppId(e)
-      if (root.pinned.indexOf(appId) >= 0 || root.pinned.indexOf(e.id) >= 0) continue
+      if (root.isPinned(appId) || root.isPinned(e.id)) continue
       if (String(e.name).toLowerCase().indexOf(root.query) < 0
           && String(e.id).toLowerCase().indexOf(root.query) < 0) continue
       out.push(e)

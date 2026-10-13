@@ -67,4 +67,18 @@ assert.deepEqual(fk.map(x => x.id), [8, 3, 5], "nextWindow must sort a copy")
 assert.deepEqual(M.dockItems(fPinned, deepFreeze([])).map(i => i.appId), ["brave-origin", "kitty"])
 assert.deepEqual(M.normalizePinned(deepFreeze(["x", "x", " y "])), ["x", "y"])
 
+// Case-insensitive app ids (niri app_id vs desktop-entry startupClass), frozen inputs.
+const cw = deepFreeze([w(2, "google-chrome"), w(4, "Kitty"), w(6, "kitty", { focused: true }), w(8, "Foo"), w(9, "foo")])
+const ci = M.dockItems(deepFreeze(["Google-chrome", "KITTY"]), cw)
+assert.deepEqual(ci.map(i => i.appId), ["Google-chrome", "KITTY", "Foo"], "pinned spelling wins, unpinned uses first window's")
+assert.deepEqual(ci[0], { appId: "Google-chrome", pinned: true, count: 1, windowIds: [2], focused: false, urgent: false })
+assert.deepEqual(ci[1], { appId: "KITTY", pinned: true, count: 2, windowIds: [4, 6], focused: true, urgent: false })
+assert.deepEqual(ci[2], { appId: "Foo", pinned: false, count: 2, windowIds: [8, 9], focused: false, urgent: false })
+assert.deepEqual(M.dockItems(deepFreeze(["Foo", "foo"]), deepFreeze([])).map(i => i.appId), ["Foo"], "pins differing in case collapse")
+assert.equal(M.relevantWindow(cw, "KITTY"), 6)
+assert.equal(M.relevantWindow(cw, "FOO"), 9, "most recent focusTs across case variants")
+assert.equal(M.nextWindow(cw, "kitty", 4, 1), 6)
+assert.equal(M.nextWindow(cw, "KITTY", 6, 1), 4)
+assert.equal(M.relevantWindow(cw, "nope"), null)
+
 console.log("dock-model: ok")

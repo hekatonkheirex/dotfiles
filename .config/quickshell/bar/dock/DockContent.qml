@@ -7,6 +7,8 @@ Row {
   id: root
 
   property var items: []
+  // False while the dock is hidden: pulse animations stop repainting.
+  property bool active: true
 
   signal itemActivated(string appId)
   signal itemClosed(string appId)
@@ -24,6 +26,7 @@ Row {
       running: modelData.count > 0
       focused: modelData.focused
       urgent: modelData.urgent
+      active: root.active
       accent: root.accents[index % root.accents.length]
       onActivated: root.itemActivated(modelData.appId)
       onCloseRequested: root.itemClosed(modelData.appId)

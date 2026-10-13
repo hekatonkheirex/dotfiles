@@ -11,6 +11,7 @@ Item {
   property bool running: false
   property bool focused: false
   property bool urgent: false
+  property bool active: true
   property color accent: Colors.primary
 
   readonly property int tileSize: 50
@@ -96,7 +97,7 @@ Item {
     property real opacity: 1.0
   }
   SequentialAnimation {
-    running: root.urgent && !Config.reducedMotion
+    running: root.urgent && root.active && !Config.reducedMotion
     loops: Animation.Infinite
     onStopped: pulse.opacity = 1.0
     NumberAnimation { target: pulse; property: "opacity"; to: 0.35; duration: 600 }
