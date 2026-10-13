@@ -37,7 +37,7 @@
 - Create: `tests/sidebar/search.test.mjs`
 
 **Interfaces:**
-- Produces: `LauncherPopup.initialQuery: string`; `shell.openLauncherWith(query: string)`; IPC `sidebarSearch(text: string): bool`, `launcherQuery(): string`; the `Sidebar` instance connects `onSearchSubmitted` (signal added in Task 2).
+- Produces: `LauncherPopup.initialQuery: string`; `shell.openLauncherWith(query: string)`; IPC `sidebarSearch(text: string): bool`, `launcherQuery(): string`; the `Sidebar` instance gets its `onSearchSubmitted` handler in Task 2 (the signal is added there).
 
 - [ ] **Step 1: Write the failing test** `tests/sidebar/search.test.mjs`
 
@@ -73,7 +73,6 @@ const open = helper.indexOf('bar.openPopup = "launcher"')
 assert.ok(set > 0 && open > set, "helper sets initialQuery before opening the launcher")
 assert.match(shell, /function sidebarSearch\(text: string\): bool/, "sidebarSearch IPC")
 assert.match(shell, /function launcherQuery\(\): string/, "launcherQuery IPC")
-assert.match(shell, /onSearchSubmitted: function\(text\) \{ shell\.openLauncherWith\(text\) \}/, "sidebar hand-off")
 console.log("sidebar search: ok")
 ```
 
@@ -154,15 +153,6 @@ Next to `launcherMode()` add:
       return launcherPopup.searchText
     }
 ```
-
-On the `Sidebar { ... }` instance add:
-
-```qml
-    onSearchSubmitted: function(text) { shell.openLauncherWith(text) }
-```
-(the signal itself is added in Task 2; until then the handler line is harmless to qmllint only if the signal exists, so add this line in Task 2 Step 4 instead and keep the gate assertion for it there; see below.)
-
-**Order note:** to keep every commit lint-clean, in this task omit the `onSearchSubmitted` line and in Step 1's test comment out the `onSearchSubmitted` assertion; Task 2 Step 5 re-enables it. Concretely: remove the last `assert.match(shell, /onSearchSubmitted ...` line from the test now and add it back in Task 2.
 
 - [ ] **Step 5: Run, expect PASS**
 
