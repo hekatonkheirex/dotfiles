@@ -18,7 +18,10 @@ ShellRoot {
 
     Item {
       id: stage
-      anchors.fill: parent
+      // Fixed size, not anchors.fill: niri tiles a FloatingWindow to the live
+      // workspace height (bar size, style), which changed the grabbed image.
+      width: 760
+      height: 560
 
       ColumnLayout {
         anchors.fill: parent
