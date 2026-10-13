@@ -25,13 +25,18 @@ from PIL import Image
 im = Image.open(sys.argv[1]).convert("RGB")
 assert im.size == (760, 560), f"size {im.size}"
 checks = re.findall(r"CHECK (\S+) (\S+) (\S+) (\d+) (\d+) (\d+)", open(sys.argv[2]).read())
-assert len(checks) == 8, f"expected 8 CHECK lines, got {len(checks)}"
+assert len(checks) == 10, f"expected 10 CHECK lines, got {len(checks)}"
 fails = 0
 for name, x, y, *want in checks:
     got = im.getpixel((int(float(x)), int(float(y))))
     ok = all(abs(got[i] - int(want[i])) <= 8 for i in range(3))  # 0.03 * 255
     fails += not ok
     print(("PASS " if ok else "FAIL ") + name + ("" if ok else f" got {got} want {tuple(map(int, want))}"))
-print(f"DONE {len(checks)} {fails} fail")
+behave = re.findall(r"BEHAVE (\S+) ([01])", open(sys.argv[2]).read())
+assert len(behave) == 3, f"expected 3 BEHAVE lines, got {len(behave)}"
+for name, ok in behave:
+    fails += ok != "1"
+    print(("PASS " if ok == "1" else "FAIL ") + name)
+print(f"DONE {len(checks) + len(behave)} {fails} fail")
 sys.exit(1 if fails else 0)
 PY

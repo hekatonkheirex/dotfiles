@@ -22,12 +22,20 @@ Item {
     anchors.fill: parent
     radius: Config.shapeLarge
     color: Colors.surfaceContainerHighest
-    clip: true
-    Rectangle {
+    // clip only cuts to the bounding box, so the fill is a full-height rounded
+    // rect inside a box of fill height: the bottom corners follow the radius.
+    Item {
       anchors.bottom: parent.bottom
       width: parent.width
       height: parent.height * Math.max(0, Math.min(1, root.value))
-      color: root.muted ? Colors.outline : root.accent
+      clip: true
+      Rectangle {
+        anchors.bottom: parent.bottom
+        width: parent.width
+        height: tile.height
+        radius: tile.radius
+        color: root.muted ? Colors.outline : root.accent
+      }
     }
   }
   MouseArea {
@@ -41,22 +49,26 @@ Item {
     onPressed: function(mouse) { setFrom(mouse) }
     onPositionChanged: function(mouse) { if (pressed) setFrom(mouse) }
   }
-  Rectangle {
-    id: badge
+  // Real IconButton: focus, Space/Enter, tooltip and accessibility come with
+  // it. The white round stays 26px; the hit box is wider and 48px tall,
+  // centered on the same point as before (21px above the tile bottom).
+  IconButton {
+    objectName: "badge"
     visible: root.iconLabel !== ""
-    width: 26; height: 26; radius: 13
-    color: "#ffffff"
+    width: root.width
+    height: Config.controlHitSize
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
-    anchors.bottomMargin: 8
-    IconGlyph {
-      anchors.centerIn: parent
-      iconLabel: root.iconLabel
-      iconColor: Colors.surface
-      iconSize: 16
-    }
-    MouseArea { anchors.fill: parent; enabled: root.enabled; onClicked: root.iconClicked() }
-    Accessible.role: Accessible.Button
-    Accessible.name: root.accessibleName
+    anchors.bottomMargin: 21 - Config.controlHitSize / 2
+    size: 26
+    iconSize: 16
+    variant: "round"
+    iconLabel: root.iconLabel
+    backgroundColor: "#ffffff"
+    iconColor: Colors.surface
+    accessibleName: root.accessibleName
+    tooltipText: root.accessibleName
+    enabled: root.enabled
+    onClicked: root.iconClicked()
   }
 }

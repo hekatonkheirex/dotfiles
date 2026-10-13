@@ -3,6 +3,7 @@
 // prints "CHECK name x y r g b" lines (expected colors come from Colors) for
 // the script to compare against the saved pixels.
 import QtQuick
+import QtTest
 import Quickshell
 import "config"
 import "bar"
@@ -11,6 +12,8 @@ import "bar/primitives"
 
 ShellRoot {
   FloatingWindow {
+    id: win
+    property int badgeClicks: 0
     implicitWidth: 760
     implicitHeight: 560
     color: Colors.surface
@@ -34,7 +37,11 @@ ShellRoot {
       SliderControl { x: 20; y: 100; width: 400; value: 0.6 }
       IconButton { x: 20; y: 180; width: 48; height: 48; size: 40; iconLabel: "settings"; selected: true }
       ActionButton { x: 20; y: 240; width: 160; height: 48; labelText: "Pill"; variant: "pill" }
-      LevelTile { x: 20; y: 320; value: 0.5; iconLabel: "settings" }
+      LevelTile {
+        id: tile
+        x: 20; y: 320; value: 0.5; iconLabel: "settings"; accessibleName: "Test level"
+        onIconClicked: win.badgeClicks++
+      }
     }
 
     Timer {
@@ -51,11 +58,36 @@ ShellRoot {
         // 29px white round and clear of the 18px glyph.
         stage.expect("icon-selected-white-round", 44 - 12, 204, Qt.color("#ffffff"))
         stage.expect("pill-left-end", 24, 264, Colors.primary)
+        // Diagonal of the corner: inside a radius-20 arc, outside the radius-24 one. Only a
+        // fully round end leaves this pixel on the surface.
+        stage.expect("pill-corner-round", 26, 246, Colors.surface)
         // x+10 stays clear of the 26px badge centered at the tile bottom.
         stage.expect("level-fill-25pct", 30, 320 + 58 * 0.75, Colors.primary)
+        // Fill must follow the tile's rounded bottom corners.
+        stage.expect("level-corner-round", 21, 377, Colors.surface)
         stage.expect("level-empty-85pct", 49, 320 + 58 * 0.15, Colors.surfaceContainerHighest)
-        Qt.quit()
       })
+    }
+
+    // Keyboard path of the level badge (QtTest keyClick), run after the grab.
+    TestCase {
+      name: "badge"
+      when: true
+      function test_badge() {
+        wait(1500)
+        var badge = null
+        for (var i = 0; i < tile.children.length; i++)
+          if (tile.children[i].objectName === "badge") badge = tile.children[i]
+        win.badgeClicks = 0
+        badge.forceActiveFocus()
+        keyClick(Qt.Key_Space)
+        console.log("BEHAVE badge-focus-and-space-emits-iconClicked "
+          + (badge.activeFocus && win.badgeClicks === 1 ? 1 : 0))
+        console.log("BEHAVE badge-tooltip-from-accessibleName "
+          + (badge.tooltipText === "Test level" && badge.accessibleName === "Test level" ? 1 : 0))
+        console.log("BEHAVE badge-hit-box-at-least-48 " + (badge.height >= 48 ? 1 : 0))
+        Qt.quit()
+      }
     }
   }
 }
