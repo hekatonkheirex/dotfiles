@@ -9,6 +9,8 @@ PopupBase {
   id: root
 
   surfaceWidth: 320
+
+  signal searchSubmitted(string text)
   anchors.bottom: true
   margins.left: Config.spacingMedium
   margins.top: Config.barWidth + Config.spacingMedium
@@ -25,5 +27,7 @@ PopupBase {
     anchors.fill: parent
     active: root.visible
     anchors.margins: Config.spacingMedium
+    onSearchSubmitted: function(text) { root.searchSubmitted(text) }
+    onEscaped: root.dismissed()
   }
 }

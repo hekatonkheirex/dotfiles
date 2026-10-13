@@ -25,7 +25,7 @@ import sys
 from PIL import Image
 im = Image.open(sys.argv[1]).convert("RGB")
 w, h = im.size
-assert (w, h) == (320, 640), f"size {w}x{h}"
+assert (w, h) == (320, 720), f"size {w}x{h}"
 card = (0x23, 0x2a, 0x37)       # elenapam surface_container
 secondary = (0xf0, 0x62, 0x92)  # today's circle
 def near(a, b, t=3): return all(abs(a[i] - b[i]) <= t for i in range(3))
@@ -39,5 +39,13 @@ n_sec = sum(near(p, secondary) for p in px[: w * CLOCK_Y1])
 print(f"card px {n_card}, secondary px in clock card (y<{CLOCK_Y1}) {n_sec}")
 assert n_card >= 10000, "card surfaces missing"
 assert 400 <= n_sec <= 4000, "today's circle missing or wrong color"
+# Search field: a bordered row under the level bars. Its border is Colors.outline
+# (unfocused) or Colors.primary (focused); the level bars card ends above FIELD_Y0.
+outline = (0x5b, 0x65, 0x78)    # elenapam outline
+primary = (0xc7, 0x7d, 0xc8)
+FIELD_Y0 = 655
+n_border = sum(near(p, outline) or near(p, primary) for p in px[w * FIELD_Y0:])
+print(f"search field border px (y>={FIELD_Y0}) {n_border}")
+assert n_border >= 300, "search field missing"
 print("sidebar render: ok")
 PY

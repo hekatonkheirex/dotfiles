@@ -600,6 +600,7 @@ ShellRoot {
     visible: bar.openPopup === "sidebar" && Config.elenaTheme && !lockScreen.locked
     screen: bar.screen
     onDismissed: bar.openPopup = ""
+    onSearchSubmitted: function(text) { shell.openLauncherWith(text) }
   }
 
   Connections {

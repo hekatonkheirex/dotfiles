@@ -8,13 +8,13 @@ import "bar/sidebar"
 ShellRoot {
   FloatingWindow {
     implicitWidth: 320
-    implicitHeight: 640
+    implicitHeight: 720
     color: Colors.surface
 
     Item {
       id: stage
       width: 320
-      height: 640
+      height: 720
 
       Rectangle { anchors.fill: parent; color: Colors.surface }
       SidebarContent {

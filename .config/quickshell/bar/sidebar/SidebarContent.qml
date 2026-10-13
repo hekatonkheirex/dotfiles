@@ -8,6 +8,9 @@ ColumnLayout {
   id: root
   property bool active: true
 
+  signal searchSubmitted(string text)
+  signal escaped()
+
   spacing: Config.spacingMedium
 
   ClockCard { Layout.fillWidth: true; active: root.active }
@@ -18,5 +21,24 @@ ColumnLayout {
     Layout.fillWidth: true
     Layout.fillHeight: true
     Layout.minimumHeight: 160
+  }
+
+  SearchField {
+    id: search
+    Layout.fillWidth: true
+    onSubmitted: function(text) { root.searchSubmitted(text) }
+    onEscaped: root.escaped()
+  }
+
+  // Focus the field when the sidebar opens (after the window has focus) and
+  // clear it when it closes.
+  Timer {
+    id: focusTimer
+    interval: 50
+    onTriggered: search.focusField()
+  }
+  onActiveChanged: {
+    if (root.active) focusTimer.restart()
+    else search.clear()
   }
 }
