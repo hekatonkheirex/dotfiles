@@ -190,7 +190,7 @@ n_border = sum(near(p, outline) or near(p, primary) for p in px[w * FIELD_Y0:])
 print(f"search field border px (y>={FIELD_Y0}) {n_border}")
 assert n_border >= 300, "search field missing"
 ```
-Also in `tests/sidebar/search.test.mjs` re-add the last assertion from Task 1: `assert.match(shell, /onSearchSubmitted: function\(text\) \{ shell\.openLauncherWith\(text\) \}/, "sidebar hand-off")`.
+Also in `tests/sidebar/search.test.mjs` add this assertion before the final `console.log`: `assert.match(shell, /onSearchSubmitted: function\(text\) \{ shell\.openLauncherWith\(text\) \}/, "sidebar hand-off")`.
 
 - [ ] **Step 2: Run, expect FAIL**
 
@@ -262,7 +262,7 @@ and append inside the ColumnLayout after `LevelBars { ... }`:
     onEscaped: root.dismissed()
 ```
 
-`shell.qml`: on the `Sidebar { ... }` instance add the line from Task 1: `onSearchSubmitted: function(text) { shell.openLauncherWith(text) }`.
+`shell.qml`: on the `Sidebar { ... }` instance add the handler line `onSearchSubmitted: function(text) { shell.openLauncherWith(text) }`.
 
 - [ ] **Step 5: Run, expect PASS**
 
