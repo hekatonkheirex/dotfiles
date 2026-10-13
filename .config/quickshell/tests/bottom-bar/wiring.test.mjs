@@ -33,5 +33,7 @@ assert.match(net, /root\.monitor\.running = Qt\.binding\(/, "restart must re-bin
 assert.doesNotMatch(net, /monitor\.running = true/, "plain true drops the active gate")
 assert.match(rd("../../config/BatteryService.qml"), /charging: !!batteryDevice/)
 assert.match(rd("../../scripts/bar-font-check.sh"), /remix\.ttf/)
-assert.match(rd("../../config/BottomBarFonts.qml"), /encodeURI/)
+const fonts = rd("../../config/BottomBarFonts.qml")
+assert.match(fonts, /readonly property string family: "ElenaIcons"/)
+assert.doesNotMatch(fonts, /FontLoader/)
 console.log("bottom bar wiring (config): ok")
