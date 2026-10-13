@@ -39,6 +39,9 @@ ColumnLayout {
   }
   onActiveChanged: {
     if (root.active) focusTimer.restart()
-    else search.clear()
+    else {
+      focusTimer.stop()
+      search.clear()
+    }
   }
 }

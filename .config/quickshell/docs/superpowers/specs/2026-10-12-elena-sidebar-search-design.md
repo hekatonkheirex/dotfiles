@@ -29,8 +29,11 @@ Roadmap context: `2026-10-12-elena-sidebar-design.md` (phase 2a, shipped).
 `onVisibleChanged` (after the existing reset block that clears `searchText`,
 the model and the input), if `initialQuery !== ""` it applies the text the way
 the voice-search result path does today (`searchInputControl.text = q`,
-`searchText = q`, `selectedIndex = 0`, `filterApps()`), forces focus into the
-input, then clears `initialQuery`. No other launcher behavior changes.
+`searchText = q`, `selectedIndex = 0`, `filterApps()`), then clears
+`initialQuery`. The launcher's existing on-show focus timer focuses the input.
+No other launcher behavior changes. Queries starting with `@` skip the launcher
+and open the wallpaper filmstrip directly (same result as typing `@` there),
+because wallpaper mode dismisses the launcher from inside its show handler.
 
 ## Launcher anchoring
 Under elena the bar's launcher widget is hidden, so `shell.qml` anchors the

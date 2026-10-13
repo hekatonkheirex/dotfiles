@@ -244,7 +244,17 @@ ShellRoot {
   // Opens the launcher with `query` already typed. Shared by the sidebar search
   // field and the sidebarSearch IPC hook. Re-opening while the launcher is
   // already visible must re-run its on-show reset, so close it first.
+  // `@` queries skip the launcher: wallpaper mode dismisses it from inside its
+  // own show handler, so open the filmstrip with the same query the launcher's
+  // onWallpaperModeChanged would pass to onWallpapersRequested.
   function openLauncherWith(query) {
+    if (lockScreen.locked) return
+    if (query.trim().startsWith("@")) {
+      bar.openPopup = ""
+      shell.wallpaperFilmstripQuery = query.trim().substring(1).trim()
+      shell.wallpaperFilmstripOpen = true
+      return
+    }
     anchorLauncher()
     if (bar.openPopup === "launcher") bar.openPopup = ""
     launcherPopup.initialQuery = query
@@ -403,7 +413,7 @@ ShellRoot {
     // Dev/testing: submit the sidebar search with `text` (same path as Enter).
     // False outside the elena style.
     function sidebarSearch(text: string): bool {
-      if (!Config.elenaTheme) return false
+      if (!Config.elenaTheme || lockScreen.locked) return false
       shell.openLauncherWith(text)
       return true
     }
