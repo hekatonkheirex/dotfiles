@@ -28,6 +28,12 @@ function sameWindow(a, b) {
     && a.focused === b.focused && a.urgent === b.urgent && a.focusTs === b.focusTs
 }
 
+function sameList(a, b) {
+  if (a.length !== b.length) return false
+  for (var i = 0; i < a.length; i++) if (!sameWindow(a[i], b[i])) return false
+  return true
+}
+
 function indexOfId(windows, id) {
   for (var i = 0; i < windows.length; i++) if (windows[i].id === id) return i
   return -1
@@ -64,6 +70,7 @@ function applyEvent(state, event) {
       if (c.focusTs > clock) clock = c.focusTs
       compacted.push(c)
     }
+    if (clock === state.clock && focused === state.focusedWindowId && sameList(compacted, state.windows)) return state
     return make(compacted, focused, state.focusedWorkspaceId, clock)
   }
 
