@@ -5,6 +5,7 @@ binds {
 
   Mod+Return hotkey-overlay-title="Open a Terminal: Kitty" { spawn "kitty"; }
   Mod+D hotkey-overlay-title="Run an Application" { spawn "~/.config/quickshell/scripts/launcher"; }
+  Mod+Shift+D hotkey-overlay-title="Sidebar" { spawn "qs" "ipc" "call" "shell" "popup" "sidebar"; }
   // Keep the lock shortcut available if a locker crashes and Niri shows its
   // red fail-closed background; scripts/lock relaunches the custom locker or
   // falls back to swaylock when Quickshell is not running.

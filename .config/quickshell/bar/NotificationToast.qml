@@ -17,7 +17,7 @@ PanelWindow {
   property var heldNotif: null
   property int displayMs: Settings.notificationToastDurationMs
   property string barPosition: "top"
-  // Critical toasts get an error-colored border and avatar in every style.
+  // Critical notifications retain a solid error outline and explicit text cue.
   // The "default" action is the click-through apps expect when the notification
   // body is clicked (open the chat, the file, ...). It has no button of its own.
   readonly property var defaultAction: {
@@ -143,10 +143,10 @@ PanelWindow {
     anchors.fill: parent
     radius: Config.popupRadius
     activeFocusOnTab: true
-    color: Colors.chromeSurface
-    border.width: root.critical ? Math.max(2, Config.themeBorderWidth) : Config.themeBorderWidth
-    border.color: root.critical ? (Colors.error)
-      : (Colors.outlineVariant)
+    color: Colors.surface
+    border.width: root.critical ? Math.max(2, Config.themeBorderWidth) : 0
+    border.color: Colors.error
+    DashedFrame { anchors.fill: parent; active: root.visible && !root.critical; radius: bg.radius }
 
 
     Accessible.role: Accessible.Button
@@ -255,25 +255,24 @@ PanelWindow {
         Text {
           text: notif ? (notif.appName || "Notification") : "Notification"
           color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
+          font.family: "monospace"
           font.pixelSize: Config.typeLabelSmallSize
-          font.weight: Config.typeMediumWeight
-          font.letterSpacing: Config.typeLabelTracking
+          font.capitalization: Font.AllUppercase
+          font.letterSpacing: Config.typeMonoTracking
           Layout.fillWidth: true
           elide: Text.ElideRight
         }
 
         Text {
-          text: "now"
+          text: root.critical ? "CRITICAL" : "NOW"
           visible: true
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
+          color: root.critical ? Colors.error : Colors.fgSurfaceVariant
+          font.family: "monospace"
           font.pixelSize: Config.typeLabelSmallSize
-          font.letterSpacing: Config.typeLabelTracking
-          opacity: 0.7
+          font.letterSpacing: Config.typeMonoTracking
+          opacity: root.critical ? 1.0 : 0.7
         }
-        // The wrapper keeps the header row at the visual size; Material's
-        // 40/48px hit target overflows it instead of growing the header.
+        // Keep the native hit target without enlarging the compact header.
         Item {
           readonly property int visualSize: 28
           implicitWidth: visualSize
@@ -365,8 +364,10 @@ PanelWindow {
             accessibleName: modelData.text
             accessibleDescription: "Notification action"
             onActivated: {
+              // invoke() can synchronously close the notification and destroy this delegate.
+              var toast = root
               modelData.invoke()
-              root.clearCurrent()
+              toast.clearCurrent()
             }
           }
         }

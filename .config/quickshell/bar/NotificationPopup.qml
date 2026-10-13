@@ -8,7 +8,7 @@ import "../config"
 
 PopupBase {
   id: root
-  surfaceColor: Colors.readingSurface
+  surfaceColor: Colors.surface
   surfaceWidth: Config.popupWidth
 
   surfaceHeight: Math.min(contentColumn.implicitHeight + Config.spacingPage, 500)
@@ -16,6 +16,9 @@ PopupBase {
   property var notifications: []
   property int count: 0
   readonly property int historyLimit: Math.max(1, Settings.notificationHistoryLimit)
+
+  Binding { target: root.bg; property: "border.width"; value: 0 }
+  DashedFrame { anchors.fill: parent; active: root.visible; radius: root.bg.radius }
 
   function twoDigits(value) {
     return value < 10 ? "0" + value : value.toString()
@@ -113,26 +116,21 @@ PopupBase {
           width: parent.width
 
           Text {
-            text: "Notifications"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeHeadlineSmallSize
-            font.weight: Config.typeStrongWeight
-            font.letterSpacing: Config.typeHeadlineTracking
-            lineHeight: Config.typeHeadlineSmallLineHeight
-            lineHeightMode: Text.FixedHeight
+            text: "/ NOTIFICATIONS /"
+            color: Colors.primary
+            font.family: "monospace"
+            font.pixelSize: Config.typeTitleMediumSize
+            font.letterSpacing: Config.typeMonoTracking
           }
 
           Item { Layout.fillWidth: true }
 
           Text {
-            text: count === 0 ? "" : count.toString()
+            text: count.toString()
             color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeTitleLargeSize
-            font.letterSpacing: Config.typeTitleTracking
-            lineHeight: Config.typeTitleLargeLineHeight
-            lineHeightMode: Text.FixedHeight
+            font.family: "monospace"
+            font.pixelSize: Config.typeLabelMediumSize
+            font.letterSpacing: Config.typeMonoTracking
           }
 
           IconButton {
@@ -176,8 +174,7 @@ PopupBase {
                 implicitHeight: cardLayout.implicitHeight + (Config.spacingExtraLarge)
                 radius: Config.shapeLarge
                 color: Colors.surfaceContainer
-                border.width: Config.themeBorderWidth
-                border.color: Colors.outlineVariant
+                DashedFrame { anchors.fill: parent; active: root.visible; radius: mainContainer.radius; strokeColor: Colors.outlineVariant }
 
                 // Click-through for the app's "default" action while the
                 // notification is live (open the chat, the file, ...).
@@ -236,10 +233,10 @@ PopupBase {
                     Text {
                       text: notif ? (notif.appName || "Notification") : "Notification"
                       color: Colors.fgSurfaceVariant
-                      font.family: Config.fontFamily
+                      font.family: "monospace"
                       font.pixelSize: Config.typeLabelSmallSize
-                      font.weight: Config.typeMediumWeight
-                      font.letterSpacing: Config.typeLabelTracking
+                      font.capitalization: Font.AllUppercase
+                      font.letterSpacing: Config.typeMonoTracking
                       Layout.fillWidth: true
                       elide: Text.ElideRight
                     }
@@ -247,9 +244,9 @@ PopupBase {
                     Text {
                       text: root.formatNotificationTimestamp(notif ? notif.timestamp : 0)
                       color: Colors.fgSurfaceVariant
-                      font.family: Config.fontFamily
+                      font.family: "monospace"
                       font.pixelSize: Config.typeLabelSmallSize
-                      font.letterSpacing: Config.typeLabelTracking
+                      font.letterSpacing: Config.typeMonoTracking
                       opacity: 0.72
                       Layout.alignment: Qt.AlignVCenter
                     }
@@ -346,11 +343,11 @@ PopupBase {
         }
 
         Text {
-          text: "No new notifications"
+          text: "NO NOTIFICATIONS"
           color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeTitleSmallSize
-          font.letterSpacing: Config.typeTitleTracking
+          font.family: "monospace"
+          font.pixelSize: Config.typeLabelMediumSize
+          font.letterSpacing: Config.typeMonoTracking
           visible: count === 0
           anchors.horizontalCenter: parent.horizontalCenter
         }

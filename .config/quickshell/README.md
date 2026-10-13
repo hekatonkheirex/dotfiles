@@ -9,7 +9,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Workspace strip** (`bar/Bar.qml`): the whole top bar is an 8px row of workspace color blocks.
 - **Sidebar and dock**: a toggleable two-page sidebar (Status and Dashboard) and a bottom app dock. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
 - **Lock screen** with PAM + fingerprint authentication.
-- **Notification handling** with history and toasts, using the single Elena control implementation.
+- **Notification handling** with dashed Elena history/toast cards, monospace app/time metadata, normal-case content, and explicit critical styling.
 - **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; the Quick Menu and Notifications tab share the persisted setting.
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
 - **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, shell actions via `>`, clipboard history via `;`, and wallpaper search via `@`. Speech recognition is removed.
@@ -332,7 +332,7 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 | Battery | `BatteryIndicator` click | Percentage, energy capacity, status, rate, cycles, model (shared bordered surface) |
 | LLM usage | Themed LLM indicator / `qs ipc call shell popup llm` | Codex and Claude five-hour/weekly usage, reset countdowns, available reset credits, and per-provider refresh |
 | Calendar | Clock click | Month grid with navigation (shared bordered surface) |
-| Notifications | `NotificationIndicator` click | Elena card layout list tracked via `modelData` |
+| Notifications | `NotificationIndicator` click / `qs ipc call shell popup notification` | Dashed history cards with timestamp, live actions and dismiss/remove controls |
 | Quick Menu | `MenuIndicator` click / `Mod+Escape` | Caffeine, airplane mode, Bluetooth, DND; Log Out, Shut Down, Restart, Sleep, Lock and Settings tiles |
 | Settings | Quick Settings entry / `XF86Tools` | 11 tabs: Account, General, Appearance, Display & Input, Network, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts (responsive surface with persisted last tab, drag-to-move, and resize handle) |
 | OSD | volume/brightness/mic/airplane/bluetooth/kbd-backlight keys | Auto-dismissing bottom-anchored status card (not part of the `openPopup` system — a separate always-on-top window) |
@@ -411,7 +411,7 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **Bar widget preferences**: General retains visibility, order and Start/Middle/End placement settings. They do not replace the Elena workspace strip. Hidden widgets retain their saved positions; re-homing them is out of scope for S1.
 - **ActionButton**: Label-only buttons reserve no icon height or icon-to-label spacing; compact Settings actions retain centered labels.
 - **Weather**: Uses a configured manual location by default, optionally supports IP geolocation, refreshes on the persisted interval and reports the last update time. Refreshes coalesce rather than aborting an active fetch; invalid responses and command failures appear as popup errors.
-- **Notifications**: Retains history while DND or quiet hours suppress toast delivery. Critical bypass, placement, retention and clear-history remain persisted. History cards are reading surfaces with explicit dismiss/remove controls; toast input and timeout behavior retain the existing Elena path.
+- **Notifications**: History and normal toasts share dashed rounded framing and monospace metadata. Critical toasts retain a solid error outline/avatar and an explicit CRITICAL cue. DND/quiet hours suppress toasts without discarding history; critical bypass, placement and retention stay persisted. Default/named actions and closed-entry behavior remain. Named toast actions capture the owner before invocation because an action can synchronously close its notification and destroy the button delegate.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a polling re-query runs in `shell.qml` after reloads.
 - **Palette ownership**: Live comes from wallpaper-driven Matugen; Fixed comes from `PaletteCatalog.js`. `sync-active-palette.sh` activates separate source caches and refreshes the generated companions. Wallpaper changes still refresh Live while Fixed is selected. SDDM updates remain explicit.
 - **Deployment**: `scripts/install-ui-suite.sh` installs only the palette-driven Matugen companions and optional light/dark greeters. Use `--dry-run` or `--skip-sddm`; `verify-ui-suite.sh` checks the matching assets. Existing outside-tree themes are untouched. Installing the updated SDDM bridge requires an explicit privileged action; no system installation is performed by the cutover.
@@ -491,7 +491,7 @@ fixture proves stale settings cannot activate a removed style or density.
 
 After QML cutovers, cold-restart Quickshell before live IPC verification:
 `systemctl --user restart quickshell.service`. Launcher and session/power
-presentation redesigns are implemented; notification redesign remains separate.
+presentation redesigns are implemented, including notification history and toasts.
 Bindings, confirmation execution and authentication remain unchanged.
 
 ## Sidebar pages (S2)
@@ -562,3 +562,23 @@ QML lint, 14 Node regression commands, 31 control behavior checks, three
 safe-logout Python cases and the obsolete-style gate passed. Live
 display-only checks await the user's cold restart. Specification:
 `docs/superpowers/specs/2026-10-13-elena-power-menu-design.md`.
+
+## Notification redesign
+
+History and toasts use the shared dashed-frame primitive; critical toasts keep
+their solid error outline and an explicit urgency label. Summary/body text,
+placement, action labels, persistent/held-toast rules, DND, quiet hours and
+history retention remain unchanged.
+
+A private D-Bus full-shell scenario passed 15 checks using real notifications
+and a real action-observing client: delivery, timeout retaining history,
+persistent restoration, close/archive/removal, DND and critical bypass,
+default/named action invocation, quiet hours, history trimming and clearing.
+Normal/critical toast and populated/empty history captures were visually
+inspected. It reproduced and fixed a named-action delegate-lifetime
+ReferenceError; the corrected run has no new QML errors.
+
+QML lint, 14 Node regression commands, 31 control behavior checks and the
+obsolete-style gate passed. Live delivery/display verification awaits the
+user's cold restart. Specification:
+`docs/superpowers/specs/2026-10-13-elena-notifications-design.md`.
