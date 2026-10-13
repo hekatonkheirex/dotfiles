@@ -15,6 +15,9 @@ ShellRoot {
     implicitWidth: 760
     implicitHeight: 560
     color: Colors.surface
+    // Input-transparent: the real pointer must not hover the controls, or the
+    // grab depends on where the mouse rests (hover state layer).
+    mask: Region {}
 
     Item {
       id: stage
