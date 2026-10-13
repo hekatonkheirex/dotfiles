@@ -13,7 +13,7 @@ FocusScope {
   property int iconSize: 18
   property string variant: "standard"
   property color iconColor: {
-    if (root.selected) return Colors.fgPrimary
+    if (root.selected) return Colors.surface
     return root.variant === "filled"
       ? Colors.fgSurface
       : (root.variant === "tonal" ? Colors.fgSecondaryContainer : Colors.fgSurfaceVariant)
@@ -30,7 +30,7 @@ FocusScope {
   property bool outlined: root.variant === "outlined" && !root.selected
   property bool selected: false
   property bool checkable: false
-  property real radius: size / 2
+  property real radius: variant === "round" ? size / 2 : size * 0.34
   property string accessibleName: ""
   property string accessibleDescription: ""
   property string tooltipText: ""

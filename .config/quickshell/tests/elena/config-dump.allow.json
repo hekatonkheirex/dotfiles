@@ -1,1 +1,6 @@
-{"removed": [], "removedPrefixes": [], "changed": {}}
+{"removed": [], "removedPrefixes": [], "changed": {
+  "Config.shapeLarge": [16, 20],
+  "Config.borderRadius": [16, 20],
+  "Config.popupRadius": [16, 20],
+  "Config.barRadius": [16, 20],
+  "Config.settingsCardRadius": [16, 20]}}

@@ -119,7 +119,10 @@ ShellRoot {
             && Math.abs(hovered.b - expectedHover.b) < 0.02)
         mouseMove(win.contentItem, win.width - 2, win.height - 2)
         tonalIcon.selected = true
-        var selected = grabImage(win.contentItem).pixel(sample.x, sample.y)
+        // Selected paints a white round behind the glyph; sample the container
+        // left of it (round radius is 0.72 * 32 / 2 = 11.5, offset is 14).
+        var selSample = tonalIcon.mapToItem(win.contentItem, tonalIcon.width / 2 - 14, tonalIcon.height / 2)
+        var selected = grabImage(win.contentItem).pixel(selSample.x, selSample.y)
         var selectedDeadline = Date.now() + 2000
         // Assert the settled state, not a frame-time-dependent spring midpoint.
         while (Date.now() < selectedDeadline
@@ -127,7 +130,7 @@ ShellRoot {
               || Math.abs(selected.g - Colors.primary.g) >= 0.02
               || Math.abs(selected.b - Colors.primary.b) >= 0.02)) {
           wait(16)
-          selected = grabImage(win.contentItem).pixel(sample.x, sample.y)
+          selected = grabImage(win.contentItem).pixel(selSample.x, selSample.y)
         }
         win.check("selected icon: idle is not pressed",
           Math.abs(selected.r - Colors.primary.r) < 0.02

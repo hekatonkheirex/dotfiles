@@ -8,7 +8,7 @@ IconButtonBase {
   id: root
 
   property color iconColor: root.selected
-    ? Colors.fgPrimary
+    ? Colors.surface
     : (root.variant === "filled"
       ? Colors.fgSurface
       : (root.variant === "tonal" ? Colors.fgSecondaryContainer : Colors.fgSurfaceVariant))
@@ -49,6 +49,15 @@ IconButtonBase {
     border.width: root.activeFocus ? 2 : 0
     border.color: Colors.primary
     visible: border.width > 0
+  }
+
+  Rectangle {
+    visible: root.selected
+    anchors.centerIn: parent
+    width: root.size * 0.72
+    height: width
+    radius: width / 2
+    color: "#ffffff"
   }
 
   IconGlyph {

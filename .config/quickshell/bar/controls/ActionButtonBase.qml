@@ -20,7 +20,7 @@ Item {
   property string accessibleDescription: ""
   property string tooltipText: ""
   property bool expressiveSelectedShape: false
-  readonly property bool filled: root.selected || root.variant === "filled"
+  readonly property bool filled: root.selected || root.variant === "filled" || root.variant === "pill"
   property real iconSize: Config.iconSize + 4
   property real contentSpacing: Config.spacingMedium
 

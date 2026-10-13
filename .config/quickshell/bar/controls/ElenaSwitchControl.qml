@@ -17,17 +17,15 @@ SwitchBase {
     ? root.pressOverlay
     : (root.hovered || root.activeFocus ? root.hoverOverlay : Qt.rgba(0, 0, 0, 0))
 
-  height: 48
-  readonly property real materialTrackWidth: Math.min(52, root.width)
-  readonly property real materialTrackX: (root.width - root.materialTrackWidth) / 2
+  height: 40
+  readonly property real trackWidth: Math.min(58, root.width)
+  readonly property real trackX: (root.width - trackWidth) / 2
 
-  readonly property real targetThumbSize: pressed ? 28 : (checked ? 24 : 16)
-  readonly property real targetX: root.materialTrackX + (checked
-    ? (pressed ? root.materialTrackWidth - 28 - 2 : root.materialTrackWidth - 24 - 4)
-    : (pressed ? 2 : 8))
+  readonly property real targetThumbSize: pressed ? 26 : 22
+  readonly property real targetX: trackX + (checked ? trackWidth - targetThumbSize - 4 : 4)
 
-  property real thumbSize: 16
-  property real thumbX: 8
+  property real thumbSize: 22
+  property real thumbX: 4
 
   Behavior on thumbSize {
     enabled: Config.spatialMotion && !root.reducedMotion
@@ -68,11 +66,11 @@ SwitchBase {
 
   Rectangle {
     id: track
-    x: root.materialTrackX
-    y: (root.height - 32) / 2
-    width: root.materialTrackWidth
-    height: 32
-    radius: height / 2
+    x: root.trackX
+    y: (root.height - 30) / 2
+    width: root.trackWidth
+    height: 30
+    radius: 15
     ColorSpring {
       id: trackEffect
       animate: !root.reducedMotion && !Config.reducedMotion
@@ -81,8 +79,6 @@ SwitchBase {
         : root.surfaceContainerHighest
     }
     color: trackEffect.color
-    border.width: root.checked || !root.enabled ? 0 : 2
-    border.color: root.outline
     opacity: root.enabled ? 1 : 0.55
   }
 
@@ -97,20 +93,9 @@ SwitchBase {
       id: thumbEffect
       animate: !root.reducedMotion && !Config.reducedMotion
       targetColor: root.enabled
-        ? Qt.tint(root.checked ? root.activeContentColor : root.outline, root.stateOverlay)
+        ? Qt.tint(root.checked ? "#ffffff" : root.outline, root.stateOverlay)
         : root.outline
     }
     color: thumbEffect.color
-
-    IconGlyph {
-      anchors.centerIn: parent
-      iconLabel: "check"
-      iconSize: 16
-      iconColor: root.checked ? root.checkmarkColor : "transparent"
-      iconOpacity: root.checked ? 1 : 0
-      filled: true
-      visible: root.checked
-      Behavior on iconOpacity { NumberAnimation { duration: root.animateDuration(150) } }
-    }
   }
 }

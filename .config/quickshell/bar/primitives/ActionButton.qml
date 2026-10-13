@@ -25,7 +25,7 @@ FocusScope {
   property bool expressiveSelectedShape: false
   readonly property bool segmented: root.grouped && root.groupPosition !== "single"
   readonly property bool textVariant: root.variant === "text" || root.variant === "quiet"
-  readonly property bool filled: root.selected || root.variant === "filled"
+  readonly property bool filled: root.selected || root.variant === "filled" || root.variant === "pill"
   property real iconSize: Config.iconSize + 4
   property real contentSpacing: Config.spacingMedium
   property color iconColor: {
@@ -33,11 +33,7 @@ FocusScope {
     if (root.filled) return Colors.fgPrimary
     return root.variant === "tonal" ? Colors.fgSecondaryContainer : Colors.primary
   }
-  property real radius: root.segmented
-    ? Math.max(0, root.height / 2)
-    : root.grouped
-    ? (root.selected ? Math.max(0, root.height / 2) : Config.shapeCompact)
-    : (root.horizontalContent ? 20 : Config.shapeMedium)
+  property real radius: root.variant === "pill" ? root.height / 2 : Config.shapeLarge
   property color color: {
     var overlay = root.pressed ? Colors.pressOverlay
       : (root.hovered ? Colors.hoverOverlay
