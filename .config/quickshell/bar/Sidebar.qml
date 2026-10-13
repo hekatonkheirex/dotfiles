@@ -20,7 +20,8 @@ PopupBase {
   anchors.bottom: true
   margins.left: Config.spacingMedium
   margins.top: Config.barWidth + Config.spacingMedium
-  margins.bottom: Config.spacingMedium
+  // Clear the bottom bar so its page buttons stay clickable while open.
+  margins.bottom: Config.spacingMedium + Config.bottomBarHeight
 
   // Own flag, not popupActive: the Media/Weather/Audio/Brightness popups bind
   // popupActive to their own visibility and would fight a second writer.

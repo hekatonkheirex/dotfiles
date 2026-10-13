@@ -87,7 +87,7 @@ ColumnLayout {
   }
 
   Text {
-    text: "The dock appears under the Elena style: shown on an empty workspace, hidden while windows are open, revealed at the bottom edge."
+    text: "The dock lives in the Elena bottom bar: pinned apps always appear there, and running apps follow."
     color: Colors.fgSurfaceVariant
     font.family: Config.fontFamily
     font.pixelSize: Config.typeLabelMediumSize

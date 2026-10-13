@@ -47,7 +47,11 @@ PanelWindow {
   Binding { target: AudioService; property: "barActive"; value: root.visible }
   Binding { target: NetworkStatusService; property: "active"; value: root.visible }
 
-  SystemClock { id: clock; precision: SystemClock.Minutes }
+  SystemClock { id: clock; precision: SystemClock.Minutes; enabled: root.visible }
+
+  // Touchpads send many small deltas: one volume step per full 120 notch,
+  // reset on direction flip (same logic as DockGlyph's window cycling).
+  property int wheelAccum: 0
 
   BottomBarContent {
     id: content
@@ -71,7 +75,13 @@ PanelWindow {
     // Same step as the top-bar AudioIndicator wheel (Config.volumeStep %).
     onMediaScrolled: function(delta) {
       if (delta === 0) return
-      AudioService.setVolume(AudioService.volume + (delta > 0 ? 1 : -1) * Config.volumeStep / 100)
+      if ((delta > 0) !== (root.wheelAccum > 0)) root.wheelAccum = 0
+      root.wheelAccum += delta
+      while (Math.abs(root.wheelAccum) >= 120) {
+        const dir = root.wheelAccum > 0 ? 1 : -1
+        root.wheelAccum -= dir * 120
+        AudioService.setVolume(AudioService.volume + dir * Config.volumeStep / 100)
+      }
     }
     onMediaMiddleClicked: AudioService.toggleMute()
     onMediaRightClicked: Quickshell.execDetached(["sh", "-c", root.pavucontrolCommand])
