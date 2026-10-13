@@ -9,6 +9,7 @@ qmllint shell.qml \
   bar/*.qml \
   bar/settings/*.qml \
   bar/primitives/*.qml \
+  bar/sidebar/*.qml \
   bar/themes/material3/*.qml \
   bar/themes/nothing/*.qml \
   bar/themes/ghost/*.qml

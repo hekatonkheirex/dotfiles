@@ -574,6 +574,13 @@ ShellRoot {
     onDismissed: bar.openPopup = ""
   }
 
+  Connections {
+    target: Config
+    function onElenaThemeChanged() {
+      if (!Config.elenaTheme && bar.openPopup === "sidebar") bar.openPopup = ""
+    }
+  }
+
   LlmUsagePopup {
     visible: bar.openPopup === "llm" && !lockScreen.locked
     anchorY: bar.popupAnchorY

@@ -31,6 +31,7 @@ Item {
 
     Rectangle {
       anchors.bottom: parent.bottom
+      visible: root.value > 0
       width: parent.width
       height: Math.max(parent.width, parent.height * Math.max(0, Math.min(1, root.value)))
       radius: width / 2

@@ -7,17 +7,19 @@ Card {
   id: root
 
   property date now: new Date()
+  // Set by the hosting window: a hidden layer-shell window does not hide child items.
+  property bool active: true
 
   implicitHeight: col.implicitHeight + Config.spacingLarge * 2
 
   // Tick on the minute boundary; resync when shown. No interval binding on `now`.
   function rescheduleClock() {
     clockTimer.interval = ClockTiming.nextInterval(root.now, false)
-    if (root.visible) clockTimer.restart()
+    if (root.active) clockTimer.restart()
   }
 
-  onVisibleChanged: {
-    if (visible) {
+  onActiveChanged: {
+    if (active) {
       now = new Date()
       rescheduleClock()
     }
@@ -27,7 +29,7 @@ Card {
 
   Timer {
     id: clockTimer
-    running: root.visible
+    running: root.active
     repeat: false
     onTriggered: {
       root.now = new Date()

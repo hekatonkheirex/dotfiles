@@ -6,7 +6,7 @@ import "../primitives"
 Card {
   id: root
 
-  readonly property bool hasPlayer: MediaService.status !== "NoPlayer"
+  readonly property bool hasPlayer: MediaService.status !== "NoPlayer" && MediaService.title !== ""
   readonly property string control: Quickshell.env("HOME")
     + "/.config/quickshell/scripts/mpris_control.py"
 
@@ -25,7 +25,7 @@ Card {
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
       text: root.hasPlayer
-        ? (MediaService.title !== "" ? MediaService.title : "Unknown title")
+        ? MediaService.title
         : "Nothing playing"
       color: Colors.fgSurface
       font.family: Config.fontFamily
@@ -47,6 +47,8 @@ Card {
     Row {
       anchors.horizontalCenter: parent.horizontalCenter
       spacing: Config.spacingSmall
+      enabled: root.hasPlayer
+      opacity: root.hasPlayer ? 1 : 0.4
 
       IconButton {
         size: 40

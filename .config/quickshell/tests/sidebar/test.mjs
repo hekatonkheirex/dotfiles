@@ -14,6 +14,7 @@ const todayIdx = row => row.map(d => d.isToday)
 // Local-time constructors (month is 0-based) keep this timezone independent.
 const cases = [
   [new Date(2026, 9, 12, 12, 0), 0, "Monday"],
+  [new Date(2026, 9, 13, 12, 0), 1, "Tuesday"],
   [new Date(2026, 9, 11, 23, 59), 6, "Sunday"],
   [new Date(2026, 9, 31, 12, 0), 5, "Saturday, month end"],
   [new Date(2026, 10, 1, 0, 0), 6, "Sunday, month start"],

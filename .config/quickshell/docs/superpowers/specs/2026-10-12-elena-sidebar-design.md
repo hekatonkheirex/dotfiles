@@ -45,14 +45,14 @@ visibility, and two writers on one property would race when switching popups.
 
 | Card | File | Source |
 |---|---|---|
-| Clock + weekday row | `bar/sidebar/ClockCard.qml` | `Bar.now`-style clock, `Weekdays.weekRow` |
+| Clock + weekday row | `bar/sidebar/ClockCard.qml` | minute-aligned `Timer` (`config/ClockTiming.js`), `Weekdays.weekRow` |
 | Battery pill | `bar/sidebar/BatteryPill.qml` | `BatteryService.pct`, charging state |
 | Weather | `bar/sidebar/WeatherCard.qml` | `WeatherService.desc`, `.temp` |
 | Media | `bar/sidebar/MediaCard.qml` | `MediaService.title/artist/status`; prev/play/next through the same control `MediaPopup` uses |
 | Level bars | `bar/sidebar/LevelBars.qml` | volume, mic, brightness via `AudioService.setVolume/setMicVolume`, `BrightnessService` |
 
-- Clock: large `HH : MM`, stacked-dot separator; honors the existing clock
-  seconds/24h settings if present, otherwise 24h.
+- Clock: large `HH : MM`, stacked-dot separator; honors `Settings.clock24h`
+  only (no seconds); the 12h format shows the hour without AM/PM.
 - Weekday row: `M T W T F S S`, Monday first, today circled in `secondary`.
 - Level bars: vertical bars, drag or click to set, mute toggle on the icon.
 

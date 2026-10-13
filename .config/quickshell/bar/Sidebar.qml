@@ -23,6 +23,7 @@ PopupBase {
 
   SidebarContent {
     anchors.fill: parent
+    active: root.visible
     anchors.margins: Config.spacingMedium
   }
 }
