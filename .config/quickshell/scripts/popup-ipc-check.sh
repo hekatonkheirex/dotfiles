@@ -16,4 +16,13 @@ orig=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.co
 [ "$(qs ipc call shell settingsTab 5)" = 5 ] && echo "ok   settingsTab" || { echo "FAIL settingsTab"; fail=1; }
 qs ipc call shell settingsTab "$orig" >/dev/null
 [ "$(qs ipc call shell forgetPrompt "")" = "" ] && echo "ok   forgetPrompt clears" || { echo "FAIL forgetPrompt"; fail=1; }
+# Bottom-bar page toggle: closed opens, same page closes, another page switches.
+qs ipc call shell dismissPopups >/dev/null; sleep 0.4
+qs ipc call shell openSidebarPage 1 >/dev/null
+[ "$(qs ipc call shell currentPopup)" = sidebar ] && echo "ok   openSidebarPage opens" || { echo "FAIL openSidebarPage open"; fail=1; }
+qs ipc call shell openSidebarPage 1 >/dev/null
+[ -z "$(qs ipc call shell currentPopup)" ] && echo "ok   openSidebarPage same page closes" || { echo "FAIL openSidebarPage close"; fail=1; }
+qs ipc call shell openSidebarPage 0 >/dev/null; qs ipc call shell openSidebarPage 1 >/dev/null
+[ "$(qs ipc call shell currentPopup)" = sidebar ] && echo "ok   openSidebarPage switches" || { echo "FAIL openSidebarPage switch"; fail=1; }
+qs ipc call shell dismissPopups >/dev/null
 exit $fail

@@ -7,7 +7,7 @@ A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/)
 This replaces a traditional status bar (waybar) and panel infrastructure with a unified QML-based shell. It provides:
 
 - **Workspace strip** (`bar/Bar.qml`): the whole top bar is an 8px row of workspace color blocks.
-- **Sidebar and dock**: a toggleable two-page sidebar (Status and Dashboard) and a bottom app dock. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
+- **Sidebar and dock**: a toggleable two-page sidebar (Status and Dashboard) and a full-width bottom bar (page buttons, volume, app dock, clock, battery, network) that reserves its height. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
 - **Lock screen** with PAM + fingerprint authentication.
 - **Notification handling** with dashed Elena history/toast cards, monospace app/time metadata, normal-case content, and explicit critical styling.
 - **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; the Quick Menu and Notifications tab share the persisted setting.
@@ -56,7 +56,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 ├── bar/
 │   ├── Bar.qml                # Top workspace strip and retained hidden widget machinery
 │   ├── Sidebar.qml            # Status/Dashboard sidebar (content in sidebar/)
-│   ├── Dock.qml               # Bottom app dock (content in dock/)
+│   ├── BottomBar.qml          # Bottom bar window (content in bottombar/)
 │   ├── SettingsPanel.qml       # Settings panel shell (state, processes, tab bar) — content in settings/
 │   ├── settings/
 │   │   ├── AccountTab.qml
@@ -484,7 +484,7 @@ reduced motion and tooltip visibility. Input, focus and accessibility live in
 Muted level tiles show clipped diagonal stripes instead of an active fill;
 unmuting restores the existing level. The render check covers both states and
 the rounded corners.
-`controls-render.sh`, `sidebar-render.sh`, `dock-render.sh` and
+`controls-render.sh`, `sidebar-render.sh`, `bottom-bar-render.sh` and
 `tag-strip-render.sh` provide isolated Elenapan-palette pixel checks.
 `config-dump.sh check` compares the original role/token oracle, allowing only
 explicitly removed properties and the intended shape change. Its legacy-key

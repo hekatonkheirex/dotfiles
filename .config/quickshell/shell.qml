@@ -10,6 +10,7 @@ import Quickshell.Io
 import "config"
 import "config/BarForm.js" as BarForm
 import "config/DockModel.js" as DockModel
+import "config/BottomBarModel.js" as BottomBarModel
 import "bar"
 
 ShellRoot {
@@ -246,6 +247,20 @@ ShellRoot {
     bar.openPopup = "launcher"
   }
 
+  // Bottom-bar page buttons: closed opens at the page, the open page closes
+  // it, another page switches (BottomBarModel.sidebarToggle).
+  function openSidebarPage(n) {
+    if (lockScreen.locked) return false
+    var r = BottomBarModel.sidebarToggle(bar.openPopup, sidebar.currentPage, n, sidebar.pageCount)
+    if (r.open) {
+      sidebar.showPage(r.page)
+      bar.openPopup = "sidebar"
+    } else {
+      bar.openPopup = ""
+    }
+    return true
+  }
+
   // niri's socket path changes per session; pick the newest like the other
   // niri helpers in this config.
   function niriAction(args) {
@@ -402,20 +417,25 @@ ShellRoot {
       return true
     }
 
-    // Dev/testing: dock state as JSON (items, visibility inputs).
+    // Dev/testing: dock state as JSON (items and window inputs).
     function dockState(): string {
       return JSON.stringify({
-        revealed: dock.revealed,
         workspaceEmpty: WindowService.workspaceEmpty,
         windows: WindowService.windows.length,
-        items: dock.items
+        items: bottomBar.items
       })
     }
 
-    // Dev/testing: force the dock shown (true) or back to automatic (false).
-    function dockReveal(on: bool): bool {
-      dock.forceShown = on
-      return dock.revealed
+    // Bottom-bar page request: same toggle as the bar buttons.
+    function openSidebarPage(n: int): bool { return shell.openSidebarPage(n) }
+
+    // Dev/testing: bottom bar inputs as JSON.
+    function bottomBarState(): string {
+      var c = bottomBar.content
+      return JSON.stringify({ items: bottomBar.items, clockText: c.clockText, dateText: c.dateText,
+        volume: c.volume, muted: c.muted, batteryPct: c.batteryPct, charging: c.charging,
+        signal: c.signal, connected: c.connected, vpn: c.vpn, alarmCount: c.alarmCount,
+        height: bottomBar.implicitHeight })
     }
 
     // Dev/testing: the launcher's current search text.
@@ -607,6 +627,7 @@ ShellRoot {
   }
 
   Sidebar {
+    id: sidebar
     visible: bar.openPopup === "sidebar" && !lockScreen.locked
     screen: bar.screen
     onDismissed: bar.openPopup = ""
@@ -618,12 +639,26 @@ ShellRoot {
     }
   }
 
-  Dock {
-    id: dock
+  BottomBar {
+    id: bottomBar
     visible: bar.visible && !lockScreen.locked
     screen: bar.screen
     items: DockModel.dockItems(DockModel.normalizePinned(Settings.dockPinned), WindowService.windows)
-    workspaceEmpty: WindowService.workspaceEmpty
+    onSidebarPageRequested: function(page) { shell.openSidebarPage(page) }
+    // Same anchor and toggle as the launcher() IPC call.
+    onLauncherRequested: {
+      if (lockScreen.locked) return
+      ipc.launcher()
+    }
+    onNetworkRequested: {
+      if (lockScreen.locked) return
+      settingsPanel.currentTab = 4      // Network tab until R4
+      bar.openPopup = "settings"
+    }
+    onLogoutRequested: {
+      if (lockScreen.locked) return
+      bar.togglePopupByName("quickmenu")   // until R3
+    }
     onItemActivated: function(appId) { shell.dockActivate(appId) }
     onItemClosed: function(appId) { shell.dockClose(appId) }
     onItemCycled: function(appId, direction) { shell.dockCycle(appId, direction) }

@@ -10,6 +10,11 @@ PopupBase {
 
   surfaceWidth: 320
 
+  readonly property int currentPage: content.currentPage
+  readonly property int pageCount: 2
+  // Pages are 0 (Status) and 1 (Dashboard); R2 adds the media page.
+  function showPage(n) { content.currentPage = Math.max(0, Math.min(root.pageCount - 1, Math.floor(n))) }
+
   signal searchSubmitted(string text)
   signal settingsRequested(int tab)
   anchors.bottom: true
