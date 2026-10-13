@@ -22,7 +22,7 @@
 | `Config.nothingDesign`, `Config.nothingEvolution`, `Config.ghostTheme`, `Config.dwmTheme`, `Config.liquidGlassTheme` (and the `Colors.*` mirrors) | `false` |
 | `Config.material3Theme`, `Config.elenaTheme` | `true` |
 | `Settings.themeStyle` | `"elena"` |
-| `Config.materialCompact` | `false` (setting removed) |
+| `Config.materialCompact` | `false`: the setting is deleted in Task 4, so every `materialCompact ? a : b` collapses to `b` (user ruling 2026-10-13: accepted for the interim commits, including `ActionButton` height `+ 24`) |
 | `Config.spatialMotion`, `Config.expressiveMotion` | `true` |
 
   A collapse never removes a branch that is reachable with these values. If an expression mixes a removed flag with a live condition (`a && !ghostTheme`), keep the live part.
