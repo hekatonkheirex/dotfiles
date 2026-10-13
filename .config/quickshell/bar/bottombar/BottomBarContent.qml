@@ -82,24 +82,35 @@ Item {
     }
   }
 
-  // Centre dock
-  Row {
-    id: dock
+  // Centre dock. The clip box is the free width between the clusters (plus an
+  // 8 dp margin each side), so a long item list is cut off instead of painting
+  // or taking input over a cluster. The row stays centred and bottom-aligned.
+  Item {
+    id: dockClip
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
     anchors.bottomMargin: Config.dp(6)
-    spacing: Config.dp(4)
+    width: Math.max(0, root.width - 2 * Config.dp(300) - 2 * Config.dp(8))
+    height: Config.dp(26) + Config.dp(6) + Config.dp(3)
+    clip: true
 
-    Repeater {
-      model: root.items
-      DockGlyph {
-        required property var modelData
-        appId: modelData.appId
-        running: modelData.count > 0
-        focused: modelData.focused
-        onActivated: root.itemActivated(modelData.appId)
-        onCloseRequested: root.itemClosed(modelData.appId)
-        onCycled: function(direction) { root.itemCycled(modelData.appId, direction) }
+    Row {
+      id: dock
+      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.bottom: parent.bottom
+      spacing: Config.dp(4)
+
+      Repeater {
+        model: root.items
+        DockGlyph {
+          required property var modelData
+          appId: modelData.appId
+          running: modelData.count > 0
+          focused: modelData.focused
+          onActivated: root.itemActivated(modelData.appId)
+          onCloseRequested: root.itemClosed(modelData.appId)
+          onCycled: function(direction) { root.itemCycled(modelData.appId, direction) }
+        }
       }
     }
   }

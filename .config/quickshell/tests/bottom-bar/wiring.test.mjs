@@ -45,4 +45,8 @@ for (const f of ["BarButton", "DockGlyph"]) {
   assert.doesNotMatch(q, /font\.families/, f)
 }
 assert.doesNotMatch(fonts, /FontLoader/)
+const content = rd("../../bar/bottombar/BottomBarContent.qml")
+assert.match(content, /root\.width - 2 \* Config\.dp\(300\) - 2 \* Config\.dp\(8\)/, "dock width")
+assert.match(content, /id: dockClip[\s\S]*clip: true/, "dock clipped to the free width")
+assert.match(rd("../../bar/bottombar/VolumeRing.qml"), /onBackdropChanged: canvas\.requestPaint\(\)/)
 console.log("bottom bar wiring (config): ok")

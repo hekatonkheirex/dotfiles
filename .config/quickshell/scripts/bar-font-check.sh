@@ -30,6 +30,34 @@ if [ -n "${FONT_NEG_CONTROL:-}" ]; then
   sed -i 's|readonly property string family: .*|readonly property string family: "ElenaIcons2"|; s|readonly property var families: .*|readonly property var families: ["ElenaIcons2"]|' "$home/cfg/config/BottomBarFonts.qml"
 fi
 ln -s "$fdir" "$home/.local/share/fonts/icomoon"
+# Fallback-order glyph: in remix.ttf and iconic.ttf but not in feather, and
+# drawn differently in the two, so only the right order passes.
+extra=$(python3 -I - "$fdir" <<'PY2'
+import subprocess, sys
+from PIL import Image, ImageDraw, ImageFont
+d = sys.argv[1]
+def cs(f):
+    out = subprocess.run(["fc-query", "-f", "%{charset}\n", f"{d}/{f}"], capture_output=True, text=True, check=True).stdout
+    s = set()
+    for part in out.split():
+        a, _, b = part.partition("-")
+        s.update(range(int(a, 16), int(b or a, 16) + 1))
+    return s
+fe, rm, ic = cs("icomoon-feather.ttf"), cs("remix.ttf"), cs("iconic.ttf")
+def ink(f, cp):
+    im = Image.new("L", (96, 96), 0)
+    ImageDraw.Draw(im).text((48, 48), chr(cp), font=ImageFont.truetype(f"{d}/{f}", 64), fill=255, anchor="mm")
+    return im.point(lambda v: v > 96)
+for cp in sorted(c for c in rm & ic if c not in fe and c >= 0xE000):
+    a, b = ink("remix.ttf", cp), ink("iconic.ttf", cp)
+    pa, pb = list(a.get_flattened_data()), list(b.get_flattened_data())
+    inter = sum(1 for x, y in zip(pa, pb) if x and y); uni = sum(1 for x, y in zip(pa, pb) if x or y)
+    if uni and inter / uni < 0.5 and sum(1 for x in pa if x) > 50:
+        print(cp); break
+PY2
+)
+[ -n "$extra" ] || { echo "FAIL: no codepoint distinguishes remix from iconic"; exit 1; }
+echo "fallback-order glyph U+$(printf '%04X' "$extra")"
 # The scan rules naming the files ElenaIcons1..3 live in the real fontconfig dir.
 mkdir -p "$home/.config/fontconfig"
 ln -s "$real_home/.config/fontconfig/conf.d" "$home/.config/fontconfig/conf.d"
@@ -75,14 +103,15 @@ ShellRoot {
   }
 }
 QML
+sed -i "s|0xED28\]|0xED28, $extra]|; s|11 \* 256|12 * 256|" "$home/cfg/shell.qml"
 HOME="$home" XDG_RUNTIME_DIR="$home/run" FONT_OUT="$home/qt.png" QS_NO_RELOAD_POPUP=1 \
   timeout 30 qs -p "$home/cfg/shell.qml" >"$home/qs.log" 2>&1 || true
 [ -s "$home/qt.png" ] || { echo "FAIL: no render"; tail -8 "$home/qs.log"; exit 1; }
 grep -o 'families=.*' "$home/qs.log" | head -1
-python3 -I - "$home/qt.png" "$fdir" <<'PY'
+python3 -I - "$home/qt.png" "$fdir" "$extra" <<'PY'
 import subprocess, sys
 from PIL import Image, ImageChops, ImageDraw, ImageFont
-cps = [0xE92B, 0xE982, 0xE943, 0xEE50, 0xEC79, 0xED38, 0xE9A0, 0xE934, 0xEEF5, 0xEB84, 0xED28]
+cps = [0xE92B, 0xE982, 0xE943, 0xEE50, 0xEC79, 0xED38, 0xE9A0, 0xE934, 0xEEF5, 0xEB84, 0xED28, int(sys.argv[3])]
 order = ["icomoon-feather.ttf", "remix.ttf", "iconic.ttf"]
 fdir = sys.argv[2]
 def charset(f):

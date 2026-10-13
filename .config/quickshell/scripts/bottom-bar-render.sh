@@ -15,7 +15,7 @@ chmod 700 "$home/run"
 ln -s "${XDG_RUNTIME_DIR:?}/${WAYLAND_DISPLAY:?}" "$home/run/$WAYLAND_DISPLAY"
 cp -r "$root/config" "$root/bar" "$home/cfg/"
 cp "$root/tests/bottom-bar/shell.qml" "$home/cfg/shell.qml"
-# The fontconfig rule renaming remix.ttf to "ElenaIcons" lives in the real
+# The fontconfig rules naming the icon files ElenaIcons1..3 live in the real
 # config dir; without it the bar glyphs render as tofu.
 mkdir -p "$home/.config/fontconfig"
 ln -s "$real_home/.config/fontconfig/conf.d" "$home/.config/fontconfig/conf.d"
@@ -35,7 +35,7 @@ python3 -I - "$home/bar.png" <<'PY'
 import sys
 from PIL import Image
 im = Image.open(sys.argv[1]).convert("RGB")
-assert im.size == (1100, 170), f"size {im.size}"
+assert im.size == (1100, 255), f"size {im.size}"
 def hx(s): return tuple(int(s[i:i+2], 16) for i in (1, 3, 5))
 SURF, HIGH, ERR = hx("#1a1f2b"), hx("#343c4d"), hx("#ff6b6b")
 SEC, TER, PRI = hx("#f06292"), hx("#5bb8d4"), hx("#c77dc8")
@@ -48,7 +48,7 @@ def count(box, col, t=8):
 def area(box): return (box[2] - box[0]) * (box[3] - box[1])
 def dp(n): return int(n * 1.5 + 0.5)
 W, BH = 1100, dp(43)               # stage width, bar height (65)
-OFF = {"A": 0, "B": 85}            # bar A: idle; bar B: hover on glance
+OFF = {"A": 0, "B": 85, "C": 170}  # A: idle; B: hover on glance; C: disconnected, 20 items
 checks = []
 def check(name, n, lo, hi=None):
     ok = n >= lo and (hi is None or n <= hi)
@@ -60,8 +60,10 @@ def patch(cx, cy, r=1): return (cx - r, cy - r, cx + r + 1, cy + r + 1)
 for lab, (x, y) in (("left", (20, 30)), ("right", (W - 20, 30))):
     box = (x, y, x + 6, y + 6)
     check(f"A {lab} cluster surface px", count(box, SURF, 3), 36, 36)
-check("A left cluster corner is stage bg", int(near(im.getpixel((449, 0)), BG, 3)), 1, 1)
-check("A right cluster corner is stage bg", int(near(im.getpixel((W - 450, 0)), BG, 3)), 1, 1)
+# (440, 3) lies 33.6 px from the arc centre (420, 30): outside the 30 px radius
+# (a 4 px radius would paint it with the surface color).
+check("A left cluster corner is stage bg", int(near(im.getpixel((440, 3)), BG, 3)), 1, 1)
+check("A right cluster corner is stage bg", int(near(im.getpixel((W - 441, 3)), BG, 3)), 1, 1)
 
 # 3. hover border: bottom dp(3) strip under the glance button, accent only in B
 for lab in "AB":
@@ -135,6 +137,29 @@ check("A alarm pill px (container)", count(ab("A"), HIGH), 700)
 check("A alarm slash px (tertiary)", count(ab("A"), TER), 0, 0)
 check("B alarm slash px (tertiary)", count(ab("B"), TER), 150)
 check("B alarm pill px (container)", count(ab("B"), HIGH), 0, 20)
+
+# 10. disconnected (bar C): four short muted bars, dp(6) tall (7 px of column
+# ink after the round caps), and a 10 % battery of empty, empty, half.
+for i, x in enumerate(sx):
+    mid = patch(x, OFF["C"] + BH // 2, 2)
+    check(f"C signal bar {i} px (muted)", count(mid, OUT), area(mid))
+    check(f"C signal bar {i} height px", colh("C", x, OUT), 6, 8)
+check("C battery top empty px", count(stack("C", 0), HIGH), area(stack("C", 0)))
+check("C battery middle empty px", count(stack("C", 1), HIGH), area(stack("C", 1)))
+check("C battery bottom half px", count(stack("C", 2), half), area(stack("C", 2)))
+
+# 11. 20 dock items on a 1100 px stage: the row is clipped to the free width
+# (462..638). Nothing paints in the 12 px margins, nor in the empty gaps of the
+# left cluster (the dock is drawn under the right cluster), and items show.
+bgc = lambda box: sum(not near(im.getpixel((x, y)), BG, 3) for x in range(box[0], box[2]) for y in range(box[1], box[3]))
+sfc = lambda box: sum(not near(im.getpixel((x, y)), SURF, 3) for x in range(box[0], box[2]) for y in range(box[1], box[3]))
+yc0, yc1 = OFF["C"] + 3, OFF["C"] + BH - 3
+fl, fr = 450 + dp(8), W - 450 - dp(8)
+check("C dock ink left of free band px", bgc((450, yc0, fl, yc1)), 0, 0)
+check("C dock ink right of free band px", bgc((fr, yc0, W - 450, yc1)), 0, 0)
+check("C dock ink in free band px", bgc((fl, yc0, fr, yc1)), 400)
+check("C left cluster gap 1 px", sfc((120, yc0, 170, yc1)), 0, 0)
+check("C left cluster gap 2 px", sfc((270, yc0, 320, yc1)), 0, 0)
 
 # 9. glyphs are not tofu or the wrong file: each button glyph of bar A (command,
 # star, headphones, shield, bell, bolt) measures 38..60 accent px at 12pt.
