@@ -232,6 +232,25 @@ ShellRoot {
     return bar.verticalPillPanelWidth + bar.edgeGap + Config.spacingMedium
   }
 
+  // Anchors the launcher exactly as the launcher() IPC call does.
+  function anchorLauncher() {
+    if (bar.horizontal) {
+      bar.popupAnchorX = bar.getLauncherX()
+    } else {
+      bar.popupAnchorY = 0
+    }
+  }
+
+  // Opens the launcher with `query` already typed. Shared by the sidebar search
+  // field and the sidebarSearch IPC hook. Re-opening while the launcher is
+  // already visible must re-run its on-show reset, so close it first.
+  function openLauncherWith(query) {
+    anchorLauncher()
+    if (bar.openPopup === "launcher") bar.openPopup = ""
+    launcherPopup.initialQuery = query
+    bar.openPopup = "launcher"
+  }
+
   function popupMarginLeft(w, screenW) {
     if (bar.horizontal) {
       // Float popups off the screen edge instead of clamping flush to it.
@@ -289,11 +308,7 @@ ShellRoot {
     target: "shell"
 
     function launcher() {
-      if (bar.horizontal) {
-        bar.popupAnchorX = bar.getLauncherX()
-      } else {
-        bar.popupAnchorY = 0
-      }
+      shell.anchorLauncher()
       bar.openPopup = bar.openPopup === "launcher" ? "" : "launcher"
     }
 
@@ -383,6 +398,19 @@ ShellRoot {
     // Dev/testing: "strip" under dwm (dmenu strip), else "list".
     function launcherMode(): string {
       return launcherPopup.dmenu ? "strip" : "list"
+    }
+
+    // Dev/testing: submit the sidebar search with `text` (same path as Enter).
+    // False outside the elena style.
+    function sidebarSearch(text: string): bool {
+      if (!Config.elenaTheme) return false
+      shell.openLauncherWith(text)
+      return true
+    }
+
+    // Dev/testing: the launcher's current search text.
+    function launcherQuery(): string {
+      return launcherPopup.searchText
     }
 
     function currentPopup(): string {
