@@ -38,8 +38,10 @@ Out of scope for every phase: the center music window.
 
 ## Cards
 All data comes from existing services; no new polling. While the sidebar is
-open it sets each service's `popupActive` true (and false on close), as the
-existing popups do.
+open it sets each service's own `sidebarActive` flag (added to Media, Weather,
+Audio and Brightness services and OR'd into their `active` gates). It does not
+reuse `popupActive`: the existing popups bind that property to their own
+visibility, and two writers on one property would race when switching popups.
 
 | Card | File | Source |
 |---|---|---|
