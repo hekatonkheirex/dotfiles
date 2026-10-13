@@ -74,3 +74,12 @@ visibility, and two writers on one property would race when switching popups.
 Search field, dock, dashboard, tray and notification homes, hover gesture,
 center music window, a niri keybinding (the bind line is given in the final
 report; the niri config is not edited).
+
+## Usage
+- Toggle: `qs ipc call shell popup sidebar` (returns `false` and does nothing
+  outside the elena style). Esc or a click outside closes it.
+- Niri bind, to add to `~/.config/niri/keybinds.kdl` (not edited by this
+  work; `Mod+Shift+S` is unused in the current config):
+  `Mod+Shift+S hotkey-overlay-title="Open Sidebar" { spawn "qs" "ipc" "call" "shell" "popup" "sidebar"; }`
+- Services poll for the sidebar through their own `sidebarActive` flag, so
+  they stop polling when it closes.
