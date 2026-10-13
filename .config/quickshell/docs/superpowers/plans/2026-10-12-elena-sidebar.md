@@ -565,7 +565,7 @@ yadm commit -m "elena sidebar: media card and level bars"
 ```bash
 #!/usr/bin/env bash
 # Usage: sidebar-render.sh [quickshell-root]
-# Renders SidebarContent under the elenapam palette in a scratch HOME, fails on
+# Renders SidebarContent under the elenapan palette in a scratch HOME, fails on
 # any QML error in the log, and pixel-checks the card surface and today's circle.
 set -euo pipefail
 root=$(realpath "${1:-$(dirname "$0")/..}")
@@ -573,7 +573,7 @@ home=$(mktemp -d); trap 'rm -rf "$home"' EXIT
 mkdir -p "$home/.config/quickshell" "$home/cfg"
 cp -r "$root/config" "$root/bar" "$root/resources" "$home/cfg/"
 cp "$root/tests/sidebar/shell.qml" "$home/cfg/shell.qml"
-printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapam","colorVariant":"auto","themePreference":2}\n' \
+printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapan","colorVariant":"auto","themePreference":2}\n' \
   > "$home/.config/quickshell/settings.json"
 HOME="$home" GOLDEN_OUT="$home/sidebar.png" QS_NO_RELOAD_POPUP=1 \
   timeout 30 qs -p "$home/cfg/shell.qml" >"$home/qs.log" 2>&1 || true
@@ -588,7 +588,7 @@ from PIL import Image
 im = Image.open(sys.argv[1]).convert("RGB")
 w, h = im.size
 assert (w, h) == (320, 640), f"size {w}x{h}"
-card = (0x23, 0x2a, 0x37)       # elenapam surface_container
+card = (0x23, 0x2a, 0x37)       # elenapan surface_container
 secondary = (0xf0, 0x62, 0x92)  # today's circle
 def near(a, b, t=3): return all(abs(a[i] - b[i]) <= t for i in range(3))
 px = list(im.getdata())

@@ -7,6 +7,7 @@ import Quickshell
 import Quickshell.Io
 import "BarOrder.js" as BarOrder
 import "BarForm.js" as BarForm
+import "PaletteCatalog.js" as PaletteCatalog
 
 FileView {
   id: root
@@ -122,6 +123,11 @@ FileView {
     }
     if (stored.barForm === undefined && typeof stored.fullBar === "boolean") {
       barForm = BarForm.fromLegacy(stored.fullBar)
+      needsSave = true
+    }
+    var migratedPalette = PaletteCatalog.migratePaletteId(colorPalette)
+    if (migratedPalette !== colorPalette) {
+      colorPalette = migratedPalette
       needsSave = true
     }
     if (themeStyle === "neo-brutalism") {

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: sidebar-render.sh [quickshell-root]   (env SIDEBAR_RENDER_ROOT overrides it;
 # KEEP_PNG=path keeps a copy of the render, even when the check fails)
-# Renders SidebarContent under the elenapam palette in a scratch HOME, fails on
+# Renders SidebarContent under the elenapan palette in a scratch HOME, fails on
 # any QML error in the log, and pixel-checks the card surface and today's circle.
 set -euo pipefail
 root=$(realpath "${SIDEBAR_RENDER_ROOT:-${1:-$(dirname "$0")/..}}")
@@ -9,7 +9,7 @@ home=$(mktemp -d); trap 'rm -rf "$home"' EXIT
 mkdir -p "$home/.config/quickshell" "$home/cfg"
 cp -r "$root/config" "$root/bar" "$root/resources" "$home/cfg/"
 cp "$root/tests/sidebar/shell.qml" "$home/cfg/shell.qml"
-printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapam","colorVariant":"auto","themePreference":2}\n' \
+printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapan","colorVariant":"auto","themePreference":2}\n' \
   > "$home/.config/quickshell/settings.json"
 HOME="$home" GOLDEN_OUT="$home/sidebar.png" QS_NO_RELOAD_POPUP=1 \
   timeout 30 qs -p "$home/cfg/shell.qml" >"$home/qs.log" 2>&1 || true
@@ -26,7 +26,7 @@ from PIL import Image
 im = Image.open(sys.argv[1]).convert("RGB")
 w, h = im.size
 assert (w, h) == (320, 720), f"size {w}x{h}"
-card = (0x23, 0x2a, 0x37)       # elenapam surface_container
+card = (0x23, 0x2a, 0x37)       # elenapan surface_container
 secondary = (0xf0, 0x62, 0x92)  # today's circle
 def near(a, b, t=3): return all(abs(a[i] - b[i]) <= t for i in range(3))
 px = list(im.getdata())
@@ -41,7 +41,7 @@ assert n_card >= 10000, "card surfaces missing"
 assert 400 <= n_sec <= 4000, "today's circle missing or wrong color"
 # Search field: a bordered row under the level bars. Its border is Colors.outline
 # (unfocused) or Colors.primary (focused); the level bars card ends above FIELD_Y0.
-outline = (0x5b, 0x65, 0x78)    # elenapam outline
+outline = (0x5b, 0x65, 0x78)    # elenapan outline
 primary = (0xc7, 0x7d, 0xc8)
 FIELD_Y0 = 655
 n_border = sum(near(p, outline) or near(p, primary) for p in px[w * FIELD_Y0:])

@@ -3,7 +3,7 @@
 Date: 2026-10-12
 
 ## Outcome
-Selecting "elena" in Settings > Appearance applies the elenapan palette (id `elenapam`) and
+Selecting "elena" in Settings > Appearance applies the elenapan palette (id `elenapan`) and
 turns the bar into a thin row of colored workspace blocks along the top
 screen edge. Measured by: style tile selects, `Settings.themeStyle === "elena"`, screenshot
 shows the strip with focused/occupied/empty blocks matching the layout below,
@@ -22,7 +22,7 @@ the block row only.
   block row (see Tag strip); launcher and popups keep their layout.
 
 ## Palette
-- New fixed family `elenapam` in `PaletteCatalog`: navy surface ~#1a1f2b,
+- New fixed family `elenapan` in `PaletteCatalog`: navy surface ~#1a1f2b,
   the palette defines purple (primary), pink (secondary) and cyan (tertiary)
   accents plus an error red, sampled from the reference image.
 - Under `elena`, `Settings.colorSource` defaults to fixed with that family.
@@ -44,7 +44,7 @@ the block row only.
   blocks.
 - N equal blocks. N follows the workspace-count setting (active / 5 / 10); a
   focused workspace outside a fixed range is still shown.
-- Each block takes its accent from `primary`, `secondary`, `tertiary` by workspace `idx` modulo 3 (purple, pink, cyan in elenapam).
+- Each block takes its accent from `primary`, `secondary`, `tertiary` by workspace `idx` modulo 3 (purple, pink, cyan in elenapan).
   States: focused = full accent, occupied = accent at about 35% over the
   surface, empty = faint track.
 - Click focuses that workspace. Color changes use the existing motion tokens.
@@ -61,7 +61,7 @@ squares them; the script is checked so unknown ids fall through to the
 default, and fixed if they do not.
 
 ## Verification
-- Gate test `tests/elena/test.mjs`: `tagStates` states, accent by idx, junk input; elenapam palette roles and catalog wiring.
+- Gate test `tests/elena/test.mjs`: `tagStates` states, accent by idx, junk input; elenapan palette roles and catalog wiring.
 - Style added to `scripts/controls-golden*.sh` so the pixel baseline covers it.
 - Scratch-HOME harness plus IPC style switch, screenshot of the strip in each
   state, then restore `style material3 ""` and `dismissPopups`. See memory

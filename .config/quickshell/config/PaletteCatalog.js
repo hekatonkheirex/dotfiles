@@ -9,8 +9,7 @@ var familyList = [
   { value: "catppuccin", label: "Catppuccin", icon: "palette" },
   { value: "gruvbox", label: "Gruvbox", icon: "tonality" },
   { value: "tokyonight", label: "TokyoNight", icon: "nights_stay" },
-  // id stays "elenapam" (persisted in settings.json); the author is elenapan.
-  { value: "elenapam", label: "Elenapan", icon: "palette" }
+  { value: "elenapan", label: "Elenapan", icon: "palette" }
 ]
 
 var variantLists = {
@@ -40,7 +39,7 @@ var variantLists = {
     { value: "moon", label: "Moon", icon: "brightness_2" },
     { value: "night", label: "Night", icon: "dark_mode" }
   ],
-  elenapam: [
+  elenapan: [
     { value: "dark", label: "Dark", icon: "dark_mode" }
   ]
 }
@@ -107,7 +106,7 @@ function resolveVariant(family, variant, darkMode) {
       ? variant
       : (darkMode ? "night" : "day")
   }
-  if (family === "elenapam") return "dark"
+  if (family === "elenapan") return "dark"
   return "expressive"
 }
 
@@ -330,10 +329,11 @@ function tokyonightPalette(variant) {
   return semanticPalette(s, a)
 }
 
-// elenapam (id) / Elenapan (label): navy cards with pink, purple and cyan
-// accents, after the AwesomeWM rice by elenapan (github.com/elenapan/dotfiles,
-// colorscheme `amarena`). Dark only; light mode reuses it.
-function elenapamPalette() {
+// elenapan: navy cards with pink, purple and cyan accents, after the older
+// AwesomeWM rice by elenapan (github.com/elenapan/dotfiles; her current
+// `amarena` colorscheme is the updated version of this palette). Dark only;
+// light mode reuses it.
+function elenapanPalette() {
   var s = {
     base: "#1a1f2b", dim: "#151922", bright: "#2a3140", lowest: "#131720",
     low: "#1e2430", container: "#232a37", high: "#2a3140", highest: "#343c4d",
@@ -355,6 +355,12 @@ function palette(family, variant, darkMode) {
   if (family === "catppuccin") return catppuccinPalette(resolved)
   if (family === "gruvbox") return gruvboxPalette(resolved)
   if (family === "tokyonight") return tokyonightPalette(resolved)
-  if (family === "elenapam") return elenapamPalette()
+  if (family === "elenapan") return elenapanPalette()
   return null
+}
+
+// The palette id was spelled "elenapan" before 2026-10-13; settings written
+// then still carry it. Map old ids to current ones, pass everything else through.
+function migratePaletteId(id) {
+  return id === "elenapam" ? "elenapan" : id
 }

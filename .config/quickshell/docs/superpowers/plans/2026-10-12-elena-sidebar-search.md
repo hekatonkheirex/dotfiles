@@ -183,7 +183,7 @@ yadm commit -m "launcher: initialQuery hook; shell: openLauncherWith and sidebar
 ```python
 # Search field: a bordered row under the level bars. Its border is Colors.outline
 # (unfocused) or Colors.primary (focused); the level bars card ends above y=655.
-outline = (0x5b, 0x65, 0x78)    # elenapam outline
+outline = (0x5b, 0x65, 0x78)    # elenapan outline
 primary = (0xc7, 0x7d, 0xc8)
 FIELD_Y0 = 655
 n_border = sum(near(p, outline) or near(p, primary) for p in px[w * FIELD_Y0:])

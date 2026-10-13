@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Usage: tag-strip-render.sh [quickshell-root]
-# Renders TagStripBlocks with a fixed model under the elenapam palette and
+# Renders TagStripBlocks with a fixed model under the elenapan palette and
 # checks the block colors. Exits non-zero on mismatch.
 set -euo pipefail
 root=$(realpath "${1:-$(dirname "$0")/..}")
@@ -8,7 +8,7 @@ home=$(mktemp -d); trap 'rm -rf "$home"' EXIT
 mkdir -p "$home/.config/quickshell" "$home/cfg"
 cp -r "$root/config" "$root/bar" "$root/resources" "$home/cfg/"
 cp "$root/tests/tag-strip/shell.qml" "$home/cfg/shell.qml"
-printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapam","colorVariant":"auto","themePreference":2}\n' \
+printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapan","colorVariant":"auto","themePreference":2}\n' \
   > "$home/.config/quickshell/settings.json"
 HOME="$home" GOLDEN_OUT="$home/strip.png" QS_NO_RELOAD_POPUP=1 \
   timeout 30 qs -p "$home/cfg/shell.qml" >"$home/qs.log" 2>&1 || true

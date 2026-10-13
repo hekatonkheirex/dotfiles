@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a `themeStyle: "elena"` style that applies the elenapam palette and draws a colored workspace-block strip on the top screen edge.
+**Goal:** Add a `themeStyle: "elena"` style that applies the elenapan palette and draws a colored workspace-block strip on the top screen edge.
 
 **Architecture:** `elena` rides the Material 3 control path (`Config.material3Theme` stays true) and adds one flag, `Config.elenaTheme`. The palette is a new fixed family in `PaletteCatalog.js`. The strip is a second `PanelWindow` (`bar/TagStrip.qml`) that renders `bar/TagStripBlocks.qml` from the model `WorkspaceIndicator.visibleWorkspaces` already holds; state mapping is a pure function in `config/TagStrip.js`.
 
@@ -13,8 +13,8 @@
 - VCS is yadm (no `.git` here): `yadm add <paths>` then `yadm commit`. Never `--no-verify`. Never stage `settings.json` (already modified, unrelated).
 - QML edits go live on save. In-memory style switch: `qs ipc call shell style elena ""`; restore with `qs ipc call shell style material3 ""` and `qs ipc call shell dismissPopups`, then check `jq .themeStyle ~/.config/quickshell/settings.json`. Send no keystrokes (`wtype`) during tests.
 - Strip height is 8 px, one token: `Config.tagStripHeight`.
-- Accent cycle is `Colors.primary`, `Colors.secondary`, `Colors.tertiary` (purple, pink, cyan in the elenapam palette), indexed by workspace `idx`, so a workspace keeps its color when the list shifts.
-- elenapam palette is dark only; `palette("elenapam", v, darkMode)` ignores `darkMode`.
+- Accent cycle is `Colors.primary`, `Colors.secondary`, `Colors.tertiary` (purple, pink, cyan in the elenapan palette), indexed by workspace `idx`, so a workspace keeps its color when the list shifts.
+- elenapan palette is dark only; `palette("elenapan", v, darkMode)` ignores `darkMode`.
 - Block fill: focused = accent, occupied = accent at alpha 0.35, empty = accent at alpha 0.08, over a transparent strip.
 - Fonts, shape tokens and controls are unchanged (Material).
 
@@ -23,7 +23,7 @@
 | File | Responsibility |
 |---|---|
 | `config/TagStrip.js` (new) | `tagStates(workspaces)`: pure mapping from workspace items to `{idx, state, accent}` |
-| `config/PaletteCatalog.js` (mod) | `elenapam` family, variant list, `elenapamPalette()` |
+| `config/PaletteCatalog.js` (mod) | `elenapan` family, variant list, `elenapanPalette()` |
 | `config/Config.qml` (mod) | `elenaTheme`, `tagStripHeight`, `tagStripOffset` |
 | `bar/TagStripBlocks.qml` (new) | Renders blocks, emits `activated(idx)`. No window, testable alone |
 | `bar/TagStrip.qml` (new) | Top-edge `PanelWindow` wrapping `TagStripBlocks` |
@@ -33,7 +33,7 @@
 | `bar/settings/AppearanceTab.qml` (mod) | Tile, 7-choice grid math, palette default on select, revert |
 | `scripts/sync-active-palette.sh` (mod) | Add `elena` to the two Matugen-terminal whitelists |
 | `scripts/tests/test_niri_shape.sh` (new) | Locks: elena leaves Niri corners rounded |
-| `tests/elena/test.mjs` (new) | Gate: `tagStates`, elenapam palette, catalog wiring |
+| `tests/elena/test.mjs` (new) | Gate: `tagStates`, elenapan palette, catalog wiring |
 | `tests/tag-strip/shell.qml`, `scripts/tag-strip-render.sh` (new) | Pixel check of block states |
 | `scripts/controls-behavior.sh`, `scripts/controls-golden.sh` (mod) | Add `elena:classic` |
 | `docs/superpowers/specs/2026-10-12-elena-theme-design.md` (mod) | Record three deltas found while planning |
@@ -48,7 +48,7 @@
 - Modify: `docs/superpowers/specs/2026-10-12-elena-theme-design.md`
 
 **Interfaces:**
-- Produces: `TagStrip.tagStates(workspaces) -> [{idx:int, state:"focused"|"occupied"|"empty", accent:0|1|2}]`; `PaletteCatalog.palette("elenapam", variant, darkMode) -> role map`.
+- Produces: `TagStrip.tagStates(workspaces) -> [{idx:int, state:"focused"|"occupied"|"empty", accent:0|1|2}]`; `PaletteCatalog.palette("elenapan", variant, darkMode) -> role map`.
 
 - [ ] **Step 1: Write the failing test** `tests/elena/test.mjs`
 
@@ -92,8 +92,8 @@ assert.deepEqual(T.tagStates([{ idx: 0 }, { idx: -1 }, null, {}]),
   [{ idx: 0, state: "empty", accent: 2 }, { idx: -1, state: "empty", accent: 1 }])
 
 // palette
-const light = P.palette("elenapam", "auto", false)
-const dark = P.palette("elenapam", "auto", true)
+const light = P.palette("elenapan", "auto", false)
+const dark = P.palette("elenapan", "auto", true)
 assert.ok(light && dark)
 assert.deepEqual(light, dark)
 assert.equal(dark.primary, "#c77dc8")
@@ -101,11 +101,11 @@ assert.equal(dark.secondary, "#f06292")
 assert.equal(dark.tertiary, "#5bb8d4")
 assert.equal(dark.surface, "#1a1f2b")
 const roles = Object.keys(P.palette("tokyonight", "night", true))
-for (const k of roles) assert.ok(dark[k], `elenapam missing role ${k}`)
-for (const v of ["auto", "dark", "light", "junk", undefined]) assert.equal(P.resolveVariant("elenapam", v, true), "dark")
-assert.ok(P.fixedFamilyOptions().some(f => f.value === "elenapam"))
-assert.equal(P.familyLabel("elenapam"), "Elenapam")
-assert.equal(P.variantLabel("elenapam", "dark"), "Dark")
+for (const k of roles) assert.ok(dark[k], `elenapan missing role ${k}`)
+for (const v of ["auto", "dark", "light", "junk", undefined]) assert.equal(P.resolveVariant("elenapan", v, true), "dark")
+assert.ok(P.fixedFamilyOptions().some(f => f.value === "elenapan"))
+assert.equal(P.familyLabel("elenapan"), "Elenapan")
+assert.equal(P.variantLabel("elenapan", "dark"), "Dark")
 // existing families untouched
 assert.equal(P.palette("material3", "auto", true), null)
 assert.equal(P.palette("tokyonight", "night", true).primary, "#7aa2f7")
@@ -148,18 +148,18 @@ function tagStates(workspaces) {
 Append to `familyList` (after tokyonight):
 ```js
   { value: "tokyonight", label: "TokyoNight", icon: "nights_stay" },
-  { value: "elenapam", label: "Elenapam", icon: "palette" }
+  { value: "elenapan", label: "Elenapan", icon: "palette" }
 ```
 Append to `variantLists`:
 ```js
   tokyonight: [ /* unchanged */ ],
-  elenapam: [
+  elenapan: [
     { value: "dark", label: "Dark", icon: "dark_mode" }
   ]
 ```
 In `resolveVariant`, before `return "expressive"`:
 ```js
-  if (family === "elenapam") return "dark"
+  if (family === "elenapan") return "dark"
 ```
 `fixedFamilyOptions`:
 ```js
@@ -167,9 +167,9 @@ In `resolveVariant`, before `return "expressive"`:
 ```
 Before `palette()`:
 ```js
-// elenapam: navy cards with pink, purple and cyan accents (the AwesomeWM rice
-// by elenapam). Dark only; light mode reuses it.
-function elenapamPalette() {
+// elenapan: navy cards with pink, purple and cyan accents (the AwesomeWM rice
+// by elenapan). Dark only; light mode reuses it.
+function elenapanPalette() {
   var s = {
     base: "#1a1f2b", dim: "#151922", bright: "#2a3140", lowest: "#131720",
     low: "#1e2430", container: "#232a37", high: "#2a3140", highest: "#343c4d",
@@ -186,7 +186,7 @@ function elenapamPalette() {
   return semanticPalette(s, a)
 }
 ```
-In `palette()` add `if (family === "elenapam") return elenapamPalette()` before the final `return null`.
+In `palette()` add `if (family === "elenapan") return elenapanPalette()` before the final `return null`.
 
 - [ ] **Step 5: Run, expect PASS**
 
@@ -197,14 +197,14 @@ Expected: `elena: ok`. Also run `node tests/bar-form/test.mjs` to confirm nothin
 
 In `docs/superpowers/specs/2026-10-12-elena-theme-design.md`:
 - Theme id: replace "Excluded from `Config.material3Theme`." with "Stays inside `Config.material3Theme` (the facades in `bar/SliderControl.qml`, `bar/primitives/ActionButton.qml` pick Material controls from it). `Config.elenaTheme` is an extra flag only."
-- Tag strip: replace "Each block has a fixed accent, cycling purple, pink, cyan, mint, green." with "Each block takes its accent from `primary`, `secondary`, `tertiary` by workspace `idx` modulo 3 (purple, pink, cyan in elenapam)." and replace the `tagStates(workspaces, count)` sentence with "`tagStates(workspaces)` maps the items `WorkspaceIndicator.visibleWorkspaces` already builds, so count rules (active/5/10, focused outside range) stay in one place."
-- Verification: replace the gate-test bullet with "Gate test `tests/elena/test.mjs`: `tagStates` states, accent by idx, junk input; elenapam palette roles and catalog wiring."
+- Tag strip: replace "Each block has a fixed accent, cycling purple, pink, cyan, mint, green." with "Each block takes its accent from `primary`, `secondary`, `tertiary` by workspace `idx` modulo 3 (purple, pink, cyan in elenapan)." and replace the `tagStates(workspaces, count)` sentence with "`tagStates(workspaces)` maps the items `WorkspaceIndicator.visibleWorkspaces` already builds, so count rules (active/5/10, focused outside range) stay in one place."
+- Verification: replace the gate-test bullet with "Gate test `tests/elena/test.mjs`: `tagStates` states, accent by idx, junk input; elenapan palette roles and catalog wiring."
 
 - [ ] **Step 7: Commit**
 
 ```bash
 yadm add config/TagStrip.js config/PaletteCatalog.js tests/elena/test.mjs docs/superpowers/specs/2026-10-12-elena-theme-design.md docs/superpowers/plans/2026-10-12-elena-theme.md
-yadm commit -m "elena: tag state mapping and elenapam palette family"
+yadm commit -m "elena: tag state mapping and elenapan palette family"
 ```
 
 ---
@@ -282,10 +282,10 @@ Do not edit `material3Theme`.
     if (style === "nothing") Settings.nothingVariant = variant
     // elena ships its own fixed palette. The palette controls can still
     // switch it to Live (wallpaper) afterwards.
-    var paletteChanged = style === "elena" && Settings.colorPalette !== "elenapam"
+    var paletteChanged = style === "elena" && Settings.colorPalette !== "elenapan"
     if (paletteChanged) {
       Settings.colorSource = "fixed"
-      Settings.colorPalette = "elenapam"
+      Settings.colorPalette = "elenapan"
       Settings.colorVariant = "auto"
     }
     Settings.save()
@@ -351,7 +351,7 @@ yadm commit -m "elena: style flag, settings tile, palette default, script whitel
 ```bash
 #!/usr/bin/env bash
 # Usage: tag-strip-render.sh [quickshell-root]
-# Renders TagStripBlocks with a fixed model under the elenapam palette and
+# Renders TagStripBlocks with a fixed model under the elenapan palette and
 # checks the block colors. Exits non-zero on mismatch.
 set -euo pipefail
 root=$(realpath "${1:-$(dirname "$0")/..}")
@@ -359,7 +359,7 @@ home=$(mktemp -d); trap 'rm -rf "$home"' EXIT
 mkdir -p "$home/.config/quickshell" "$home/cfg"
 cp -r "$root/config" "$root/bar" "$root/resources" "$home/cfg/"
 cp "$root/tests/tag-strip/shell.qml" "$home/cfg/shell.qml"
-printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapam","colorVariant":"auto","themePreference":2}\n' \
+printf '{"themeStyle":"elena","colorSource":"fixed","colorPalette":"elenapan","colorVariant":"auto","themePreference":2}\n' \
   > "$home/.config/quickshell/settings.json"
 HOME="$home" GOLDEN_OUT="$home/strip.png" QS_NO_RELOAD_POPUP=1 \
   timeout 30 qs -p "$home/cfg/shell.qml" >"$home/qs.log" 2>&1 || true
@@ -605,7 +605,7 @@ Look at `/tmp/elena-top.png`: strip across the top edge with focused block in a 
 - Click a block: that workspace focuses.
 - Open a window: its top edge sits below the bar (`niri msg -j windows | jq` tile position vs bar height + 8).
 - Open the audio popup (`qs ipc call shell popup audio`): it sits under the bar, not overlapping it. Then `qs ipc call shell dismissPopups`.
-- Settings > Appearance: tile "Elena" selects, palette controls show Fixed + Elenapam; switching source to Live uses wallpaper colors and the strip follows.
+- Settings > Appearance: tile "Elena" selects, palette controls show Fixed + Elenapan; switching source to Live uses wallpaper colors and the strip follows.
 Restore: `qs ipc call shell style material3 ""; qs ipc call shell dismissPopups; jq .themeStyle ~/.config/quickshell/settings.json`.
 
 - [ ] **Step 6: Commit**

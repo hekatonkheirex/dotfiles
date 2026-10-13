@@ -96,7 +96,7 @@ Flickable {
   // they picked another one while in elena. Returns true when it changed.
   function leaveElena() {
     if (paletteBeforeElenaPalette === "") return false
-    var restore = Settings.colorSource === "fixed" && Settings.colorPalette === "elenapam"
+    var restore = Settings.colorSource === "fixed" && Settings.colorPalette === "elenapan"
     if (restore) {
       Settings.colorSource = paletteBeforeElenaSource
       Settings.colorPalette = paletteBeforeElenaPalette
@@ -119,14 +119,14 @@ Flickable {
     var paletteChanged = false
     if (wasElena && style !== "elena") {
       paletteChanged = appearanceTab.leaveElena()
-    } else if (style === "elena" && Settings.colorPalette !== "elenapam") {
+    } else if (style === "elena" && Settings.colorPalette !== "elenapan") {
       // elena ships its own fixed palette. The palette controls can still
       // switch it to Live (wallpaper) afterwards.
       paletteBeforeElenaSource = Settings.colorSource
       paletteBeforeElenaPalette = Settings.colorPalette
       paletteBeforeElenaVariant = Settings.colorVariant
       Settings.colorSource = "fixed"
-      Settings.colorPalette = "elenapam"
+      Settings.colorPalette = "elenapan"
       Settings.colorVariant = "auto"
       paletteChanged = true
     }

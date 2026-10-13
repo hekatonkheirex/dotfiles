@@ -10,7 +10,7 @@ const load = (rel, exports) => {
 }
 const T = load("../../config/TagStrip.js", "tagStates, ACCENT_COUNT")
 const P = load("../../config/PaletteCatalog.js",
-  "palette, resolveVariant, fixedFamilyOptions, familyLabel, variantLabel")
+  "palette, resolveVariant, fixedFamilyOptions, familyLabel, variantLabel, migratePaletteId")
 
 // tagStates
 assert.equal(T.ACCENT_COUNT, 3)
@@ -37,8 +37,8 @@ assert.deepEqual(T.tagStates([{ idx: 0 }, { idx: -1 }, { idx: NaN }, { idx: 2.5 
   [{ idx: 0, state: "empty", accent: 2 }, { idx: -1, state: "empty", accent: 1 }])
 
 // palette
-const light = P.palette("elenapam", "auto", false)
-const dark = P.palette("elenapam", "auto", true)
+const light = P.palette("elenapan", "auto", false)
+const dark = P.palette("elenapan", "auto", true)
 assert.ok(light && dark)
 assert.deepEqual(light, dark)
 assert.equal(dark.primary, "#c77dc8")
@@ -46,11 +46,11 @@ assert.equal(dark.secondary, "#f06292")
 assert.equal(dark.tertiary, "#5bb8d4")
 assert.equal(dark.surface, "#1a1f2b")
 const roles = Object.keys(P.palette("tokyonight", "night", true))
-for (const k of roles) assert.ok(dark[k], `elenapam missing role ${k}`)
-for (const v of ["auto", "dark", "light", "junk", undefined]) assert.equal(P.resolveVariant("elenapam", v, true), "dark")
-assert.ok(P.fixedFamilyOptions().some(f => f.value === "elenapam"))
-assert.equal(P.familyLabel("elenapam"), "Elenapan")
-assert.equal(P.variantLabel("elenapam", "dark"), "Dark")
+for (const k of roles) assert.ok(dark[k], `elenapan missing role ${k}`)
+for (const v of ["auto", "dark", "light", "junk", undefined]) assert.equal(P.resolveVariant("elenapan", v, true), "dark")
+assert.ok(P.fixedFamilyOptions().some(f => f.value === "elenapan"))
+assert.equal(P.familyLabel("elenapan"), "Elenapan")
+assert.equal(P.variantLabel("elenapan", "dark"), "Dark")
 // existing families untouched
 assert.equal(P.palette("material3", "auto", true), null)
 assert.equal(P.palette("tokyonight", "night", true).primary, "#7aa2f7")
@@ -75,7 +75,7 @@ assert.equal(P.palette("tokyonight", "night", true).primary, "#7aa2f7")
   // tile to tile: Material (live) -> Elena -> Material keeps the original palette
   let t = make({})
   t.api.selectStyle("elena", "")
-  assert.equal(t.env.Settings.colorPalette, "elenapam")
+  assert.equal(t.env.Settings.colorPalette, "elenapan")
   assert.equal(t.env.Settings.colorSource, "fixed")
   t.api.selectStyle("material3", "")
   assert.deepEqual(pal(t.env.Settings), orig)
@@ -94,4 +94,11 @@ assert.equal(P.palette("tokyonight", "night", true).primary, "#7aa2f7")
   assert.deepEqual(pal(t.env.Settings), orig)
   assert.equal(t.env.syncs, 0)
 }
+// The palette id was renamed elenapan -> elenapan (author spelling); stored
+// settings written before the rename must keep their palette.
+assert.equal(P.migratePaletteId("elenapam"), "elenapan")
+for (const same of ["elenapan", "material3", "catppuccin", "", undefined, null]) assert.equal(P.migratePaletteId(same), same)
+// Settings.qml applies it on load.
+const settingsSrc = readFileSync(fileURLToPath(new URL("../../config/Settings.qml", import.meta.url)), "utf8")
+assert.match(settingsSrc, /PaletteCatalog\.migratePaletteId\(/, "Settings migrates the stored palette id")
 console.log("elena: ok")
