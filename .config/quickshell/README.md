@@ -234,6 +234,7 @@ Keybindings live in Niri's `~/.config/niri/keybinds.kdl` and spawn Quickshell's 
 |---|---|---|
 | `Mod+D` | Toggle app launcher popup | `scripts/launcher` → private runtime trigger |
 | `Mod+Escape` | Toggle quick settings menu | `scripts/quickmenu` → private runtime trigger |
+| `Mod+Shift+D` | Toggle the sidebar (Status and Dashboard pages, search) | `qs ipc call shell popup sidebar` (direct IPC, no trigger script) |
 | `XF86Tools` | Toggle Settings popup | `scripts/settings` → private runtime trigger |
 | `Mod+Alt+L` | Lock screen | `scripts/lock` → Niri secure-lock acknowledgement |
 | `XF86AudioRaiseVolume` / `LowerVolume` / `Mute` | Volume up/down/mute | `wpctl` + private runtime trigger |
