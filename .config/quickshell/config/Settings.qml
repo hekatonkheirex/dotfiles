@@ -8,6 +8,7 @@ import Quickshell.Io
 import "BarOrder.js" as BarOrder
 import "BarForm.js" as BarForm
 import "PaletteCatalog.js" as PaletteCatalog
+import "DockModel.js" as DockModel
 
 FileView {
   id: root
@@ -27,6 +28,7 @@ FileView {
     schemaVersion: 2,
     barSize: 42,
     barWidgetOrder: "launcher,workspaces,layout,focused,gap,center,audio,display,media,weather,llm,battery,tray,notifications,clock",
+    dockPinned: "brave-origin,kitty",
     barClockInFlow: false,
     calendarWeekStartsMonday: false,
     ccShowAudio: true,
@@ -130,6 +132,11 @@ FileView {
       colorPalette = migratedPalette
       needsSave = true
     }
+    var normalizedPins = DockModel.pinnedToCsv(dockPinned)
+    if (normalizedPins !== dockPinned) {
+      dockPinned = normalizedPins
+      needsSave = true
+    }
     if (themeStyle === "neo-brutalism") {
       themeStyle = "nothing"
       nothingVariant = "evolution"
@@ -147,6 +154,7 @@ FileView {
   // from this schema and settings.json together during deliberate migrations.
   property alias barSize: adapter.barSize
   property alias barWidgetOrder: adapter.barWidgetOrder
+  property alias dockPinned: adapter.dockPinned
   property alias barClockInFlow: adapter.barClockInFlow
   property alias calendarWeekStartsMonday: adapter.calendarWeekStartsMonday
   property alias ccShowAudio: adapter.ccShowAudio
@@ -245,6 +253,7 @@ FileView {
   function resetToDefaults() {
     resetAppearanceDefaults()
     barWidgetOrder = root.defaults.barWidgetOrder
+    dockPinned = root.defaults.dockPinned
     barClockInFlow = root.defaults.barClockInFlow
     calendarWeekStartsMonday = root.defaults.calendarWeekStartsMonday
     ccShowAudio = root.defaults.ccShowAudio
@@ -299,6 +308,7 @@ FileView {
     property int schemaVersion: root.defaults.schemaVersion
     property int barSize: root.defaults.barSize
     property string barWidgetOrder: root.defaults.barWidgetOrder
+    property string dockPinned: root.defaults.dockPinned
     property bool barClockInFlow: root.defaults.barClockInFlow
     property bool calendarWeekStartsMonday: root.defaults.calendarWeekStartsMonday
     property bool ccShowAudio: root.defaults.ccShowAudio
