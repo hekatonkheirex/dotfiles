@@ -10,12 +10,29 @@ Card {
 
   implicitHeight: col.implicitHeight + Config.spacingLarge * 2
 
+  // Tick on the minute boundary; resync when shown. No interval binding on `now`.
+  function rescheduleClock() {
+    clockTimer.interval = ClockTiming.nextInterval(root.now, false)
+    if (root.visible) clockTimer.restart()
+  }
+
+  onVisibleChanged: {
+    if (visible) {
+      now = new Date()
+      rescheduleClock()
+    }
+  }
+
+  Component.onCompleted: rescheduleClock()
+
   Timer {
-    interval: ClockTiming.nextInterval(root.now, false)
+    id: clockTimer
     running: root.visible
-    repeat: true
-    triggeredOnStart: true
-    onTriggered: root.now = new Date()
+    repeat: false
+    onTriggered: {
+      root.now = new Date()
+      root.rescheduleClock()
+    }
   }
 
   Column {
