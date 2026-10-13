@@ -53,12 +53,12 @@ visibility, and two writers on one property would race when switching popups.
 
 - Clock: large `HH : MM`, stacked-dot separator; honors `Settings.clock24h`
   only (no seconds); the 12h format shows the hour without AM/PM.
-- Weekday row: `M T W T F S S`, Monday first, today circled in `secondary`.
+- Weekday row: `S M T W T F S`, Sunday first, today circled in `secondary`.
 - Level bars: vertical bars, drag or click to set, mute toggle on the icon.
 
 ## Logic
 `config/Weekdays.js` (`.pragma library`): `weekRow(date) -> [{letter, isToday}]`,
-7 entries, Monday first, letters `M T W T F S S`. Pure, so it is gate-tested.
+7 entries, Sunday first, letters `S M T W T F S`. Pure, so it is gate-tested.
 
 ## Verification
 - Gate test `tests/sidebar/test.mjs`: `weekRow` for each weekday as today,
