@@ -227,9 +227,9 @@ ShellRoot {
     }
   }
 
-  // Opens the launcher with `query` already typed. Shared by the sidebar search
-  // field and the sidebarSearch IPC hook. Re-opening while the launcher is
-  // already visible must re-run its on-show reset, so close it first.
+  // Opens the launcher with `query` already typed (LauncherPopup.initialQuery).
+  // Re-opening while the launcher is already visible must re-run its on-show
+  // reset, so close it first.
   // `@` queries skip the launcher: wallpaper mode dismisses it from inside its
   // own show handler, so open the filmstrip with the same query the launcher's
   // onWallpaperModeChanged would pass to onWallpapersRequested.
@@ -408,14 +408,6 @@ ShellRoot {
       return settingsPanel.devForgetName
     }
 
-
-    // Dev/testing: submit the sidebar search with `text` (same path as Enter).
-    // Locked sessions reject the request.
-    function sidebarSearch(text: string): bool {
-      if (lockScreen.locked) return false
-      shell.openLauncherWith(text)
-      return true
-    }
 
     // Dev/testing: dock state as JSON (items and window inputs).
     function dockState(): string {
@@ -631,12 +623,15 @@ ShellRoot {
     visible: bar.openPopup === "sidebar" && !lockScreen.locked
     screen: bar.screen
     onDismissed: bar.openPopup = ""
-    onSearchSubmitted: function(text) { shell.openLauncherWith(text) }
-    onSettingsRequested: function(tab) {
-      if (lockScreen.locked) return
-      settingsPanel.currentTab = tab
-      bar.openPopup = "settings"
-    }
+  }
+
+  // Left-edge hover opens the sidebar at the page last shown; an open sidebar
+  // stays open (openSidebarPage would toggle it closed).
+  SidebarActivator {
+    id: sidebarActivator
+    screen: bar.screen
+    enabledByState: !lockScreen.locked
+    onActivated: if (bar.openPopup !== "sidebar") shell.openSidebarPage(sidebar.currentPage)
   }
 
   BottomBar {

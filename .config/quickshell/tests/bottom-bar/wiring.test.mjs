@@ -98,7 +98,8 @@ assert.equal(tabs.match(/label: "[^"]+"/g)[4], 'label: "Network"')
 const sb = rd("../../bar/Sidebar.qml")
 assert.match(sb, /function showPage\(n\)/)
 assert.match(sb, /readonly property int currentPage: content\.currentPage/)
-assert.match(sb, /readonly property int pageCount: 2/)
+assert.match(sb, /readonly property int pageCount: content\.pageCount/)
+assert.match(rd("../../bar/sidebar/SidebarContent.qml"), /readonly property int pageCount: 3/, "media button (page 2) reaches the media page")
 // Button to action table (spec): which signal calls what.
 const wire = bar.slice(bar.indexOf("BottomBarContent {"))
 assert.match(wire, /onGlanceClicked: root\.sidebarPageRequested\(0\)/)
@@ -139,7 +140,7 @@ assert.match(shell, /return JSON\.stringify\(\{\s*workspaceEmpty[\s\S]*windows:[
 assert.match(rd("../../scripts/m3-qmllint-gate.sh"), /bar\/bottombar\/\*\.qml/)
 assert.doesNotMatch(rd("../../scripts/m3-qmllint-gate.sh"), /bar\/dock\//)
 // Fix round 1.
-assert.match(sb, /margins\.bottom: Config\.spacingMedium \+ Config\.bottomBarHeight/, "open sidebar must not cover the bottom bar")
+assert.match(sb, /margins\.bottom: Config\.bottomBarHeight \+ Config\.dp\(7\)/, "open sidebar must not cover the bottom bar")
 const osp = fn("openSidebarPage")
 assert.match(osp, /^function openSidebarPage\(n\) \{\s*if \(lockScreen\.locked\) return false\n/, "lock guard is the first statement")
 assert.match(osp, /if \(r\.open\) \{\s*sidebar\.showPage\(r\.page\)\s*bar\.openPopup = "sidebar"\s*\}/, "open branch shows the page")

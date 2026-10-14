@@ -1,4 +1,4 @@
-// Gate test: node tests/sidebar/search.test.mjs
+// Gate test: node tests/launcher/initial-query.test.mjs
 // Structural: the launcher hook exists and is applied after the reset on show,
 // and the shell helper sets it before the launcher opens.
 import { readFileSync } from "node:fs"
@@ -49,7 +49,6 @@ const at = helper.indexOf('startsWith("@")')
 assert.ok(at > 0 && at < set, "@ routing comes before initialQuery is set")
 assert.ok(helper.includes("wallpaperFilmstripOpen = true"), "@ opens the filmstrip")
 assert.match(helper, /if \(lockScreen\.locked\) return/, "helper returns early when locked")
-assert.match(shell, /function sidebarSearch\(text: string\): bool/, "sidebarSearch IPC")
+assert.doesNotMatch(shell, /function sidebarSearch\(/, "sidebarSearch IPC removed with the sidebar search field")
 assert.match(shell, /function launcherQuery\(\): string/, "launcherQuery IPC")
-assert.match(shell, /onSearchSubmitted: function\(text\) \{ shell\.openLauncherWith\(text\) \}/, "sidebar hand-off")
-console.log("sidebar search: ok")
+console.log("launcher initialQuery: ok")

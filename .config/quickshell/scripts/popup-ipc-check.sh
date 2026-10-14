@@ -18,13 +18,16 @@ qs ipc call shell settingsTab "$orig" >/dev/null
 [ "$(qs ipc call shell forgetPrompt "")" = "" ] && echo "ok   forgetPrompt clears" || { echo "FAIL forgetPrompt"; fail=1; }
 # Bottom-bar page toggle: closed opens, same page closes, another page switches.
 qs ipc call shell dismissPopups >/dev/null; sleep 0.4
-qs ipc call shell openSidebarPage 1 >/dev/null
+qs ipc call shell openSidebarPage 2 >/dev/null
 [ "$(qs ipc call shell currentPopup)" = sidebar ] && echo "ok   openSidebarPage opens" || { echo "FAIL openSidebarPage open"; fail=1; }
-qs ipc call shell openSidebarPage 1 >/dev/null
+qs ipc call shell openSidebarPage 2 >/dev/null
 [ -z "$(qs ipc call shell currentPopup)" ] && echo "ok   openSidebarPage same page closes" || { echo "FAIL openSidebarPage close"; fail=1; }
 qs ipc call shell openSidebarPage 0 >/dev/null; qs ipc call shell openSidebarPage 1 >/dev/null
 [ "$(qs ipc call shell currentPopup)" = sidebar ] && echo "ok   openSidebarPage switches" || { echo "FAIL openSidebarPage switch"; fail=1; }
 page=$(qs ipc call shell bottomBarState | jq -r .page)
 [ "$page" = 1 ] && echo "ok   openSidebarPage page 1" || { echo "FAIL openSidebarPage page ($page)"; fail=1; }
+qs ipc call shell openSidebarPage 2 >/dev/null
+page=$(qs ipc call shell bottomBarState | jq -r .page)
+[ "$page" = 2 ] && echo "ok   openSidebarPage page 2 (media)" || { echo "FAIL openSidebarPage page 2 ($page)"; fail=1; }
 qs ipc call shell dismissPopups >/dev/null
 exit $fail

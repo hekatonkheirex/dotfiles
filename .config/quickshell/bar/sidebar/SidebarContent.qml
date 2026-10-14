@@ -17,17 +17,6 @@ Item {
   Timer { id: focusTimer; interval: 50; onTriggered: root.forceActiveFocus() }
   onActiveChanged: if (root.active) focusTimer.restart(); else focusTimer.stop()
 
-  // Compatibility for bar/Sidebar.qml until Task 4 swaps the window.
-  // removed in Task 4: the old window still connects these two signals.
-  signal searchSubmitted(string text)
-  signal settingsRequested(int tab)
-  // removed in Task 4: Sidebar.qml binds the four services' sidebarActive to
-  // this. A constant false writes once at load and never again, so the
-  // Bindings in HomePage and below stay the only live writers.
-  readonly property bool statusActive: false
-  // removed in Task 4: no reader left; kept so old callers still resolve.
-  readonly property bool dashboardActive: root.active && root.currentPage === 1
-
   Keys.onPressed: function(event) {
     if ((event.modifiers & Qt.ControlModifier)
         && (event.key === Qt.Key_PageUp || event.key === Qt.Key_PageDown)) {

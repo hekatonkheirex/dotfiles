@@ -1,7 +1,7 @@
 // Staged at the config-copy root by scripts/sidebar-render.sh.
 // Four 450 px cells: Home, Agenda, Media, page indicators (page 1), all fed
 // fixed inputs; GEOM lines give the pixel checks their boxes. A SidebarContent
-// off the grabbed stage checks keyboard paging and the compatibility members.
+// off the grabbed stage checks keyboard paging.
 import QtQuick
 import QtTest
 import Quickshell
@@ -78,12 +78,6 @@ ShellRoot {
       visible: false
       active: false
     }
-    // Two writers on one property, as bar/Sidebar.qml (constant false) and the
-    // new pages (live value) do until Task 4: the live one must win every toggle.
-    QtObject { id: race; property bool target: false; property bool live: false }
-    Binding { target: race; property: "target"; value: content.statusActive }
-    Binding { target: race; property: "target"; value: race.live }
-
     Timer { id: quitTimer; interval: 100; onTriggered: Qt.quit() }
     Item {
       TestCase {
@@ -126,7 +120,6 @@ ShellRoot {
           content.currentPage = 1
           content.active = true
           wait(150)
-          win.check("compat dashboardActive true when open on page 1", content.dashboardActive === true)
           var agenda = win.find(content, "agendaPage")
           mouseClick(win.find(agenda, "monthUp"))
           win.check("month up arrow is next month", agenda.monthOffset === 1)
@@ -143,7 +136,6 @@ ShellRoot {
           content.escaped.connect(function() { escaped = true })
           keyClick(Qt.Key_Escape)
           win.check("escape emits escaped", escaped)
-          win.check("compat statusActive is constant false", content.statusActive === false)
           content.active = false
           wait(20)
           win.check("closing the sidebar resets the shown month", agenda.monthOffset === 0)
@@ -162,14 +154,6 @@ ShellRoot {
           mouseWheel(ind, 5, 5, 0, -120)
           win.check("a direction flip drops the partial notch", content.currentPage === 1)
 
-          for (var k = 0; k < 3; k++) {
-            race.live = true
-            wait(20)
-            var on = race.target === true
-            race.live = false
-            wait(20)
-            win.check("live writer wins toggle " + k, on && race.target === false)
-          }
           content.visible = false
           console.log("DONE sidebar " + win.failures + " fail")
           quitTimer.start()

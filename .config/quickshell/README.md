@@ -7,7 +7,7 @@ A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/)
 This replaces a traditional status bar (waybar) and panel infrastructure with a unified QML-based shell. It provides:
 
 - **Workspace strip** (`bar/Bar.qml`): the whole top bar is an 8px row of workspace color blocks.
-- **Sidebar and dock**: a toggleable two-page sidebar (Status and Dashboard) and a full-width bottom bar (page buttons, volume, app dock, clock, battery, network) that reserves its height. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
+- **Sidebar and dock**: a three-page sidebar (Home, Agenda, Media) that also opens from the left screen edge and a full-width bottom bar (page buttons, volume, app dock, clock, battery, network) that reserves its height. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
 - **Lock screen** with PAM + fingerprint authentication.
 - **Notification handling** with dashed Elena history/toast cards, monospace app/time metadata, normal-case content, and explicit critical styling.
 - **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; the Quick Menu and Notifications tab share the persisted setting.
@@ -59,7 +59,9 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   └── cava.ini               # cava config for the real-time audio visualizer
 ├── bar/
 │   ├── Bar.qml                # Top workspace strip and retained hidden widget machinery
-│   ├── Sidebar.qml            # Status/Dashboard sidebar (content in sidebar/)
+│   ├── Sidebar.qml            # Home/Agenda/Media sidebar window, left+bottom anchored
+│   ├── SidebarActivator.qml   # 1 px left-edge hover strip that opens the sidebar
+│   ├── sidebar/               # SidebarContent, HomePage, AgendaPage, MediaPage, SliderTile, PageIndicators, SeekLine, SymbolDisc, InfoPill, TextPill, StepArrows, PadButton
 │   ├── BottomBar.qml          # Bottom bar window (content in bottombar/)
 │   ├── bottombar/             # BottomBarContent, BarButton, DockGlyph, ValuePill, VolumeRing, BatteryStack, SignalBars
 │   ├── SettingsPanel.qml       # Settings panel shell (state, processes, tab bar) — content in settings/
@@ -239,7 +241,7 @@ Keybindings live in Niri's `~/.config/niri/keybinds.kdl` and spawn Quickshell's 
 |---|---|---|
 | `Mod+D` | Toggle app launcher popup | `scripts/launcher` → private runtime trigger |
 | `Mod+Escape` | Toggle quick settings menu | `scripts/quickmenu` → private runtime trigger |
-| `Mod+Shift+D` | Toggle the sidebar (Status and Dashboard pages, search) | `qs ipc call shell popup sidebar` (direct IPC, no trigger script) |
+| `Mod+Shift+D` | Toggle the sidebar (Home, Agenda and Media pages) | `qs ipc call shell popup sidebar` (direct IPC, no trigger script) |
 | `XF86Tools` | Toggle Settings popup | `scripts/settings` → private runtime trigger |
 | `Mod+Alt+L` | Lock screen | `scripts/lock` → Niri secure-lock acknowledgement |
 | `XF86AudioRaiseVolume` / `LowerVolume` / `Mute` | Volume up/down/mute | `wpctl` + private runtime trigger |
@@ -512,9 +514,9 @@ that reserves its height (`Config.bottomBarHeight`), so windows tile above it.
 It shows while the top bar is visible and the session is unlocked. The
 content (`bar/bottombar/BottomBarContent.qml`) has three parts:
 
-- **Left cluster**: glance (clock pill) opens the sidebar at Status, right
+- **Left cluster**: glance (clock pill) opens the sidebar at Home, right
   click toggles the launcher; tasks (date pill) opens the sidebar at
-  Dashboard; media (volume ring) asks for page 2. Click, middle click mutes,
+  Agenda; media (volume ring) opens it at Media. Click, middle click mutes,
   the wheel steps `Config.volumeStep` % per full notch, right click focuses a
   running pavucontrol or starts one. Page buttons toggle: the open page
   closes the sidebar, another page switches (`BottomBarModel.sidebarToggle`).
@@ -527,9 +529,7 @@ content (`bar/bottombar/BottomBarContent.qml`) has three parts:
 
 Interim targets until later releases: network opens Settings > Network and
 closes it on a second click (R4 adds a network panel); alarms do nothing
-(R5); logout toggles the quick menu (R3); the media page index 2 clamps to
-page 1 while the sidebar has two pages, so the media button can close an
-open Dashboard (R2 adds the media page). The sidebar and bottom-right toasts
+(R5); logout toggles the quick menu (R3). The sidebar and bottom-right toasts
 leave the bar's height free so its buttons stay clickable.
 
 **Fonts.** The icons come from her icomoon font set in
@@ -553,33 +553,51 @@ and `DockSymbols.js`, must render from the file Pango would pick; fails when
 the ElenaIcons families are missing), and `scripts/popup-ipc-check.sh` for the
 live `openSidebarPage` toggle.
 
-## Sidebar pages (S2)
+## Sidebar (R2)
 
-Toggle with `qs ipc call shell popup sidebar`. Status keeps the clock, battery,
-weather, media and level controls. Dashboard adds the current user/session,
-Account/Appearance/System settings links, a browsable calendar, uptime, memory
-used/total and explicitly labeled one-minute CPU load average.
+`bar/Sidebar.qml` is a `dp(300)` wide overlay anchored to the left and bottom
+screen edges, `dp(7)` above the bottom bar, as tall as its pages and the page
+indicators (`dp(554) + dp(106)`, capped to the free height). Left corners are
+square, right corners round `dp(20)`, no outline. It reuses the shared popup
+entry (scale, slide and fade from the left edge; instant under reduced
+motion). Three pages:
 
-Use the page buttons or **Ctrl+PageUp / Ctrl+PageDown**. Tab, Enter and Space
-work on the native buttons. Page selection stays in memory across close/open;
-it does not write settings. Search stays fixed below either page, preserves
-its query while switching, and clears on close. Enter retains the existing
-launcher search and `@` wallpaper routing.
+- **Home** (0): clock, Sunday-first weekday strip, weather pill, a 3x3 grid of
+  tiles (volume and brightness drag to set; battery, CPU, temperature, RAM,
+  swap, disk, network) and a hostname/uptime chip.
+- **Agenda** (1): month grid (week start follows Settings), month and year
+  arrows, and the task list (empty until a task feed exists).
+- **Media** (2): cover art with a progress ring, title and artist, a 20-cell
+  seek line, play/pause, previous/next, stop, volume (system and player) and
+  favorite. Favorite appends `artist - title` to `~/Music/playlists/songs`.
 
-Both page bodies scroll on short outputs while navigation and search remain
-visible. Status services activate only on Status; procfs statistics refresh
-every five seconds only on the visible Dashboard. Calendar week start follows
-the existing preference. Unavailable metrics are labeled, not shown as zero.
-The profile uses an initial badge instead of adding another masked image.
+Open it with the bottom bar's glance, tasks or media button (page 0, 1, 2),
+`Mod+Shift+D`, or by resting the pointer on the left screen edge for 120 ms
+(`bar/SidebarActivator.qml`, a 1 px layer-shell strip). The edge opens the page
+last shown and never closes an open sidebar. Turn it off with Settings >
+Appearance > Sidebar edge hover (`Settings.sidebarEdgeHover`, default on). The
+edge is off while the session is locked. niri reports no fullscreen flag, so
+there is no fullscreen gate; niri draws fullscreen windows above the Top layer,
+so the strip sits under them anyway.
 
-`node tests/sidebar/stats.test.mjs` checks metric parsing boundaries.
-`bash scripts/sidebar-render.sh` exercises keyboard navigation, search
-retention, real metric refresh/stop, year/leap-day calendar behavior and
-short-height scrolling. With `KEEP_PNG=/tmp/sidebar.png`, it keeps Status,
-Dashboard (`/tmp/sidebar-dashboard.png`) and short-height
-(`/tmp/sidebar-short.png`) captures. Full-shell quick-link routing is also
-smoke-checked separately. Specification:
-`docs/superpowers/specs/2026-10-13-elena-sidebar-pages-design.md`.
+Close it with the open page's bar button, Esc, a middle click on the panel, or a
+click outside. Ctrl+PageUp/PageDown and the wheel over the page dots step pages
+(clamped, no wrap); clicking a dot selects its page.
+
+Metrics (`config/SystemMetricsService.qml`, polled every 2 s only while Home is
+shown): CPU from `/proc/stat` deltas, RAM and swap from `/proc/meminfo`,
+network rate from `/proc/net/dev`, uptime from `/proc/uptime`, hostname from
+`/etc/hostname`, disk from `df -P /`, temperature from
+`/sys/class/thermal/thermal_zone*/temp`. Volume comes from `AudioService`,
+brightness from `BrightnessService`, battery from `BatteryService`, weather from
+`WeatherService`; each runs only while its page is visible.
+
+Checks: `node tests/sidebar/*.mjs` (metric parsing, page stepping, month grid,
+media math, structural wiring of the window, activator and shell) and
+`bash scripts/sidebar-render.sh` (pixel checks of every page and the
+indicators, keyboard and wheel paging, seek clicks). `KEEP_PNG=/tmp/sidebar.png`
+keeps the render. Specification:
+`docs/superpowers/specs/2026-10-13-elena-sidebar-pages-r2-design.md`.
 
 ## Launcher redesign and speech removal
 
@@ -590,7 +608,7 @@ volume/mute controls are independent and remain available.
 
 The isolated native launcher scenario passed 17 checks covering real desktop
 entries, keyboard/context-menu interaction, an isolated clipboard fixture,
-empty/long-name/short-height layouts, sidebar query handoff and a harmless
+empty/long-name/short-height layouts, `initialQuery` handoff and a harmless
 application activation. Six mode/layout captures were produced and the
 application/action/clipboard/short-height views visually inspected; the
 captured frame contains both dashes and gaps. No destructive power, clipboard

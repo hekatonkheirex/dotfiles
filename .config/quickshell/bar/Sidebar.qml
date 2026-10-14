@@ -3,40 +3,49 @@ import Quickshell
 import "../config"
 import "sidebar"
 
-// Elena's left-edge status panel: an overlay (no reserved space) that joins
-// the bar's single-open-popup model through shell.qml.
+// Elena's sidebar: a left and bottom anchored overlay (no reserved space) above
+// the bottom bar. It joins the bar's single-open-popup model through shell.qml.
+// The pages bind the services' sidebarActive flags themselves.
 PopupBase {
   id: root
 
-  surfaceWidth: 320
+  surfaceWidth: Config.dp(300)
+  // Pages dp(554) plus the indicator section dp(106), capped to the free height
+  // between the top strip and the bottom bar.
+  surfaceHeight: Math.min(Config.dp(554) + Config.dp(106),
+    root.screenH - Config.bottomBarHeight - Config.dp(7) - Config.barWidth)
 
   readonly property int currentPage: content.currentPage
-  readonly property int pageCount: 2
-  // Pages are 0 (Status) and 1 (Dashboard); R2 adds the media page.
-  function showPage(n) { content.currentPage = Math.max(0, Math.min(root.pageCount - 1, Math.floor(n))) }
+  readonly property int pageCount: content.pageCount
+  function showPage(n) {
+    content.currentPage = Math.max(0, Math.min(root.pageCount - 1, Math.floor(n)))
+  }
 
-  signal searchSubmitted(string text)
-  signal settingsRequested(int tab)
+  anchors.top: false
   anchors.bottom: true
-  margins.left: Config.spacingMedium
-  margins.top: Config.barWidth + Config.spacingMedium
-  // Clear the bottom bar so its page buttons stay clickable while open.
-  margins.bottom: Config.spacingMedium + Config.bottomBarHeight
+  margins.left: 0
+  margins.top: 0
+  margins.bottom: Config.bottomBarHeight + Config.dp(7)
+  surfaceColor: Colors.surface
 
-  // Own flag, not popupActive: the Media/Weather/Audio/Brightness popups bind
-  // popupActive to their own visibility and would fight a second writer.
-  Binding { target: MediaService; property: "sidebarActive"; value: content.statusActive }
-  Binding { target: WeatherService; property: "sidebarActive"; value: content.statusActive }
-  Binding { target: AudioService; property: "sidebarActive"; value: content.statusActive }
-  Binding { target: BrightnessService; property: "sidebarActive"; value: content.statusActive }
+  // Square left corners (the panel touches the screen edge), no outline.
+  Binding { target: root.bg; property: "topLeftRadius"; value: 0 }
+  Binding { target: root.bg; property: "bottomLeftRadius"; value: 0 }
+  Binding { target: root.bg; property: "topRightRadius"; value: Config.dp(20) }
+  Binding { target: root.bg; property: "bottomRightRadius"; value: Config.dp(20) }
+  Binding { target: root.bg; property: "border.width"; value: 0 }
 
   SidebarContent {
     id: content
     anchors.fill: parent
     active: root.visible
-    anchors.margins: Config.spacingMedium
-    onSearchSubmitted: function(text) { root.searchSubmitted(text) }
     onEscaped: root.dismissed()
-    onSettingsRequested: function(tab) { root.settingsRequested(tab) }
+  }
+
+  // Middle click anywhere hides it (her eventbox onmiddleclick).
+  MouseArea {
+    anchors.fill: parent
+    acceptedButtons: Qt.MiddleButton
+    onClicked: root.dismissed()
   }
 }
