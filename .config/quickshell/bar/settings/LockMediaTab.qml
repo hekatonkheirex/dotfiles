@@ -11,12 +11,6 @@ Flickable {
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
   readonly property int segmentedButtonGap: 0
-  // Keep trailing idle sliders the same length as the shared settings rows.
-  // The compact minimum preserves a usable control at the panel's minimum width.
-  readonly property int standardizedSliderWidth: Math.max(
-    lockMediaTab.compactLayout ? 104 : 170,
-    mainColumn.width - Config.settingsRowLabelWidth - 70 - Config.spacingMedium * 5
-  )
   readonly property var lockTimeoutOptions: [0, 60, 120, 180, 300, 600, 900, 1800, 3600]
   readonly property var suspendTimeoutOptions: [0, 300, 600, 900, 1200, 1800, 3600, 7200]
   anchors.fill: parent
@@ -102,7 +96,6 @@ Flickable {
           accessibleDescription: "Choose when the session locks while idle"
 
           SliderControl {
-            width: lockMediaTab.standardizedSliderWidth
             value: lockMediaTab.timeoutIndex(
               lockMediaTab.lockTimeoutOptions,
               Settings.idleLockTimeoutSeconds
@@ -138,7 +131,6 @@ Flickable {
           accessibleDescription: "Choose when the computer suspends while idle"
 
           SliderControl {
-            width: lockMediaTab.standardizedSliderWidth
             value: lockMediaTab.timeoutIndex(
               lockMediaTab.suspendTimeoutOptions,
               Settings.idleSuspendTimeoutSeconds

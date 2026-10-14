@@ -34,7 +34,7 @@ ShellRoot {
 
       SwitchControl { x: 20; y: 20; width: 58; checked: true }
       SwitchControl { x: 100; y: 20; width: 58; checked: false }
-      SliderControl { x: 20; y: 100; width: 400; value: 0.6 }
+      SliderControl { x: 20; y: 100; value: 0.6 }
       IconButton { x: 20; y: 180; width: 48; height: 48; size: 40; iconLabel: "settings"; selected: true }
       ActionButton { x: 20; y: 240; width: 160; height: 48; labelText: "Pill"; variant: "pill" }
       LevelTile {
@@ -57,8 +57,8 @@ ShellRoot {
         // Switch tracks are 58x30 centered in a 40px row: center is (x+29, y+20).
         stage.expect("switch-checked-track", 49, 40, Colors.primary)
         stage.expect("switch-unchecked-track", 129, 40, Colors.surfaceContainerHighest)
-        stage.expect("slider-fill-30pct", 20 + 120, 120, Colors.primary)
-        stage.expect("slider-empty-90pct", 20 + 360, 120, Colors.surfaceContainerHighest)
+        stage.expect("slider-fill-below-level", 20 + 24, 100 + 46, Colors.primary)
+        stage.expect("slider-empty-above-level", 20 + 24, 100 + 8, Colors.surfaceContainerHighest)
         // Button box is 48x48 at (20,180); 12px left of center is inside the
         // 29px white round and clear of the 18px glyph.
         stage.expect("icon-selected-white-round", 44 - 12, 204, Qt.color("#ffffff"))

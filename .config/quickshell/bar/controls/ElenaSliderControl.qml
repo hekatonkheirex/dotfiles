@@ -17,7 +17,8 @@ SliderBase {
     : (root.hovered || root.activeFocus ? root.hoverOverlay : Qt.rgba(0, 0, 0, 0))
 
   property string valueText: ""
-  height: 40
+  width: 56
+  height: 56
   // A pointer press retains keyboard adjustment without painting a selection
   // outline. Tab focus and keyboard adjustment still show the focus ring.
   property bool pointerFocus: false
@@ -27,7 +28,7 @@ SliderBase {
   readonly property bool pressed: sliderMouse.pressed
   readonly property bool active: hovered || pressed || activeFocus
   readonly property bool focusRingVisible: root.activeFocus && (!root.pointerFocus || root.keyboardFocus)
-  readonly property real fillWidth: value <= 0 ? 0 : Math.max(height, width * Math.max(0, Math.min(1, value)))
+  readonly property real fillHeight: height * Math.max(0, Math.min(1, value))
 
   onActiveFocusChanged: {
     if (!root.activeFocus) {
@@ -48,8 +49,8 @@ SliderBase {
     visible: root.focusRingVisible
   }
 
-  // Her slider tile, laid on its side: rounded trough, flat-edged fill and a
-  // round label at the end that carries the value. The trough is a
+  // Her slider tile: square rounded trough, fill rising from the bottom, a
+  // round label at the bottom-right that carries the value. The trough is a
   // ClippingRectangle so the fill follows its rounded corners.
   ClippingRectangle {  // track tile
     id: trough
@@ -57,8 +58,9 @@ SliderBase {
     radius: Math.round(height * 0.36)
     color: root.surfaceContainerHighest
     Rectangle {  // level fill
-      width: root.fillWidth
-      height: parent.height
+      anchors.bottom: parent.bottom
+      width: parent.width
+      height: root.fillHeight
       ColorSpring {
         id: trackEffect
         animate: !root.reducedMotion && !Config.reducedMotion
@@ -69,12 +71,13 @@ SliderBase {
     Rectangle {  // round value label
       visible: root.valueText !== ""
       readonly property real inset: Math.round(parent.height * 0.14)
-      height: parent.height - 2 * inset
-      width: Math.max(height, labelText.implicitWidth + inset * 2)
+      height: Math.round(parent.height * 0.4)
+      width: Math.min(parent.width - 2 * inset, Math.max(height, labelText.implicitWidth + 8))
       radius: height / 2
       anchors.right: parent.right
+      anchors.bottom: parent.bottom
       anchors.rightMargin: inset
-      anchors.verticalCenter: parent.verticalCenter
+      anchors.bottomMargin: inset
       color: Colors.fgSurface
       Text {
         id: labelText
@@ -82,7 +85,7 @@ SliderBase {
         text: root.valueText
         color: Colors.surface
         font.family: Config.fontFamily
-        font.pixelSize: Config.typeLabelMediumSize
+        font.pixelSize: Config.typeLabelSmallSize
         font.weight: Config.typeMediumWeight
       }
     }
@@ -98,13 +101,13 @@ SliderBase {
       root.keyboardFocus = false
       root.pointerFocus = true
       root.forceActiveFocus(Qt.MouseFocusReason)
-      handleMouse(mouse.x)
+      handleMouse(mouse.y)
     }
     onPositionChanged: function(mouse) {
-      if (pressed) handleMouse(mouse.x)
+      if (pressed) handleMouse(mouse.y)
     }
-    function handleMouse(mx) {
-      root.setValue(mx / parent.width)
+    function handleMouse(my) {
+      root.setValue(1 - my / parent.height)
     }
     onReleased: root.interactionFinished()
   }

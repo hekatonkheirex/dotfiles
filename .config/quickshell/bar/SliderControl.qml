@@ -29,8 +29,11 @@ FocusScope {
   signal changed(real value)
   signal interactionFinished()
 
-  implicitWidth: 240
-  height: 40
+  // A square tile (her slider tile): rows size to it, nothing stretches it.
+  implicitWidth: 56
+  implicitHeight: 56
+  width: 56
+  height: 56
   activeFocusOnTab: true
 
   readonly property bool hovered: implementation.item ? implementation.item.hovered : false

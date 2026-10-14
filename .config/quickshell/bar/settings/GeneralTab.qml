@@ -165,10 +165,8 @@ Flickable {
           }
 
           Item {
-            width: Math.min(160, Math.max(96,
-              generalTab.width - 56))
-            height: Math.max(Config.controlHitSize,
-              Config.typeLabelMediumLineHeight + (24))
+            width: 88
+            height: 30
 
             Row {
               anchors.fill: parent
@@ -290,8 +288,8 @@ Flickable {
             Layout.leftMargin: Config.spacingCompact
           }
 
+          Item { Layout.fillWidth: true }
           SliderControl {
-            Layout.fillWidth: true
             value: (Settings.weatherRefreshIntervalMinutes - 5) / 55
             stepSize: 5 / 55
             accessibleMinimumValue: 5

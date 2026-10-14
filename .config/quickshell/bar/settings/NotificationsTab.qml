@@ -103,8 +103,8 @@ Flickable {
             Layout.leftMargin: Config.spacingSmall
           }
 
+          Item { Layout.fillWidth: true }
           SliderControl {
-            Layout.fillWidth: true
             value: (Settings.notificationToastDurationMs - 2000) / 8000
             stepSize: 500 / 8000
             accessibleMinimumValue: 2
@@ -226,8 +226,8 @@ Flickable {
             Layout.leftMargin: Config.spacingCompact
           }
 
+          Item { Layout.fillWidth: true }
           SliderControl {
-            Layout.fillWidth: true
             value: Settings.notificationQuietHoursStart / 1439
             stepSize: 1 / 1439
             accessibleMinimumValue: 0
@@ -264,8 +264,8 @@ Flickable {
             Layout.leftMargin: Config.spacingCompact
           }
 
+          Item { Layout.fillWidth: true }
           SliderControl {
-            Layout.fillWidth: true
             value: Settings.notificationQuietHoursEnd / 1439
             stepSize: 1 / 1439
             accessibleMinimumValue: 0

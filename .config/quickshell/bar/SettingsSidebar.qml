@@ -9,7 +9,7 @@ import "settingsbar"
 PopupBase {
   id: root
 
-  surfaceWidth: Config.dp(380)
+  surfaceWidth: Config.dp(300)
   surfaceHeight: Math.min(Config.dp(700),
     root.screenH - Config.bottomBarHeight - Config.dp(7) - Config.barWidth)
   entryOriginX: root.surfaceWidth
