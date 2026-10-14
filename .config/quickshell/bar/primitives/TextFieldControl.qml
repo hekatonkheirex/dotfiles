@@ -26,8 +26,8 @@ Rectangle {
   property color leadingGlyphColor: Colors.fgSurface
   property real leadingGlyphSize: 20
   property real sidePadding: Config.spacingMedium
-  property real verticalPadding: 12
-  property real textPixelSize: Config.typeBodyLargeSize
+  property real verticalPadding: 6
+  property real textPixelSize: Config.typeBodyMediumSize
   property bool textBold: false
 
   default property alias trailingContent: trailingRow.data

@@ -14,6 +14,8 @@ Flickable {
   readonly property bool compactLayout: root ? root.compactLayout : false
   readonly property int optionButtonGap: Config.themeOptionGap
   readonly property int segmentedButtonGap: 0
+  // Option tiles are fixed-width and left aligned instead of stretching the card.
+  readonly property int optionButtonWidth: 80
   // Stacked icon + label choices keep breathing room at the global type scale.
   readonly property int optionButtonHeight: Math.max(Config.controlHeight, Config.typeLabelMediumLineHeight + (14))
   anchors.fill: parent
@@ -351,7 +353,8 @@ Flickable {
           }
 
           Item {
-            Layout.fillWidth: true
+            Layout.fillWidth: false
+            Layout.preferredWidth: 2 * appearanceTab.optionButtonWidth
             Layout.preferredHeight: appearanceTab.optionButtonHeight
             height: appearanceTab.optionButtonHeight
 
@@ -406,7 +409,8 @@ Flickable {
           }
 
           Item {
-            Layout.fillWidth: true
+            Layout.fillWidth: false
+            Layout.preferredWidth: 3 * appearanceTab.optionButtonWidth
             Layout.preferredHeight: appearanceTab.optionButtonHeight
             height: appearanceTab.optionButtonHeight
 
@@ -461,9 +465,7 @@ Flickable {
           GridLayout {
             visible: Colors.fixedPaletteActive
             Layout.fillWidth: true
-            columns: appearanceTab.compactLayout
-              ? 2
-              : Math.min(3, PaletteCatalog.fixedFamilyOptions().length)
+            columns: 4
             columnSpacing: appearanceTab.optionButtonGap
             rowSpacing: appearanceTab.optionButtonGap
 
@@ -472,7 +474,7 @@ Flickable {
 
               delegate: ActionButton {
                 required property var modelData
-                Layout.fillWidth: true
+                Layout.preferredWidth: appearanceTab.optionButtonWidth
                 Layout.preferredHeight: appearanceTab.optionButtonHeight
                 iconLabel: modelData.icon
                 iconSize: 15
@@ -511,7 +513,7 @@ Flickable {
             id: paletteVariantGrid
             visible: Colors.fixedPaletteActive
             Layout.fillWidth: true
-            columns: Math.min(3, paletteVariantRepeater.count)
+            columns: 4
             columnSpacing: appearanceTab.optionButtonGap
             rowSpacing: appearanceTab.optionButtonGap
 
@@ -521,7 +523,7 @@ Flickable {
 
               delegate: ActionButton {
                 required property var modelData
-                Layout.fillWidth: true
+                Layout.preferredWidth: appearanceTab.optionButtonWidth
                 Layout.preferredHeight: appearanceTab.optionButtonHeight
                 iconLabel: modelData.icon
                 iconSize: 15
@@ -555,7 +557,8 @@ Flickable {
           }
 
           Item {
-            Layout.fillWidth: true
+            Layout.fillWidth: false
+            Layout.preferredWidth: 3 * appearanceTab.optionButtonWidth
             Layout.preferredHeight: appearanceTab.optionButtonHeight
             height: appearanceTab.optionButtonHeight
 

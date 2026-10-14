@@ -208,7 +208,8 @@ Flickable {
           TextFieldControl {
             id: weatherLocationField
             Layout.fillWidth: true
-            Layout.preferredHeight: 36
+            Layout.minimumWidth: 0
+            Layout.preferredHeight: 30
             placeholder: "City or town (e.g. Asunción)"
             accessibleName: "Manual weather location"
             accessibleDescription: "City or town used for the weather lookup. Leave blank to use IP geolocation only when enabled."
@@ -224,8 +225,8 @@ Flickable {
           }
 
           ActionButton {
-            Layout.preferredWidth: 76
-            Layout.preferredHeight: 36
+            Layout.preferredWidth: 64
+            Layout.preferredHeight: 30
             labelText: "Apply"
             variant: "filled"
             accessibleName: "Apply weather location"
