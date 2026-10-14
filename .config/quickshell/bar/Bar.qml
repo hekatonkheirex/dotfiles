@@ -215,9 +215,9 @@ PanelWindow {
   // IPC entry point: open (or toggle closed) a bar popup by name, anchored to
   // its indicator exactly as a click would. Returns false for unknown names.
   function togglePopupByName(name) {
-    // The sidebar has no anchor widget.
-    if (name === "sidebar") {
-      openPopup = openPopup === "sidebar" ? "" : "sidebar"
+    // The sidebar and the networks window have no anchor widget.
+    if (name === "sidebar" || name === "networks") {
+      openPopup = openPopup === name ? "" : name
       return true
     }
     var widgets = {

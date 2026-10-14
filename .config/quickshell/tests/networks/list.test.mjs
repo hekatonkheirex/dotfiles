@@ -6,7 +6,7 @@ import assert from "node:assert/strict"
 const src = readFileSync(fileURLToPath(new URL("../../config/NetworkList.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
 const M = new Function('"use strict";\n' + src +
-  "; return { parseWifiList, parseSaved, merge, signalBucket, shortName, parsePingLine }")()
+  "; return { parseWifiList, parseSaved, merge, signalBucket, shortName, parsePingLine, formatRate }")()
 
 // parseWifiList
 const w = M.parseWifiList([
@@ -54,4 +54,11 @@ assert.deepEqual(M.parsePingLine("64 bytes from 1.1.1.1: icmp_seq=1 ttl=57 time=
 assert.deepEqual(M.parsePingLine("rtt min/avg/max/mdev = 11.0/12.6/14.2/1.0 ms"), { kind: "avg", ms: 13 })
 assert.deepEqual(M.parsePingLine("ping: connect: Network is unreachable"), { kind: "unreachable" })
 assert.deepEqual(M.parsePingLine("junk"), { kind: "none" })
+// formatRate: bytes/s -> her "N.NNMB/s"; unknown (-1, NaN) -> "--MB/s"
+assert.equal(M.formatRate(1250000), "1.25MB/s")
+assert.equal(M.formatRate(0), "0.00MB/s")
+assert.equal(M.formatRate(4999), "0.00MB/s")
+assert.equal(M.formatRate(5000), "0.01MB/s")
+assert.equal(M.formatRate(-1), "--MB/s")
+assert.equal(M.formatRate(NaN), "--MB/s")
 console.log("network list: ok")

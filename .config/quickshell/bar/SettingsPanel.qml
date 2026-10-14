@@ -45,9 +45,6 @@ PanelWindow {
     ? Config.barWidth + Config.spacingMedium : Config.spacingLarge
   readonly property real centeredTopMargin: Math.max(root.topClearance, (desktopH - root.implicitHeight) / 2)
   property bool customPosition: false
-  // Dev/testing hook (shell IPC forgetPrompt): asks the Network tab to show its
-  // "Forget <name>?" confirmation. Never forgets anything by itself.
-  property string devForgetName: ""
   property real panelLeft: 0
   property real panelTop: 0
 
@@ -70,7 +67,6 @@ PanelWindow {
     { icon: "tune", label: "General", group: "Interface" },
     { icon: "palette", label: "Appearance", group: "Interface" },
     { icon: "monitor", label: "Display & Input", group: "Devices" },
-    { icon: "wifi", label: "Network", group: "Devices" },
     { icon: "bluetooth", label: "Bluetooth", group: "Devices" },
     { icon: "play_circle", label: "Media", group: "Devices" },
     { icon: "lock", label: "Lock & Power", group: "System" },
@@ -125,36 +121,35 @@ PanelWindow {
     { tab: 3, category: "Mouse", icon: "mouse", title: "Mouse natural scrolling", anchor: "mouse-natural-scroll", subtitle: "Reverse the mouse wheel direction" },
     { tab: 3, category: "Trackpoint", icon: "mouse", title: "Trackpoint natural scrolling", anchor: "trackpoint-natural-scroll", subtitle: "Reverse the TrackPoint scroll direction" },
     { tab: 3, category: "Pointer", icon: "speed", title: "Pointer acceleration", anchor: "mouse-accel-speed", subtitle: "Adjust mouse and TrackPoint acceleration" },
-    { tab: 4, category: "Connections", icon: "wifi", title: "Wi-Fi", anchor: "Network", subtitle: "Connect, forget, and manage saved networks" },
-    { tab: 5, category: "Connections", icon: "bluetooth", title: "Bluetooth", subtitle: "Pair and connect nearby devices" },
-    { tab: 6, category: "Media popup", icon: "image", title: "Show album art", subtitle: "Show artwork in the media popup" },
-    { tab: 6, category: "Media popup", icon: "linear_scale", title: "Show progress bar", subtitle: "Show playback progress" },
-    { tab: 6, category: "Media popup", icon: "touch_app", title: "Controls always visible", subtitle: "Keep media controls visible when paused" },
-    { tab: 7, category: "Idle and power", icon: "lock", title: "Lock after inactivity", subtitle: "Set the idle lock timeout" },
-    { tab: 7, category: "Idle and power", icon: "bedtime", title: "Suspend after inactivity", subtitle: "Set the idle suspend timeout" },
-    { tab: 7, category: "Power", icon: "bolt", title: "Power Profiles", anchor: "Power profiles", subtitle: "Choose the automatic power profile" },
-    { tab: 7, category: "Power", icon: "coffee", title: "Caffeine", subtitle: "Temporarily prevent idle actions" },
-    { tab: 8, category: "Notifications", icon: "do_not_disturb_on", title: "Do Not Disturb", subtitle: "Suppress notification toasts" },
-    { tab: 8, category: "Notifications", icon: "bedtime", title: "Quiet hours", subtitle: "Silence notifications during a schedule" },
-    { tab: 8, category: "Notifications", icon: "priority_high", title: "Critical notification bypass", subtitle: "Keep critical alerts visible during quiet hours" },
-    { tab: 8, category: "Notifications", icon: "timer", title: "Toast duration", subtitle: "Choose how long notification toasts remain visible" },
-    { tab: 8, category: "Notifications", icon: "open_in_new", title: "Toast position", subtitle: "Place notification toasts at the top or bottom" },
-    { tab: 8, category: "History", icon: "history", title: "Notification history limit", subtitle: "Limit retained notification history" },
-    { tab: 9, category: "Diagnostics", icon: "monitor_heart", title: "CPU Usage", subtitle: "View current processor usage" },
-    { tab: 9, category: "Diagnostics", icon: "memory", title: "Memory (RAM)", subtitle: "View current memory usage" },
-    { tab: 9, category: "Diagnostics", icon: "storage", title: "Disk Storage", subtitle: "View root filesystem usage" },
-    { tab: 9, category: "Diagnostics", icon: "swap_horiz", title: "Swap", subtitle: "View swap usage" },
-    { tab: 9, category: "Diagnostics", icon: "thermostat", title: "CPU Temperature", anchor: "CPU Temp", subtitle: "View processor temperature" },
-    { tab: 9, category: "Diagnostics", icon: "mode_fan", title: "Fan Speed", subtitle: "View fan speed when available" },
-    { tab: 9, category: "Diagnostics", icon: "battery_full", title: "Battery", subtitle: "View battery status" },
-    { tab: 9, category: "Diagnostics", icon: "battery_alert", title: "Battery Health", subtitle: "View battery health" },
-    { tab: 9, category: "Diagnostics", icon: "battery_charging_full", title: "Battery Cycles", subtitle: "View battery cycle count" },
-    { tab: 9, category: "Diagnostics", icon: "trending_up", title: "Load Average", subtitle: "View one, five, and fifteen minute load" },
-    { tab: 9, category: "Shell actions", icon: "refresh", title: "Reload Quickshell", subtitle: "Restart the shell process" },
-    { tab: 10, category: "Application shortcuts", icon: "apps", title: "App shortcuts", anchor: "Apps", subtitle: "Launch applications and common actions" },
-    { tab: 10, category: "Window shortcuts", icon: "window", title: "Window shortcuts", anchor: "Windows", subtitle: "Focus, move, and resize windows" },
-    { tab: 10, category: "Workspace shortcuts", icon: "workspaces", title: "Workspace shortcuts", anchor: "Workspaces", subtitle: "Move between and manage workspaces" },
-    { tab: 10, category: "System shortcuts", icon: "keyboard", title: "System shortcuts", anchor: "System", subtitle: "Use shell, media, brightness, and power shortcuts" }
+    { tab: 4, category: "Connections", icon: "bluetooth", title: "Bluetooth", subtitle: "Pair and connect nearby devices" },
+    { tab: 5, category: "Media popup", icon: "image", title: "Show album art", subtitle: "Show artwork in the media popup" },
+    { tab: 5, category: "Media popup", icon: "linear_scale", title: "Show progress bar", subtitle: "Show playback progress" },
+    { tab: 5, category: "Media popup", icon: "touch_app", title: "Controls always visible", subtitle: "Keep media controls visible when paused" },
+    { tab: 6, category: "Idle and power", icon: "lock", title: "Lock after inactivity", subtitle: "Set the idle lock timeout" },
+    { tab: 6, category: "Idle and power", icon: "bedtime", title: "Suspend after inactivity", subtitle: "Set the idle suspend timeout" },
+    { tab: 6, category: "Power", icon: "bolt", title: "Power Profiles", anchor: "Power profiles", subtitle: "Choose the automatic power profile" },
+    { tab: 6, category: "Power", icon: "coffee", title: "Caffeine", subtitle: "Temporarily prevent idle actions" },
+    { tab: 7, category: "Notifications", icon: "do_not_disturb_on", title: "Do Not Disturb", subtitle: "Suppress notification toasts" },
+    { tab: 7, category: "Notifications", icon: "bedtime", title: "Quiet hours", subtitle: "Silence notifications during a schedule" },
+    { tab: 7, category: "Notifications", icon: "priority_high", title: "Critical notification bypass", subtitle: "Keep critical alerts visible during quiet hours" },
+    { tab: 7, category: "Notifications", icon: "timer", title: "Toast duration", subtitle: "Choose how long notification toasts remain visible" },
+    { tab: 7, category: "Notifications", icon: "open_in_new", title: "Toast position", subtitle: "Place notification toasts at the top or bottom" },
+    { tab: 7, category: "History", icon: "history", title: "Notification history limit", subtitle: "Limit retained notification history" },
+    { tab: 8, category: "Diagnostics", icon: "monitor_heart", title: "CPU Usage", subtitle: "View current processor usage" },
+    { tab: 8, category: "Diagnostics", icon: "memory", title: "Memory (RAM)", subtitle: "View current memory usage" },
+    { tab: 8, category: "Diagnostics", icon: "storage", title: "Disk Storage", subtitle: "View root filesystem usage" },
+    { tab: 8, category: "Diagnostics", icon: "swap_horiz", title: "Swap", subtitle: "View swap usage" },
+    { tab: 8, category: "Diagnostics", icon: "thermostat", title: "CPU Temperature", anchor: "CPU Temp", subtitle: "View processor temperature" },
+    { tab: 8, category: "Diagnostics", icon: "mode_fan", title: "Fan Speed", subtitle: "View fan speed when available" },
+    { tab: 8, category: "Diagnostics", icon: "battery_full", title: "Battery", subtitle: "View battery status" },
+    { tab: 8, category: "Diagnostics", icon: "battery_alert", title: "Battery Health", subtitle: "View battery health" },
+    { tab: 8, category: "Diagnostics", icon: "battery_charging_full", title: "Battery Cycles", subtitle: "View battery cycle count" },
+    { tab: 8, category: "Diagnostics", icon: "trending_up", title: "Load Average", subtitle: "View one, five, and fifteen minute load" },
+    { tab: 8, category: "Shell actions", icon: "refresh", title: "Reload Quickshell", subtitle: "Restart the shell process" },
+    { tab: 9, category: "Application shortcuts", icon: "apps", title: "App shortcuts", anchor: "Apps", subtitle: "Launch applications and common actions" },
+    { tab: 9, category: "Window shortcuts", icon: "window", title: "Window shortcuts", anchor: "Windows", subtitle: "Focus, move, and resize windows" },
+    { tab: 9, category: "Workspace shortcuts", icon: "workspaces", title: "Workspace shortcuts", anchor: "Workspaces", subtitle: "Move between and manage workspaces" },
+    { tab: 9, category: "System shortcuts", icon: "keyboard", title: "System shortcuts", anchor: "System", subtitle: "Use shell, media, brightness, and power shortcuts" }
   ]
 
   function tabLabel(tabIndex) {
@@ -261,7 +256,7 @@ PanelWindow {
   Timer {
     id: statsTimer
     interval: 3000
-    running: root.visible && root.currentTab === 9
+    running: root.visible && root.currentTab === 8
     repeat: true
     triggeredOnStart: true
     onTriggered: {
@@ -1039,13 +1034,12 @@ PanelWindow {
                 case 1: return generalTabComponent
                 case 2: return appearanceTabComponent
                 case 3: return displayInputTabComponent
-                case 4: return networkTabComponent
-                case 5: return bluetoothTabComponent
-                case 6: return mediaTabComponent
-                case 7: return lockMediaTabComponent
-                case 8: return notificationsTabComponent
-                case 9: return systemTabComponent
-                case 10: return shortcutsTabComponent
+                case 4: return bluetoothTabComponent
+                case 5: return mediaTabComponent
+                case 6: return lockMediaTabComponent
+                case 7: return notificationsTabComponent
+                case 8: return systemTabComponent
+                case 9: return shortcutsTabComponent
                 default: return generalTabComponent
               }
             }
@@ -1079,11 +1073,6 @@ PanelWindow {
           Component {
             id: displayInputTabComponent
             DisplayInputTab { root: tabContainer.panelRoot }
-          }
-
-          Component {
-            id: networkTabComponent
-            NetworkTab { root: tabContainer.panelRoot }
           }
 
           Component {

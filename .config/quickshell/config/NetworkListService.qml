@@ -27,13 +27,18 @@ QtObject {
   property var wifiRows: []
   property var savedNames: []
   property int scanPolls: 0
-  property string pendingName: ""
+  // Names for the failure notices; set only when the process really started.
+  property string pendingConnectName: ""
+  property string pendingForgetName: ""
 
   function quote(s) { return "'" + String(s).replace(/'/g, "'\\''") + "'" }
 
   property var commandFor: function(kind, args) {
     switch (kind) {
+    // `rescan: "no"` reads NM's cache (event and poll refreshes); without it
+    // nmcli's default (auto) may rescan, as on open and during a scan.
     case "list": return ["nmcli", "-t", "-e", "yes", "-f", "active,ssid,signal,security", "dev", "wifi", "list"]
+      .concat(args.rescan === "no" ? ["--rescan", "no"] : [])
     case "saved": return ["nmcli", "-t", "-e", "yes", "-f", "NAME,TYPE,AUTOCONNECT,DEVICE", "connection", "show"]
     case "device": return ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device", "status"]
     case "rescan": return ["nmcli", "dev", "wifi", "rescan"]
@@ -62,9 +67,10 @@ QtObject {
     Quickshell.execDetached(root.commandFor("notify", { message: message }))
   }
 
-  function refresh() {
+  // fresh: let nmcli rescan (open, scan polls); else read the cache.
+  function refresh(fresh) {
     if (!root.active) return
-    root.run(listProc, "list")
+    root.run(listProc, "list", fresh ? {} : { rescan: "no" })
     root.run(savedProc, "saved")
     root.run(deviceProc, "device")
   }
@@ -79,8 +85,7 @@ QtObject {
 
   function connect(name, password) {
     if (!name || connectProc.running) return
-    root.pendingName = name
-    root.run(connectProc, "connect", { name: name, password: password || "" })
+    if (root.run(connectProc, "connect", { name: name, password: password || "" })) root.pendingConnectName = name
   }
 
   function disconnect() {
@@ -94,8 +99,7 @@ QtObject {
 
   function forget(name) {
     if (!name) return
-    root.pendingName = name
-    root.run(forgetProc, "forget", { name: name })
+    if (root.run(forgetProc, "forget", { name: name })) root.pendingForgetName = name
   }
 
   function ping() {
@@ -109,7 +113,7 @@ QtObject {
   function speedtest() { Quickshell.execDetached(root.commandFor("speedtest", {})) }
 
   onActiveChanged: {
-    if (root.active) { root.refresh(); return }
+    if (root.active) { root.refresh(true); return }
     scanTimer.stop()
     root.scanning = false
     root.scanPolls = 0
@@ -131,7 +135,7 @@ QtObject {
       }
     }
   }
-  // The Wi-Fi device the way WifiPanel found it: first wifi row whose state
+  // The Wi-Fi device the way the old Settings Wi-Fi panel found it: first wifi row whose state
   // starts with "connected".
   property Process deviceProc: Process {
     stdout: StdioCollector {
@@ -151,7 +155,7 @@ QtObject {
     stdout: StdioCollector {
       onStreamFinished: {
         if (text.indexOf("successfully activated") >= 0) root.lastError = ""
-        else root.fail("Could not connect to " + root.pendingName)
+        else root.fail("Could not connect to " + root.pendingConnectName)
         root.refresh()
       }
     }
@@ -165,7 +169,7 @@ QtObject {
   }
   property Process forgetProc: Process {
     onExited: function(code) {
-      if (code !== 0) root.fail("Could not forget " + root.pendingName)
+      if (code !== 0) root.fail("Could not forget " + root.pendingForgetName)
       else root.lastError = ""
       root.refresh()
     }
@@ -198,7 +202,7 @@ QtObject {
     interval: root.scanPollInterval
     repeat: true
     onTriggered: {
-      root.refresh()
+      root.refresh(true)
       root.scanPolls++
       if (root.scanPolls >= 5) { stop(); root.scanning = false }
     }

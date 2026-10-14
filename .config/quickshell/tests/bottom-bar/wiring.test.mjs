@@ -84,16 +84,15 @@ assert.match(shell, /Sidebar \{\n    id: sidebar\n/)
 const inst = shell.slice(shell.indexOf("\n  BottomBar {"))
 assert.match(inst, /onSidebarPageRequested: function\(page\) \{ shell\.openSidebarPage\(page\) \}/)
 assert.match(inst, /onLauncherRequested: \{[^}]*ipc\.launcher\(\)/, "reuses the launcher() IPC path")
-assert.match(inst, /onNetworkRequested: \{\s*if \(lockScreen\.locked\) return\s*if \(bar\.openPopup === "settings" && settingsPanel\.currentTab === 4\) \{\s*bar\.openPopup = ""\s*return\s*\}\s*settingsPanel\.currentTab = 4\s*bar\.openPopup = "settings"/, "network toggles Settings > Network")
+assert.match(inst, /onNetworkRequested: \{\s*if \(lockScreen\.locked\) return\s*bar\.togglePopupByName\("networks"\)\s*\}/, "network toggles the networks window")
 // ipc.launcher() is the toggle the launcher button reuses.
 assert.match(shell, /function launcher\(\) \{\s*shell\.anchorLauncher\(\)\s*bar\.openPopup = bar\.openPopup === "launcher" \? "" : "launcher"/)
 assert.match(shell, /height: bottomBar\.implicitHeight, page: sidebar\.currentPage \}\)/, "bottomBarState reports the page")
 assert.match(inst, /onLogoutRequested: \{[^}]*bar\.togglePopupByName\("quickmenu"\)/)
 for (const h of ["onLauncherRequested", "onNetworkRequested", "onLogoutRequested"])
   assert.match(inst, new RegExp(h + ": \\{\\s*if \\(lockScreen\\.locked\\) return"), h + " locked guard")
-// Settings tab 4 must stay the Network tab.
-const tabs = rd("../../bar/SettingsPanel.qml").match(/tabDefinitions: \[([\s\S]*?)\n  \]/)[1]
-assert.equal(tabs.match(/label: "[^"]+"/g)[4], 'label: "Network"')
+// R4: the network button no longer opens Settings.
+assert.doesNotMatch(inst, /settingsPanel\.currentTab/)
 
 const sb = rd("../../bar/Sidebar.qml")
 assert.match(sb, /function showPage\(n\)/)

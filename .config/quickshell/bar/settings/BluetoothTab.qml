@@ -9,7 +9,7 @@ Flickable {
   id: bluetoothTab
   property QtObject root: null
   anchors.fill: parent
-  visible: root.currentTab === 5
+  visible: root.currentTab === 4
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight

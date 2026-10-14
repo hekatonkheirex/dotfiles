@@ -4,7 +4,8 @@ import "../../config/NetworkList.js" as NetworkList
 
 // Inline passphrase entry for a new secured network (her rofi prompt
 // "Enter passphrase >"): masked, Enter submits, Esc cancels. Opening it
-// clears the field and takes focus.
+// takes focus; opening and hiding both clear the field, so no passphrase
+// stays in memory after the row closes.
 Rectangle {
   id: root
   property string name: ""
@@ -15,7 +16,11 @@ Rectangle {
   radius: Config.dp(8)
   color: Colors.surfaceContainer
 
-  onVisibleChanged: if (visible) { field.text = ""; field.forceActiveFocus() }
+  onVisibleChanged: {
+    field.text = ""
+    if (visible) field.forceActiveFocus()
+  }
+  onNameChanged: field.text = ""
 
   Text {
     id: prompt

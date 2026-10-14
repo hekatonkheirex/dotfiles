@@ -202,7 +202,29 @@ ShellRoot {
           keyClick("p"); keyClick("w")
           keyClick(Qt.Key_Return)
           win.check("Enter connects with the passphrase", last() === "connect:TheQuickBrownFoxJumpsOverIt:pw" && a.passphraseFor === "")
+          win.check("focus returns to the content after Enter", a.activeFocus)
+          mouseClick(win.find(win.find(a, "row_2"), "connectButton"))
+          keyClick("x")
+          a.passphraseFor = ""
+          win.check("hiding the row clears the typed passphrase", input.text === "")
+          mouseClick(win.find(win.find(a, "row_2"), "connectButton"))
+          keyClick("y")
+          a.passphraseFor = "OtherNet"
+          win.check("switching networks clears the typed passphrase", input.text === "" && pass.visible)
+          a.passphraseFor = ""
+          mouseClick(win.find(win.find(a, "row_2"), "connectButton"))
+          win.check("passphrase row has focus again", input.activeFocus)
+          mouseClick(win.find(win.find(a, "row_3"), "forgetButton"))
+          win.check("forget click closes the passphrase row and refocuses the content",
+            a.passphraseFor === "" && a.forgetFor === "Weak" && a.activeFocus)
+          keyClick(Qt.Key_Escape)
+          win.check("Esc closes the forget row first", a.forgetFor === "" && last() !== "dismiss")
           win.check("input cleared on reopen", (function() { a.passphraseFor = "Weak"; var t = input.text; a.passphraseFor = ""; return t === "" })())
+          // Leave the passphrase row open with focus in it: the Esc check below
+          // must not depend on a test-side refocus.
+          mouseClick(win.find(win.find(a, "row_2"), "connectButton"))
+          keyClick("q")
+          keyClick(Qt.Key_Return)
 
           // Forget: Yes/No.
           mouseClick(win.find(win.find(a, "row_0"), "forgetButton"))
@@ -237,9 +259,8 @@ ShellRoot {
           var n1 = got.length
           mouseClick(win.find(a, "row_1"), 5, 5, Qt.MiddleButton)
           win.check("middle click dismisses", last() === "dismiss" && got.length === n1 + 1)
-          a.forceActiveFocus()
           keyClick(Qt.Key_Escape)
-          win.check("Esc dismisses", got.length === n1 + 2 && last() === "dismiss")
+          win.check("Esc dismisses (no test-side refocus)", got.length === n1 + 2 && last() === "dismiss")
 
           serviceChecks()
           console.log("DONE networks " + win.failures + " fail")
@@ -252,6 +273,8 @@ ShellRoot {
           var real = svc.commandFor
           var same = function(x, y) { return JSON.stringify(x) === JSON.stringify(y) }
           win.check("default list argv", same(real("list", {}), ["nmcli", "-t", "-e", "yes", "-f", "active,ssid,signal,security", "dev", "wifi", "list"]))
+          win.check("event/poll list argv reads the cache", same(real("list", { rescan: "no" }),
+            ["nmcli", "-t", "-e", "yes", "-f", "active,ssid,signal,security", "dev", "wifi", "list", "--rescan", "no"]))
           win.check("default saved argv", same(real("saved", {}), ["nmcli", "-t", "-e", "yes", "-f", "NAME,TYPE,AUTOCONNECT,DEVICE", "connection", "show"]))
           win.check("default device argv", same(real("device", {}), ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device", "status"]))
           win.check("default connect argv (WifiPanel string)", same(real("connect", { name: "it's", password: "p'w" }),
@@ -278,15 +301,22 @@ ShellRoot {
             case "saved": return ["cat", fx + "/saved.txt"]
             case "device": return ["cat", fx + "/device.txt"]
             case "ping": return ["cat", fx + "/" + pingFile]
+            case "forget": return args.name === "Locked" ? ["sh", "-c", "sleep 0.3; exit 1"] : ["true"]
             case "connect": return args.name === "Bad"
               ? ["sh", "-c", "echo 'Error: Connection activation failed.'; exit 4"]
               : ["sh", "-c", "echo 'Device wlp3s0 successfully activated'"]
             default: return ["true"]
             }
           }
-          win.check("inactive service stays idle", count("list") === 0)
+          svc.refresh()
+          svc.scan()
+          NetworkStatusService.nmChanged()
+          wait(300)
+          win.check("inactive service stays idle (refresh, scan, NM event)", calls.length === 0 && !svc.scanning)
           svc.active = true
           tryVerify(function() { return svc.networks.length === 3 && svc.device === "wlp3s0" }, 3000)
+          var lastList = function() { return calls.filter(function(c) { return c.kind === "list" }).pop() }
+          win.check("open refresh keeps the default rescan", calls.filter(function(c) { return c.kind === "list" })[0].args.rescan === undefined)
           var n = svc.networks
           win.check("service merges rows", n.length === 3 && n[0].name === "HomeNet" && n[0].active && n[0].saved
             && n[1].name === "Cafe:Guest" && !n[1].saved && !n[1].secure && n[2].name === "Weak" && n[2].saved)
@@ -296,6 +326,7 @@ ShellRoot {
           NetworkStatusService.nmChanged()
           tryVerify(function() { return count("list") > lists }, 2000)
           win.check("NM change refreshes", count("list") > lists)
+          win.check("NM change refresh does not rescan", lastList().args.rescan === "no")
 
           lists = count("list")
           svc.connect("Cafe:Guest", "")
@@ -303,12 +334,23 @@ ShellRoot {
           var c = calls.filter(function(x) { return x.kind === "connect" })[0]
           win.check("connect goes through the seam", c && c.args.name === "Cafe:Guest" && c.args.password === "")
           win.check("connect success leaves no error and refreshes", svc.lastError === "" && count("notify") === 0)
+          win.check("refresh after connect does not rescan", lastList().args.rescan === "no")
 
           svc.connect("Bad", "pw")
           tryVerify(function() { return svc.lastError !== "" }, 3000)
           var note = calls.filter(function(x) { return x.kind === "notify" })[0]
           win.check("connect failure sets lastError", svc.lastError === "Could not connect to Bad")
           win.check("connect failure notifies", note && note.args.message === "Could not connect to Bad")
+          // A forget started while the connect runs must not rename the
+          // connect failure; a second connect while running is ignored.
+          var notes0 = count("notify"), connects0 = count("connect")
+          svc.connect("Bad", "pw")
+          svc.connect("Other", "")
+          svc.forget("Weak")
+          tryVerify(function() { return count("notify") > notes0 }, 3000)
+          win.check("connect failure keeps its own name",
+            calls.filter(function(x) { return x.kind === "notify" }).pop().args.message === "Could not connect to Bad")
+          win.check("second connect while running is ignored", count("connect") === connects0 + 1)
 
           lists = count("list")
           svc.disconnect()
@@ -321,6 +363,12 @@ ShellRoot {
           tryVerify(function() { return count("list") > lists }, 3000)
           var f = calls.filter(function(x) { return x.kind === "forget" })[0]
           win.check("forget deletes the named connection", f && f.args.name === "Weak")
+          var notes = count("notify")
+          svc.forget("Locked")
+          svc.forget("Weak")
+          tryVerify(function() { return count("notify") > notes }, 3000)
+          win.check("forget failure names the running forget, not the ignored one",
+            calls.filter(function(x) { return x.kind === "notify" }).pop().args.message === "Could not forget Locked")
 
           svc.ping()
           svc.ping()
@@ -333,10 +381,13 @@ ShellRoot {
           win.check("unreachable ping shows dc", svc.pingText === "dc")
 
           lists = count("list")
+          var scanFrom = calls.length
           svc.scan()
           win.check("scan starts loading", svc.scanning && count("rescan") === 1)
           tryVerify(function() { return !svc.scanning }, 3000)
           win.check("scan polls the list 5 times", count("list") - lists >= 5)
+          win.check("scan polls keep the default rescan", calls.slice(scanFrom).filter(function(c) {
+            return c.kind === "list" && c.args.rescan === undefined }).length >= 5)
 
           svc.scan()
           svc.active = false
@@ -347,6 +398,19 @@ ShellRoot {
           svc.scan()
           win.check("scan ignored while inactive", !svc.scanning)
           svc.commandFor = real
+
+          // SystemMetricsService runs while either the sidebar or the window wants it.
+          var m = SystemMetricsService
+          win.check("metrics idle with no consumer", !m.active)
+          m.sidebarActive = true
+          m.networksActive = true
+          m.networksActive = false
+          win.check("closing the window keeps the sidebar's metrics", m.active)
+          m.networksActive = true
+          m.sidebarActive = false
+          win.check("closing the sidebar keeps the window's metrics", m.active)
+          m.networksActive = false
+          win.check("metrics stop when both close", !m.active)
         }
       }
     }

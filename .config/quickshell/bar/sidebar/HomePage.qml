@@ -15,7 +15,7 @@ Item {
 
   SystemClock { id: clock; precision: SystemClock.Minutes; enabled: root.active }
   Binding { target: root; property: "now"; value: clock.date; when: root.active }
-  Binding { target: SystemMetricsService; property: "active"; value: root.active }
+  Binding { target: SystemMetricsService; property: "sidebarActive"; value: root.active }
   Binding { target: WeatherService; property: "sidebarActive"; value: root.active }
   Binding { target: AudioService; property: "sidebarActive"; value: root.active }
   Binding { target: BrightnessService; property: "sidebarActive"; value: root.active }

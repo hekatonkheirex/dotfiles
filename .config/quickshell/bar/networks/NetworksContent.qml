@@ -83,7 +83,8 @@ Item {
           saved: modelData.saved
           onConnectClicked: root.requestConnect(modelData)
           onDisconnectClicked: root.disconnectRequested()
-          onForgetClicked: { root.passphraseFor = ""; root.forgetFor = modelData.name }
+          // Hiding a focused passphrase row drops focus: take it back so Esc works.
+          onForgetClicked: { root.passphraseFor = ""; root.forgetFor = modelData.name; root.forceActiveFocus() }
         }
       }
 
@@ -120,6 +121,7 @@ Item {
       onSubmitted: function(password) {
         var name = root.passphraseFor
         root.passphraseFor = ""
+        root.forceActiveFocus()
         root.connectRequested(name, password)
       }
       onCancelled: { root.passphraseFor = ""; root.forceActiveFocus() }

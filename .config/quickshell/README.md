@@ -15,12 +15,11 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, shell actions via `>`, clipboard history via `;`, and wallpaper search via `@`. Speech recognition is removed.
 - **On-Screen Display (OSD)** overlay for volume, brightness, mic mute, airplane mode, bluetooth, and keyboard backlight (polled from sysfs since the EC never emits a key event for it).
 - **LLM usage**: One read-only bar widget whose popup displays Codex and Claude side by side, including five-hour and weekly usage, reset countdowns, and available reset credits. Enabled by default; visibility and position are configurable in General → Bar Contents.
-- **Settings panel**: A multi-functional, resizable and draggable panel launched via `XF86Tools` with eleven tabs:
+- **Settings panel**: A multi-functional, resizable and draggable panel launched via `XF86Tools` with ten tabs:
   - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
   - **General**: Motion, uptime, clock, calendar week start, timezone, bar widget visibility and order, and weather location/refresh/privacy/unit settings
   - **Appearance**: Wallpaper filmstrip and random wallpaper, Auto/Light/Dark mode, Live wallpaper colors or Fixed palettes (including Elenapan), accent shortlist, contrast, dock pins, power menu quote and author line, retained bar preferences, sizing, color reload, and confirmed appearance reset (which also restores the quote). No UI-style picker or separate compact-control density setting.
   - **Display & Input**: Per-output mode, scale, and transform controls plus touchpad, mouse, trackpoint, and edge-gesture settings
-  - **Network**: Wi-Fi power, scan, connect, disconnect, saved-network, and autoconnect controls; Wi-Fi is Settings-only and has no compact bar indicator
   - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls; Bluetooth is Settings-only and has no compact bar indicator
   - **Media**: Media artwork, progress, and control visibility
   - **Lock & Power**: Idle lock/suspend timeouts, Caffeine, and TLP power profiles
@@ -55,6 +54,8 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── DockSymbols.js          # App id -> icomoon glyph and accent slot (elenapan's dock table)
 │   ├── BottomBarModel.js       # Pure bottom-bar decisions (clock, battery, signal, nmcli parsing, page toggle, wheel notches)
 │   ├── NetworkStatusService.qml # Wi-Fi signal bucket and VPN state for the bottom bar
+│   ├── NetworkList.js          # Pure nmcli parsers, signal buckets, name cut, ping lines, MB/s label
+│   ├── NetworkListService.qml  # Networks window: Wi-Fi list, scan, ping, connect/disconnect/forget (one command seam)
 │   ├── BottomBarFonts.qml      # Icon and text font families for the bottom bar
 │   └── cava.ini               # cava config for the real-time audio visualizer
 ├── bar/
@@ -73,7 +74,6 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   │   ├── LockMediaTab.qml
 │   │   ├── MediaTab.qml
 │   │   ├── PowerProfileCard.qml
-│   │   ├── NetworkTab.qml
 │   │   ├── BluetoothTab.qml
 │   │   ├── NotificationsTab.qml
 │   │   ├── ShortcutsTab.qml
@@ -96,7 +96,8 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── LlmUsageIcon.qml        # Angular sparkle using the shared indicator color
 │   ├── LlmUsagePopup.qml       # Combined Codex and Claude usage popup
 │   ├── LlmUsageSection.qml     # Provider usage, resets, and refresh state
-│   ├── WifiPanel.qml            # Wi-Fi controls used by the Settings Network tab
+│   ├── NetworksWindow.qml       # Her networks window, right+bottom anchored overlay (route "networks")
+│   ├── networks/                # NetworksContent, NetworkRow, PassphraseRow, BandwidthRow, ToolbarButton
 │   ├── BtPanel.qml              # Bluetooth controls used by the Settings Bluetooth tab
 │   ├── SystemTrayArea.qml      # StatusNotifier tray icons (orientation-aware)
 │   ├── MenuIndicator.qml       # Power menu bar trigger
@@ -282,6 +283,9 @@ When `XDG_RUNTIME_DIR` is unavailable, Quickshell uses
 - `ipc.settings()` — toggle Settings popup
 - `ipc.commandcenter()` — legacy alias for `ipc.settings()`
 - `ipc.layout()` — toggle bar orientation
+- `ipc.popup(name)`: toggle a popup by route (`audio`, `brightness`, `media`, `weather`, `llm`, `battery`, `notification`, `calendar`, `quickmenu`, `launcher`, `sidebar`, `networks`); `false` for an unknown name
+- `ipc.settingsTab(n)`: dev/testing: select Settings tab `n` (0-9: Account, General, Appearance, Display & Input, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts) in memory
+- `ipc.forgetPrompt(name)`: dev/testing: open the networks window with the "forget <name>?" row shown (never forgets by itself); `""` clears the row
 
 - `ipc.openSidebarPage(n)`: bottom-bar page toggle: opens the sidebar at page `n` (clamped to the pages that exist), closes it when that page is already open, switches otherwise; `false` while locked
 - `ipc.bottomBarState()`: dev/testing: bottom bar inputs as JSON (`items`, `clockText`, `dateText`, `volume`, `muted`, `batteryPct`, `charging`, `signal`, `connected`, `vpn`, `alarmCount`, `height`, `page`)
@@ -346,7 +350,8 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 | Calendar | Clock click | Month grid with navigation (shared bordered surface) |
 | Notifications | `NotificationIndicator` click / `qs ipc call shell popup notification` | Dashed history cards with timestamp, live actions and dismiss/remove controls |
 | Power Menu | `MenuIndicator` click / bottom-bar logout / `Mod+Escape` | Full-screen overlay: greeting, quote, palette; poweroff, reboot, exit (confirmed), hibernate, suspend, lock |
-| Settings | Bottom-bar network button (opens the Network tab) / `XF86Tools` | 11 tabs: Account, General, Appearance, Display & Input, Network, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts (responsive surface with persisted last tab, drag-to-move, and resize handle) |
+| Networks | Bottom-bar network button / `qs ipc call shell popup networks` | Her networks window: Wi-Fi list, connect/disconnect/forget, bandwidth, vpn, scan, speedtest, ping (see Networks window (R4)) |
+| Settings | `XF86Tools` | 10 tabs: Account, General, Appearance, Display & Input, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts (responsive surface with persisted last tab, drag-to-move, and resize handle) |
 | OSD | volume/brightness/mic/airplane/bluetooth/kbd-backlight keys | Auto-dismissing bottom-anchored status card (not part of the `openPopup` system — a separate always-on-top window) |
 
 ## Configuration
@@ -414,11 +419,11 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **Mango layout indicator**: Reads the active tag's layout from the shared `mmsg watch all-monitors` stream. Defaults between Workspaces and Focused window, but can move independently under General > Bar contents.
 - **AudioIndicator / BrightnessIndicator / MediaIndicator / WeatherIndicator**: Event-driven watchers and polling loops are bound to their active/visible state. Audio writes for sink and microphone are serialized and coalesced during rapid slider/toggle input, with a final state read after the latest write.
 - **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
-- **WifiPanel / BtPanel**: Network and Bluetooth controls live in Settings tabs, including saved Wi-Fi profiles, Bluetooth discovery/pairing, and connected-device actions. They are intentionally not rendered as compact bar indicators.
+- **BtPanel**: Bluetooth controls live in the Settings Bluetooth tab, including discovery/pairing and connected-device actions. Wi-Fi lives in the networks window (bottom-bar network button).
 - **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu, orientation-aware layout.
 - **PowerMenu**: her powermenu as a full-screen Overlay layer with exclusive keyboard focus over a 0.7 surface backdrop. Six glyph buttons (poweroff x1, reboot x2, exit x4, hibernate x6, suspend x3, lock x5) fade in staggered; hover dims the rest to 0.3 and writes the action into the terminal line. Arrows step the 3x2 grid (`PowerMenuModel.step`), Enter acts, Esc, middle click or a click outside the buttons closes. Poweroff, reboot and exit close the menu and open the existing confirmation overlay; hibernate and suspend run `systemctl` (failures logged); lock takes the secure lock route. The QuickMenu caffeine, airplane and Bluetooth toggles are gone: Caffeine lives in Settings > Lock & Power, DND in Settings > Notifications, airplane mode and Bluetooth power stay on their keys (`XF86WLAN`/`F8`/`Mod+F8`, `XF86Bluetooth`/`F10`/`Mod+F10`), and Bluetooth devices in Settings > Bluetooth.
 - **Launcher**: App/action/clipboard search uses a screen-bounded 460px single-column Elena card with a dashed rounded frame, monospace uppercase provider/count labels, contextual keyboard hints and an accent selection marker. Names and selected descriptions keep the regular body font and normal case; popup height follows content without a separate details pane. Ctrl+F returns to search, arrows select results, Enter activates, and Tab reaches provider controls. Right-click or Shift+F10/Menu exposes opening, copying parsed POSIX-shell-quoted application arguments, or deleting a clipboard entry; Escape closes the context menu before dismissing. `@` still hands off to the wallpaper filmstrip. Speech recognition, its microphone button, recording/transcription processes and helper are removed; system packages and downloaded models outside the repo are untouched.
-- **Settings**: Provides eleven tabs, remembers the last selected tab, and keeps Network and Bluetooth Settings-only. The QuickMenu Settings tile was dropped with the QuickMenu; reach Settings from the bottom-bar network button or `XF86Tools`. The panel moves from its header and resizes from the bottom-right corner, with a 560px minimum width and a maximum height bounded by screen margins. Sidebar navigation scrolls on overflow without a visible scrollbar; keyboard navigation brings the selected tab into view. Search prioritizes control titles, reports result counts or an empty state, and opens and highlights matching controls.
+- **Settings**: Provides ten tabs, remembers the last selected tab, and keeps Bluetooth Settings-only. The QuickMenu Settings tile was dropped with the QuickMenu and the Network tab with R4; reach Settings from `XF86Tools`. The panel moves from its header and resizes from the bottom-right corner, with a 560px minimum width and a maximum height bounded by screen margins. Sidebar navigation scrolls on overflow without a visible scrollbar; keyboard navigation brings the selected tab into view. Search prioritizes control titles, reports result counts or an empty state, and opens and highlights matching controls.
 - **Settings presentation**: Defaults to 1100×900 when no saved size exists, can expand to 1440px, and bounds the navigation pane and page width. General sections become side-by-side above 800px and stack below. Narrow labels elide with tooltips; rows wrap and grow. Ctrl+F searches from any control, without stealing content editing/navigation keys.
 - **Bar widget preferences**: General retains visibility, order and Start/Middle/End placement settings. They do not replace the Elena workspace strip. Hidden widgets retain their saved positions; re-homing them is out of scope for S1.
 - **ActionButton**: Label-only buttons reserve no icon height or icon-to-label spacing; compact Settings actions retain centered labels.
@@ -448,7 +453,7 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **brightnessctl** — backlight and keyboard-LED control
 - **UPower** — battery monitoring
 - **fprintd** — fingerprint authentication
-- **nmcli**, **bluetoothctl**: Network/Bluetooth tabs, airplane mode and OSD; nmcli also feeds the bottom bar's Wi-Fi signal and VPN state (`nmcli monitor` plus a cached-scan poll)
+- **nmcli**, **bluetoothctl**: the networks window, the Bluetooth tab, airplane mode and OSD; nmcli also feeds the bottom bar's Wi-Fi signal and VPN state (`nmcli monitor` plus a cached-scan poll)
 - **lm-sensors** (`sensors`) — optional thermal and fan readings in the System tab
 - **jq**: parses `sensors -j` output for System diagnostics, and picks the pavucontrol window to focus from the bottom bar's media button
 - **pavucontrol**: opened (or focused) by a right click on the bottom bar's media button
@@ -527,9 +532,8 @@ content (`bar/bottombar/BottomBarContent.qml`) has three parts:
 - **Right cluster**: network (VPN shield or link, then four signal bars),
   alarms (count pill or a slash), battery (three parts and a charging bolt).
 
-Interim targets until later releases: network opens Settings > Network and
-closes it on a second click (R4 adds a network panel); alarms do nothing
-(R5); logout toggles the power menu (R3). The sidebar and bottom-right toasts
+The network button toggles her networks window (R4). Interim targets until
+later releases: alarms do nothing (R5); logout toggles the power menu (R3). The sidebar and bottom-right toasts
 leave the bar's height free so its buttons stay clickable.
 
 **Fonts.** The icons come from her icomoon font set in
@@ -606,6 +610,49 @@ media math, structural wiring of the window, activator and shell) and
 indicators, keyboard and wheel paging, seek clicks). `KEEP_PNG=/tmp/sidebar.png`
 keeps the render. Specification:
 `docs/superpowers/specs/2026-10-13-elena-sidebar-pages-r2-design.md`.
+
+## Networks window (R4)
+
+`bar/NetworksWindow.qml` is her networks window: a `dp(300)` wide Overlay
+layer anchored to the right and bottom edges, `dp(10)` above the bottom bar,
+left corners `dp(20)`, no reserved space, keyboard focus on demand while
+open. The bottom bar's network button toggles it (route `"networks"`); Esc,
+a middle click, a click outside (the popup shield) or focus moving to another
+window close it. The Settings Network tab and the old Wi-Fi panel are gone; this
+window is the only Wi-Fi UI.
+
+- **List** (4 rows of `dp(60)`, scrolls): a `dp(6)` left border by signal
+  (>= 75 and >= 50 x4, >= 25 x3, else x8; dotted, solid on the connected row),
+  a saved/new type disc, the name cut at 22 characters (19 + "..."), and
+  forget (x3, saved), disconnect (x1, connected) or connect (x2). Empty:
+  a symbol and "No networks found".
+- **Connect**: saved or open networks connect at once; a new secured one opens
+  an inline masked passphrase row (Enter connects, Esc cancels; the text is
+  cleared whenever the row hides). Forget asks yes/no inline. Failures run
+  `notify-send -u low Networks "Could not connect to <name>"` (or disconnect,
+  forget).
+- **Bandwidth**: down x1 and up x2 in MB/s from `SystemMetricsService` (all
+  interfaces). The service runs while the sidebar Home page or this window
+  wants it (`sidebarActive || networksActive`).
+- **Toolbar**: vpn on/off (opens `nm-connection-editor`), scan (`nmcli dev
+  wifi rescan` plus 5 list polls 1 s apart, count of nets), speedtest
+  (`xdg-open https://www.speedtest.net`), ping (`ping -c 10 -w 30 1.1.1.1`
+  streamed: `NNms`, the average, `dc` when unreachable).
+
+`config/NetworkListService.qml` runs every nmcli process through
+`commandFor(kind, args)` and polls only while the window is shown. It lists
+on open and during a scan with nmcli's default rescan, and on `nmcli monitor`
+events, after an action and on the 10 s fallback poll with `--rescan no`
+(NM's cache). The connect, disconnect and forget commands are the old
+Settings Wi-Fi panel ones, byte for byte.
+
+Checks: `node tests/networks/*.test.mjs` (parsers, buckets, wiring, Settings
+tab removal) and `bash scripts/networks-render.sh` (rows, empty state,
+bandwidth, toolbar and passphrase pixels, keys and clicks, and the service
+against fixture nmcli output; connect, disconnect and forget never run for
+real). Dev IPC: `qs ipc call shell popup networks`, `qs ipc call shell
+forgetPrompt <name>`. Specification:
+`docs/superpowers/specs/2026-10-14-elena-networks-r4-design.md`.
 
 ## Launcher redesign and speech removal
 

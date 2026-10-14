@@ -4,12 +4,16 @@ import Quickshell
 import Quickshell.Io
 import "SystemMetrics.js" as SystemMetrics
 
-// Home-page tile values. Reads procfs/sysfs once per tick; runs only while a
-// consumer sets `active`. -1 means unavailable (the tile dims).
+// Home-page tile values and the networks window's bandwidth. Reads
+// procfs/sysfs once per tick; runs while either consumer wants it (the sidebar
+// Home page or the networks window), so closing one leaves the other running.
+// -1 means unavailable (the tile dims).
 QtObject {
   id: root
 
-  property bool active: false
+  property bool sidebarActive: false
+  property bool networksActive: false
+  readonly property bool active: root.sidebarActive || root.networksActive
   property real cpu: -1
   property real ram: -1
   property real swap: -1

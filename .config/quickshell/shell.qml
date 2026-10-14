@@ -378,7 +378,8 @@ ShellRoot {
     }
 
     // popup("audio" | "brightness" | "media" | "weather" | "llm" | "battery" |
-    // "notification" | "calendar" | "quickmenu" | "launcher"): toggle a bar popup.
+    // "notification" | "calendar" | "quickmenu" | "launcher" | "sidebar" |
+    // "networks"): toggle a bar popup.
     function popup(name: string): bool {
       return bar.togglePopupByName(name)
     }
@@ -391,7 +392,7 @@ ShellRoot {
     }
 
 
-    // Dev/testing: select a Settings tab (0-11) in memory. Not saved unless
+    // Dev/testing: select a Settings tab (0-9) in memory. Not saved unless
     // something else calls Settings.save().
     function settingsTab(index: int): int {
       Settings.lastSettingsTab = index
@@ -401,11 +402,14 @@ ShellRoot {
       return settingsPanel.currentTab
     }
 
-    // Dev/testing: show the Wi-Fi "Forget <name>?" confirmation without
-    // touching the keyboard. Only opens the prompt; "" cancels it.
+    // Dev/testing: open the networks window with the "forget <name>?" row
+    // shown, without touching the keyboard. Never forgets anything by itself;
+    // "" clears the row and leaves the window as it is.
     function forgetPrompt(name: string): string {
-      settingsPanel.devForgetName = name
-      return settingsPanel.devForgetName
+      if (lockScreen.locked) return ""
+      networksWindow.forgetFor = name
+      if (name !== "") bar.openPopup = "networks"
+      return networksWindow.forgetFor
     }
 
 
@@ -627,6 +631,13 @@ ShellRoot {
     onVisibleChanged: if (!visible) shell.sidebarClosedAt = Date.now()
   }
 
+  NetworksWindow {
+    id: networksWindow
+    visible: bar.openPopup === "networks" && !lockScreen.locked && !lockScreen.compositorLocked
+    screen: bar.screen
+    onDismissed: bar.openPopup = ""
+  }
+
   // Left-edge hover opens the sidebar at the page last shown; an open sidebar
   // stays open (openSidebarPage would toggle it closed).
   SidebarActivator {
@@ -650,15 +661,10 @@ ShellRoot {
       if (lockScreen.locked) return
       ipc.launcher()
     }
-    // Network tab until R4; a second click on the open tab closes it.
+    // Her networks window; a second click closes it.
     onNetworkRequested: {
       if (lockScreen.locked) return
-      if (bar.openPopup === "settings" && settingsPanel.currentTab === 4) {
-        bar.openPopup = ""
-        return
-      }
-      settingsPanel.currentTab = 4
-      bar.openPopup = "settings"
+      bar.togglePopupByName("networks")
     }
     onLogoutRequested: {
       if (lockScreen.locked) return

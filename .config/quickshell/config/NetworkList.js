@@ -2,7 +2,7 @@
 
 // Pure nmcli parsers for the networks sidebar page.
 
-// Same escaping rules as bar/WifiPanel.qml parseTerseFields.
+// nmcli -e yes escaping: backslash escapes a colon or a backslash.
 function parseTerseFields(line) {
   var fields = [], field = "", escaped = false
   for (var i = 0; i < line.length; i++) {
@@ -82,4 +82,11 @@ function parsePingLine(line) {
   if (m) return { kind: "avg", ms: Math.round(parseFloat(m[1])) }
   if (/Network is unreachable/i.test(line)) return { kind: "unreachable" }
   return { kind: "none" }
+}
+
+// Bytes/s to her bandwidth label (MB/s, two decimals); unknown -> "--MB/s".
+function formatRate(bytes) {
+  var v = Number(bytes)
+  if (!isFinite(v) || v < 0) return "--MB/s"
+  return (v / 1000000).toFixed(2) + "MB/s"
 }

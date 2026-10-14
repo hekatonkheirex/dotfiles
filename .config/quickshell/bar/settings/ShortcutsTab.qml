@@ -11,7 +11,7 @@ Flickable {
   id: shortcutsTab
   property QtObject root: null
   anchors.fill: parent
-  visible: root.currentTab === 10
+  visible: root.currentTab === 9
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight

@@ -3,7 +3,7 @@
 # an unknown name returns false, and dismissPopups clears the state.
 set -u
 fail=0
-for n in audio brightness media weather llm battery notification calendar quickmenu launcher sidebar; do
+for n in audio brightness media weather llm battery notification calendar quickmenu launcher sidebar networks; do
   qs ipc call shell dismissPopups >/dev/null; sleep 0.4
   r=$(qs ipc call shell popup "$n"); c=$(qs ipc call shell currentPopup)
   if [ "$r" = true ] && [ "$c" = "$n" ]; then echo "ok   $n"; else echo "FAIL $n (popup=$r current=$c)"; fail=1; fi
@@ -15,7 +15,13 @@ qs ipc call shell dismissPopups >/dev/null
 orig=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.config/quickshell/settings.json')))['lastSettingsTab'])")
 [ "$(qs ipc call shell settingsTab 5)" = 5 ] && echo "ok   settingsTab" || { echo "FAIL settingsTab"; fail=1; }
 qs ipc call shell settingsTab "$orig" >/dev/null
+# forgetPrompt opens the networks window with the confirmation row only (no
+# forget runs); "" clears the row.
+qs ipc call shell dismissPopups >/dev/null; sleep 0.4
+r=$(qs ipc call shell forgetPrompt ProbeNet); c=$(qs ipc call shell currentPopup)
+[ "$r" = ProbeNet ] && [ "$c" = networks ] && echo "ok   forgetPrompt opens networks" || { echo "FAIL forgetPrompt open ($r, $c)"; fail=1; }
 [ "$(qs ipc call shell forgetPrompt "")" = "" ] && echo "ok   forgetPrompt clears" || { echo "FAIL forgetPrompt"; fail=1; }
+qs ipc call shell dismissPopups >/dev/null
 # Bottom-bar page toggle: closed opens, same page closes, another page switches.
 qs ipc call shell dismissPopups >/dev/null; sleep 0.4
 qs ipc call shell openSidebarPage 2 >/dev/null

@@ -26,7 +26,8 @@ assert.ok(!existsSync(path("../../bar/settings/WallpaperTab.qml")), "WallpaperTa
 assert.ok(!/WallpaperTab/.test(panel), "SettingsPanel no longer references it")
 
 // Labels line up with the files in order (sidebar order == switch order).
-const order = ["Account", "General", "Appearance", "Display & Input", "Network", "Bluetooth", "Media", "Lock & Power", "Notifications", "System", "Shortcuts"]
+// Network left Settings in R4 (bar/NetworksWindow.qml is the only network UI).
+const order = ["Account", "General", "Appearance", "Display & Input", "Bluetooth", "Media", "Lock & Power", "Notifications", "System", "Shortcuts"]
 assert.deepEqual(labels, order, "sidebar order")
 const fileFor = { "Display & Input": "displayInput", "Lock & Power": "lockMedia" }
 labels.forEach((label, i) => {
@@ -41,7 +42,7 @@ for (const e of entries) assert.ok(e.tab >= 0 && e.tab < labels.length, `search 
 const wp = entries.find(e => e.category === "Wallpaper")
 assert.equal(wp.tab, labels.indexOf("Appearance"), "wallpaper search entry lands on Appearance")
 const byTitle = t => entries.find(e => e.title === t).tab
-assert.equal(byTitle("Wi-Fi"), labels.indexOf("Network"))
+assert.ok(!entries.some(e => e.title === "Wi-Fi"), "no Wi-Fi search entry")
 assert.equal(byTitle("Bluetooth"), labels.indexOf("Bluetooth"))
 assert.equal(byTitle("Show album art"), labels.indexOf("Media"))
 assert.equal(byTitle("Lock after inactivity"), labels.indexOf("Lock & Power"))
