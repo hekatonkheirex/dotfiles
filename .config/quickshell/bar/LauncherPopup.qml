@@ -912,49 +912,13 @@ PanelWindow {
           text: "/ " + (root.actionMode ? "ACTIONS" : (root.clipboardMode ? "CLIPBOARD" : "APPLICATIONS")) + " /"
             + "   " + filteredModel.count + (filteredModel.count === 1 ? " MATCH" : " MATCHES")
             + "   ↑↓ SELECT · ENTER " + (root.clipboardMode ? "RESTORE" : (root.actionMode ? "RUN" : "OPEN"))
+            + (root.searchText === "" ? "   > ACTIONS · ; CLIPBOARD · @ WALLPAPERS" : "")
           color: Colors.fgSurface
           font.family: "monospace"
           font.pixelSize: Math.round(root.textPx * 0.6)
           font.letterSpacing: Config.typeMonoTracking
           elide: Text.ElideRight
           maximumLineCount: 1
-        }
-      }
-
-      // Prefix shortcuts live under the field instead of crowding the entry.
-      Flow {
-        id: prefixChips
-        Layout.fillWidth: true
-        Layout.margins: Config.dp(10)
-        Layout.leftMargin: Config.dp(25)
-        spacing: Config.spacingSmall
-        visible: root.searchText === ""
-
-        Repeater {
-          model: [
-            { key: ">", label: "actions" },
-            { key: ";", label: "clipboard" },
-            { key: "@", label: "wallpapers" }
-          ]
-          delegate: ActionButton {
-            required property var modelData
-            height: implicitHeight
-            width: chipMetrics.width + Config.spacingMedium * 2
-            labelText: modelData.key + "  " + modelData.label.toUpperCase()
-            horizontalContent: true
-            variant: "outlined"
-            accessibleName: "Search " + modelData.label
-            TextMetrics {
-              id: chipMetrics
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeLabelMediumSize
-              text: modelData.key + "  " + modelData.label.toUpperCase()
-            }
-            onActivated: {
-              searchInputControl.text = modelData.key
-              searchInputControl.input.forceActiveFocus()
-            }
-          }
         }
       }
 
