@@ -8,47 +8,15 @@ import "../primitives"
 import "../../config"
 import "../../config/PaletteCatalog.js" as PaletteCatalog
 import "../../config/AccentPalette.js" as AccentPalette
-import "../../config/BarScale.js" as BarScale
 
 Flickable {
   id: appearanceTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  property bool fineTuneOpen: false
-  readonly property var fineTuneTitles: ["ui font size", "clock size", "icon size", "spacing", "bar size"]
-  // Settings search calls this before locating a target; true means the
-  // layout changed and the caller should retry on the next tick.
-  function expandForSearch(title) {
-    var t = String(title).toLowerCase()
-    var hit = fineTuneTitles.indexOf(t) >= 0
-    if (!hit || fineTuneOpen) return false
-    fineTuneOpen = true
-    return true
-  }
   readonly property int optionButtonGap: Config.themeOptionGap
   readonly property int segmentedButtonGap: 0
   // Stacked icon + label choices keep breathing room at the global type scale.
   readonly property int optionButtonHeight: Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + (24))
-  // Keep the selector model independent of palette roles: a new JS array
-  // recreates every button, including the one handling the style change.
-  readonly property var workspaceCountOptions: [
-    { value: "active", icon: "dynamic_feed", label: "Active", description: "Show the workspaces currently known to Niri" },
-    { value: "5", icon: "looks_5", label: "1–5", description: "Show workspaces one through five" },
-    { value: "10", icon: "filter_9_plus", label: "1–10", description: "Show workspaces one through ten" }
-  ]
-  readonly property var workspaceStyleOptions: [
-    { value: "expressive", icon: "auto_awesome", label: "Expressive", description: "Keep the current expressive workspace treatment" },
-    { value: "pill", icon: "horizontal_rule", label: "Pill", description: "Use capsule-shaped workspace buttons" },
-    { value: "rounded", icon: "rounded_corner", label: "Rounded", description: "Use rounded rectangle workspace buttons" },
-    { value: "circle", icon: "circle", label: "Circle", description: "Use circular workspace buttons" },
-    { value: "dots", icon: "radio_button_checked", label: "Dots", description: "Use a calm dot and halo marker" },
-    { value: "numbers", icon: "123", label: "Numbers", description: "Show each workspace number" },
-    { value: "magic", icon: "auto_awesome", label: "Glyph", description: "Use sparkle glyphs for workspace state" },
-    { value: "kanji", icon: "language", label: "Kanji", description: "Use compact Japanese numerals" },
-    { value: "rings", icon: "crop_free", label: "Frame", description: "Frame the focused workspace" },
-    { value: "aurora", icon: "linear_scale", label: "Aurora", description: "Use a flat streak marker" },
-    { value: "pacman", icon: "sports_esports", label: "Pacman", description: "Use a Pacman marker and pellets" }
-  ]
   anchors.fill: parent
   visible: root.currentTab === 2
   clip: true
@@ -170,7 +138,7 @@ Flickable {
 
     SettingsPageHeader {
       pageTitle: "Appearance"
-      subtitle: "Customize the shell’s visual style, colors, layout, and effects."
+      subtitle: "Customize wallpapers, colors, interface sizing, and effects."
     }
 
 
@@ -317,7 +285,7 @@ Flickable {
         }
       }
 
-      // UI Style card
+      // Shared interface sizing
 
       Loader {
         id: sizingCardLoader
@@ -828,360 +796,7 @@ Flickable {
         }
       }
 
-      ColumnLayout {
-        Layout.fillWidth: true
-        spacing: Config.spacingCompact
 
-      Text {
-        text: "Bar"
-        color: Colors.primary
-        font.family: Config.fontFamily
-        font.pixelSize: Config.typeTitleLargeSize
-        font.weight: Config.typeMediumWeight
-        font.letterSpacing: Config.typeTitleTracking
-        lineHeight: Config.typeTitleLargeLineHeight
-        lineHeightMode: Text.FixedHeight
-      }
-
-        Text {
-          Layout.fillWidth: true
-          text: "Configure the bar's surface and position"
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeLabelSmallSize
-          font.letterSpacing: Config.typeLabelTracking
-          lineHeight: Config.typeLabelSmallLineHeight
-          lineHeightMode: Text.FixedHeight
-          wrapMode: Text.WordWrap
-        }
-      }
-
-      GridLayout {
-        id: barOptionsGrid
-        Layout.fillWidth: true
-        columns: appearanceTab.compactLayout ? 1 : 2
-        columnSpacing: Config.spacingLarge
-        rowSpacing: Config.spacingLarge
-
-      // Bar Placement card
-      SettingsCard {
-        variant: "filled"
-        Layout.column: appearanceTab.compactLayout ? 0 : 1
-        Layout.row: 0
-        Layout.fillWidth: true
-        Layout.preferredWidth: 0
-        Layout.preferredHeight: barPlacementColumn.implicitHeight + Config.spacingPage
-        radius: Config.settingsCardRadius
-        surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.outlineVariant
-        outlineWidth: Config.themeBorderWidth
-
-          ColumnLayout {
-            id: barPlacementColumn
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.topMargin: Config.spacingLarge
-            anchors.leftMargin: Config.spacingLarge
-            anchors.rightMargin: Config.spacingLarge
-            spacing: Config.spacingSmall
-
-            Text {
-              text: "Bar Placement"
-              color: Colors.fgSurface
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyLargeSize
-              font.weight: Config.typeStrongWeight
-              font.letterSpacing: Config.typeBodyTracking
-              lineHeight: Config.typeBodyLargeLineHeight
-              lineHeightMode: Text.FixedHeight
-              Layout.alignment: Qt.AlignHCenter
-            }
-
-            Item {
-              Layout.fillWidth: true
-              Layout.alignment: Qt.AlignHCenter
-              Layout.preferredHeight: appearanceTab.optionButtonHeight
-              height: appearanceTab.optionButtonHeight
-
-              Row {
-                anchors.fill: parent
-                spacing: appearanceTab.segmentedButtonGap
-
-                Repeater {
-                  model: [
-                    { value: "top", icon: "vertical_align_top", label: "Top" },
-                    { value: "bottom", icon: "vertical_align_bottom", label: "Bottom" },
-                    { value: "left", icon: "dock_to_left", label: "Left" },
-                    { value: "right", icon: "dock_to_right", label: "Right" }
-                  ]
-
-                  delegate: ActionButton {
-                    required property var modelData
-                    required property int index
-                    width: (parent.width - appearanceTab.segmentedButtonGap * 3) / 4
-                    height: parent.height
-                    iconLabel: modelData.icon
-                    iconSize: 15
-                    contentSpacing: Config.spacingSmall
-                    horizontalContent: false
-                    labelText: modelData.label
-                    selected: root.barPosition === modelData.value
-                    checkable: true
-                    grouped: true
-                    groupPosition: index === 0 ? "first" : (index === 3 ? "last" : "middle")
-                    accessibleName: modelData.label + " bar"
-                    accessibleDescription: selected ? "Selected" : "Switch bar to " + modelData.label.toLowerCase()
-                    onActivated: root.setBarPosition(modelData.value)
-                  }
-                }
-              }
-            }
-          }
-      }
-
-      // Bar form chooser
-      SettingsCard {
-        variant: "filled"
-        Layout.column: 0
-        Layout.row: appearanceTab.compactLayout ? 1 : 0
-        Layout.fillWidth: true
-        Layout.preferredWidth: 0
-        Layout.preferredHeight: barFormColumn.implicitHeight + Config.spacingPage
-        radius: Config.settingsCardRadius
-        surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.outlineVariant
-        outlineWidth: Config.themeBorderWidth
-
-          ColumnLayout {
-            id: barFormColumn
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.topMargin: Config.spacingLarge
-            anchors.leftMargin: Config.spacingLarge
-            anchors.rightMargin: Config.spacingLarge
-            spacing: Config.spacingSmall
-
-            Text {
-              text: "Bar Form"
-              color: Colors.fgSurface
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyLargeSize
-              font.weight: Config.typeStrongWeight
-              font.letterSpacing: Config.typeBodyTracking
-              lineHeight: Config.typeBodyLargeLineHeight
-              lineHeightMode: Text.FixedHeight
-              Layout.alignment: Qt.AlignHCenter
-            }
-
-            Item {
-              Layout.fillWidth: true
-              Layout.alignment: Qt.AlignHCenter
-              Layout.preferredHeight: appearanceTab.optionButtonHeight
-              height: appearanceTab.optionButtonHeight
-              enabled: true
-              opacity: 1
-
-              Row {
-                anchors.fill: parent
-                spacing: appearanceTab.segmentedButtonGap
-
-                Repeater {
-                  model: [
-                    { value: "full", icon: "dock_to_bottom", label: "Full", description: "Edge to edge" },
-                    { value: "fit", icon: "web_asset", label: "Fit", description: "Inset rounded frame" },
-                    { value: "dock", icon: "bottom_app_bar", label: "Dock", description: "Open desktop edge" },
-                    { value: "notch", icon: "flip_to_front", label: "Notch", description: "Flowing shoulders" },
-                    { value: "pill", icon: "pill", label: "Pill", description: "Grouped pills and signal line" }
-                  ]
-
-                  delegate: ActionButton {
-                    required property var modelData
-                    required property int index
-                    width: (parent.width - appearanceTab.segmentedButtonGap * 4) / 5
-                    height: parent.height
-                    iconLabel: modelData.icon
-                    iconSize: 15
-                    contentSpacing: Config.spacingSmall
-                    horizontalContent: false
-                    labelText: modelData.label
-                    selected: Settings.barForm === modelData.value
-                    checkable: true
-                    grouped: true
-                    groupPosition: index === 0 ? "first" : (index === 4 ? "last" : "middle")
-                    accessibleName: modelData.label + " bar form"
-                    accessibleDescription: modelData.description
-                    onActivated: root.setBarForm(modelData.value)
-                  }
-                }
-              }
-            }
-
-            Text {
-              Layout.fillWidth: true
-              text: {
-
-                var forms = { full: "Edge to edge", fit: "Inset rounded frame",
-                  dock: "Open desktop edge", notch: "Flowing shoulders",
-                  pill: "Grouped pills and signal line" }
-                return forms[Settings.barForm] || forms.full
-              }
-              color: Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeLabelMediumSize
-              font.letterSpacing: Config.typeLabelTracking
-              lineHeight: Config.typeLabelMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-              horizontalAlignment: Text.AlignHCenter
-            }
-          }
-      }
-
-      // Workspace marker and range controls
-      SettingsCard {
-        id: workspaceShapeCard
-        variant: "filled"
-        Layout.column: 0
-        Layout.row: appearanceTab.compactLayout ? 2 : 1
-        Layout.columnSpan: appearanceTab.compactLayout ? 1 : 2
-        Layout.fillWidth: true
-        Layout.preferredWidth: 0
-        Layout.preferredHeight: workspaceShapeColumn.implicitHeight + Config.spacingLarge * 2
-        radius: Config.settingsCardRadius
-        surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.outlineVariant
-        outlineWidth: Config.themeBorderWidth
-
-        ColumnLayout {
-          id: workspaceShapeColumn
-          anchors.fill: parent
-          anchors.margins: Config.spacingLarge
-          spacing: Config.spacingSmall
-
-          Text {
-            text: "Workspace buttons"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyLargeSize
-            font.weight: Config.typeStrongWeight
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyLargeLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.alignment: Qt.AlignHCenter
-          }
-
-          Text {
-            text: "Choose how many workspaces are shown and how their markers look"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
-            lineHeightMode: Text.FixedHeight
-            horizontalAlignment: Text.AlignHCenter
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-          }
-
-          Text {
-            text: "Visible workspaces"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
-            font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.fillWidth: true
-          }
-
-          Item {
-            Layout.fillWidth: true
-            Layout.preferredHeight: appearanceTab.optionButtonHeight
-            height: appearanceTab.optionButtonHeight
-
-            Row {
-              anchors.fill: parent
-              spacing: 0
-
-              Repeater {
-                model: appearanceTab.workspaceCountOptions
-
-                delegate: ActionButton {
-                  required property var modelData
-                  required property int index
-                  width: (parent.width - (0)) / 3
-                  height: parent.height
-                  iconLabel: modelData.icon
-                  iconSize: 15
-                  contentSpacing: Config.spacingSmall
-                  horizontalContent: false
-                  labelText: modelData.label
-                  selected: Settings.workspaceCount === modelData.value
-                  checkable: true
-                  grouped: true
-                  groupPosition: index === 0 ? "first" : (index === 2 ? "last" : "middle")
-                  accessibleName: modelData.label + " workspace count"
-                  accessibleDescription: selected ? "Selected. " + modelData.description : modelData.description
-                  onActivated: {
-                    Settings.workspaceCount = modelData.value
-                    Settings.save()
-                  }
-                }
-              }
-            }
-          }
-
-          Text {
-            text: "Marker style"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
-            font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.fillWidth: true
-          }
-
-          GridLayout {
-            Layout.fillWidth: true
-            columns: appearanceTab.compactLayout ? 2 : 4
-            columnSpacing: appearanceTab.optionButtonGap
-            rowSpacing: appearanceTab.optionButtonGap
-            enabled: true
-            opacity: 1
-
-            Repeater {
-              model: appearanceTab.workspaceStyleOptions
-
-              delegate: ActionButton {
-                required property var modelData
-                Layout.fillWidth: true
-                Layout.preferredHeight: appearanceTab.optionButtonHeight
-                iconLabel: modelData.icon
-                iconSize: 15
-                contentSpacing: Config.spacingSmall
-                horizontalContent: false
-                labelText: modelData.label
-                selected: Settings.workspaceShape === modelData.value
-                checkable: true
-                grouped: true
-                accessibleName: modelData.label + " workspace marker"
-                accessibleDescription: selected ? "Selected. " + modelData.description : modelData.description
-                onActivated: {
-                  Settings.workspaceShape = modelData.value
-                  Settings.save()
-                }
-              }
-            }
-          }
-
-        }
-      }
-
-      }
     }
 
     // Font / Icon / Spacing sliders
@@ -1205,7 +820,7 @@ Flickable {
         spacing: Config.spacingSmall
 
         Text {
-          text: "Sizing"
+          text: "Interface sizing"
           color: Colors.fgSurface
           font.family: Config.fontFamily
           font.pixelSize: Config.typeBodyLargeSize
@@ -1215,117 +830,17 @@ Flickable {
           lineHeightMode: Text.FixedHeight
         }
 
-
-        // Bar scale: drives bar size, font, icon and spacing together
-        RowLayout {
+        Text {
           Layout.fillWidth: true
-          spacing: Config.spacingMedium
-          readonly property var scaleMatch: BarScale.match({
-            barSize: Settings.barSize, fontPixelSize: Settings.fontPixelSize,
-            clockFontSize: Settings.clockFontSize, iconSize: Settings.iconSize,
-            spacingScale: Settings.spacingScale
-          })
-          readonly property real barScale: scaleMatch.scale
-
-          Text {
-            text: "Bar Scale"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: (appearanceTab.compactLayout ? 64 : 90)
-          }
-
-          SliderControl {
-            Layout.fillWidth: true
-            value: (parent.barScale - BarScale.MIN) / (BarScale.MAX - BarScale.MIN)
-            stepSize: BarScale.STEP / (BarScale.MAX - BarScale.MIN)
-            accessibleMinimumValue: Math.round(BarScale.MIN * 100)
-            accessibleMaximumValue: Math.round(BarScale.MAX * 100)
-            accessibleUnit: "%"
-            activeColor: Colors.primary
-            surfaceContainerHigh: Colors.surfaceContainerHigh
-            surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
-            focusColor: Colors.primary
-            motionDuration: Config.motionMedium
-            reducedMotion: Config.reducedMotion
-            accessibleName: "Bar scale"
-            accessibleDescription: "Scale the bar thickness, text, clock, icons and spacing together"
-            onChanged: function(val) {
-              var v = BarScale.values(BarScale.MIN + val * (BarScale.MAX - BarScale.MIN))
-              Settings.barSize = v.barSize
-              Settings.fontPixelSize = v.fontPixelSize
-              Settings.clockFontSize = v.clockFontSize
-              Settings.iconSize = v.iconSize
-              Settings.spacingScale = v.spacingScale
-            }
-            onInteractionFinished: Settings.save()
-          }
-
-          Text {
-            text: parent.scaleMatch.exact ? Math.round(parent.barScale * 100) + "%" : "Custom"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelMediumSize
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 56
-          }
-        }
-
-
-        // Individual sizes live under Bar Scale; collapsed by default.
-        Rectangle {
-          Layout.fillWidth: true
-          implicitHeight: Math.max(Config.controlHitSize, fineTuneLabel.implicitHeight + Config.spacingMedium)
-          radius: Config.shapeCompact
-          color: fineTuneArea.containsMouse ? Colors.surfaceContainerHigh : "transparent"
-          activeFocusOnTab: true
-          Accessible.role: Accessible.Button
-          Accessible.name: "Individual sizes"
-          Keys.onSpacePressed: appearanceTab.fineTuneOpen = !appearanceTab.fineTuneOpen
-          Keys.onReturnPressed: appearanceTab.fineTuneOpen = !appearanceTab.fineTuneOpen
-
-          RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: Config.spacingSmall
-            anchors.rightMargin: Config.spacingSmall
-            spacing: Config.spacingSmall
-
-            IconGlyph {
-              iconLabel: appearanceTab.fineTuneOpen ? "expand_more" : "chevron_right"
-              iconColor: Colors.fgSurfaceVariant
-              iconSize: Config.iconSize
-            }
-            Text {
-              id: fineTuneLabel
-              Layout.fillWidth: true
-              text: "Individual sizes"
-              color: Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyMediumSize
-              font.letterSpacing: Config.typeBodyTracking
-              lineHeight: Config.typeBodyMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-            }
-          }
-
-          MouseArea {
-            id: fineTuneArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: appearanceTab.fineTuneOpen = !appearanceTab.fineTuneOpen
-          }
+          text: "These controls size Settings and shared interfaces, not the fixed workspace strip or bottom bar."
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.typeLabelSmallSize
+          wrapMode: Text.WordWrap
         }
 
         ColumnLayout {
           Layout.fillWidth: true
-          visible: appearanceTab.fineTuneOpen
           spacing: Config.spacingSmall
 
           // UI font size
@@ -1360,7 +875,7 @@ Flickable {
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "UI font size"
-              accessibleDescription: "Adjust global UI font size"
+              accessibleDescription: "Adjust text size in Settings and shared shell controls"
               onChanged: function(val) {
                 Settings.fontPixelSize = Math.round(7 + val * 9)
               }
@@ -1379,56 +894,6 @@ Flickable {
             }
           }
 
-          // Clock font size
-          RowLayout {
-            Layout.fillWidth: true
-            spacing: Config.spacingMedium
-
-            Text {
-              text: "Clock Size"
-              color: Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyMediumSize
-              font.letterSpacing: Config.typeBodyTracking
-              lineHeight: Config.typeBodyMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-
-              Layout.preferredWidth: Math.max(90, implicitWidth)
-            }
-
-            SliderControl {
-              Layout.fillWidth: true
-              value: (Settings.clockFontSize - 8) / 16
-              stepSize: 1 / 16
-              accessibleMinimumValue: 8
-              accessibleMaximumValue: 24
-              accessibleUnit: "px"
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              focusColor: Colors.primary
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Clock font size"
-              accessibleDescription: "Adjust the bar clock font size"
-              onChanged: function(val) {
-                Settings.clockFontSize = Math.round(8 + val * 16)
-              }
-              onInteractionFinished: Settings.save()
-            }
-
-            Text {
-              text: Settings.clockFontSize + "px"
-              color: Colors.fgSurface
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeLabelMediumSize
-              font.letterSpacing: Config.typeLabelTracking
-              lineHeight: Config.typeLabelMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-              Layout.preferredWidth: 44
-            }
-          }
 
           // Icon size
           RowLayout {
@@ -1462,7 +927,7 @@ Flickable {
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "Icon size"
-              accessibleDescription: "Adjust global icon size"
+              accessibleDescription: "Adjust icons in Settings and shared shell controls"
               onChanged: function(val) {
                 Settings.iconSize = Math.round(12 + val * 16)
               }
@@ -1513,7 +978,7 @@ Flickable {
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
               accessibleName: "Spacing"
-              accessibleDescription: "Adjust global layout spacing"
+              accessibleDescription: "Adjust spacing in Settings and shared shell controls"
               onChanged: function(val) {
                 Settings.spacingScale = Math.round((0.75 + val * 0.75) * 20) / 20
               }
@@ -1532,56 +997,6 @@ Flickable {
             }
           }
 
-          // Bar size
-          RowLayout {
-            Layout.fillWidth: true
-            spacing: Config.spacingMedium
-
-            Text {
-              text: "Bar Size"
-              color: Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyMediumSize
-              font.letterSpacing: Config.typeBodyTracking
-              lineHeight: Config.typeBodyMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-
-              Layout.preferredWidth: (appearanceTab.compactLayout ? 64 : 90)
-            }
-
-            SliderControl {
-              Layout.fillWidth: true
-              value: (Settings.barSize - 28) / 28
-              stepSize: 2 / 28
-              accessibleMinimumValue: 28
-              accessibleMaximumValue: 56
-              accessibleUnit: "px"
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              focusColor: Colors.primary
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Bar size"
-              accessibleDescription: "Adjust the bar's thickness and widget size"
-              onChanged: function(val) {
-                Settings.barSize = Math.round(28 + val * 28)
-              }
-              onInteractionFinished: Settings.save()
-            }
-
-            Text {
-              text: Settings.barSize + "px"
-              color: Colors.fgSurface
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeLabelMediumSize
-              font.letterSpacing: Config.typeLabelTracking
-              lineHeight: Config.typeLabelMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-              Layout.preferredWidth: 44
-            }
-          }
         }
 
       }

@@ -324,10 +324,6 @@ ShellRoot {
     shell.setBarPosition(next)
   }
 
-  function setBarForm(form) {
-    Settings.barForm = BarForm.normalize(form)
-    Settings.save()
-  }
 
   function resetAppearanceToDefaults() {
     Settings.resetAppearanceToDefaults()
@@ -769,15 +765,12 @@ ShellRoot {
     visible: bar.openPopup === "settings" && !lockScreen.locked && !lockScreen.compositorLocked
     onDismissed: bar.openPopup = ""
     onLockRequested: shell.requestLock()
-    isHorizontal: shell.isHorizontal
-    barPosition: shell.barPosition
-    onToggleHorizontal: shell.toggleLayout()
-    onSetBarPosition: function(position) { shell.setBarPosition(position) }
+    isHorizontal: bar.horizontal
+    barPosition: bar.barPosition
     onResetAppearance: shell.resetAppearanceToDefaults()
     onResetAllSettings: shell.resetAllSettingsToDefaults()
     notificationPopup: notificationPopup
     sessionLocked: lockScreen.locked || lockScreen.compositorLocked
-    onSetBarForm: function(form) { shell.setBarForm(form) }
   }
 
   OsdOverlay {

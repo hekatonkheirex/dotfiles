@@ -19,12 +19,9 @@ PanelWindow {
   property bool sessionLocked: false
 
   property bool isHorizontal: false
-  signal toggleHorizontal()
   property string barPosition: "top"
-  signal setBarPosition(string position)
   signal resetAppearance()
   signal resetAllSettings()
-  signal setBarForm(string form)
 
   property int currentTab: Math.max(0, Math.min(tabCount - 1, Settings.lastSettingsTab))
   property int focusedTab: currentTab
@@ -84,10 +81,8 @@ PanelWindow {
     { tab: 0, category: "System details", icon: "wifi", title: "Network status", anchor: "Network", subtitle: "IP address and connection details" },
     { tab: 1, category: "Motion", icon: "motion_photos_off", title: "Reduced motion", subtitle: "Use shorter, calmer transitions" },
     { tab: 1, category: "Clock", icon: "schedule", title: "Show uptime", subtitle: "Show uptime on the Account tab" },
-    { tab: 1, category: "Clock", icon: "schedule", title: "24-hour clock", subtitle: "Use a 24-hour clock format" },
-    { tab: 1, category: "Clock", icon: "timer", title: "Show seconds", subtitle: "Display seconds in the bar clock" },
+    { tab: 1, category: "Notifications", icon: "schedule", title: "24-hour notification times", subtitle: "Use 24-hour timestamps in notification history" },
     { tab: 1, category: "Calendar", icon: "calendar_view_week", title: "Week starts Monday", subtitle: "Set the first day of the calendar week" },
-    { tab: 1, category: "Bar contents", icon: "apps", title: "Bar item visibility", anchor: "Bar Contents", subtitle: "Launcher, workspaces, clock, tray, audio, weather, LLM usage (Codex and Claude), and more" },
     { tab: 1, category: "Weather and location", icon: "my_location", title: "Use IP geolocation", subtitle: "Use your network location for weather" },
     { tab: 1, category: "Weather and location", icon: "location_on", title: "Weather location", anchor: "Manual weather location", subtitle: "Set a city or town for weather" },
     { tab: 1, category: "Weather and location", icon: "update", title: "Weather refresh interval", subtitle: "Choose how often weather refreshes" },
@@ -96,20 +91,13 @@ PanelWindow {
     { tab: 2, category: "Color and theme", icon: "dark_mode", title: "Color mode", subtitle: "Automatic, light, or dark" },
     { tab: 2, category: "Color and theme", icon: "palette", title: "Color palette", anchor: "Palette family", subtitle: "Elenapan, Catppuccin, Gruvbox, or TokyoNight" },
     { tab: 2, category: "Color and theme", icon: "contrast", title: "Contrast", subtitle: "Standard, medium, or high contrast" },
-    { tab: 2, category: "Bar", icon: "dock_to_bottom", title: "Bar placement", subtitle: "Top, bottom, left, or right" },
-    { tab: 2, category: "Bar", icon: "view_week", title: "Bar form", subtitle: "Full, fit, dock, notch, or pill" },
-    { tab: 2, category: "Workspaces", icon: "looks_5", title: "Visible workspaces", subtitle: "Show active workspaces, one through five, or one through ten" },
-    { tab: 2, category: "Workspaces", icon: "shapes", title: "Workspace marker style", anchor: "Workspace buttons", subtitle: "Choose expressive, pill, rounded, circle, dots, glyph, or other shapes" },
     { tab: 2, category: "Sidebar", icon: "left_panel_open", title: "Sidebar edge hover", anchor: "Open sidebar at the left screen edge", subtitle: "Open the sidebar at the left screen edge" },
     { tab: 2, category: "Power menu", icon: "format_quote", title: "Power menu quote", anchor: "Power menu quote", subtitle: "Quote shown on the power menu" },
     { tab: 2, category: "Power menu", icon: "person", title: "Power menu quote author", anchor: "Power menu quote author", subtitle: "Author line under the power menu quote" },
     { tab: 2, category: "Dock", icon: "dock_to_bottom", title: "Dock pinned apps", anchor: "Dock pinned apps", subtitle: "Apps the Elena dock always shows" },
-    { tab: 2, category: "Sizing", icon: "format_size", title: "UI Font Size", subtitle: "Adjust the shell's base text size" },
-    { tab: 2, category: "Sizing", icon: "schedule", title: "Clock Size", subtitle: "Adjust the bar clock size" },
-    { tab: 2, category: "Sizing", icon: "photo_size_select_small", title: "Icon Size", subtitle: "Adjust shared icon sizing" },
-    { tab: 2, category: "Sizing", icon: "space_bar", title: "Spacing", subtitle: "Adjust the shell density" },
-    { tab: 2, category: "Sizing", icon: "zoom_in_map", title: "Bar Scale", subtitle: "Scale bar, text, clock, icons and spacing together" },
-    { tab: 2, category: "Sizing", icon: "height", title: "Bar Size", subtitle: "Adjust bar thickness and widget size" },
+    { tab: 2, category: "Interface sizing", icon: "format_size", title: "UI Font Size", subtitle: "Adjust text in Settings and shared interfaces" },
+    { tab: 2, category: "Interface sizing", icon: "photo_size_select_small", title: "Icon Size", subtitle: "Adjust icons in Settings and shared interfaces" },
+    { tab: 2, category: "Interface sizing", icon: "space_bar", title: "Spacing", subtitle: "Adjust spacing in Settings and shared interfaces" },
     { tab: 2, category: "Reset", icon: "settings_backup_restore", title: "Reset Appearance", subtitle: "Restore appearance defaults" },
     { tab: 2, category: "Wallpaper", icon: "wallpaper", title: "Wallpaper", subtitle: "Browse, set, and randomize wallpapers" },
     { tab: 3, category: "Outputs", icon: "monitor", title: "Display mode", anchor: "Mode", subtitle: "Choose the output resolution and refresh rate" },
@@ -411,10 +399,6 @@ PanelWindow {
   function revealSearchTarget() {
     var page = tabLoader.item
     if (!page) return
-    if (page.expandForSearch && page.expandForSearch(root.searchTargetTitle)) {
-      Qt.callLater(root.revealSearchTarget)
-      return
-    }
     var target = root.findSearchTarget(page, root.searchTargetTitle)
     if (!target) {
       searchField.input.forceActiveFocus()

@@ -5,36 +5,11 @@ import Quickshell
 import "../"
 import "../primitives"
 import "../../config"
-import "../../config/BarOrder.js" as BarOrder
 
 Flickable {
   id: generalTab
   property QtObject root: null
   readonly property bool compactLayout: root ? root.compactLayout : false
-  readonly property string themeClockZone: "middle"
-  readonly property var barWidgetInfo: ({
-    launcher: { key: "ccShowLauncher", icon: "apps", title: "Launcher" },
-    workspaces: { key: "ccShowWorkspaces", icon: "workspaces", title: "Workspaces" },
-    layout: { key: "ccShowLayout", icon: "view_quilt", title: "Layout indicator" },
-    focused: { key: "ccShowFocusedWindow", icon: "select_window", title: "Focused window" },
-    clock: { key: "ccShowClock", icon: "schedule", title: "Clock" },
-    notifications: { key: "ccShowNotifications", icon: "notifications", title: "Notifications" },
-    battery: { key: "ccShowBattery", icon: "battery_full", title: "Battery" },
-    llm: { key: "ccShowLlm", icon: "auto_awesome", title: "LLM usage" },
-    tray: { key: "ccShowTray", icon: "extension", title: "System tray" },
-    audio: { key: "ccShowAudio", icon: "volume_up", title: "Audio" },
-    display: { key: "ccShowDisplay", icon: "brightness_medium", title: "Display brightness" },
-    media: { key: "ccShowMedia", icon: "play_circle", title: "Media" },
-    weather: { key: "ccShowWeather", icon: "cloud", title: "Weather" }
-  })
-
-  function barZone(zone) {
-    return BarOrder.group(Settings.barWidgetOrder, zone, themeClockZone,
-      Settings.barClockInFlow).map(function(id) {
-      return { id: id, zone: zone, key: barWidgetInfo[id].key,
-        icon: barWidgetInfo[id].icon, title: barWidgetInfo[id].title }
-    })
-  }
 
   anchors.fill: parent
   visible: root.currentTab === 1
@@ -60,7 +35,7 @@ Flickable {
 
     SettingsPageHeader {
       pageTitle: "General"
-      subtitle: "Configure the clock, bar contents, and weather."
+      subtitle: "Configure motion, calendar, notification times, and weather."
     }
 
     GridLayout {
@@ -148,9 +123,9 @@ Flickable {
       columnSpacing: Config.spacingLarge
       rowSpacing: Config.spacingSmall
 
-      SettingsSectionLabel { text: "Clock & calendar" }
+      SettingsSectionLabel { text: "Calendar & notifications" }
 
-      // Clock & Calendar toggle group
+      // Calendar and notification timestamp preferences
       SettingsCard {
         variant: "filled"
         Layout.fillWidth: true
@@ -169,8 +144,8 @@ Flickable {
           ListItem {
             Layout.fillWidth: true
             leadingIcon: "schedule"
-            title: "24-hour clock"
-            subtitle: Settings.clock24h ? "13:00" : "1:00 PM"
+            title: "24-hour notification times"
+            subtitle: Settings.clock24h ? "Notification timestamps: 13:00" : "Notification timestamps: 1:00 PM"
             toggleControl: clockSwitch
             SwitchControl {
               id: clockSwitch
@@ -181,30 +156,11 @@ Flickable {
               outline: Colors.outline
               motionDuration: Config.motionMedium
               reducedMotion: Config.reducedMotion
-              accessibleName: "24-hour clock"
+              accessibleName: "24-hour notification times"
               onToggled: { Settings.clock24h = !Settings.clock24h; Settings.save() }
             }
           }
 
-          ListItem {
-            Layout.fillWidth: true
-            leadingIcon: "timer"
-            title: "Show seconds"
-            subtitle: "Display seconds in the bar clock"
-            toggleControl: secondsSwitch
-            SwitchControl {
-              id: secondsSwitch
-              checked: Settings.clockShowSeconds
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Show seconds"
-              onToggled: { Settings.clockShowSeconds = !Settings.clockShowSeconds; Settings.save() }
-            }
-          }
 
           ListItem {
             Layout.fillWidth: true
@@ -226,140 +182,10 @@ Flickable {
             }
           }
 
-          GridLayout {
-            Layout.fillWidth: true
-            Layout.preferredHeight: implicitHeight
-            columns: generalTab.compactLayout ? 1 : 2
-            columnSpacing: Config.spacingSmall
-            rowSpacing: Config.spacingCompact
-
-            Text {
-              text: "Timezone"
-              color: Colors.fgSurface
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyLargeSize
-              font.weight: Config.typeMediumWeight
-              font.letterSpacing: Config.typeBodyTracking
-              lineHeight: Config.typeBodyLargeLineHeight
-              lineHeightMode: Text.FixedHeight
-              Layout.fillWidth: generalTab.compactLayout
-              Layout.preferredWidth: generalTab.compactLayout ? 0
-                : (Math.max(80, implicitWidth))
-              Layout.minimumWidth: generalTab.compactLayout ? 0
-                : (implicitWidth)
-              Layout.minimumHeight: Config.typeBodyLargeLineHeight
-              Layout.preferredHeight: generalTab.compactLayout
-                ? (Config.typeBodyLargeLineHeight) : 44
-              verticalAlignment: Text.AlignVCenter
-              elide: Text.ElideRight
-              Layout.leftMargin: Config.spacingSmall
-            }
-
-            TextFieldControl {
-              id: timezoneField
-              Layout.fillWidth: true
-              Layout.minimumWidth: generalTab.compactLayout ? 0 : 160
-              Layout.preferredWidth: generalTab.compactLayout ? 0 : 160
-              Layout.preferredHeight: 32
-              placeholder: generalTab.compactLayout ? "e.g. Asuncion" : "System default (e.g. America/Asuncion)"
-              accessibleName: "Timezone"
-              accessibleDescription: "IANA timezone name, blank uses system time"
-              Component.onCompleted: input.text = Settings.timezone
-              onAccepted: { Settings.timezone = input.text.trim(); Settings.save() }
-
-              Connections {
-                target: timezoneField.input
-                function onActiveFocusChanged() {
-                  if (!timezoneField.input.activeFocus) {
-                    Settings.timezone = timezoneField.input.text.trim()
-                    Settings.save()
-                  }
-                }
-              }
-            }
-          }
         }
       }
 
     }
-    }
-
-
-    // Compact bar contents. Settings and the power menu intentionally stay
-    // outside this list so there is always a way back into the shell.
-    SettingsCard {
-      variant: "filled"
-      Layout.fillWidth: true
-      Layout.preferredHeight: barContentsCol.implicitHeight + Config.spacingSmall * 2
-      radius: Config.settingsCardRadius
-      surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.outlineVariant
-      outlineWidth: Config.themeBorderWidth
-
-      ColumnLayout {
-        id: barContentsCol
-        anchors.fill: parent
-        anchors.margins: Config.spacingSmall
-        spacing: Config.spacingCompact
-
-        SettingsSectionLabel {
-          text: "Bar contents"
-          Layout.leftMargin: Config.spacingCompact
-        }
-
-        Text {
-          text: "Use the middle button to center a widget, or use arrows to order it and cross between Start, Middle, and End. Hidden widgets keep their places. Settings and power stay at the end."
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeLabelMediumSize
-          font.letterSpacing: Config.typeLabelTracking
-          lineHeight: Config.typeLabelMediumLineHeight
-          lineHeightMode: Text.FixedHeight
-          wrapMode: Text.WordWrap
-          Layout.fillWidth: true
-          Layout.leftMargin: Config.spacingCompact
-          Layout.rightMargin: Config.spacingCompact
-        }
-
-        ColumnLayout {
-          Layout.fillWidth: true
-          spacing: Config.spacingCompact
-
-          SettingsSectionLabel { text: "Start" }
-          Repeater {
-            model: generalTab.barZone("start")
-            delegate: BarOrderRow {}
-          }
-
-          SettingsSectionLabel {
-            text: "Middle"
-            Layout.topMargin: Config.spacingSmall
-          }
-          Repeater {
-            model: generalTab.barZone("middle")
-            delegate: BarOrderRow {}
-          }
-          Text {
-            visible: generalTab.barZone("middle").length === 0
-            text: "Use the middle button to place another widget here."
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelMediumSize
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-            Layout.leftMargin: Config.spacingSmall
-          }
-
-          SettingsSectionLabel {
-            text: "End"
-            Layout.topMargin: Config.spacingSmall
-          }
-          Repeater {
-            model: generalTab.barZone("end")
-            delegate: BarOrderRow {}
-          }
-        }
-      }
     }
 
     // Weather location, privacy, and units
