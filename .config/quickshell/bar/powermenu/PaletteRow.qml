@@ -3,9 +3,10 @@ import "../../config"
 import "../../config/PowerMenuModel.js" as Model
 
 // Six 29 S accent circles on a 4 S surface ring, each overlapping the last
-// by 15 S, in her order x1, x3, x2, x6, x4, x5.
+// by 15 S, in her order x1, x3, x2, x6, x4, x5. Her margin-left -15 S hits
+// every circle, the first too, so it sits 16 - 15 S in from her padding.
 Row {
-  leftPadding: Config.dp(16)
+  leftPadding: Config.dp(16) - Config.dp(15)
   spacing: -Config.dp(15)
   Repeater {
     model: Model.paletteAccents()

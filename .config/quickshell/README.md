@@ -10,7 +10,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Sidebar and dock**: a three-page sidebar (Home, Agenda, Media) that also opens from the left screen edge and a full-width bottom bar (page buttons, volume, app dock, clock, battery, network) that reserves its height. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
 - **Lock screen** with PAM + fingerprint authentication.
 - **Notification handling** with dashed Elena history/toast cards, monospace app/time metadata, normal-case content, and explicit critical styling.
-- **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; the Quick Menu and Notifications tab share the persisted setting.
+- **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; toggle it in Settings > Notifications (persisted).
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
 - **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, shell actions via `>`, clipboard history via `;`, and wallpaper search via `@`. Speech recognition is removed.
 - **On-Screen Display (OSD)** overlay for volume, brightness, mic mute, airplane mode, bluetooth, and keyboard backlight (polled from sysfs since the EC never emits a key event for it).
@@ -99,8 +99,9 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── WifiPanel.qml            # Wi-Fi controls used by the Settings Network tab
 │   ├── BtPanel.qml              # Bluetooth controls used by the Settings Bluetooth tab
 │   ├── SystemTrayArea.qml      # StatusNotifier tray icons (orientation-aware)
-│   ├── MenuIndicator.qml       # Quick Settings bar trigger
-│   ├── QuickMenu.qml           # Four controls plus a 3×2 session/power/settings grid
+│   ├── MenuIndicator.qml       # Power menu bar trigger
+│   ├── PowerMenu.qml           # Full-screen power menu overlay (route "quickmenu")
+│   ├── powermenu/              # PowerMenuContent and its pieces (shared with the lock look)
 │   ├── OsdOverlay.qml          # Volume/brightness/mic/airplane/bluetooth/kbd-backlight OSD popup
 │   ├── CalendarLogic.js        # Calendar weekday ordering and day-cell model
 │   ├── CalendarPopup.qml       # Calendar month grid (shared bordered surface)
@@ -136,7 +137,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │       └── LevelTile.qml
 ├── scripts/
 │   ├── launcher                # Launcher trigger (private runtime trigger)
-│   ├── quickmenu                # Quick menu trigger (private runtime trigger)
+│   ├── quickmenu                # Power menu trigger (private runtime trigger)
 │   ├── settings                 # Settings trigger (private runtime trigger)
 │   ├── commandcenter            # Legacy alias for settings
 │   ├── lock                     # Lock helper; waits for Niri's secure session-lock state
@@ -240,7 +241,7 @@ Keybindings live in Niri's `~/.config/niri/keybinds.kdl` and spawn Quickshell's 
 | Key | Action | Mechanism |
 |---|---|---|
 | `Mod+D` | Toggle app launcher popup | `scripts/launcher` → private runtime trigger |
-| `Mod+Escape` | Toggle quick settings menu | `scripts/quickmenu` → private runtime trigger |
+| `Mod+Escape` | Toggle power menu | `scripts/quickmenu` → private runtime trigger |
 | `Mod+Shift+D` | Toggle the sidebar (Home, Agenda and Media pages) | `qs ipc call shell popup sidebar` (direct IPC, no trigger script) |
 | `XF86Tools` | Toggle Settings popup | `scripts/settings` → private runtime trigger |
 | `Mod+Alt+L` | Lock screen | `scripts/lock` → Niri secure-lock acknowledgement |
@@ -260,7 +261,7 @@ Keyboard backlight brightness is controlled by the ThinkPad EC firmware directly
 Any script or keybinding can trigger Quickshell actions by creating these files under `$XDG_RUNTIME_DIR/quickshell`:
 
 - `$XDG_RUNTIME_DIR/quickshell/qslauncher-trigger` — toggles the launcher popup
-- `$XDG_RUNTIME_DIR/quickshell/qsquickmenu-trigger` — toggles the quick settings menu
+- `$XDG_RUNTIME_DIR/quickshell/qsquickmenu-trigger` — toggles the power menu
 - `$XDG_RUNTIME_DIR/quickshell/qssettings-trigger` — toggles the Settings popup
 - `$XDG_RUNTIME_DIR/quickshell/qscommandcenter-trigger` — legacy alias for the Settings popup
 - `$XDG_RUNTIME_DIR/quickshell/qslock-trigger` — activates the lock screen
@@ -278,7 +279,7 @@ When `XDG_RUNTIME_DIR` is unavailable, Quickshell uses
 
 - `ipc.launcher()` — toggle launcher popup
 - `ipc.lock()` — activate lock screen
-- `ipc.quickmenu()` — toggle quick menu
+- `ipc.quickmenu()` — toggle power menu
 - `ipc.settings()` — toggle Settings popup
 - `ipc.commandcenter()` — legacy alias for `ipc.settings()`
 - `ipc.layout()` — toggle bar orientation
@@ -345,8 +346,8 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 | LLM usage | Themed LLM indicator / `qs ipc call shell popup llm` | Codex and Claude five-hour/weekly usage, reset countdowns, available reset credits, and per-provider refresh |
 | Calendar | Clock click | Month grid with navigation (shared bordered surface) |
 | Notifications | `NotificationIndicator` click / `qs ipc call shell popup notification` | Dashed history cards with timestamp, live actions and dismiss/remove controls |
-| Quick Menu | `MenuIndicator` click / `Mod+Escape` | Caffeine, airplane mode, Bluetooth, DND; Log Out, Shut Down, Restart, Sleep, Lock and Settings tiles |
-| Settings | Quick Settings entry / `XF86Tools` | 11 tabs: Account, General, Appearance, Display & Input, Network, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts (responsive surface with persisted last tab, drag-to-move, and resize handle) |
+| Power Menu | `MenuIndicator` click / bottom-bar logout / `Mod+Escape` | Full-screen overlay: greeting, quote, palette; poweroff, reboot, exit (confirmed), hibernate, suspend, lock |
+| Settings | Settings button / `XF86Tools` | 11 tabs: Account, General, Appearance, Display & Input, Network, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts (responsive surface with persisted last tab, drag-to-move, and resize handle) |
 | OSD | volume/brightness/mic/airplane/bluetooth/kbd-backlight keys | Auto-dismissing bottom-anchored status card (not part of the `openPopup` system — a separate always-on-top window) |
 
 ## Configuration
@@ -416,7 +417,7 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
 - **WifiPanel / BtPanel**: Network and Bluetooth controls live in Settings tabs, including saved Wi-Fi profiles, Bluetooth discovery/pairing, and connected-device actions. They are intentionally not rendered as compact bar indicators.
 - **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu, orientation-aware layout.
-- **QuickMenu**: Dashed Elena session card with monospace headings/hints, four live-state controls and a labeled 3×2 grid for Log Out, Shut Down, Restart, Sleep, Lock and Settings. Settings moved into the sixth tile rather than adding a new power command. Left/Right traverses tiles with wrapping; Up/Down changes grid rows in the same column. Tab/Enter/Space remain native. Each power action closes the menu before opening the existing confirmation overlay, which starts on Cancel, supports Escape/outside cancellation and uses 48px button hit height. The secure lock route and actual power commands are unchanged. Audio/brightness controls remain in their existing homes.
+- **PowerMenu**: her powermenu as a full-screen Overlay layer with exclusive keyboard focus over a 0.7 surface backdrop. Six glyph buttons (poweroff x1, reboot x2, exit x4, hibernate x6, suspend x3, lock x5) fade in staggered; hover dims the rest to 0.3 and writes the action into the terminal line. Arrows step the 3x2 grid (`PowerMenuModel.step`), Enter acts, Esc, middle click or a click outside the buttons closes. Poweroff, reboot and exit close the menu and open the existing confirmation overlay; hibernate and suspend run `systemctl` (failures logged); lock takes the secure lock route. The caffeine, airplane and Bluetooth toggles are gone; DND lives in Settings > Notifications.
 - **Launcher**: App/action/clipboard search uses a screen-bounded 460px single-column Elena card with a dashed rounded frame, monospace uppercase provider/count labels, contextual keyboard hints and an accent selection marker. Names and selected descriptions keep the regular body font and normal case; popup height follows content without a separate details pane. Ctrl+F returns to search, arrows select results, Enter activates, and Tab reaches provider controls. Right-click or Shift+F10/Menu exposes opening, copying parsed POSIX-shell-quoted application arguments, or deleting a clipboard entry; Escape closes the context menu before dismissing. `@` still hands off to the wallpaper filmstrip. Speech recognition, its microphone button, recording/transcription processes and helper are removed; system packages and downloaded models outside the repo are untouched.
 - **Settings**: Provides eleven tabs, remembers the last selected tab, keeps Network and Bluetooth Settings-only, and preserves Settings/power entry points when bar content switches are disabled. The panel moves from its header and resizes from the bottom-right corner, with a 560px minimum width and a maximum height bounded by screen margins. Sidebar navigation scrolls on overflow without a visible scrollbar; keyboard navigation brings the selected tab into view. Search prioritizes control titles, reports result counts or an empty state, and opens and highlights matching controls.
 - **Settings presentation**: Defaults to 1100×900 when no saved size exists, can expand to 1440px, and bounds the navigation pane and page width. General sections become side-by-side above 800px and stack below. Narrow labels elide with tooltips; rows wrap and grow. Ctrl+F searches from any control, without stealing content editing/navigation keys.
@@ -529,7 +530,7 @@ content (`bar/bottombar/BottomBarContent.qml`) has three parts:
 
 Interim targets until later releases: network opens Settings > Network and
 closes it on a second click (R4 adds a network panel); alarms do nothing
-(R5); logout toggles the quick menu (R3). The sidebar and bottom-right toasts
+(R5); logout toggles the power menu (R3). The sidebar and bottom-right toasts
 leave the bar's height free so its buttons stay clickable.
 
 **Fonts.** The icons come from her icomoon font set in

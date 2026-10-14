@@ -108,6 +108,9 @@ Item {
               font.pixelSize: root.pt(10)
               font.variableAxes: Config.iconVariableAxes(1, root.pt(10))   // filled, like her Material Icons heart
               leftPadding: Config.dp(3)
+              // Her margin-bottom 8 S: GTK centers the glyph in the row height
+              // minus that margin, so it rides 4 S above the row center.
+              bottomPadding: Config.dp(8)
             }
           }
           Text {

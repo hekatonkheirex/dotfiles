@@ -2,7 +2,7 @@ import QtQuick
 import "../../config"
 
 // Her terminal block: a flavor line, then prompt + value + a cursor that
-// blinks once per second in two steps.
+// blinks once per second in two steps (solid under reduced motion).
 Column {
   id: root
   property string flavor: ""
@@ -48,7 +48,7 @@ Column {
       Timer {
         interval: 500
         repeat: true
-        running: root.visible
+        running: root.visible && !Config.reducedMotion
         onTriggered: cursor.on = !cursor.on
         onRunningChanged: cursor.on = true
       }

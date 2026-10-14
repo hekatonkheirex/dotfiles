@@ -63,7 +63,10 @@ const read = rel => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "
 const settingsSrc = read("../../config/Settings.qml")
 assert.match(settingsSrc, /PaletteCatalog\.migratePaletteId\(/, "Settings migrates the stored palette id")
 
-// QuickMenu grid is 3 columns x 2 rows: Up and Down jump a row in opposite directions.
-const quickMenu = read("../../bar/QuickMenu.qml")
-assert.match(quickMenu, /Key_Up \? -3 : 3/, "QuickMenu Up moves back one row, Down forward")
+// Power menu grid is 3 columns x 2 rows: Up and Down jump a row in opposite directions.
+const pmSrc = read("../../config/PowerMenuModel.js").replace(/^\.pragma library$/m, "")
+const PM = new Function('"use strict";\n' + pmSrc + "; return { step }")()
+assert.equal(PM.step(4, "up", 6), 1, "Up moves back one row")
+assert.equal(PM.step(1, "down", 6), 4, "Down moves forward one row")
+assert.equal(PM.step(0, "left", 6), 5, "Left wraps")
 console.log("elena: ok")

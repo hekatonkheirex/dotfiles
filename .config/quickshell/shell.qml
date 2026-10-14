@@ -360,12 +360,8 @@ ShellRoot {
     }
 
 
+    // Toggles the full-screen power menu (route name kept for callers).
     function quickmenu() {
-      if (bar.horizontal) {
-        bar.popupAnchorX = bar.getMenuIndicatorX()
-      } else {
-        bar.popupAnchorY = bar.getMenuIndicatorY()
-      }
       bar.openPopup = bar.openPopup === "quickmenu" ? "" : "quickmenu"
     }
 
@@ -663,7 +659,7 @@ ShellRoot {
     }
     onLogoutRequested: {
       if (lockScreen.locked) return
-      bar.togglePopupByName("quickmenu")   // until R3
+      bar.togglePopupByName("quickmenu")
     }
     onItemActivated: function(appId) { shell.dockActivate(appId) }
     onItemClosed: function(appId) { shell.dockClose(appId) }
@@ -722,25 +718,18 @@ ShellRoot {
     margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
-  QuickMenu {
-    id: quickMenu
+  PowerMenu {
+    id: powerMenu
     visible: bar.openPopup === "quickmenu" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
     screen: bar.screen
     onDismissed: bar.openPopup = ""
     onLockRequested: shell.requestLock()
-    onSettingsRequested: bar.openPopup = "settings"
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
   PanelWindow {
     id: powerConfirmationWindow
     screen: bar.screen
-    visible: quickMenu.pendingPowerIndex >= 0 && !lockScreen.locked
+    visible: powerMenu.pendingIndex >= 0 && !lockScreen.locked
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: Config.layerNamespace("confirmation")
@@ -757,17 +746,11 @@ ShellRoot {
     PowerConfirmation {
       anchors.fill: parent
       opened: powerConfirmationWindow.visible
-      actionLabel: quickMenu.pendingPowerIndex >= 0
-        ? quickMenu.powerOptions[quickMenu.pendingPowerIndex].label
-        : ""
-      actionDescription: quickMenu.pendingPowerIndex >= 0
-        ? quickMenu.powerDescription(quickMenu.powerOptions[quickMenu.pendingPowerIndex].label)
-        : ""
-      actionIcon: quickMenu.pendingPowerIndex >= 0
-        ? quickMenu.powerIcon(quickMenu.powerOptions[quickMenu.pendingPowerIndex].label)
-        : ""
-      onConfirmed: quickMenu.confirmPower()
-      onCancelled: quickMenu.cancelPower()
+      actionLabel: powerMenu.labels[powerMenu.pendingId] || ""
+      actionDescription: powerMenu.descriptions[powerMenu.pendingId] || ""
+      actionIcon: powerMenu.icons[powerMenu.pendingId] || ""
+      onConfirmed: powerMenu.confirmPending()
+      onCancelled: powerMenu.cancelPending()
     }
   }
 
