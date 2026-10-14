@@ -8,7 +8,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 
 - **Workspace strip** (`bar/Bar.qml`): the whole top bar is an 8px row of workspace color blocks.
 - **Sidebar and dock**: a three-page sidebar (Home, Agenda, Media) that also opens from the left screen edge and a full-width bottom bar (page buttons, volume, app dock, clock, battery, network) that reserves its height. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
-- **Lock screen** with PAM + fingerprint authentication.
+- **Lock screen** in her power-menu look (lock ring, masked LOCKDOWN line) with PAM + fingerprint authentication.
 - **Notification handling** with dashed Elena history/toast cards, monospace app/time metadata, normal-case content, and explicit critical styling.
 - **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; toggle it in Settings > Notifications (persisted).
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
@@ -23,7 +23,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
   - **Network**: Wi-Fi power, scan, connect, disconnect, saved-network, and autoconnect controls; Wi-Fi is Settings-only and has no compact bar indicator
   - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls; Bluetooth is Settings-only and has no compact bar indicator
   - **Media**: Media artwork, progress, and control visibility
-  - **Lock & Power**: Lock-screen media, clock size and wallpaper options, idle lock/suspend timeouts, Caffeine, and TLP power profiles
+  - **Lock & Power**: Idle lock/suspend timeouts, Caffeine, and TLP power profiles
   - **Notifications**: Do Not Disturb, quiet hours, critical bypass, toast position/duration, history retention, clear-history, and test-notification controls
   - **System**: CPU, memory, disk, swap, thermal, fan, battery health/cycles, diagnostics copy, reload, and confirmed reset actions
   - **Shortcuts**: Curated active-compositor keybind reference with source open and copy actions
@@ -101,14 +101,13 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── SystemTrayArea.qml      # StatusNotifier tray icons (orientation-aware)
 │   ├── MenuIndicator.qml       # Power menu bar trigger
 │   ├── PowerMenu.qml           # Full-screen power menu overlay (route "quickmenu")
-│   ├── powermenu/              # PowerMenuContent and its pieces (shared with the lock look)
+│   ├── powermenu/              # PowerMenuContent, its pieces and LockSurfaceContent (the lock look)
 │   ├── OsdOverlay.qml          # Volume/brightness/mic/airplane/bluetooth/kbd-backlight OSD popup
 │   ├── CalendarLogic.js        # Calendar weekday ordering and day-cell model
 │   ├── CalendarPopup.qml       # Calendar month grid (shared bordered surface)
 │   ├── NotificationIndicator.qml # Notifications counter (orientation-aware)
 │   ├── NotificationPopup.qml   # Notification history popup list
 │   ├── NotificationToast.qml   # Notification toast banner
-│   ├── AnimatedBackground.qml  # Reusable animated background (popups/Settings)
 │   ├── PopupBase.qml           # Shared popup background, border and spring entrance
 │   ├── PopupShield.qml         # Full-screen click-outside-to-dismiss surface
 │   ├── PopupDivider.qml        # Reusable popup section divider
@@ -311,9 +310,9 @@ The Niri lock surface includes:
 
 - **PAM password auth** via `Quickshell.Services.Pam`
 - **Fingerprint reader** via `fprintd-verify` (auto-retries on failure), started/stopped imperatively in `onLockedChanged` to avoid QML declarative binding breaks
-- Profile image (`~/Pictures/profile.jpg`), live clock, suspend/reboot/poweroff buttons
+- **Her look**: `bar/powermenu/LockSurfaceContent.qml` on both surfaces (the `WlSessionLockSurface` and the non-Niri layer-shell fallback): opaque `surface` backdrop, the power menu content in locked mode (no buttons), a lock symbol ring and the "[ L O C K D O W N ]" terminal line showing the masked input in x1. The ring border follows the last key: cleared x0 (`outlineVariant`), each insert cycles x1, x3, x2, x6, x4, x5 by length, delete alternates x8 and `outline` 0.3. A failed authentication swaps the ring glyph until the next key. The content fades in over 1.2 s (instant under Reduced Motion). A hidden password field keeps keyboard focus; Enter runs PAM.
+- No wallpaper, clock, date, media, avatar or power buttons on the lock surface; their settings (`lockClockSize`, `lockShowMedia`, `lockUseWallpaper`) are gone and stale keys in `settings.json` are ignored on load.
 - **Lock & Power settings** configure automatic lock and suspend timeouts plus TLP power profiles; the existing dim/display-off stages remain fixed, and suspend locks first
-- The wallpaper preference remains optional; the existing animated fallback and authentication layout are unchanged by the Elena-only cutover.
 - Lock requests are available through `IpcHandler.lock()`, `scripts/lock`, or the private runtime trigger; Mango routes them to `swaylock`
 
 Niri starts an independent swayidle before-sleep watcher. It remains active
@@ -383,7 +382,7 @@ Successful readings become stale only after twice the provider's polling interva
 
 ### `config/Settings.qml`
 
-Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). It owns layout preferences, motion, clock/calendar/timezone, indicator settings, workspaces, palette/contrast/accent, dock pins, lock screen, notifications, idle timeouts and weather. Obsolete style-selector, variant, compact-density, transparency and alternate-clock keys are ignored on load and omitted when settings are next saved. The persisted format remains `schemaVersion: 2`; the existing combined LLM-widget migration is unchanged. Preferences update through `watchChanges: true`; call `Settings.save()` after mutating a persisted value.
+Persisted user preferences singleton (`FileView` + `JsonAdapter` over `~/.config/quickshell/settings.json`, created on first run if missing). It owns layout preferences, motion, clock/calendar/timezone, indicator settings, workspaces, palette/contrast/accent, dock pins, notifications, idle timeouts and weather. Obsolete style-selector, variant, compact-density, transparency, alternate-clock and lock-look (`lockClockSize`, `lockShowMedia`, `lockUseWallpaper`) keys are ignored on load and omitted when settings are next saved. The persisted format remains `schemaVersion: 2`; the existing combined LLM-widget migration is unchanged. Preferences update through `watchChanges: true`; call `Settings.save()` after mutating a persisted value.
 
 ### `config/Colors.qml`
 
@@ -431,7 +430,7 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **Appearance**: Palette, accent, contrast, wallpaper, dock pins, retained bar preferences, sizing and confirmed reset remain. Removed styles have no picker, preview or search entry.
 - **Display & Input tab**: Reads and safely edits Niri output, input, and edge-gesture settings through the validated `scripts.niri_config` CLI. Remote controls only read while their Settings page is active.
 - **Wallpaper thumbnails**: `scripts/generate-thumbnails.sh` produces 200×130 center-cropped thumbnails under `~/.cache/quickshell/wallpaper-thumbs`, regenerating only when the source is newer, with bounded concurrency, atomic publishing and a nonzero exit status on failure. The filmstrip runs it, then `scripts/generate-previews.sh`, once per shell session at low priority. There is no Wallpaper tab: choose from Appearance, the launcher's `@`, or `qs ipc call shell wallpapers`; `qs ipc call shell randomWallpaper` (and Ctrl+R in the filmstrip) applies a random one through `scripts/random-wallpaper.sh`.
-- **Lock & Power**: Owns clock size, wallpaper/media preferences, idle lock/suspend timeouts, Caffeine and automatic AC/battery power-profile restoration.
+- **Lock & Power**: Owns idle lock/suspend timeouts, Caffeine and automatic AC/battery power-profile restoration.
 - **Media tab**: Owns media artwork, progress, and always-visible-control preferences for the media popup.
 - **Media / MPRIS**: `scripts/mpris_monitor.py` broadcasts the active player's state as newline-delimited JSON over stdout (consumed via `SplitParser`), and also listens on a private runtime named pipe for out-of-band pokes. `scripts/mpris_control.py` sends play/pause/next/prev to whichever player is currently active (preferring a "Playing" one); the visualizer is available in the Settings media controls.
 - **OSD**: A separate centered icon/value surface, outside the popup state machine. Continuous readings show a meter; mic, airplane, Bluetooth and muted volume show status instead. It auto-hides after 1.5s and polls sysfs for ThinkPad keyboard backlight changes.

@@ -152,14 +152,69 @@ for (const [name, s] of [["session-lock surface", native], ["fallback surface", 
   assert.match(s, /password: root\.lockInputText/, name + " follows lockInputText (cleared after PAM)")
 }
 assert.match(lock, /import "powermenu"/)
+// Both surface bodies, verbatim to the end of the file: nothing else may
+// touch auth state, the surface color or the content's visibility.
+assert.ok(lock.endsWith(`    surface: Component {
+      WlSessionLockSurface {
+        color: Colors.surface
 
-const content = rd("../../bar/powermenu/LockSurfaceContent.qml")
+        LockSurfaceContent {
+          anchors.fill: parent
+          password: root.lockInputText
+          authFailed: root.lockError !== ""
+          onEdited: {
+            root.lockPassword = typed
+            root.lockInputText = typed
+            root.lockError = ""
+          }
+          onSubmitted: root.tryLockAuth()
+        }
+      }
+    }
+  }
+
+  Loader {
+    active: !Config.isNiri && root.locked
+    sourceComponent: PanelWindow {
+      color: Colors.surface
+      exclusionMode: ExclusionMode.Ignore
+      WlrLayershell.namespace: "quickshell-lock"
+      WlrLayershell.layer: WlrLayer.Overlay
+      WlrLayershell.focusable: true
+      WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+      anchors.left: true
+      anchors.right: true
+      anchors.top: true
+      anchors.bottom: true
+
+      LockSurfaceContent {
+        anchors.fill: parent
+        password: root.lockInputText
+        authFailed: root.lockError !== ""
+        onEdited: {
+          root.lockPassword = typed
+          root.lockInputText = typed
+          root.lockError = ""
+        }
+        onSubmitted: root.tryLockAuth()
+      }
+    }
+  }
+}
+`), "both lock surface bodies are pinned verbatim")
+
+const content = rd(process.env.LOCKSURFACE_QML || "../../bar/powermenu/LockSurfaceContent.qml")
 assert.match(content, /property string password/)
 assert.match(content, /property bool authFailed/)
 assert.match(content, /signal submitted\(\)/)
 assert.match(content, /signal edited\(string action\)/)
 assert.match(content, /echoMode: TextInput\.Password/)
 assert.match(content, /forceActiveFocus\(\)/)
+assert.match(content, /function focusInput\(\) \{ input\.forceActiveFocus\(\) \}/)
+assert.match(content, /Component\.onCompleted: \{ root\.shown = true; root\.focusInput\(\) \}/, "focus on map")
+assert.match(content, /onVisibleChanged: if \(visible\) root\.focusInput\(\)/, "focus when shown again")
+assert.match(content, /    id: input\n    objectName: "lockInput"\n    width: 1\n    height: 1\n    opacity: 0\n    focus: true\n/, "input declares focus")
+assert.match(content, /onPressed: root\.focusInput\(\)/, "any press refocuses")
 assert.match(content, /Key_Return \|\| event\.key === Qt\.Key_Enter\) \{\s*root\.submitted\(\)/)
 assert.match(content, /PowerMenuContent \{[\s\S]*locked: true/)
 assert.match(content, /inputLength: input\.text\.length/)

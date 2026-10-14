@@ -93,6 +93,16 @@ ShellRoot {
         function test_powermenu() {
           Config.reducedMotion = true
           wait(1500)
+          // Focus on map, before any click or other focus change: the hidden
+          // password field must own keyboard focus as soon as the surface exists.
+          var lockInput = win.find(s, "lockInput")
+          win.check("lock input focused on map (no click; window active " + lockInput.Window.active + ")", lockInput.focus
+            && (!lockInput.Window.active || lockInput.activeFocus))
+          frameA.forceActiveFocus()
+          s.visible = false
+          s.visible = true
+          win.check("lock input refocused when shown again", lockInput.focus
+            && (!lockInput.Window.active || lockInput.activeFocus))
           grab(frameA, "a")
           grab(frameB, "b")
           var ids = ["poweroff", "reboot", "exit", "hibernate", "suspend", "lock"]
