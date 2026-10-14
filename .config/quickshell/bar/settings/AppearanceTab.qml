@@ -354,7 +354,7 @@ Flickable {
 
           Item {
             Layout.fillWidth: false
-            Layout.preferredWidth: 2 * appearanceTab.optionButtonWidth
+            Layout.preferredWidth: 3 * appearanceTab.optionButtonWidth
             Layout.preferredHeight: appearanceTab.optionButtonHeight
             height: appearanceTab.optionButtonHeight
 
@@ -465,7 +465,7 @@ Flickable {
           GridLayout {
             visible: Colors.fixedPaletteActive
             Layout.fillWidth: true
-            columns: 4
+            columns: 2
             columnSpacing: appearanceTab.optionButtonGap
             rowSpacing: appearanceTab.optionButtonGap
 
@@ -474,7 +474,7 @@ Flickable {
 
               delegate: ActionButton {
                 required property var modelData
-                Layout.preferredWidth: appearanceTab.optionButtonWidth
+                Layout.preferredWidth: appearanceTab.optionButtonWidth * 3 / 2
                 Layout.preferredHeight: appearanceTab.optionButtonHeight
                 iconLabel: modelData.icon
                 iconSize: 15
@@ -513,7 +513,7 @@ Flickable {
             id: paletteVariantGrid
             visible: Colors.fixedPaletteActive
             Layout.fillWidth: true
-            columns: 4
+            columns: 2
             columnSpacing: appearanceTab.optionButtonGap
             rowSpacing: appearanceTab.optionButtonGap
 
@@ -523,7 +523,7 @@ Flickable {
 
               delegate: ActionButton {
                 required property var modelData
-                Layout.preferredWidth: appearanceTab.optionButtonWidth
+                Layout.preferredWidth: appearanceTab.optionButtonWidth * 3 / 2
                 Layout.preferredHeight: appearanceTab.optionButtonHeight
                 iconLabel: modelData.icon
                 iconSize: 15
