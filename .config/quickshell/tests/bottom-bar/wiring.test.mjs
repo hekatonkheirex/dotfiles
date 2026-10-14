@@ -62,7 +62,7 @@ assert.doesNotMatch(bar, /HoverHandler|revealed|holdTimer/, "no auto-hide logic"
 assert.match(bar, /ls -t \/run\/user\/\$\(id -u\)\/niri\.\*\.sock/, "socket discovery like shell.niriAction")
 assert.match(bar, /org\.pulseaudio\.pavucontrol\\" or \.app_id==\\"pavucontrol/)
 assert.match(bar, /if \[ -n \\"\$id\\" \]; then niri msg action focus-window --id \\"\$id\\"; else exec pavucontrol; fi/)
-// Wheel volume step matches the top-bar AudioIndicator (Config.volumeStep %).
+// Wheel volume step is Config.volumeStep %.
 assert.match(bar, /onMediaScrolled:[\s\S]*?Config\.volumeStep \/ 100/)
 
 const shell = rd("../../shell.qml")

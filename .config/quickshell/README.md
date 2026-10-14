@@ -14,7 +14,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
 - **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, shell actions via `>`, clipboard history via `;`, and wallpaper search via `@`. Speech recognition is removed.
 - **On-Screen Display (OSD)** overlay for volume, brightness, mic mute, airplane mode, bluetooth, and keyboard backlight (polled from sysfs since the EC never emits a key event for it).
-- **LLM usage**: Read-only Codex and Claude quota popup (`qs ipc call shell popup llm`), including five-hour and weekly usage, reset countdowns, and available reset credits. Its hidden bar widget remains backend machinery; Settings does not offer visibility or position controls for it.
+- **LLM usage**: Read-only Codex and Claude quota popup (`qs ipc call shell popup llm`), including five-hour and weekly usage, reset countdowns, and available reset credits. It has no bar widget any more; the popup is reachable only through IPC.
 - **Settings panel**: A multi-functional, resizable and draggable panel launched via `XF86Tools` with ten tabs:
   - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
   - **General**: Motion, uptime, notification timestamp format, calendar week start, and weather location/refresh/privacy/unit settings
@@ -61,7 +61,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── BottomBarFonts.qml      # Icon and text font families for the bottom bar
 │   └── cava.ini               # cava config for the real-time audio visualizer
 ├── bar/
-│   ├── Bar.qml                # Top workspace strip and retained hidden widget machinery
+│   ├── Bar.qml                # Top workspace strip, popup routing, workspace state, tray watcher
 │   ├── Sidebar.qml            # Home/Agenda/Media sidebar window, left+bottom anchored
 │   ├── SidebarActivator.qml   # 1 px left-edge hover strip that opens the sidebar
 │   ├── sidebar/               # SidebarContent, HomePage, AgendaPage, MediaPage, SliderTile, PageIndicators, SeekLine, SymbolDisc, InfoPill, TextPill, StepArrows, PadButton
@@ -81,21 +81,13 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   │   ├── ShortcutsTab.qml
 │   │   └── SystemTab.qml
 │   ├── LockScreen.qml          # PAM auth, fingerprint and compositor-enforced session lock
-│   ├── WorkspaceIndicator.qml  # Workspace/tag pills + focused-window state (orientation-aware)
-│   ├── Launcher.qml            # App launcher button
+│   ├── WorkspaceIndicator.qml  # Niri/mango workspace state and actions (no visuals)
 │   ├── LauncherPopup.qml       # App/provider search (apps, clipboard, wallpapers, actions)
-│   ├── AudioIndicator.qml      # Volume icon + scroll control (orientation-aware)
 │   ├── AudioPopup.qml          # Volume + mic sliders (shared bordered surface, correct active/mute states)
-│   ├── BrightnessIndicator.qml # Brightness icon (orientation-aware)
 │   ├── BrightnessPopup.qml     # Brightness slider (shared bordered surface)
-│   ├── BatteryIndicator.qml    # Battery via UPower (orientation-aware)
 │   ├── BatteryPopup.qml        # Detailed battery info (shared bordered surface)
-│   ├── MediaIndicator.qml      # Active MPRIS player indicator
 │   ├── MediaPopup.qml          # Media controls and circular cava visualizer
-│   ├── WeatherIndicator.qml    # Current weather indicator
 │   ├── WeatherPopup.qml        # Current conditions and forecast
-│   ├── LlmUsageIndicator.qml   # Single combined LLM usage indicator
-│   ├── LlmUsageIcon.qml        # Angular sparkle using the shared indicator color
 │   ├── LlmUsagePopup.qml       # Combined Codex and Claude usage popup
 │   ├── LlmUsageSection.qml     # Provider usage, resets, and refresh state
 │   ├── NetworksWindow.qml       # Her networks window, right+bottom anchored overlay (route "networks")
@@ -104,13 +96,11 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── alarms/                  # AlarmsContent, AlarmButton
 │   ├── BtPanel.qml              # Bluetooth controls used by the Settings Bluetooth tab
 │   ├── SystemTrayArea.qml      # StatusNotifier tray icons (orientation-aware)
-│   ├── MenuIndicator.qml       # Power menu bar trigger
 │   ├── PowerMenu.qml           # Full-screen power menu overlay (route "quickmenu")
 │   ├── powermenu/              # PowerMenuContent, its pieces and LockSurfaceContent (the lock look)
 │   ├── OsdOverlay.qml          # Volume/brightness/mic/airplane/bluetooth/kbd-backlight OSD popup
 │   ├── CalendarLogic.js        # Calendar weekday ordering and day-cell model
 │   ├── CalendarPopup.qml       # Calendar month grid (shared bordered surface)
-│   ├── NotificationIndicator.qml # Notifications counter (orientation-aware)
 │   ├── NotificationPopup.qml   # Notification history popup list
 │   ├── NotificationToast.qml   # Her dunst toast stack (R6b): five cards, duplicate counts, urgency colors
 │   ├── MicIndicator.qml        # Her top-center microphone tab (R6a)
@@ -130,8 +120,6 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   │   ├── ListDivider.qml
 │   │   ├── ListItem.qml
 │   │   ├── LoadingIndicator.qml
-│   │   ├── PillSurface.qml
-│   │   ├── StatusIndicator.qml
 │   │   ├── StyledSurface.qml
 │   │   └── TextFieldControl.qml
 │   └── controls/               # Elena-native controls with shared input/accessibility bases
@@ -351,13 +339,13 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 | Popup | Trigger | Content |
 |---|---|---|
 | Launcher | `Launcher` button / `Mod+D` | App/provider search (`>` actions and capture, `;` clipboard history, `@` wallpapers) + `.desktop` list |
-| Audio | `AudioIndicator` click | Volume + mic sliders (Elena switches; active check = sound enabled, unchecked = muted). Pointer adjustments do not leave a focus outline; keyboard focus stays visible while adjusting and resets when the popup closes. |
-| Brightness | `BrightnessIndicator` click | Brightness slider (shared bordered surface) |
-| Battery | `BatteryIndicator` click | Percentage, energy capacity, status, rate, cycles, model (shared bordered surface) |
+| Audio | `qs ipc call shell popup audio` | Volume + mic sliders (Elena switches; active check = sound enabled, unchecked = muted). Pointer adjustments do not leave a focus outline; keyboard focus stays visible while adjusting and resets when the popup closes. |
+| Brightness | `qs ipc call shell popup brightness` | Brightness slider (shared bordered surface) |
+| Battery | `qs ipc call shell popup battery` | Percentage, energy capacity, status, rate, cycles, model (shared bordered surface) |
 | LLM usage | Themed LLM indicator / `qs ipc call shell popup llm` | Codex and Claude five-hour/weekly usage, reset countdowns, available reset credits, and per-provider refresh |
-| Calendar | Clock click | Month grid with navigation (shared bordered surface) |
-| Notifications | `NotificationIndicator` click / `qs ipc call shell popup notification` | Dashed history cards with timestamp, live actions and dismiss/remove controls |
-| Power Menu | `MenuIndicator` click / bottom-bar logout / `Mod+Escape` | Full-screen overlay: greeting, quote, palette; poweroff, reboot, exit (confirmed), hibernate, suspend, lock |
+| Calendar | `qs ipc call shell popup calendar` | Month grid with navigation (shared bordered surface) |
+| Notifications | `qs ipc call shell popup notification` | Dashed history cards with timestamp, live actions and dismiss/remove controls |
+| Power Menu | bottom-bar logout / `Mod+Escape` | Full-screen overlay: greeting, quote, palette; poweroff, reboot, exit (confirmed), hibernate, suspend, lock |
 | Networks | Bottom-bar network button / `qs ipc call shell popup networks` | Her networks window: Wi-Fi list, connect/disconnect/forget, bandwidth, vpn, scan, speedtest, ping (see Networks window (R4)) |
 | Alarms | Bottom-bar alarm button / `qs ipc call shell popup alarms` | Her alarms window: ring in / ring at, browse and delete, real scheduling (see Alarms window (R5)) |
 | Settings | `XF86Tools` | 10 tabs: Account, General, Appearance, Display & Input, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts (responsive surface with persisted last tab, drag-to-move, and resize handle) |
@@ -421,13 +409,12 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 ## Widget Details
 
 - **Wallpaper filmstrip** (`bar/WallpaperFilmstrip.qml`, layout and list helpers in `config/WallpaperFilmstrip.js`, tested by `node tests/wallpaper-filmstrip/test.mjs` and `bash tests/wallpaper-filmstrip/previews.test.sh`, `random.test.sh`, and `node tests/settings-tabs/test.mjs` for tab numbering): a full-width picker of tall leaning slices with one wide accent-bordered card and its name and date below, sized from the screen width to match a reference capture. Typing `@` in the launcher opens it (the launcher closes; text typed after `@` pre-selects the first match), and `qs ipc call shell wallpapers` toggles it directly. Left/Right, Home/End or the wheel move; typing jumps to the first name that starts with or contains the text (Backspace edits, Escape clears it, then closes); Enter or a click on the card applies through `scripts/apply-wallpaper.sh`. It reads `~/Pictures/Walls`, uses the Wallpaper tab's thumbnails for slices, starts on the current wallpaper (from `awww query`) and shows a sharp 1600 px preview on the selected card once it has rested (`scripts/generate-previews.sh`: one preview on demand if missing, plus one niced bulk run per session into `~/.cache/quickshell/wallpaper-previews`; the original is the fallback). Slices avoid `clip`, which is stencil-only and jagged under a shear, and use edge antialiasing and mipmaps. Items are placed from a fractional position (not a `ListView`, whose origin drifts as delegates load), and only a window of delegates is alive. The launcher no longer has its own wallpaper grid; `@` is only the hand-off (the Settings > Wallpaper tab keeps its grid).
-- **Bar.qml**: The visible surface is the top workspace strip. The saved Start/Middle/End order, forms and widget preferences remain in the hidden widget machinery for a later re-homing change. `config/BarForm.js` still handles those saved forms.
+- **Bar.qml**: The top workspace strip, popup routing (`openPopup`, anchors, `togglePopupByName`), the workspace data owner and the system-tray watcher. The old indicator widgets and form/order layout are removed; saved widget keys stay in `settings.json` and `config/BarForm.js` only supplies the strip geometry.
 - **Clock presentation**: The bottom-bar clock shows system-local 24-hour time (`HHmm`). Seconds and timezone preferences belong to the hidden legacy clock and are no longer exposed in Settings. The retained `clock24h` preference controls notification-history timestamps, labeled “24-hour notification times” in General.
 - **Calendar**: Month navigation, a circular today badge and the Sunday/Monday week-start preference remain unchanged.
-- **WorkspaceIndicator**: Streams Niri workspaces and focused-window state. The Elena path renders color blocks; hidden widget machinery remains available to its existing consumers.
-- **Mango layout indicator**: Reads the active tag's layout from the shared `mmsg watch all-monitors` stream. Its hidden widget machinery remains available for re-homing; Settings no longer offers bar-order controls.
-- **AudioIndicator / BrightnessIndicator / MediaIndicator / WeatherIndicator**: Event-driven watchers and polling loops are bound to their active/visible state. Audio writes for sink and microphone are serialized and coalesced during rapid slider/toggle input, with a final state read after the latest write.
-- **BatteryIndicator**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
+- **WorkspaceIndicator**: Streams Niri (or mango) workspace state through the event stream and exposes `focusWorkspace`, `moveFocusedWindowTo` and `stepWorkspace`. It has no visuals; focused-window tracking and the mango layout symbol were removed with their only consumers.
+- **Audio, brightness, media and weather services**: Event-driven watchers and polling loops are bound to the active/visible state of the bottom bar, sidebar pages and popups that use them (weather refreshes on a timer only while one is open). Audio writes for sink and microphone are serialized and coalesced during rapid slider/toggle input, with a final state read after the latest write.
+- **BatteryService**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
 - **BtPanel**: Bluetooth controls live in the Settings Bluetooth tab, including discovery/pairing and connected-device actions. Wi-Fi lives in the networks window (bottom-bar network button).
 - **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu, orientation-aware layout.
 - **PowerMenu**: her powermenu as a full-screen Overlay layer with exclusive keyboard focus over a 0.7 surface backdrop. Six glyph buttons (poweroff x1, reboot x2, exit x4, hibernate x6, suspend x3, lock x5) fade in staggered; hover dims the rest to 0.3 and writes the action into the terminal line. Arrows step the 3x2 grid (`PowerMenuModel.step`), Enter acts, Esc, middle click or a click outside the buttons closes. Poweroff, reboot and exit close the menu and open the existing confirmation overlay; hibernate and suspend run `systemctl` (failures logged); lock takes the secure lock route. The QuickMenu caffeine, airplane and Bluetooth toggles are gone: Caffeine lives in Settings > Lock & Power, DND in Settings > Notifications, airplane mode and Bluetooth power stay on their keys (`XF86WLAN`/`F8`/`Mod+F8`, `XF86Bluetooth`/`F10`/`Mod+F10`), and Bluetooth devices in Settings > Bluetooth.
@@ -477,7 +464,7 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **ImageMagick** (`magick`/`convert`) — wallpaper thumbnail generation
 - **Matugen** — wallpaper-derived Material You palette generation
 - **awww** — wallpaper daemon
-- **cava** — real-time audio visualizer (raw ASCII output consumed by the Settings waveform; the Pill bar's signal wave only asks it whether there is sound)
+- **cava** — real-time audio visualizer (raw ASCII output consumed by the media popup visualizer)
 - **swayidle** — idle timeout handling (dim/lock/DPMS/suspend), configured by Lock & Power settings
 - **inotify-tools** (`inotifywait`) — trigger-file and brightness-file watching
 - **cliphist**, **wl-clipboard** (`wl-copy`) — clipboard history provider and restore/capture copy

@@ -18,7 +18,6 @@ QtObject {
   property bool indicatorActive: false
   property bool popupActive: false
   property bool sidebarActive: false
-  property bool waveActive: false
   property bool monitorEnabled: true
 
   readonly property string control: Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py"
@@ -30,7 +29,7 @@ QtObject {
   function seekTo(sec) { Quickshell.execDetached(["python3", root.control, "seekto", String(sec)]) }
   function playerVolumeBy(delta) { Quickshell.execDetached(["python3", root.control, "volume", String(delta)]) }
 
-  readonly property bool active: indicatorActive || popupActive || sidebarActive || waveActive
+  readonly property bool active: indicatorActive || popupActive || sidebarActive
 
   // Position moves without an MPRIS signal. Poll it once a second only while
   // the Media page is open and playing; the monitor still reports it on every

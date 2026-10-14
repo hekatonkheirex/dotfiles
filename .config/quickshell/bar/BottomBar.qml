@@ -73,7 +73,7 @@ PanelWindow {
     onGlanceRightClicked: root.launcherRequested()
     onTasksClicked: root.sidebarPageRequested(1)
     onMediaClicked: root.sidebarPageRequested(2)
-    // Same step as the top-bar AudioIndicator wheel (Config.volumeStep %).
+    // One notch steps the volume by Config.volumeStep %.
     onMediaScrolled: function(delta) {
       const r = BottomBarModel.notchSteps(root.wheelAccum, delta)
       root.wheelAccum = r.accum

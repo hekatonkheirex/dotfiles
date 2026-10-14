@@ -575,7 +575,6 @@ ShellRoot {
     id: bar
     // elena is a top-edge block row; the saved position stays untouched.
     barPosition: "top"
-    notificationCount: notificationPopup.count
     sessionLocked: lockScreen.locked || lockScreen.compositorLocked
     // Wait for persisted settings before exposing the panel so the first
     // mapped surface uses the final bar geometry and style.

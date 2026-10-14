@@ -106,7 +106,7 @@ QtObject {
 
   property var refreshTimer: Timer {
     interval: Math.max(5, Settings.weatherRefreshIntervalMinutes) * 60000
-    running: root.indicatorActive
+    running: root.active
     repeat: true
     triggeredOnStart: true
     onTriggered: root.refresh()
