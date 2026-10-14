@@ -13,4 +13,11 @@ QtObject {
   readonly property string family: "ElenaIcons1"
   readonly property var families: ["ElenaIcons1", "ElenaIcons2", "ElenaIcons3"]
   readonly property string materialFamily: Config.iconFont
+  // Her text font for the value pills (clock, date). The file names the
+  // family "Kyok medium" (lowercase m), so match without case; fall back to
+  // the shell font when it is not installed.
+  readonly property string textFamily: {
+    const f = Qt.fontFamilies().find(n => n.toLowerCase() === "kyok medium")
+    return f !== undefined ? f : Config.fontFamily
+  }
 }

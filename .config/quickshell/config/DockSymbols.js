@@ -44,7 +44,9 @@ var table = {
   "___default___": { symbol: "web_asset", color: 10, material: true }
 }
 
-var lower = {}
+// No prototype: app ids like "constructor" or "__proto__" must miss, not
+// hit Object.prototype members.
+var lower = Object.create(null)
 for (var k in table) lower[k.toLowerCase()] = table[k]
 
 // Her color index 1..10 onto the six accent slots (7..10 wrap onto 1..4).

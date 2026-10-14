@@ -49,9 +49,9 @@ PanelWindow {
 
   SystemClock { id: clock; precision: SystemClock.Minutes; enabled: root.visible }
 
-  // Touchpads send many small deltas: one volume step per full 120 notch,
-  // reset on direction flip (same logic as DockGlyph's window cycling).
-  property int wheelAccum: 0
+  // Touchpads send many small deltas: one volume step per full 120 notch
+  // (BottomBarModel.notchSteps, shared with DockGlyph's window cycling).
+  property real wheelAccum: 0
 
   BottomBarContent {
     id: content
@@ -74,14 +74,9 @@ PanelWindow {
     onMediaClicked: root.sidebarPageRequested(2)
     // Same step as the top-bar AudioIndicator wheel (Config.volumeStep %).
     onMediaScrolled: function(delta) {
-      if (delta === 0) return
-      if ((delta > 0) !== (root.wheelAccum > 0)) root.wheelAccum = 0
-      root.wheelAccum += delta
-      while (Math.abs(root.wheelAccum) >= 120) {
-        const dir = root.wheelAccum > 0 ? 1 : -1
-        root.wheelAccum -= dir * 120
-        AudioService.setVolume(AudioService.volume + dir * Config.volumeStep / 100)
-      }
+      const r = BottomBarModel.notchSteps(root.wheelAccum, delta)
+      root.wheelAccum = r.accum
+      if (r.steps !== 0) AudioService.setVolume(AudioService.volume + r.steps * Config.volumeStep / 100)
     }
     onMediaMiddleClicked: AudioService.toggleMute()
     onMediaRightClicked: Quickshell.execDetached(["sh", "-c", root.pavucontrolCommand])

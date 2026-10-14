@@ -17,7 +17,7 @@ Rectangle {
     anchors.centerIn: parent
     text: root.text
     color: Colors.fgSurface
-    font.family: Config.fontFamily
+    font.family: BottomBarFonts.textFamily
     font.pixelSize: Math.round(8 * 4 / 3 * Config.elenaScale)   // 8pt * scale
   }
 }

@@ -75,6 +75,7 @@ ShellRoot {
       interval: 2500
       running: true
       onTriggered: stage.grabToImage(function(r) {
+        console.log("textFamily=" + BottomBarFonts.textFamily)
         r.saveToFile(Quickshell.env("GOLDEN_OUT"))
         Qt.quit()
       })

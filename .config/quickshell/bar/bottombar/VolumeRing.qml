@@ -19,6 +19,7 @@ Item {
   onFillColorChanged: canvas.requestPaint()
   onBackdropChanged: canvas.requestPaint()
   onWidthChanged: canvas.requestPaint()
+  onHeightChanged: canvas.requestPaint()
 
   Canvas {
     id: canvas

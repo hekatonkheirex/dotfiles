@@ -61,3 +61,16 @@ function sidebarToggle(openPopup, currentPage, requested, pages) {
   if (openPopup === "sidebar" && currentPage === page) return { page: page, open: false }
   return { page: page, open: true }
 }
+
+// Wheel notches: one signed step per full 120 of angleDelta, remainder kept.
+// A direction flip drops the old remainder; delta 0 changes nothing. Touchpads
+// send many small deltas, so stepping per event would race through values.
+function notchSteps(accum, delta) {
+  var a = Number(accum) || 0
+  var d = Number(delta) || 0
+  if (d === 0) return { accum: a, steps: 0 }
+  if ((d > 0) !== (a > 0)) a = 0
+  a += d
+  var steps = Math.trunc(a / 120) || 0   // `|| 0` turns -0 into 0
+  return { accum: a - steps * 120, steps: steps }
+}

@@ -26,7 +26,11 @@ ln -s "${XDG_RUNTIME_DIR:?}/${WAYLAND_DISPLAY:?}" "$home/run/$WAYLAND_DISPLAY"
 cp -r "$root/config" "$home/cfg/"
 if [ -n "${FONT_NEG_CONTROL:-}" ]; then
   # fontconfig only appends ElenaIcons2/3 for ElenaIcons1 requests, so asking
-  # for ElenaIcons2 alone loses the fallback chain.
+  # for ElenaIcons2 alone loses the fallback chain. A sed that matches nothing
+  # would silently test the real font, so check the patterns first.
+  for pat in 'readonly property string family: ' 'readonly property var families: '; do
+    grep -q "$pat" "$home/cfg/config/BottomBarFonts.qml" || { echo "FAIL: neg control pattern '$pat' not in BottomBarFonts.qml"; exit 1; }
+  done
   sed -i 's|readonly property string family: .*|readonly property string family: "ElenaIcons2"|; s|readonly property var families: .*|readonly property var families: ["ElenaIcons2"]|' "$home/cfg/config/BottomBarFonts.qml"
 fi
 ln -s "$fdir" "$home/.local/share/fonts/icomoon"
@@ -58,6 +62,22 @@ PY2
 )
 [ -n "$extra" ] || { echo "FAIL: no codepoint distinguishes remix from iconic"; exit 1; }
 echo "fallback-order glyph U+$(printf '%04X' "$extra")"
+# Every icon codepoint the bar uses: literal PUA characters in
+# BottomBarContent.qml plus the \uXXXX escapes in DockSymbols.js, then the
+# fallback-order probe last.
+cps=$(python3 -I - "$root" "$extra" <<'PY3'
+import re, sys
+root, extra = sys.argv[1], int(sys.argv[2])
+qml = open(f"{root}/bar/bottombar/BottomBarContent.qml", encoding="utf-8").read()
+js = open(f"{root}/config/DockSymbols.js", encoding="utf-8").read()
+a = {ord(c) for c in qml if 0xE000 <= ord(c) <= 0xF8FF}
+b = {int(h, 16) for h in re.findall(r"\\u([eEfF][0-9a-fA-F]{3})", js)}
+if not a or not b: sys.exit("no codepoints found")
+print(",".join(str(c) for c in sorted(a | b) + [extra]))
+PY3
+)
+[ -n "$cps" ] || { echo "FAIL: no bar codepoints read"; exit 1; }
+echo "glyphs: $(echo "$cps" | tr ',' '\n' | wc -l)"
 # The scan rules naming the files ElenaIcons1..3 live in the real fontconfig dir.
 mkdir -p "$home/.config/fontconfig"
 ln -s "$real_home/.config/fontconfig/conf.d" "$home/.config/fontconfig/conf.d"
@@ -70,14 +90,17 @@ import "config"
 
 ShellRoot {
   FloatingWindow {
-    implicitWidth: 11 * 256
-    implicitHeight: 256
+    implicitWidth: 12 * 256
+    implicitHeight: Math.ceil(stage.count / 12) * 256
     color: "black"
     mask: Region {}
-    Row {
+    Grid {
       id: stage
+      columns: 12
+      readonly property int count: rep.count
       Repeater {
-        model: [0xE92B, 0xE982, 0xE943, 0xEE50, 0xEC79, 0xED38, 0xE9A0, 0xE934, 0xEEF5, 0xEB84, 0xED28]
+        id: rep
+        model: [CPS]
         Item {
           width: 256; height: 256
           Text {
@@ -103,15 +126,16 @@ ShellRoot {
   }
 }
 QML
-sed -i "s|0xED28\]|0xED28, $extra]|; s|11 \* 256|12 * 256|" "$home/cfg/shell.qml"
+grep -q '\[CPS\]' "$home/cfg/shell.qml" || { echo "FAIL: codepoint placeholder missing"; exit 1; }
+sed -i "s|\[CPS\]|[$cps]|" "$home/cfg/shell.qml"
 HOME="$home" XDG_RUNTIME_DIR="$home/run" FONT_OUT="$home/qt.png" QS_NO_RELOAD_POPUP=1 \
   timeout 30 qs -p "$home/cfg/shell.qml" >"$home/qs.log" 2>&1 || true
 [ -s "$home/qt.png" ] || { echo "FAIL: no render"; tail -8 "$home/qs.log"; exit 1; }
 grep -o 'families=.*' "$home/qs.log" | head -1
-python3 -I - "$home/qt.png" "$fdir" "$extra" <<'PY'
+python3 -I - "$home/qt.png" "$fdir" "$cps" <<'PY'
 import subprocess, sys
 from PIL import Image, ImageChops, ImageDraw, ImageFont
-cps = [0xE92B, 0xE982, 0xE943, 0xEE50, 0xEC79, 0xED38, 0xE9A0, 0xE934, 0xEEF5, 0xEB84, 0xED28, int(sys.argv[3])]
+cps = [int(c) for c in sys.argv[3].split(",")]
 order = ["icomoon-feather.ttf", "remix.ttf", "iconic.ttf"]
 fdir = sys.argv[2]
 def charset(f):
@@ -131,7 +155,8 @@ def mask(img):
 bad = 0
 for i, cp in enumerate(cps):
     src = next((f for f in order if cp in sets[f]), None)
-    a = mask(qt.crop((i * 256, 0, (i + 1) * 256, 256)))
+    x, y = (i % 12) * 256, (i // 12) * 256
+    a = mask(qt.crop((x, y, x + 256, y + 256)))
     if src is None:
         iou, src = 0.0, "none"
     else:

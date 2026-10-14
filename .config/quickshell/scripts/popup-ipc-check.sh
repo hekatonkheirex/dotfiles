@@ -24,5 +24,7 @@ qs ipc call shell openSidebarPage 1 >/dev/null
 [ -z "$(qs ipc call shell currentPopup)" ] && echo "ok   openSidebarPage same page closes" || { echo "FAIL openSidebarPage close"; fail=1; }
 qs ipc call shell openSidebarPage 0 >/dev/null; qs ipc call shell openSidebarPage 1 >/dev/null
 [ "$(qs ipc call shell currentPopup)" = sidebar ] && echo "ok   openSidebarPage switches" || { echo "FAIL openSidebarPage switch"; fail=1; }
+page=$(qs ipc call shell bottomBarState | jq -r .page)
+[ "$page" = 1 ] && echo "ok   openSidebarPage page 1" || { echo "FAIL openSidebarPage page ($page)"; fail=1; }
 qs ipc call shell dismissPopups >/dev/null
 exit $fail

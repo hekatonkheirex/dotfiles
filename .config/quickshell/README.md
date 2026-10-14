@@ -52,11 +52,16 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── WindowService.qml       # Read-only Niri window stream
 │   ├── WindowState.js          # Window-event reducer
 │   ├── DockModel.js            # Pin order and running-app grouping
+│   ├── DockSymbols.js          # App id -> icomoon glyph and accent slot (elenapan's dock table)
+│   ├── BottomBarModel.js       # Pure bottom-bar decisions (clock, battery, signal, nmcli parsing, page toggle, wheel notches)
+│   ├── NetworkStatusService.qml # Wi-Fi signal bucket and VPN state for the bottom bar
+│   ├── BottomBarFonts.qml      # Icon and text font families for the bottom bar
 │   └── cava.ini               # cava config for the real-time audio visualizer
 ├── bar/
 │   ├── Bar.qml                # Top workspace strip and retained hidden widget machinery
 │   ├── Sidebar.qml            # Status/Dashboard sidebar (content in sidebar/)
 │   ├── BottomBar.qml          # Bottom bar window (content in bottombar/)
+│   ├── bottombar/             # BottomBarContent, BarButton, DockGlyph, ValuePill, VolumeRing, BatteryStack, SignalBars
 │   ├── SettingsPanel.qml       # Settings panel shell (state, processes, tab bar) — content in settings/
 │   ├── settings/
 │   │   ├── AccountTab.qml
@@ -276,6 +281,10 @@ When `XDG_RUNTIME_DIR` is unavailable, Quickshell uses
 - `ipc.commandcenter()` — legacy alias for `ipc.settings()`
 - `ipc.layout()` — toggle bar orientation
 
+- `ipc.openSidebarPage(n)`: bottom-bar page toggle: opens the sidebar at page `n` (clamped to the pages that exist), closes it when that page is already open, switches otherwise; `false` while locked
+- `ipc.bottomBarState()`: dev/testing: bottom bar inputs as JSON (`items`, `clockText`, `dateText`, `volume`, `muted`, `batteryPct`, `charging`, `signal`, `connected`, `vpn`, `alarmCount`, `height`, `page`)
+- `ipc.dockState()`: dev/testing: dock items and window inputs as JSON (`workspaceEmpty`, `windows`, `items`)
+
 Callable externally via `quickshell ipc call shell launcher` (and similarly for the others).
 
 ### Launcher providers
@@ -437,9 +446,10 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **brightnessctl** — backlight and keyboard-LED control
 - **UPower** — battery monitoring
 - **fprintd** — fingerprint authentication
-- **nmcli**, **bluetoothctl** — Settings-only Network/Bluetooth tabs, airplane mode, and OSD
+- **nmcli**, **bluetoothctl**: Network/Bluetooth tabs, airplane mode and OSD; nmcli also feeds the bottom bar's Wi-Fi signal and VPN state (`nmcli monitor` plus a cached-scan poll)
 - **lm-sensors** (`sensors`) — optional thermal and fan readings in the System tab
-- **jq** — parses `sensors -j` output for System diagnostics
+- **jq**: parses `sensors -j` output for System diagnostics, and picks the pavucontrol window to focus from the bottom bar's media button
+- **pavucontrol**: opened (or focused) by a right click on the bottom bar's media button
 - **ImageMagick** (`magick`/`convert`) — wallpaper thumbnail generation
 - **Matugen** — wallpaper-derived Material You palette generation
 - **awww** — wallpaper daemon
@@ -494,6 +504,54 @@ After QML cutovers, cold-restart Quickshell before live IPC verification:
 `systemctl --user restart quickshell.service`. Launcher and session/power
 presentation redesigns are implemented, including notification history and toasts.
 Bindings, confirmation execution and authentication remain unchanged.
+
+## Bottom bar
+
+`bar/BottomBar.qml` is a full-width layer-shell window on the Bottom layer
+that reserves its height (`Config.bottomBarHeight`), so windows tile above it.
+It shows while the top bar is visible and the session is unlocked. The
+content (`bar/bottombar/BottomBarContent.qml`) has three parts:
+
+- **Left cluster**: glance (clock pill) opens the sidebar at Status, right
+  click toggles the launcher; tasks (date pill) opens the sidebar at
+  Dashboard; media (volume ring) asks for page 2. Click, middle click mutes,
+  the wheel steps `Config.volumeStep` % per full notch, right click focuses a
+  running pavucontrol or starts one. Page buttons toggle: the open page
+  closes the sidebar, another page switches (`BottomBarModel.sidebarToggle`).
+- **Dock** (center): pinned apps (Settings > Appearance > dock pins) always
+  appear; running apps follow. Glyphs come from `config/DockSymbols.js`.
+  Click focuses or launches, middle click closes, the wheel cycles windows
+  one per notch.
+- **Right cluster**: network (VPN shield or link, then four signal bars),
+  alarms (count pill or a slash), battery (three parts and a charging bolt).
+
+Interim targets until later releases: network opens Settings > Network and
+closes it on a second click (R4 adds a network panel); alarms do nothing
+(R5); logout toggles the quick menu (R3); the media page index 2 clamps to
+page 1 while the sidebar has two pages, so the media button can close an
+open Dashboard (R2 adds the media page). The sidebar and bottom-right toasts
+leave the bar's height free so its buttons stay clickable.
+
+**Fonts.** The icons come from her icomoon font set in
+`~/.local/share/fonts/icomoon`. Four files there share the family `icomoon`
+and repeat codepoints, so the fontconfig rule
+`~/.config/fontconfig/conf.d/61-elena-icons.conf` renames three of them to
+`ElenaIcons1`/`2`/`3` (icomoon-feather.ttf, remix.ttf, iconic.ttf) and
+appends 2 and 3 to any request for `ElenaIcons1`; Qt then falls back per
+glyph like her Pango setup. After installing the fonts or editing the rule run
+`fc-cache -f ~/.local/share/fonts/icomoon`. Side effect: a request for the
+family `icomoon` now only reaches icomoon_Regular.ttf. The clock and date
+pills use her text font Kyok (`Kyok medium`) when installed, else the shell
+font; her text fonts (Kyok, Baro, BattleAndy) come from the font zip linked in
+her dotfiles README.
+
+Checks: `node tests/bottom-bar/*.mjs` (pure model, dock symbols, structural
+wiring), `bash scripts/bottom-bar-render.sh` (pixel checks of the content
+under the Elenapan palette, and the pill font), `bash scripts/bar-font-check.sh`
+(every icon codepoint the bar and dock use, read from `BottomBarContent.qml`
+and `DockSymbols.js`, must render from the file Pango would pick; fails when
+the ElenaIcons families are missing), and `scripts/popup-ipc-check.sh` for the
+live `openSidebarPage` toggle.
 
 ## Sidebar pages (S2)
 

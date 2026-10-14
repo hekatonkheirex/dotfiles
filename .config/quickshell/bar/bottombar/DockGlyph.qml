@@ -1,6 +1,7 @@
 import QtQuick
 import "../../config"
 import "../../config/DockSymbols.js" as DockSymbols
+import "../../config/BottomBarModel.js" as BottomBarModel
 
 // One dock item: app glyph in its accent, a 6x3 S indicator under it while the
 // app is focused, muted glyph while pinned with no window. Click focuses or
@@ -61,18 +62,12 @@ Item {
       if (mouse.button === Qt.MiddleButton) root.closeRequested()
       else root.activated()
     }
+    // One cycle per full 120 notch so a touchpad swipe of many small deltas
+    // does not skip through every window. Wheel up (positive) cycles back.
     onWheel: function(wheel) {
-      const dy = wheel.angleDelta.y
-      if (dy === 0) return
-      // Reset on direction flip; one cycle per full 120 notch so a touchpad
-      // swipe of many small deltas does not skip through every window.
-      if ((dy > 0) !== (root.wheelAccum > 0)) root.wheelAccum = 0
-      root.wheelAccum += dy
-      while (Math.abs(root.wheelAccum) >= 120) {
-        const dir = root.wheelAccum > 0 ? -1 : 1
-        root.wheelAccum -= root.wheelAccum > 0 ? 120 : -120
-        root.cycled(dir)
-      }
+      const r = BottomBarModel.notchSteps(root.wheelAccum, wheel.angleDelta.y)
+      root.wheelAccum = r.accum
+      for (let i = 0; i < Math.abs(r.steps); i++) root.cycled(r.steps > 0 ? -1 : 1)
     }
   }
 }

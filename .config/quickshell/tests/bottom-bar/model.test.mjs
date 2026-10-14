@@ -6,7 +6,7 @@ import assert from "node:assert/strict"
 const src = readFileSync(fileURLToPath(new URL("../../config/BottomBarModel.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
 const M = new Function('"use strict";\n' + src +
-  "; return { batteryParts, signalParts, clockText, dateText, parseWifi, parseVpn, sidebarToggle }")()
+  "; return { batteryParts, signalParts, clockText, dateText, parseWifi, parseVpn, sidebarToggle, notchSteps }")()
 
 // batteryParts: top part full above 83, half above 66; middle full above 49,
 // half above 33; bottom full above 16, half above 0 (strict greater-than).
@@ -68,4 +68,18 @@ assert.deepEqual(M.sidebarToggle("launcher", 0, 0, 2), { page: 0, open: true })
 // clamp: pages = 2 means 0 and 1 exist; 2 and -1 clamp.
 assert.deepEqual(M.sidebarToggle("", 0, 2, 2), { page: 1, open: true })
 assert.deepEqual(M.sidebarToggle("", 0, -1, 2), { page: 0, open: true })
+
+// notchSteps: one signed step per full 120, remainder kept, flip resets.
+const run = deltas => deltas.reduce((st, d) => {
+  const r = M.notchSteps(st.accum, d)
+  return { accum: r.accum, steps: st.steps.concat(r.steps) }
+}, { accum: 0, steps: [] })
+assert.deepEqual(M.notchSteps(0, 120), { accum: 0, steps: 1 }, "single notch")
+assert.deepEqual(run([40, 40, 40]), { accum: 0, steps: [0, 0, 1] }, "three touchpad deltas make one notch")
+assert.deepEqual(M.notchSteps(0, 240), { accum: 0, steps: 2 }, "two notches in one event")
+assert.deepEqual(run([130, 10]), { accum: 20, steps: [1, 0] }, "remainder kept")
+assert.deepEqual(run([60, -120]), { accum: 0, steps: [0, -1] }, "flip drops the old remainder")
+assert.deepEqual(M.notchSteps(50, 0), { accum: 50, steps: 0 }, "zero delta ignored")
+assert.deepEqual(M.notchSteps(0, -120), { accum: 0, steps: -1 }, "negative notch")
+assert.deepEqual(run([-100, -50]), { accum: -30, steps: [0, -1] }, "negative remainder kept")
 console.log("bottom bar model: ok")

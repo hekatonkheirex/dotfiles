@@ -40,8 +40,10 @@ PanelWindow {
   margins.right: root.barPosition === "right" ? Config.barWidth + Config.spacingCompact : Config.spacingLarge
   margins.top: Settings.notificationToastPosition === "bottom-right" ? 0
     : (root.barPosition === "top" ? Config.barWidth + Config.spacingCompact : Config.spacingLarge)
+  // Bottom placement clears the elena bottom bar's right cluster.
   margins.bottom: Settings.notificationToastPosition === "bottom-right"
     ? (root.barPosition === "bottom" ? Config.barWidth + Config.spacingCompact : Config.spacingLarge)
+      + Config.bottomBarHeight
     : 0
   visible: notif !== null
 

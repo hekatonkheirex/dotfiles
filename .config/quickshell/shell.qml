@@ -435,7 +435,7 @@ ShellRoot {
       return JSON.stringify({ items: bottomBar.items, clockText: c.clockText, dateText: c.dateText,
         volume: c.volume, muted: c.muted, batteryPct: c.batteryPct, charging: c.charging,
         signal: c.signal, connected: c.connected, vpn: c.vpn, alarmCount: c.alarmCount,
-        height: bottomBar.implicitHeight })
+        height: bottomBar.implicitHeight, page: sidebar.currentPage })
     }
 
     // Dev/testing: the launcher's current search text.
@@ -646,13 +646,19 @@ ShellRoot {
     items: DockModel.dockItems(DockModel.normalizePinned(Settings.dockPinned), WindowService.windows)
     onSidebarPageRequested: function(page) { shell.openSidebarPage(page) }
     // Same anchor and toggle as the launcher() IPC call.
+    // ipc.launcher() anchors, then toggles (an open launcher closes).
     onLauncherRequested: {
       if (lockScreen.locked) return
       ipc.launcher()
     }
+    // Network tab until R4; a second click on the open tab closes it.
     onNetworkRequested: {
       if (lockScreen.locked) return
-      settingsPanel.currentTab = 4      // Network tab until R4
+      if (bar.openPopup === "settings" && settingsPanel.currentTab === 4) {
+        bar.openPopup = ""
+        return
+      }
+      settingsPanel.currentTab = 4
       bar.openPopup = "settings"
     }
     onLogoutRequested: {

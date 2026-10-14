@@ -20,6 +20,9 @@ cp "$root/tests/bottom-bar/shell.qml" "$home/cfg/shell.qml"
 mkdir -p "$home/.config/fontconfig"
 ln -s "$real_home/.config/fontconfig/conf.d" "$home/.config/fontconfig/conf.d"
 ln -s "$real_home/.local/share/fonts/icomoon" "$home/.local/share/fonts/icomoon"
+# Her text font for the clock and date pills, when installed.
+kyok="$real_home/.local/share/fonts/Kyok"
+[ -d "$kyok" ] && ln -s "$kyok" "$home/.local/share/fonts/Kyok"
 printf '{"colorSource":"fixed","colorPalette":"elenapan","colorVariant":"auto","themePreference":2}\n' \
   > "$home/.config/quickshell/settings.json"
 HOME="$home" XDG_RUNTIME_DIR="$home/run" GOLDEN_OUT="$home/bar.png" QS_NO_RELOAD_POPUP=1 \
@@ -31,6 +34,10 @@ HOME="$home" XDG_RUNTIME_DIR="$home/run" GOLDEN_OUT="$home/bar.png" QS_NO_RELOAD
 errpat='TypeError|ReferenceError|is not a type|is not installed|Cannot assign|Unable to assign|ERROR|Binding loop|Invalid property|Non-existent attached|Cannot anchor|WARN'
 errs=$(grep -E "$errpat" "$home/qs.log" | grep -Ev 'Cannot find the mpris|org\.mpris|got operation finished from dropped operation|QWaylandTextInputv3::disableSurface' | head -8 || true)
 if [ -n "$errs" ]; then echo "FAIL: QML errors"; echo "$errs"; exit 1; fi
+# The pills use Kyok medium when it is installed, else the shell font.
+fam=$(grep -o 'textFamily=.*' "$home/qs.log" | head -1)
+want="textFamily=Kyok medium"; [ -d "$kyok" ] || want="textFamily=Roboto Flex"
+[ "$fam" = "$want" ] && echo "ok   pill $fam" || { echo "FAIL: pill font '$fam' (want '$want')"; exit 1; }
 python3 -I - "$home/bar.png" <<'PY'
 import sys
 from PIL import Image

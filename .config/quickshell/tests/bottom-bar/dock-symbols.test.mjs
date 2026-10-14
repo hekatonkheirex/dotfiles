@@ -33,4 +33,8 @@ for (const k of Object.keys(M.table)) {
   n++
 }
 assert.equal(n, 35, "34 ported apps + default")
+// Prototype names miss the table and get the default glyph.
+const def = M.symbolFor("___default___")
+for (const id of ["constructor", "__proto__", "toString", "hasOwnProperty"])
+  assert.deepEqual(M.symbolFor(id), def, id)
 console.log("dock symbols: ok")
