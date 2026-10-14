@@ -64,7 +64,7 @@ PY2
 echo "fallback-order glyph U+$(printf '%04X' "$extra")"
 # Every icon codepoint the bar uses: literal PUA characters in
 # BottomBarContent.qml and the sidebar pages plus the \uXXXX escapes in
-# DockSymbols.js, then the fallback-order probe last.
+# DockSymbols.js and PowerMenuModel.js, then the fallback-order probe last.
 cps=$(python3 -I - "$root" "$extra" <<'PY3'
 import re, sys
 root, extra = sys.argv[1], int(sys.argv[2])
@@ -78,8 +78,11 @@ for page in ("HomePage", "AgendaPage", "MediaPage", "StepArrows"):
     src = open(f"{root}/bar/sidebar/{page}.qml", encoding="utf-8").read()
     c |= {ord(ch) for ch in src if 0xE000 <= ord(ch) <= 0xF8FF}
     c |= {int(h, 16) for h in re.findall(r"\\u([eEfF][0-9a-fA-F]{3})", src)}
-if not a or not b or not c: sys.exit("no codepoints found")
-print(",".join(str(c) for c in sorted(a | b | c) + [extra]))
+# The power menu glyphs live as \uXXXX escapes in PowerMenuModel.js.
+pm = open(f"{root}/config/PowerMenuModel.js", encoding="utf-8").read()
+d = {int(h, 16) for h in re.findall(r"\\u([eEfF][0-9a-fA-F]{3})", pm)}
+if not a or not b or not c or len(d) < 8: sys.exit("no codepoints found")
+print(",".join(str(c) for c in sorted(a | b | c | d) + [extra]))
 PY3
 )
 [ -n "$cps" ] || { echo "FAIL: no bar codepoints read"; exit 1; }

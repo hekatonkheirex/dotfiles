@@ -6,7 +6,7 @@ import assert from "node:assert/strict"
 const src = readFileSync(fileURLToPath(new URL("../../config/PowerMenuModel.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
 const M = new Function('"use strict";\n' + src +
-  "; return { buttons, paletteAccents, ringBorder, maskInput, step, terminalText }")()
+  "; return { buttons, paletteAccents, ringBorder, maskInput, step, terminalText, glyph }")()
 
 const b = M.buttons()
 assert.deepEqual(b.map(x => x.id), ["poweroff", "reboot", "exit", "hibernate", "suspend", "lock"])
@@ -38,4 +38,10 @@ assert.equal(M.step(2, "other", 6), 2)
 
 assert.equal(M.terminalText("reboot"), "$ reboot")
 assert.equal(M.terminalText(""), "$ ")
+// Codepoints from her powermenu.yuck.
+assert.deepEqual(["poweroff", "reboot", "exit", "hibernate", "suspend", "lock", "lockOpen", "lockFailed"]
+  .map(id => M.glyph(id).codePointAt(0).toString(16)),
+  ["ee10", "eb92", "ec9d", "ee0e", "ed60", "ec53", "eac8", "ea45"])
+assert.equal(M.glyph("heart"), "favorite")   // Material Symbols ligature
+assert.equal(M.glyph("nope"), "")
 console.log("power-menu model ok")

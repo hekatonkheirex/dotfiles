@@ -11,4 +11,5 @@ qmllint shell.qml \
   bar/primitives/*.qml \
   bar/sidebar/*.qml \
   bar/controls/*.qml \
-  bar/bottombar/*.qml
+  bar/bottombar/*.qml \
+  bar/powermenu/*.qml
