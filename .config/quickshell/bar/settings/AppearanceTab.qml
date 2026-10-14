@@ -15,7 +15,7 @@ Flickable {
   readonly property int optionButtonGap: Config.themeOptionGap
   readonly property int segmentedButtonGap: 0
   // Stacked icon + label choices keep breathing room at the global type scale.
-  readonly property int optionButtonHeight: Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + (24))
+  readonly property int optionButtonHeight: Math.max(Config.controlHeight, Config.typeLabelMediumLineHeight + (14))
   anchors.fill: parent
   visible: root.currentTab === 1
   clip: true

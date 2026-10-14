@@ -61,7 +61,7 @@ FocusScope {
       event.accepted = true
     }
   }
-  implicitHeight: Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + 24)
+  implicitHeight: Math.max(Config.controlHeight, Config.typeLabelMediumLineHeight + 14)
   Layout.minimumHeight: implicitHeight
   Layout.minimumWidth: Config.controlHitSize
 

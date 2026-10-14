@@ -50,7 +50,9 @@ QtObject {
   property int spacingExtraLarge: Math.round(24 * spacingScale)
   property int spacingPage: Math.round(32 * spacingScale)
   readonly property int controlHitSize: 48
-  readonly property int materialRowPadding: spacingLarge
+  // Visual height of buttons, rows and text fields; the 48 px input target above stays for icon buttons and switches.
+  readonly property int controlHeight: 36
+  readonly property int materialRowPadding: spacingMedium
   readonly property int settingsContentMaxWidth: 1120
   // Reserve visual breathing room between tab content and the outer settings
   // scrollbar, which is intentionally overlaid on the Flickable edge.
@@ -194,7 +196,7 @@ QtObject {
   readonly property int settingsMinHeight: 360
   // Shared label column for remote settings rows. Sized for the longest
   // current label while allowing larger type settings to preserve full text.
-  readonly property int settingsRowLabelWidth: 200
+  readonly property int settingsRowLabelWidth: 120
   readonly property int settingsMaxWidth: 1440
   readonly property int settingsDefaultWidth: 1100
   readonly property int settingsDefaultHeight: 900

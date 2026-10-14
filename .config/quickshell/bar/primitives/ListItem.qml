@@ -58,7 +58,7 @@ Rectangle {
     if (root.toggleControl !== null) root.toggleControl.activate()
   }
 
-  implicitHeight: Math.max(Config.controlHitSize, textColumn.implicitHeight + Config.materialRowPadding,
+  implicitHeight: Math.max(Config.controlHeight, textColumn.implicitHeight + Config.materialRowPadding,
       trailingRow.implicitHeight + Config.materialRowPadding)
   height: implicitHeight
   Layout.minimumHeight: implicitHeight

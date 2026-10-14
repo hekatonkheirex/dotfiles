@@ -39,7 +39,7 @@ Rectangle {
   signal leftPressed()
   signal rightPressed()
 
-  implicitHeight: Math.max(root.plain ? 0 : Config.controlHitSize,
+  implicitHeight: Math.max(root.plain ? 0 : Config.controlHeight,
     Math.round(root.textPixelSize * 1.5) + 2 * root.verticalPadding)
   height: implicitHeight
   Layout.minimumHeight: implicitHeight

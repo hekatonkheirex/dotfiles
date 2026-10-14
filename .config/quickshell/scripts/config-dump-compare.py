@@ -2,7 +2,7 @@
 """Compare two config dumps. Usage: config-dump-compare.py BASE NEW ALLOW.json
 
 ALLOW.json: {"removed": ["Config.legacyFlag", ...], "removedPrefixes": [...],
-             "changed": {"Config.shapeLarge": [16, 20]}}
+             "changed": {"Config.shapeLarge": [16, 20]}, "added": ["Config.newKey"]}
 Exit 1 when a key disappears, changes value, or appears without being allowed.
 """
 import json, sys
@@ -13,6 +13,7 @@ allow = json.load(open(sys.argv[3]))
 removed_ok = set(allow.get("removed", []))
 prefixes = tuple(allow.get("removedPrefixes", []))
 changed_ok = allow.get("changed", {})
+added_ok = set(allow.get("added", []))
 
 problems = []
 for k in sorted(base):
@@ -26,7 +27,7 @@ for k in sorted(base):
             continue
         problems.append(f"changed  {k}: {base[k]!r} -> {new[k]!r}")
 for k in sorted(new):
-    if k not in base:
+    if k not in base and k not in added_ok:
         problems.append(f"added    {k} = {new[k]!r}")
 
 if problems:

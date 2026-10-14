@@ -52,6 +52,17 @@
     "Config.settingsCardRadius": [
       16,
       20
+    ],
+    "Config.materialRowPadding": [
+      16,
+      12
+    ],
+    "Config.settingsRowLabelWidth": [
+      200,
+      120
     ]
-  }
+  },
+  "added": [
+    "Config.controlHeight"
+  ]
 }
