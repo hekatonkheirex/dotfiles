@@ -14,6 +14,9 @@ QtObject {
   property bool connected: false
   property int signal: 0
   property bool vpn: false
+  // NetworkListService refreshes on these instead of polling.
+  signal nmChanged()
+  readonly property bool monitorRunning: monitor.running
 
   function refresh() {
     if (!root.active) return
@@ -46,6 +49,7 @@ QtObject {
       onRead: {
         root.restartDelay = 2000   // the monitor works again: next failure retries fast
         root.refresh()
+        root.nmChanged()
       }
     }
     onRunningChanged: {

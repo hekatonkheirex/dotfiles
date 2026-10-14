@@ -17,6 +17,8 @@ QtObject {
   property real temp: -1
   property real netPercent: -1
   property string netLabel: "--"
+  property real netDown: -1   // bytes/s, all interfaces (networks window)
+  property real netUp: -1
   property string hostname: ""
   property string uptime: "--"
 
@@ -32,6 +34,7 @@ QtObject {
     root.prevCpu = null; root.prevNet = null; root.prevNetAt = 0
     root.cpu = -1; root.ram = -1; root.swap = -1; root.disk = -1
     root.temp = -1; root.netPercent = -1; root.netLabel = "--"; root.uptime = "--"
+    root.netDown = -1; root.netUp = -1
     root.firstTick = true
   }
 
@@ -75,11 +78,13 @@ QtObject {
       var rate = SystemMetrics.netRate(root.prevNet, cur, now - root.prevNetAt)
       if (cur) { root.prevNet = cur; root.prevNetAt = now }
       if (rate === null) return
+      root.netDown = rate.down
+      root.netUp = rate.up
       var top = Math.max(rate.down, rate.up)
       root.netPercent = Math.max(0, Math.min(100, 100 * top / root.netCeilingBytes))
       root.netLabel = (top / 1000000).toFixed(top >= 10000000 ? 0 : 1)
     }
-    onLoadFailed: { root.netPercent = -1; root.netLabel = "--" }
+    onLoadFailed: { root.netPercent = -1; root.netLabel = "--"; root.netDown = -1; root.netUp = -1 }
   }
   property FileView uptimeFile: FileView {
     path: root.active ? "/proc/uptime" : ""
