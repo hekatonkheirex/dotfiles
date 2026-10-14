@@ -688,6 +688,20 @@ real). Dev IPC: `qs ipc call shell popup networks`, `qs ipc call shell
 forgetPrompt <name>`. Specification:
 `docs/superpowers/specs/2026-10-14-elena-networks-r4-design.md`.
 
+## Memory notes
+
+Measured 2026-10-14 on a fresh shell with the R1 to R7 surfaces: opening and
+closing each popup 25 times moves anonymous memory by less than 2 MB either way
+(no per-open leak; the sidebar's first open adds about 20 MB once). **Hot reload
+inflates the process**: the first file save adds about 19 MB and each further
+save a few MB (7 saves: 174 to 199 MB), so a session spent editing is not
+evidence of a leak; restart `quickshell.service` after editing. Idle sessions
+were flat (PID 1647: 434 to 442 MB over 10.7 h after warm-up).
+`qs-rss-monitor.service` logs every 2 minutes to `~/.cache/qs-rss/progress.log`;
+`python3 scripts/qs-rss-report.py` fits MB/hour per PID after a 10 minute
+warm-up and exits 1 on growth above 5 MB/h over at least an hour
+(`python3 scripts/tests/test_qs_rss_report.py` is its gate).
+
 ## Microphone tab, toasts and launcher (R6)
 
 **Microphone tab** (`bar/MicIndicator.qml`, `config/MicService.qml`): an 18 S by
