@@ -164,14 +164,14 @@ PopupBase {
               required property int index
               required property var modelData
               width: parent.width
-              height: mainContainer.implicitHeight + (Config.spacingSmall)
+              height: mainContainer.implicitHeight + Config.spacingSmall
 
               readonly property var notif: modelData
 
               Rectangle {
                 id: mainContainer
                 width: parent.width
-                implicitHeight: cardLayout.implicitHeight + (Config.spacingExtraLarge)
+                implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge
                 radius: Config.shapeLarge
                 color: Colors.surfaceContainer
                 DashedFrame { anchors.fill: parent; active: root.visible; radius: mainContainer.radius; strokeColor: Colors.outlineVariant }

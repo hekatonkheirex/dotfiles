@@ -89,7 +89,7 @@ ColumnLayout {
           visible: modelData.window !== null
           progress: modelData.window ? modelData.window.used_percent / 100 : 0
           activeColor: modelData.window && modelData.window.used_percent >= 90 ? Colors.error
-            : ((Colors.primary))
+            : Colors.primary
           Accessible.role: Accessible.ProgressBar
           Accessible.name: root.providerName + " " + modelData.title + " usage"
           Accessible.description: modelData.window ? modelData.window.used_percent + "% used" : "Unavailable"

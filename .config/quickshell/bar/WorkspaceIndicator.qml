@@ -130,8 +130,8 @@ Item {
     Math.min(30, Config.widgetSize - Config.spacingSmall - Config.spacingCompact)
   )
 
-  implicitWidth: horizontal ? grid.implicitWidth + 12 : (Config.widgetSize)
-  implicitHeight: horizontal ? (Config.widgetSize) : grid.implicitHeight + 12
+  implicitWidth: horizontal ? grid.implicitWidth + 12 : Config.widgetSize
+  implicitHeight: horizontal ? Config.widgetSize : grid.implicitHeight + 12
 
   Process {
     id: refresher
@@ -569,7 +569,7 @@ Item {
     radius: Math.min(Config.shapeLarge, width / 2, height / 2)
     color: root.workspaceGroupColor
     border.width: Config.themeBorderWidth
-    border.color: (Colors.outlineVariant)
+    border.color: Colors.outlineVariant
     clip: true
   }
 

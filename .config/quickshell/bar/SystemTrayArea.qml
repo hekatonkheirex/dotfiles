@@ -16,10 +16,10 @@ Item {
   property bool integrated: false
 
   property int visibleCount: 0
-  readonly property real preferredLength: visibleCount * (Config.widgetSize)
+  readonly property real preferredLength: visibleCount * Config.widgetSize
 
-  Layout.preferredWidth: horizontal ? preferredLength : (Config.widgetSize)
-  Layout.preferredHeight: horizontal ? (Config.widgetSize) : preferredLength
+  Layout.preferredWidth: horizontal ? preferredLength : Config.widgetSize
+  Layout.preferredHeight: horizontal ? Config.widgetSize : preferredLength
   visible: visibleCount > 0
 
   Rectangle {
@@ -62,11 +62,11 @@ Item {
         readonly property bool isIconVisible: modelData.id !== "blueman" && modelData.id !== "udiskie"
         visible: isIconVisible
 
-        Layout.preferredWidth: visible ? (Config.widgetSize) : 0
-        Layout.preferredHeight: visible ? (Config.widgetSize) : 0
+        Layout.preferredWidth: visible ? Config.widgetSize : 0
+        Layout.preferredHeight: visible ? Config.widgetSize : 0
         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-        width: visible ? (Config.widgetSize) : 0
-        height: visible ? (Config.widgetSize) : 0
+        width: visible ? Config.widgetSize : 0
+        height: visible ? Config.widgetSize : 0
         activeFocusOnTab: isIconVisible
 
         Accessible.role: Accessible.Button

@@ -8,7 +8,7 @@ import "../config"
 StatusIndicator {
   id: root
 
-  accentColor: (Colors.primary)
+  accentColor: Colors.primary
   accessibleName: "Battery"
 
   readonly property var batteryDevice: BatteryService.batteryDevice

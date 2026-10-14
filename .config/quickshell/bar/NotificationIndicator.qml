@@ -7,7 +7,7 @@ StatusIndicator {
 
   property int notificationCount: 0
 
-  accentColor: (Colors.primary)
+  accentColor: Colors.primary
 
   iconColor: ((root.accentColor))
   iconFilled: root.active || root.hasNotifications

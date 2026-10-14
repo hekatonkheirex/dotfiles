@@ -7,7 +7,7 @@ import "../config"
 StatusIndicator {
   id: root
 
-  accentColor: (Colors.primary)
+  accentColor: Colors.primary
   accessibleName: "Audio"
   tooltipText: "Audio volume"
 
@@ -29,10 +29,10 @@ StatusIndicator {
 
 
   iconColor: root.muted
-    ? (Colors.error)
+    ? Colors.error
     : ((root.accentColor))
   labelColor: root.muted
-    ? (Colors.error)
+    ? Colors.error
     : ((root.accentColor))
 
   onWheel: function(wheel) {

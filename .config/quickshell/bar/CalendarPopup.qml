@@ -14,7 +14,7 @@ PopupBase {
   property date currentDate: new Date()
   property date displayMonth: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
-  readonly property real cellWidth: ((Config.popupWidth) - (Config.popupPadding) * 2
+  readonly property real cellWidth: ((Config.popupWidth) - Config.popupPadding * 2
     - Config.spacingCompact * 6) / 7
   readonly property bool weekStartsMonday: Settings.calendarWeekStartsMonday
   readonly property var weekDays: CalendarLogic.weekDays(root.weekStartsMonday)
@@ -121,14 +121,14 @@ PopupBase {
               height: 32
               radius: (height / 2)
               color: root.isToday(dayNum)
-                ? (Colors.primary)
+                ? Colors.primary
                 : "transparent"
 
               Text {
                 anchors.centerIn: parent
                 text: dayNum > 0 ? dayNum.toString() : ""
                 color: root.isToday(dayNum)
-                  ? (Colors.fgPrimary)
+                  ? Colors.fgPrimary
                   : (root.isWeekend(dayNum) ? Colors.fgSurfaceVariant : Colors.fgSurface)
                 font.family: Config.fontFamily
                 font.pixelSize: Config.typeLabelLargeSize

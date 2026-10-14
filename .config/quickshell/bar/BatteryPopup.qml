@@ -142,7 +142,7 @@ PopupBase {
         }
         width: (parent.width - 4) * Math.max(0, Math.min(1, root.pct / 100))
         radius: 3
-        color: pct < 0 ? "transparent" : (root.charging || pct > 20 ? (Colors.primary) : (Colors.warning))
+        color: pct < 0 ? "transparent" : (root.charging || pct > 20 ? Colors.primary : Colors.warning)
       }
     }
 

@@ -18,7 +18,7 @@ ColumnLayout {
     color: Colors.fgSurface
     font.family: Config.displayFontFamily
     font.pixelSize: pageHeader.width < 360 ? Config.typeHeadlineSmallSize
-      : ((Config.typeHeadlineLargeSize))
+      : Config.typeHeadlineLargeSize
     font.weight: Config.typeMediumWeight
     font.letterSpacing: Config.typeHeadlineTracking
     lineHeight: Config.typeHeadlineLargeLineHeight

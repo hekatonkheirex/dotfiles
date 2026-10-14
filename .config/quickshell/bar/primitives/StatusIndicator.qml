@@ -192,7 +192,7 @@ Item {
 
       font.pixelSize: Config.typeLabelMediumSize
       font.weight: (Font.Medium)
-      font.letterSpacing: (Config.typeLabelTracking)
+      font.letterSpacing: Config.typeLabelTracking
       lineHeight: Config.typeLabelMediumLineHeight
       lineHeightMode: Text.FixedHeight
       horizontalAlignment: Text.AlignHCenter
@@ -201,7 +201,7 @@ Item {
       Layout.preferredWidth: implicitWidth
       Layout.maximumWidth: root.inlineContent
         ? implicitWidth
-        : Math.max(0, root.width - (Config.spacingSmall))
+        : Math.max(0, root.width - Config.spacingSmall)
       Layout.preferredHeight: implicitHeight
       Layout.fillHeight: root.inlineContent
       Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter

@@ -34,7 +34,7 @@ PanelWindow {
       : (root.compactLayout ? 184 : (240)))
   readonly property int sidebarRowSpacing: Config.spacingCompact
   readonly property int contentMargin: root.implicitHeight < 540 ? Config.spacingMedium
-    : (Config.spacingLarge)
+    : Config.spacingLarge
   readonly property real centeredLeftMargin: Math.max(Config.spacingLarge, (desktopW - root.implicitWidth) / 2)
   // Float the panel the same gap off the bar that popups use instead of
   // letting a tall panel sit flush against it.

@@ -30,7 +30,7 @@ Item {
     id: surface
     anchors.fill: parent
     radius: (root.horizontal ? height / 2 : width / 2)
-    color: ((Colors.surfaceContainerHigh))
+    color: Colors.surfaceContainerHigh
     border.color: ((Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.18)))
     border.width: ((1))
   }

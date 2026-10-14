@@ -564,7 +564,7 @@ PanelWindow {
             labelText: wsIndicator.mangoLayoutName !== ""
               ? wsIndicator.mangoLayoutName
               : wsIndicator.mangoLayoutSymbol
-            accentColor: (Colors.primary)
+            accentColor: Colors.primary
             accessibleName: "Layout"
             accessibleDescription: labelText !== ""
               ? labelText + " layout"
@@ -1195,7 +1195,7 @@ PanelWindow {
             radius: Config.shapeMedium
             color: "transparent"
             border.width: clockWidget.activeFocus ? Config.themeFocusBorderWidth : 0
-            border.color: (Colors.primary)
+            border.color: Colors.primary
           }
 
           MouseArea {

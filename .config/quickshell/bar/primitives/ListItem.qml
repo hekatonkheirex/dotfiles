@@ -34,12 +34,12 @@ Rectangle {
     ? Colors.secondaryContainer
     : (root.materialStatusItem
       ? Colors.surfaceContainerHighest
-      : (Colors.secondaryContainer))
+      : Colors.secondaryContainer)
   readonly property color selectedContentColor: root.materialNavigationItem
     ? Colors.fgSecondaryContainer
     : (root.materialStatusItem
       ? Colors.fgSurface
-      : (Colors.fgSecondaryContainer))
+      : Colors.fgSecondaryContainer)
   property color leadingIconColor: root.stateHighlighted
     ? root.selectedContentColor
     : Colors.fgSurface
@@ -63,7 +63,7 @@ Rectangle {
   height: implicitHeight
   Layout.minimumHeight: implicitHeight
   radius: root.materialNavigationItem ? height / 2
-    : (Config.shapeMedium)
+    : Config.shapeMedium
   activeFocusOnTab: root.enabled && (root.toggleControl === null || root.toggleControl.enabled)
   opacity: root.enabled ? 1.0 : 0.38
 

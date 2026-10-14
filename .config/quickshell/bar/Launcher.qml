@@ -7,7 +7,7 @@ StatusIndicator {
 
 
   iconLabel: "apps"
-  accentColor: (Colors.primary)
+  accentColor: Colors.primary
   inactiveBg: "transparent"
   borderOnHoverOnly: true
   accessibleName: "Applications launcher"
