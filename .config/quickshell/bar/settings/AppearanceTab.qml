@@ -1743,6 +1743,26 @@ Flickable {
       }
     }
 
+    ListItem {
+      Layout.fillWidth: true
+      leadingIcon: "left_panel_open"
+      title: "Open sidebar at the left screen edge"
+      subtitle: Settings.sidebarEdgeHover ? "Hover the left edge to open" : "Use the bar button only"
+      toggleControl: edgeHoverSwitch
+      SwitchControl {
+        id: edgeHoverSwitch
+        checked: Settings.sidebarEdgeHover
+        activeColor: Colors.primary
+        surfaceContainerHigh: Colors.surfaceContainerHigh
+        surfaceContainerHighest: Colors.surfaceContainerHighest
+        outline: Colors.outline
+        motionDuration: Config.motionMedium
+        reducedMotion: Config.reducedMotion
+        accessibleName: "Open sidebar at the left screen edge"
+        onToggled: { Settings.sidebarEdgeHover = !Settings.sidebarEdgeHover; Settings.save() }
+      }
+    }
+
     DockSection { Layout.fillWidth: true }
   }
 }

@@ -29,6 +29,7 @@ FileView {
     barSize: 42,
     barWidgetOrder: "launcher,workspaces,layout,focused,gap,center,audio,display,media,weather,llm,battery,tray,notifications,clock",
     dockPinned: "brave-origin,kitty",
+    sidebarEdgeHover: true,
     barClockInFlow: false,
     calendarWeekStartsMonday: false,
     ccShowAudio: true,
@@ -145,6 +146,7 @@ FileView {
   property alias barSize: adapter.barSize
   property alias barWidgetOrder: adapter.barWidgetOrder
   property alias dockPinned: adapter.dockPinned
+  property alias sidebarEdgeHover: adapter.sidebarEdgeHover
   property alias barClockInFlow: adapter.barClockInFlow
   property alias calendarWeekStartsMonday: adapter.calendarWeekStartsMonday
   property alias ccShowAudio: adapter.ccShowAudio
@@ -235,6 +237,7 @@ FileView {
     resetAppearanceDefaults()
     barWidgetOrder = root.defaults.barWidgetOrder
     dockPinned = root.defaults.dockPinned
+    sidebarEdgeHover = root.defaults.sidebarEdgeHover
     barClockInFlow = root.defaults.barClockInFlow
     calendarWeekStartsMonday = root.defaults.calendarWeekStartsMonday
     ccShowAudio = root.defaults.ccShowAudio
@@ -290,6 +293,7 @@ FileView {
     property int barSize: root.defaults.barSize
     property string barWidgetOrder: root.defaults.barWidgetOrder
     property string dockPinned: root.defaults.dockPinned
+    property bool sidebarEdgeHover: root.defaults.sidebarEdgeHover
     property bool barClockInFlow: root.defaults.barClockInFlow
     property bool calendarWeekStartsMonday: root.defaults.calendarWeekStartsMonday
     property bool ccShowAudio: root.defaults.ccShowAudio

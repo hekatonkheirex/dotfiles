@@ -47,6 +47,22 @@ def main():
             player_iface.Next()
         elif action == 'prev':
             player_iface.Previous()
+        elif action == 'position':
+            props = dbus.Interface(player_obj, 'org.freedesktop.DBus.Properties')
+            print(int(props.Get('org.mpris.MediaPlayer2.Player', 'Position')) / 1000000.0)
+        elif action == 'seek' and len(sys.argv) > 2:
+            player_iface.Seek(dbus.Int64(int(float(sys.argv[2]) * 1000000)))
+        elif action == 'seekto' and len(sys.argv) > 2:
+            meta = dbus.Interface(player_obj, 'org.freedesktop.DBus.Properties').Get(
+                'org.mpris.MediaPlayer2.Player', 'Metadata')
+            track = meta.get('mpris:trackid')
+            if track is not None:
+                player_iface.SetPosition(track, dbus.Int64(int(float(sys.argv[2]) * 1000000)))
+        elif action == 'volume' and len(sys.argv) > 2:
+            props = dbus.Interface(player_obj, 'org.freedesktop.DBus.Properties')
+            cur = float(props.Get('org.mpris.MediaPlayer2.Player', 'Volume'))
+            props.Set('org.mpris.MediaPlayer2.Player', 'Volume',
+                      dbus.Double(max(0.0, min(1.0, cur + float(sys.argv[2])))))
     except Exception as e:
         print("Error sending command:", e)
 

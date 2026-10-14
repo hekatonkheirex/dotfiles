@@ -13,12 +13,22 @@ QtObject {
   property string album: ""
   property string artUrl: ""
   property int lengthSec: 0
+  property real positionSec: 0
   property string lengthStr: "0:00"
   property bool indicatorActive: false
   property bool popupActive: false
   property bool sidebarActive: false
   property bool waveActive: false
   property bool monitorEnabled: true
+
+  readonly property string control: Quickshell.env("HOME") + "/.config/quickshell/scripts/mpris_control.py"
+  function playPause() { Quickshell.execDetached(["python3", root.control, "play"]) }
+  function stop() { Quickshell.execDetached(["python3", root.control, "stop"]) }
+  function next() { Quickshell.execDetached(["python3", root.control, "next"]) }
+  function previous() { Quickshell.execDetached(["python3", root.control, "prev"]) }
+  function seekBy(delta) { Quickshell.execDetached(["python3", root.control, "seek", String(delta)]) }
+  function seekTo(sec) { Quickshell.execDetached(["python3", root.control, "seekto", String(sec)]) }
+  function playerVolumeBy(delta) { Quickshell.execDetached(["python3", root.control, "volume", String(delta)]) }
 
   readonly property bool active: indicatorActive || popupActive || sidebarActive || waveActive
 
@@ -43,6 +53,7 @@ QtObject {
           root.artUrl = info.artUrl
           root.lengthSec = info.length_sec
           root.lengthStr = info.length_str
+          root.positionSec = info.position_sec || 0
         } catch (error) {
           print("MediaService parse error:", error)
         }

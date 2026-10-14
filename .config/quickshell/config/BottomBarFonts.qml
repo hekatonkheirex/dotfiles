@@ -16,6 +16,14 @@ QtObject {
   // Her text font for the value pills (clock, date). The file names the
   // family "Kyok medium" (lowercase m), so match without case; fall back to
   // the shell font when it is not installed.
+  function pick(name) {
+    var want = name.toLowerCase()
+    var all = Qt.fontFamilies()
+    for (var i = 0; i < all.length; i++) if (all[i].toLowerCase() === want) return all[i]
+    return Config.fontFamily
+  }
+  readonly property string clockFamily: pick("Baro Plain")
+  readonly property string clockMinutesFamily: pick("Baro LineThree")
   readonly property string textFamily: {
     const f = Qt.fontFamilies().find(n => n.toLowerCase() === "kyok medium")
     return f !== undefined ? f : Config.fontFamily

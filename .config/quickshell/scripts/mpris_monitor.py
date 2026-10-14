@@ -52,6 +52,12 @@ def get_player_info(sender):
             length_sec = int(metadata['mpris:length']) // 1000000
             length_str = f"{length_sec // 60}:{length_sec % 60:02d}"
             
+        position_sec = 0
+        try:
+            position_sec = int(iface.Get('org.mpris.MediaPlayer2.Player', 'Position')) // 1000000
+        except Exception:
+            pass
+
         return {
             'sender': sender,
             'status': playback_status,
@@ -60,7 +66,8 @@ def get_player_info(sender):
             'album': album,
             'artUrl': art_url,
             'length_sec': length_sec,
-            'length_str': length_str
+            'length_str': length_str,
+            'position_sec': position_sec
         }
     except Exception as e:
         return None
@@ -83,8 +90,11 @@ def select_active_sender(preferred_sender=None):
     return selected_sender
 
 
+last_emitted = None
+
+
 def update_and_print():
-    global preferred_player_sender
+    global preferred_player_sender, last_emitted
     # Verify preferred player is still active
     if preferred_player_sender and preferred_player_sender not in players:
         preferred_player_sender = None
@@ -95,12 +105,17 @@ def update_and_print():
         preferred_player_sender = active_sender
     
     if active:
-        sys.stdout.write(json.dumps(active) + "\n")
+        payload = active
     else:
-        sys.stdout.write(json.dumps({
-            'status': 'NoPlayer', 'title': '', 'artist': '', 'album': '', 
-            'artUrl': '', 'length_sec': 0, 'length_str': '0:00'
-        }) + "\n")
+        payload = {
+            'status': 'NoPlayer', 'title': '', 'artist': '', 'album': '',
+            'artUrl': '', 'length_sec': 0, 'length_str': '0:00', 'position_sec': 0
+        }
+    line = json.dumps(payload) + "\n"
+    if line == last_emitted:
+        return
+    last_emitted = line
+    sys.stdout.write(line)
     sys.stdout.flush()
 
 def handle_properties_changed(interface, changed_properties, invalidated_properties, path=None, sender=None):
@@ -232,6 +247,22 @@ t = threading.Thread(target=read_fifo, daemon=True)
 t.start()
 
 update_and_print()
+
+
+def tick():
+    # Position changes without a PropertiesChanged signal, so re-read the
+    # active player once a second, only while it is Playing.
+    sender = preferred_player_sender
+    cur = players.get(sender) if sender else None
+    if cur and cur.get('status') == 'Playing':
+        info = get_player_info(sender)
+        if info:
+            players[sender] = info
+            update_and_print()
+    return True
+
+
+GLib.timeout_add_seconds(1, tick)
 
 loop = GLib.MainLoop()
 try:
