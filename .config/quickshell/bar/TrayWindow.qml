@@ -3,15 +3,14 @@ import Quickshell
 import Quickshell.Widgets
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
-import QtQuick.Effects
 import "../config"
 
 // The system tray (route "tray"): right and bottom anchored overlay above the
 // bottom bar, no reserved space. A grid of the tray icons; left click
 // activates, right click opens the app's menu, middle click is the secondary
-// action; activating an item closes the window. Dismiss: Esc, middle click on the background, click outside
-// (shell.qml's PopupShield) and the bar button again. No focus-loss dismissal:
-// an app menu takes the keyboard focus while it is open.
+// action; activating an item closes the window. Dismiss: Esc, focus moving
+// away (not while an app menu is open), middle click on the background, click outside
+// (shell.qml's PopupShield) and the bar button again.
 PanelWindow {
   id: root
 
@@ -37,13 +36,28 @@ PanelWindow {
   implicitWidth: root.columns * root.cell + (root.columns + 1) * root.pad / 2 + root.pad
   implicitHeight: root.rowsShown * root.cell + (root.rowsShown + 1) * root.pad / 2 + root.pad
 
-  onVisibleChanged: if (visible) content.forceActiveFocus()
+  // Open app menus; the focus moves into them, which must not close the window.
+  property int menuCount: 0
+
+  onVisibleChanged: {
+    if (visible) content.forceActiveFocus()
+    else root.menuCount = 0
+  }
 
   FocusScope {
     id: content
     anchors.fill: parent
     focus: true
     Keys.onEscapePressed: root.dismissed()
+
+    // Pressing anywhere else takes the keyboard focus away, which cancels the
+    // press on the bar button and would swallow its toggle (the window then
+    // stayed until a second click). Focus loss closes the window, except while
+    // an app menu, which takes the focus itself, is open.
+    FocusDismiss {
+      target: root
+      onDismissed: if (root.menuCount === 0) root.dismissed()
+    }
 
     Rectangle {
       anchors.fill: parent
@@ -89,7 +103,6 @@ PanelWindow {
             color: mouse.containsMouse ? Colors.surfaceContainerHigh : Colors.surfaceContainer
 
             readonly property bool pixmap: modelData.icon.indexOf("image://qspixmap/") === 0
-            readonly property bool tint: /fcitx|ibus/i.test(modelData.id + " " + modelData.title)
 
             Accessible.role: Accessible.Button
             Accessible.name: modelData.title || modelData.id || "System tray item"
@@ -100,8 +113,6 @@ PanelWindow {
               height: width
               source: slot.modelData.icon
               visible: !slot.pixmap
-              layer.enabled: slot.tint
-              layer.effect: MultiEffect { colorization: 1.0; colorizationColor: Colors.primary }
             }
             Image {
               anchors.centerIn: parent
@@ -110,17 +121,23 @@ PanelWindow {
               source: slot.modelData.icon
               fillMode: Image.PreserveAspectFit
               visible: slot.pixmap
-              layer.enabled: slot.tint
-              layer.effect: MultiEffect { colorization: 1.0; colorizationColor: Colors.primary }
             }
 
-            QsMenuAnchor {
-              id: menuAnchor
-              menu: slot.modelData.menu
-              anchor.window: root
-              anchor.item: slot
-              anchor.edges: Edges.Top
-              anchor.gravity: Edges.Top
+            // Created only while a menu is wanted, so a closed tray window
+            // holds no DBusMenu connections.
+            Loader {
+              id: menuLoader
+              active: false
+              sourceComponent: QsMenuAnchor {
+                menu: slot.modelData.menu
+                anchor.window: root
+                anchor.item: slot
+                anchor.edges: Edges.Top
+                anchor.gravity: Edges.Top
+                Component.onCompleted: { root.menuCount++; open() }
+                Component.onDestruction: root.menuCount = Math.max(0, root.menuCount - 1)
+                onClosed: menuLoader.active = false
+              }
             }
 
             MouseArea {
@@ -130,7 +147,7 @@ PanelWindow {
               cursorShape: Qt.PointingHandCursor
               acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
               onClicked: function(m) {
-                if (m.button === Qt.RightButton && slot.modelData.hasMenu) menuAnchor.open()
+                if (m.button === Qt.RightButton && slot.modelData.hasMenu) menuLoader.active = true
                 else if (m.button === Qt.MiddleButton) { slot.modelData.secondaryActivate(); root.dismissed() }
                 else { slot.modelData.activate(); root.dismissed() }
               }
