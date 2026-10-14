@@ -9,6 +9,7 @@ import Quickshell.Wayland._WlrLayerShell
 import Quickshell.Io
 import "primitives"
 import "../config"
+import "../config/LauncherLayout.js" as LauncherLayout
 
 PanelWindow {
   id: root
@@ -20,11 +21,13 @@ PanelWindow {
   // it travels along as the initial jump query.
   signal wallpapersRequested(string query)
 
-  implicitWidth: Math.min(Config.launcherWidth,
-    Math.max(240, Screen.desktopAvailableWidth - Config.barWidth - Config.spacingPage))
+  // Her rofi geometry (R6c): half the screen, centered by shell.qml, eight
+  // fixed lines. The row is 10 S padding around one text line.
+  readonly property int textPx: Math.round(14 * Config.elenaScale)
+  readonly property int rowHeight: Math.round(textPx * 1.5) + 2 * Config.dp(10)
+  implicitWidth: LauncherLayout.windowWidth(Screen.width, Config.dp(LauncherLayout.MIN_WIDTH_DP), Config.spacingPage)
   visible: false
-  implicitHeight: Math.min(screenH - Config.spacingPage, clipItem.implicitHeight + Config.spacingPage,
-        clipboardMode ? 620 : 500)
+  implicitHeight: Math.min(screenH - Config.spacingPage, clipItem.implicitHeight + 2 * Config.dp(6))
 
   Behavior on implicitWidth {
     NumberAnimation {
@@ -766,17 +769,14 @@ PanelWindow {
     id: bg
     anchors.fill: parent
     color: Colors.surface
-    radius: Config.popupRadius
-    // Static reference framing; focus rings remain on the native controls.
-    DashedFrame {
-      anchors.fill: parent
-      active: root.visible
-      radius: bg.radius
-    }
+    // Her rofi window: 6 S border in x0, 12 S radius, no padding.
+    radius: Config.dp(12)
+    border.width: Config.dp(6)
+    border.color: Colors.surfaceContainer
 
     transform: [
       Translate { id: transX; x: 0 },
-      Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
+      Scale { id: scaleTransform; origin.x: bg.width / 2; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
     ]
 
     MaterialEntrance {
@@ -788,7 +788,8 @@ PanelWindow {
 
     ColumnLayout {
       id: clipItem
-      anchors { fill: parent; margins: Config.spacingLarge }
+      anchors { fill: parent; margins: Config.dp(6) }
+      spacing: 0
 
       Shortcut {
         sequence: "Ctrl+F"
@@ -815,6 +816,25 @@ PanelWindow {
         context: Qt.WindowShortcut
         enabled: root.visible && root.selectedResult !== null
         onActivated: resultMenu.popup(appList, appList.width / 2, appList.height / 2)
+      }
+      // Her rofi keys: row up/down and element next/previous, accept.
+      Shortcut {
+        sequences: ["Ctrl+N", "Alt+J", "Tab"]
+        context: Qt.WindowShortcut
+        enabled: root.visible && !resultMenu.opened
+        onActivated: root.moveSelection(1)
+      }
+      Shortcut {
+        sequences: ["Ctrl+P", "Alt+K", "Backtab"]
+        context: Qt.WindowShortcut
+        enabled: root.visible && !resultMenu.opened
+        onActivated: root.moveSelection(-1)
+      }
+      Shortcut {
+        sequences: ["Ctrl+M", "Alt+M", "Alt+A"]
+        context: Qt.WindowShortcut
+        enabled: root.visible && !resultMenu.opened
+        onActivated: root.activateSelection()
       }
 
       Menu {
@@ -845,43 +865,29 @@ PanelWindow {
           onTriggered: root.deleteClipboardEntry(root.selectedResult.clipboardLine)
         }
       }
-      spacing: Config.spacingMedium
 
-      RowLayout {
-        Layout.fillWidth: true
-        Text {
-          Layout.fillWidth: true
-          text: "/ " + (root.actionMode ? "ACTIONS"
-            : (root.clipboardMode ? "CLIPBOARD" : "APPLICATIONS")) + " /"
-          color: Colors.primary
-          font.family: "monospace"
-          font.pixelSize: Config.typeLabelMediumSize
-          font.letterSpacing: Config.typeMonoTracking
-          elide: Text.ElideRight
-        }
-        Text {
-          text: filteredModel.count + (filteredModel.count === 1 ? " MATCH" : " MATCHES")
-          color: Colors.fgSurfaceVariant
-          font.family: "monospace"
-          font.pixelSize: Config.typeLabelSmallSize
-          font.letterSpacing: Config.typeMonoTracking
-        }
-      }
-
+      // Her inputbar: 25 S padding, prompt glyph in x1, then the entry.
       TextFieldControl {
         id: searchInputControl
+        objectName: "inputbar"
         Layout.fillWidth: true
         Layout.preferredHeight: implicitHeight
         Layout.minimumHeight: implicitHeight
-        color: Colors.surfaceContainer
-        border.width: (searchInputControl.input.activeFocus ? Config.themeFocusBorderWidth : Config.themeBorderWidth)
-        leadingIcon: "search"
+        Layout.margins: 0
+        plain: true
+        color: "transparent"
+        leadingGlyph: "\ueca7"
+        leadingGlyphColor: Colors.elenaAccent(1)
+        leadingGlyphSize: root.textPx
+        textPixelSize: root.textPx
+        textBold: true
+        sidePadding: Config.dp(25)
+        verticalPadding: Config.dp(20)
         captureHorizontalArrows: false
         onLeftPressed: root.moveSelection(-1)
         onRightPressed: root.moveSelection(1)
-        leadingIconSize: 22
         placeholder: root.actionMode ? "Run a shell action..."
-          : (root.clipboardMode ? "Search clipboard history..." : "Search apps")
+          : (root.clipboardMode ? "Search clipboard history..." : "")
         showPlaceholderOnFocus: true
         accessibleName: "Search applications and launcher providers"
 
@@ -891,11 +897,36 @@ PanelWindow {
         onDownPressed: root.moveSelection(1)
       }
 
-      // Prefix shortcuts live under the field instead of crowding the placeholder.
+      // Her message bar (x0): provider, match count and keys.
+      Rectangle {
+        objectName: "message"
+        Layout.fillWidth: true
+        Layout.preferredHeight: messageText.implicitHeight + 2 * Config.dp(6)
+        color: Colors.surfaceContainer
+        Text {
+          id: messageText
+          anchors.fill: parent
+          anchors.leftMargin: Config.dp(30)
+          anchors.rightMargin: Config.dp(30)
+          verticalAlignment: Text.AlignVCenter
+          text: "/ " + (root.actionMode ? "ACTIONS" : (root.clipboardMode ? "CLIPBOARD" : "APPLICATIONS")) + " /"
+            + "   " + filteredModel.count + (filteredModel.count === 1 ? " MATCH" : " MATCHES")
+            + "   ↑↓ SELECT · ENTER " + (root.clipboardMode ? "RESTORE" : (root.actionMode ? "RUN" : "OPEN"))
+          color: Colors.fgSurface
+          font.family: "monospace"
+          font.pixelSize: Math.round(root.textPx * 0.6)
+          font.letterSpacing: Config.typeMonoTracking
+          elide: Text.ElideRight
+          maximumLineCount: 1
+        }
+      }
+
+      // Prefix shortcuts live under the field instead of crowding the entry.
       Flow {
         id: prefixChips
         Layout.fillWidth: true
-        Layout.leftMargin: Config.spacingSmall
+        Layout.margins: Config.dp(10)
+        Layout.leftMargin: Config.dp(25)
         spacing: Config.spacingSmall
         visible: root.searchText === ""
 
@@ -937,71 +968,86 @@ PanelWindow {
         }
       }
 
+      // Eight lines, no scrollbar; rows 10 S by 25 S padding, 2 S apart.
       ListView {
         id: appList
+        objectName: "list"
         visible: true
         Layout.fillWidth: true
-        Layout.preferredHeight: Math.min(contentHeight, 380)
-        Layout.fillHeight: true
-        Layout.minimumHeight: 0
-        activeFocusOnTab: true
+        Layout.preferredHeight: LauncherLayout.listHeight(root.rowHeight, Config.dp(2))
+        Layout.minimumHeight: Layout.preferredHeight
+        activeFocusOnTab: false
         Keys.onUpPressed: root.moveSelection(-1)
         Keys.onDownPressed: root.moveSelection(1)
         Keys.onReturnPressed: root.activateSelection()
         Keys.onEnterPressed: root.activateSelection()
         model: filteredModel
         clip: true
+        boundsBehavior: Flickable.StopAtBounds
         currentIndex: root.selectedIndex
-        spacing: Config.spacingCompact
-        ScrollBar.vertical: SettingsScrollBar { scrollTarget: appList }
+        spacing: Config.dp(2)
 
-        delegate: ListItem {
+        delegate: Rectangle {
           id: resultRow
-          contextMenuEnabled: true
-          activeFocusOnTab: false
-          Keys.onUpPressed: { root.moveSelection(-1); appList.forceActiveFocus() }
-          Keys.onDownPressed: { root.moveSelection(1); appList.forceActiveFocus() }
-          // The scrollbar is overlaid on the ListView; leave a gutter so a
-          // selected row's rounded border cannot run underneath its thumb.
-          width: Math.max(0, appList.width - Config.spacingMedium)
-          height: implicitHeight
-          radius: Config.shapeMedium
-          // Apps without a resolvable icon get a generic glyph, not a letter avatar.
-          leadingIcon: model.kind === "action"
-            || model.kind === "clipboard-action" || model.kind === "clipboard" ? model.icon
-            : (model.icon === "" ? "apps" : "")
-          leadingImageSource: model.kind !== "action" && model.icon !== ""
-            && model.kind !== "clipboard-action" && model.kind !== "clipboard"
-            ? "file://" + model.icon : ""
-          title: model.name
-          subtitle: root.selectedIndex !== index ? "" : (model.comment || "")
-          selected: root.selectedIndex === index
-          accessibleName: model.name
-          accessibleDescription: model.comment || (model.kind === "action" ? "Shell action" : "Application")
-          property Item selectionMarker: Rectangle {
-            parent: resultRow
-            anchors.left: parent.left
+          required property int index
+          required property var model
+          objectName: "row_" + index
+          readonly property bool selected: root.selectedIndex === index
+          width: appList.width
+          height: root.rowHeight
+          color: selected ? Colors.surfaceContainer : "transparent"
+          Accessible.role: Accessible.ListItem
+          Accessible.name: model.name
+          Accessible.description: model.comment || (model.kind === "action" ? "Shell action" : "Application")
+
+          Row {
             anchors.verticalCenter: parent.verticalCenter
-            width: 3
-            height: Math.min(24, parent.height - Config.spacingSmall * 2)
-            radius: width / 2
-            color: Colors.primary
-            visible: resultRow.selected
+            anchors.left: parent.left
+            anchors.leftMargin: Config.dp(25)
+            anchors.right: parent.right
+            anchors.rightMargin: Config.dp(25) + (deleteButton.visible ? deleteButton.width : 0)
+            spacing: Config.dp(14)
+            Text {
+              id: nameText
+              objectName: "name"
+              text: resultRow.model.name
+              color: resultRow.selected ? Colors.elenaAccent(4) : Colors.fgSurface
+              font.family: "monospace"
+              font.bold: true
+              font.pixelSize: root.textPx
+              elide: Text.ElideRight
+              width: Math.min(implicitWidth, parent.width)
+            }
+            Text {
+              visible: resultRow.selected && resultRow.model.comment !== ""
+              text: resultRow.model.comment
+              width: Math.max(0, parent.width - nameText.width - parent.spacing)
+              color: Colors.elenaAccent(8)
+              font.family: Config.fontFamily
+              font.pixelSize: Math.round(root.textPx * 0.7)
+              anchors.verticalCenter: parent.verticalCenter
+              elide: Text.ElideRight
+            }
           }
-          onHoveredChanged: {
-            if (hovered && !resultMenu.opened) root.selectedIndex = index
-          }
-          onClicked: {
-            root.selectedIndex = index
-            root.activateSelection()
-          }
-          onContextMenuRequested: function(mouse) {
-            root.selectedIndex = index
-            resultMenu.popup(resultRow, mouse.x, mouse.y)
+
+          MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+            onEntered: if (!resultMenu.opened) root.selectedIndex = resultRow.index
+            onClicked: function(m) {
+              root.selectedIndex = resultRow.index
+              if (m.button === Qt.RightButton) resultMenu.popup(resultRow, m.x, m.y)
+              else root.activateSelection()
+            }
           }
 
           IconButton {
-            visible: root.clipboardMode && model.kind === "clipboard"
+            id: deleteButton
+            visible: root.clipboardMode && resultRow.model.kind === "clipboard"
+            anchors.right: parent.right
+            anchors.rightMargin: Config.dp(10)
+            anchors.verticalCenter: parent.verticalCenter
             size: 30
             iconSize: 18
             iconLabel: "delete"
@@ -1009,13 +1055,14 @@ PanelWindow {
             accessibleName: "Delete clipboard entry"
             accessibleDescription: "Delete this entry from clipboard history"
             tooltipText: "Delete clipboard entry"
-            onClicked: root.deleteClipboardEntry(model.clipboardLine)
+            onClicked: root.deleteClipboardEntry(resultRow.model.clipboardLine)
           }
         }
       }
 
       Text {
         Layout.fillWidth: true
+        Layout.margins: Config.dp(25)
         visible: !root.clipboardMode && filteredModel.count === 0
         text: "No matching results"
         color: Colors.fgSurfaceVariant
@@ -1029,10 +1076,9 @@ PanelWindow {
         visible: root.clipboardMode
         Layout.fillWidth: true
         Layout.preferredHeight: 70
+        Layout.margins: Config.dp(10)
         radius: Config.shapeMedium
         color: Colors.surfaceContainerLow
-        border.color: Colors.outlineVariant
-        border.width: Config.themeBorderWidth
 
         ColumnLayout {
           anchors.fill: parent
@@ -1058,17 +1104,6 @@ PanelWindow {
             wrapMode: Text.Wrap
           }
         }
-      }
-
-      Text {
-        Layout.fillWidth: true
-        text: "↑↓ SELECT · ENTER " + (root.clipboardMode ? "RESTORE"
-          : (root.actionMode ? "RUN" : "OPEN")) + " · CTRL+F SEARCH"
-        color: Colors.fgSurfaceVariant
-        font.family: "monospace"
-        font.pixelSize: Config.typeLabelSmallSize
-        font.letterSpacing: Config.typeMonoTracking
-        wrapMode: Text.Wrap
       }
     }
   }

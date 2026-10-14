@@ -9,7 +9,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Workspace strip** (`bar/Bar.qml`): the whole top bar is an 8px row of workspace color blocks.
 - **Sidebar and dock**: a three-page sidebar (Home, Agenda, Media) that also opens from the left screen edge and a full-width bottom bar (page buttons, volume, app dock, clock, battery, network) that reserves its height. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
 - **Lock screen** in her power-menu look (lock ring, masked LOCKDOWN line) with PAM + fingerprint authentication.
-- **Notification handling** with dashed Elena history/toast cards, monospace app/time metadata, normal-case content, and explicit critical styling.
+- **Notification handling** with dashed Elena history cards and her dunst-style toast stack (R6): urgency-colored glyph rows, up to five cards with duplicate counts, critical toasts that stay.
 - **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; toggle it in Settings > Notifications (persisted).
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
 - **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, shell actions via `>`, clipboard history via `;`, and wallpaper search via `@`. Speech recognition is removed.
@@ -112,7 +112,8 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── CalendarPopup.qml       # Calendar month grid (shared bordered surface)
 │   ├── NotificationIndicator.qml # Notifications counter (orientation-aware)
 │   ├── NotificationPopup.qml   # Notification history popup list
-│   ├── NotificationToast.qml   # Notification toast banner
+│   ├── NotificationToast.qml   # Her dunst toast stack (R6b): five cards, duplicate counts, urgency colors
+│   ├── MicIndicator.qml        # Her top-center microphone tab (R6a)
 │   ├── PopupBase.qml           # Shared popup background, border and spring entrance
 │   ├── PopupShield.qml         # Full-screen click-outside-to-dismiss surface
 │   ├── PopupDivider.qml        # Reusable popup section divider
@@ -438,13 +439,13 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
   eyes become `> <` on hover; pixel checks verify that the entire body stays
   unchanged. The mascot is 96 × 104 px at the current scale. Both menu frames
   share one content-driven height, keeping their top and bottom edges aligned.
-- **Launcher**: App/action/clipboard search uses a screen-bounded 460px single-column Elena card with a dashed rounded frame, monospace uppercase provider/count labels, contextual keyboard hints and an accent selection marker. Names and selected descriptions keep the regular body font and normal case; popup height follows content without a separate details pane. Ctrl+F returns to search, arrows select results, Enter activates, and Tab reaches provider controls. Right-click or Shift+F10/Menu exposes opening, copying parsed POSIX-shell-quoted application arguments, or deleting a clipboard entry; Escape closes the context menu before dismissing. `@` still hands off to the wallpaper filmstrip. Speech recognition, its microphone button, recording/transcription processes and helper are removed; system packages and downloaded models outside the repo are untouched.
+- **Launcher**: App/action/clipboard search uses her rofi layout (R6c): centered, half the screen wide (min `dp(560)`), a solid 6 S x0 border with 12 S radius, an input bar with her prompt glyph in x1, a message bar with provider/count/keys, and eight fixed lines with the selected row in x0 and x4 text. Ctrl+F returns to search, arrows, Ctrl+N/P, Alt+J/K and Tab select results, Enter, Ctrl+M, Alt+M, Alt+A or a click activates. Right-click or Shift+F10/Menu exposes opening, copying parsed POSIX-shell-quoted application arguments, or deleting a clipboard entry; Escape closes the context menu before dismissing. `@` still hands off to the wallpaper filmstrip. Speech recognition, its microphone button, recording/transcription processes and helper are removed; system packages and downloaded models outside the repo are untouched.
 - **Settings**: Provides ten tabs, remembers the last selected tab, and keeps Bluetooth Settings-only. The QuickMenu Settings tile was dropped with the QuickMenu and the Network tab with R4; reach Settings from `XF86Tools`. The panel moves from its header and resizes from the bottom-right corner, with a 560px minimum width and a maximum height bounded by screen margins. Sidebar navigation scrolls on overflow without a visible scrollbar; keyboard navigation brings the selected tab into view. Search prioritizes control titles, reports result counts or an empty state, and opens and highlights matching controls.
 - **Settings presentation**: Defaults to 1100×900 when no saved size exists, can expand to 1440px, and bounds the navigation pane and page width. General sections become side-by-side above 800px and stack below. Narrow labels elide with tooltips; rows wrap and grow. Ctrl+F searches from any control, without stealing content editing/navigation keys.
 - **Settings support**: Retired hidden-bar visibility/order, placement/form, workspace count/marker, bar/clock size, coupled Bar Scale, seconds and timezone controls are removed along with their search entries. Font, icon and spacing controls remain independently available under **Interface sizing** and do not resize the fixed 8px workspace strip or 48px bottom bar. Legacy saved keys and hidden service owners are intentionally retained; this UI cleanup does not rewrite personal preferences or implement R5/R6.
 - **ActionButton**: Label-only buttons reserve no icon height or icon-to-label spacing; compact Settings actions retain centered labels.
 - **Weather**: Uses a configured manual location by default, optionally supports IP geolocation, refreshes on the persisted interval and reports the last update time. Refreshes coalesce rather than aborting an active fetch; invalid responses and command failures appear as popup errors.
-- **Notifications**: History and normal toasts share dashed rounded framing and monospace metadata. Critical toasts retain a solid error outline/avatar and an explicit CRITICAL cue. DND/quiet hours suppress toasts without discarding history; critical bypass, placement and retention stay persisted. Default/named actions and closed-entry behavior remain. Named toast actions capture the owner before invocation because an action can synchronously close its notification and destroy the button delegate.
+- **Notifications**: History keeps dashed rounded framing and monospace metadata; toasts follow her dunst look (R6b, below). DND/quiet hours suppress toasts without discarding history; critical bypass, placement and retention stay persisted. Default/named actions and closed-entry behavior remain. Named toast actions capture the owner before invocation because an action can synchronously close its notification and destroy the button delegate.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a polling re-query runs in `shell.qml` after reloads.
 - **Palette ownership**: Live comes from wallpaper-driven Matugen; Fixed comes from `PaletteCatalog.js`. `sync-active-palette.sh` activates separate source caches and refreshes the generated companions. Wallpaper changes still refresh Live while Fixed is selected. SDDM updates remain explicit.
 - **Deployment**: `scripts/install-ui-suite.sh` installs only the palette-driven Matugen companions and optional light/dark greeters. Use `--dry-run` or `--skip-sddm`; `verify-ui-suite.sh` checks the matching assets. Existing outside-tree themes are untouched. Installing the updated SDDM bridge requires an explicit privileged action; no system installation is performed by the cutover.
@@ -686,6 +687,36 @@ and the service against fixture nmcli output; connect, disconnect and forget nev
 real). Dev IPC: `qs ipc call shell popup networks`, `qs ipc call shell
 forgetPrompt <name>`. Specification:
 `docs/superpowers/specs/2026-10-14-elena-networks-r4-design.md`.
+
+## Microphone tab, toasts and launcher (R6)
+
+**Microphone tab** (`bar/MicIndicator.qml`, `config/MicService.qml`): an 18 S by
+10 S tab at the top center, square top and round bottom. Live mic is x1 at full
+opacity, muted is x8 at 0.4. Click toggles the default source's mute, middle
+click hides it until the mute state changes. One `pactl subscribe` reader
+(source events only) runs while Settings > Appearance > Microphone indicator is
+on; a change of default source posts a low "Recording device" notice. Namespace
+`quickshell-popup-mic`.
+
+**Toasts** (`bar/NotificationToast.qml`, `config/ToastModel.js`): top right, 20 S
+offsets; card `xbg` in an 8 S x0 frame, 18 S radius. Row one is the heart glyph
+(U+E944) in the urgency color (low x6, normal x2, critical x1) and the summary;
+row two the arrow glyph (U+E90D) in x8 and the body. At most five cards; the same
+app, summary and body stack into one with `(N)`. Timeouts: the app's own value
+(Quickshell reports milliseconds) wins; unset means low 3 s, normal 8 s
+(`notificationToastDurationMs`, migrated from the old 5 s default once), critical
+sticky. Left click closes, middle click runs the default action then closes,
+right click closes every card; action buttons stay. Delivery, history, DND and
+quiet hours are unchanged, and dropped cards remain in history.
+
+**Launcher** (`bar/LauncherPopup.qml`, `config/LauncherLayout.js`): see the
+Launcher entry above; providers, ranking, `>`, `;` and `@` are unchanged.
+
+Checks: `node tests/r6/*.test.mjs` (mic parsers, toast rules, launcher geometry,
+wiring) and `bash scripts/r6-render.sh` (mic service against fixture pactl,
+tab pixels, toast urgency colors, clicks, duplicates, limit, expiry; mutation
+proven). The launcher is verified live. Specification:
+`docs/superpowers/specs/2026-10-14-elena-r6-indicators-notifications-launcher-design.md`.
 
 ## Alarms window (R5)
 

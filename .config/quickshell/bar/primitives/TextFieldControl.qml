@@ -19,6 +19,16 @@ Rectangle {
   property string leadingIcon: ""
   property color leadingIconColor: Colors.fgSurfaceVariant
   property real leadingIconSize: 22
+  // R6c: her rofi inputbar. `plain` drops the outline; the glyph comes from her
+  // icon font; padding and entry font are tunable.
+  property bool plain: false
+  property string leadingGlyph: ""
+  property color leadingGlyphColor: Colors.fgSurface
+  property real leadingGlyphSize: 20
+  property real sidePadding: Config.spacingMedium
+  property real verticalPadding: 12
+  property real textPixelSize: Config.typeBodyLargeSize
+  property bool textBold: false
 
   default property alias trailingContent: trailingRow.data
 
@@ -29,22 +39,32 @@ Rectangle {
   signal leftPressed()
   signal rightPressed()
 
-  implicitHeight: Math.max(Config.controlHitSize, Config.typeBodyLargeLineHeight + (24))
+  implicitHeight: Math.max(root.plain ? 0 : Config.controlHitSize,
+    Math.round(root.textPixelSize * 1.5) + 2 * root.verticalPadding)
   height: implicitHeight
   Layout.minimumHeight: implicitHeight
-  radius: Config.shapeMedium
+  radius: root.plain ? 0 : Config.shapeMedium
   color: Colors.surface
   border.color: (input.activeFocus ? Colors.primary : Colors.outline)
-  border.width: input.activeFocus ? Config.themeFocusBorderWidth : Config.themeBorderWidth
+  border.width: root.plain ? 0 : (input.activeFocus ? Config.themeFocusBorderWidth : Config.themeBorderWidth)
 
 
   RowLayout {
     anchors {
       fill: parent
-      leftMargin: Config.spacingMedium
-      rightMargin: Config.spacingMedium
+      leftMargin: root.sidePadding
+      rightMargin: root.sidePadding
     }
     spacing: Config.spacingSmall
+
+    Text {
+      visible: root.leadingGlyph !== ""
+      text: root.leadingGlyph
+      color: root.leadingGlyphColor
+      font.family: BottomBarFonts.family
+      font.pixelSize: root.leadingGlyphSize
+      Layout.alignment: Qt.AlignVCenter
+    }
 
     IconGlyph {
       visible: root.leadingIcon !== ""
@@ -61,7 +81,8 @@ Rectangle {
       verticalAlignment: TextInput.AlignVCenter
       color: Colors.fgSurface
       font.family: Config.fontFamily
-      font.pixelSize: Config.typeBodyLargeSize
+      font.pixelSize: root.textPixelSize
+      font.bold: root.textBold
       font.letterSpacing: Config.typeBodyTracking
       echoMode: root.echoMode
       activeFocusOnTab: true

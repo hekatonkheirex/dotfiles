@@ -1,35 +1,36 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Window
 import Quickshell
 import Quickshell.Services.Notifications
 import Quickshell.Wayland
 import Quickshell.Wayland._WlrLayerShell
 import "../config"
+import "../config/ToastModel.js" as ToastModel
 import "primitives"
 
+// Her dunst notifications (R6b): a stack of up to five cards at the top
+// right. Each card is `xbg` in a solid frame, a glyph then the summary on the
+// first row and a muted glyph then the body on the second, colored by urgency
+// (low x6, normal x2, critical x1). Same text twice stacks with a count.
+// Left click closes, middle click runs the default action then closes, right
+// click closes every card. App actions keep their buttons. Delivery, history,
+// DND and quiet hours stay in shell.qml and NotificationPopup.
 PanelWindow {
   id: root
 
   property QtObject notificationServer: null
-  property var notif: null
-  property var heldNotif: null
-  property int displayMs: Settings.notificationToastDurationMs
   property string barPosition: "top"
-  // Critical notifications retain a solid error outline and explicit text cue.
-  // The "default" action is the click-through apps expect when the notification
-  // body is clicked (open the chat, the file, ...). It has no button of its own.
-  readonly property var defaultAction: {
-    var list = notif && notif.actions ? notif.actions : []
-    for (var i = 0; i < list.length; i++)
-      if (list[i].identifier === "default") return list[i]
-    return null
-  }
-  readonly property bool critical: !!notif && notif.urgency === NotificationUrgency.Critical
+  property int displayMs: Settings.notificationToastDurationMs   // normal urgency
+  property int nextUid: 1
+  property var objs: ({})        // uid -> Notification
 
-  implicitWidth: 280
-  implicitHeight: cardLayout.implicitHeight + Config.spacingExtraLarge
+  readonly property int pad: Config.dp(22)
+  readonly property int textPx: Math.round(12 * 4 / 3 * Config.elenaScale)
+  readonly property int glyphPx: Math.round(21 / 18 * root.textPx)
+  readonly property int count: stack.count
+
+  implicitWidth: Math.min(Config.dp(700), Math.max(Config.dp(280), column.implicitWidth))
+  implicitHeight: column.implicitHeight
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
   WlrLayershell.namespace: Config.layerNamespace("toast")
@@ -37,293 +38,258 @@ PanelWindow {
   anchors.right: true
   anchors.top: Settings.notificationToastPosition !== "bottom-right"
   anchors.bottom: Settings.notificationToastPosition === "bottom-right"
-  margins.right: root.barPosition === "right" ? Config.barWidth + Config.spacingCompact : Config.spacingLarge
-  margins.top: Settings.notificationToastPosition === "bottom-right" ? 0
-    : (root.barPosition === "top" ? Config.barWidth + Config.spacingCompact : Config.spacingLarge)
+  margins.right: Config.dp(20)
+  margins.top: Settings.notificationToastPosition === "bottom-right" ? 0 : Config.dp(20)
   // Bottom placement clears the elena bottom bar's right cluster.
   margins.bottom: Settings.notificationToastPosition === "bottom-right"
     ? (root.barPosition === "bottom" ? Config.barWidth + Config.spacingCompact : Config.spacingLarge)
       + Config.bottomBarHeight
     : 0
-  visible: notif !== null
+  visible: stack.count > 0
 
-  function isPersistent(n) {
-    return n && (n.urgency === NotificationUrgency.Critical || n.expireTimeout === 0)
+  ListModel { id: stack }
+  readonly property alias stackColumn: column   // render checks grab this
+
+  function keys() {
+    var out = []
+    for (var i = 0; i < stack.count; i++) out.push(stack.get(i).key)
+    return out
   }
 
+  function indexOfUid(uid) {
+    for (var i = 0; i < stack.count; i++) if (stack.get(i).uid === uid) return i
+    return -1
+  }
+
+  function removeUid(uid) {
+    var i = root.indexOfUid(uid)
+    if (i < 0) return
+    stack.remove(i)
+    delete root.objs[uid]
+  }
+
+  function expiryFor(n) {
+    var ms = ToastModel.timeoutMs(n.urgency, n.expireTimeout, root.displayMs)
+    return ms > 0 ? Date.now() + ms : 0
+  }
+
+  // Called by shell.qml for every notification that is not suppressed.
   function show(n) {
     if (Settings.doNotDisturb
         && !(Settings.notificationCriticalBypass && n && n.urgency === NotificationUrgency.Critical)) return
-    if (notif !== null && notif !== n && isPersistent(notif))
-      heldNotif = notif
-    if (heldNotif === n)
-      heldNotif = null
-    dismissTimer.stop()
-    notif = null
-    notif = n
-    if (!isPersistent(n))
-      dismissTimer.restart()
-    if (Config.reducedMotion) {
-      materialEntryAnimation.stop()
-      scaleTransform.xScale = 1.0
-      scaleTransform.yScale = 1.0
-      transX.x = 0
-      bg.opacity = 1.0
-    } else {
-      materialEntryAnimation.restart()
+    var key = ToastModel.keyFor(n.appName || "", n.summary || "", n.body || "")
+    var p = ToastModel.plan(root.keys(), key, ToastModel.LIMIT)
+    if (p.action === "bump") {
+      var row = stack.get(p.index)
+      root.objs[row.uid] = n
+      stack.setProperty(p.index, "count", row.count + 1)
+      stack.setProperty(p.index, "urgency", n.urgency)
+      stack.setProperty(p.index, "expiresAt", root.expiryFor(n))
+      root.watch(n, row.uid)
+      return
     }
+    for (var d = 0; d < p.drop; d++) {
+      var old = stack.get(0)
+      delete root.objs[old.uid]
+      stack.remove(0)
+    }
+    var uid = root.nextUid++
+    root.objs[uid] = n
+    stack.append({
+      uid: uid, key: key, count: 1, appName: n.appName || "", summary: n.summary || "",
+      body: n.body || "", urgency: n.urgency, expiresAt: root.expiryFor(n)
+    })
+    root.watch(n, uid)
   }
 
-  // DND hides the toast surface without dismissing the notification itself;
-  // the notification remains available in the history popup.
+  function watch(n, uid) {
+    n.closed.connect(function() {
+      var i = root.indexOfUid(uid)
+      if (i >= 0 && root.objs[uid] === n) root.removeUid(uid)
+    })
+  }
+
+  // DND hides the toast surface without dismissing the notifications; they
+  // remain available in the history popup.
   function suppress() {
-    dismissTimer.stop()
-    notif = null
-    heldNotif = null
+    stack.clear()
+    root.objs = ({})
   }
 
-  function clearCurrent() {
-    dismissTimer.stop()
-    if (!notif) return
-    notif = null
-    if (heldNotif) {
-      var held = heldNotif
-      heldNotif = null
-      show(held)
-    }
+  function dismissUid(uid) {
+    var n = root.objs[uid]
+    root.removeUid(uid)
+    if (n) n.dismiss()
   }
 
-  function dismiss() {
-    if (!notif) return
-    var current = notif
-    clearCurrent()
-    current.dismiss()
+  function activateUid(uid) {
+    var n = root.objs[uid]
+    var list = n && n.actions ? n.actions : []
+    var action = null
+    for (var i = 0; i < list.length; i++) if (list[i].identifier === "default") action = list[i]
+    root.removeUid(uid)
+    if (action) action.invoke()
+    else if (n) n.dismiss()
+  }
+
+  function closeAll() {
+    var uids = []
+    for (var i = 0; i < stack.count; i++) uids.push(stack.get(i).uid)
+    for (var j = 0; j < uids.length; j++) root.dismissUid(uids[j])
   }
 
   Timer {
-    id: dismissTimer
-    interval: root.displayMs
-    running: root.notif !== null && !root.isPersistent(root.notif)
+    interval: 250
+    repeat: true
+    running: stack.count > 0
     onTriggered: {
-      root.clearCurrent()
-    }
-  }
-
-  Connections {
-    target: root.notif
-    function onClosed() { root.clearCurrent() }
-  }
-
-  Connections {
-    target: root.heldNotif
-    function onClosed() { root.heldNotif = null }
-  }
-
-  MouseArea {
-    anchors.fill: parent
-    enabled: true
-    cursorShape: Qt.PointingHandCursor
-    onClicked: {
-      bg.forceActiveFocus()
-      if (root.defaultAction) {
-        root.defaultAction.invoke()
-        root.clearCurrent()
-      } else {
-        root.dismiss()
+      var now = Date.now()
+      for (var i = stack.count - 1; i >= 0; i--) {
+        var at = stack.get(i).expiresAt
+        if (at > 0 && at <= now) root.removeUid(stack.get(i).uid)
       }
     }
   }
 
-  Rectangle {
-    id: bg
-    anchors.fill: parent
-    radius: Config.popupRadius
-    activeFocusOnTab: true
-    color: Colors.surface
-    border.width: root.critical ? Math.max(2, Config.themeBorderWidth) : 0
-    border.color: Colors.error
-    DashedFrame { anchors.fill: parent; active: root.visible && !root.critical; radius: bg.radius }
+  Column {
+    id: column
+    width: parent.width
+    spacing: Config.dp(10)
 
-    Accessible.role: Accessible.Button
-    Accessible.name: notif ? ((notif.appName || "Notification") + ": "
-      + (notif.summary || ("Dismiss notification"))) : "Notification"
-    Accessible.description: "Dismiss notification"
+    Repeater {
+      model: stack
+      delegate: Rectangle {
+        id: card
+        required property int uid
+        required property int count
+        required property string summary
+        required property string body
+        required property string appName
+        required property int urgency
 
-    Keys.onPressed: function(event) {
-      if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-        root.dismiss()
-        event.accepted = true
-      }
-    }
+        readonly property color tint: Colors.elenaAccent(ToastModel.urgencySlot(card.urgency))
+        readonly property var actionList: {
+          var n = root.objs[card.uid]
+          var out = []
+          var list = n && n.actions ? n.actions : []
+          for (var i = 0; i < list.length && out.length < 3; i++)
+            if (list[i].identifier !== "default") out.push(list[i])
+          return out
+        }
 
-    transform: [
-      Translate { id: transX; x: 0 },
-      Scale { id: scaleTransform; origin.x: bg.width; origin.y: 0; xScale: 1.0; yScale: 1.0 }
-    ]
+        objectName: "toast_" + uid
+        width: column.width
+        implicitWidth: Math.max(summaryRow.implicitWidth, bodyRow.implicitWidth) + 2 * (root.pad + Config.dp(8))
+        height: content.implicitHeight + 2 * (root.pad + Config.dp(8))
+        radius: Config.dp(18)
+        color: Colors.surface
+        border.width: Config.dp(8)
+        border.color: Colors.surfaceContainer
 
-    MaterialEntrance {
-      id: materialEntryAnimation
-      surfaceTarget: bg
-      scaleTarget: scaleTransform
-      translationTarget: transX
-      initialScale: Config.toastEntryScale
-      initialOffset: Config.toastEntryOffset
-    }
+        opacity: 0
+        Component.onCompleted: opacity = 1
+        Behavior on opacity {
+          enabled: !Config.reducedMotion
+          NumberAnimation { duration: 150 }
+        }
 
-    ColumnLayout {
-      id: cardLayout
-      anchors {
-        fill: parent
-        leftMargin: Config.spacingLarge
-        rightMargin: Config.spacingLarge
-        topMargin: Config.spacingMedium
-        bottomMargin: Config.spacingMedium
-      }
-      spacing: Config.spacingSmall
+        Accessible.role: Accessible.Button
+        Accessible.name: card.appName + ": " + card.summary
+        Accessible.description: "Dismiss notification"
 
-      RowLayout {
-        Layout.fillWidth: true
-        spacing: Config.spacingSmall
+        MouseArea {
+          anchors.fill: parent
+          acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+          cursorShape: Qt.PointingHandCursor
+          onClicked: function(m) {
+            if (m.button === Qt.RightButton) root.closeAll()
+            else if (m.button === Qt.MiddleButton) root.activateUid(card.uid)
+            else root.dismissUid(card.uid)
+          }
+        }
 
-        Rectangle {
-          width: 20
-          height: 20
-          radius: 10
-          color: root.critical ? Colors.errorContainer : Colors.primaryContainer
-          border.width: 0
-          border.color: root.critical ? Colors.destructive : Colors.outline
+        Column {
+          id: content
+          x: root.pad + Config.dp(8)
+          y: root.pad + Config.dp(8)
+          width: card.width - 2 * (root.pad + Config.dp(8))
+          spacing: Config.dp(6)
 
-          Text {
-            anchors.centerIn: parent
-            text: {
-              var app = notif ? (notif.appName || "") : ""
-              return app.length > 0 ? app.charAt(0).toUpperCase() : "?"
+          Row {
+            id: summaryRow
+            width: parent.width
+            spacing: Config.dp(10)
+            Text {
+              id: summaryGlyph
+              objectName: "summaryGlyph"
+              text: "\ue944"
+              color: card.tint
+              font.family: BottomBarFonts.family
+              font.pixelSize: root.glyphPx
             }
-            color: root.critical
-              ? (Colors.fgErrorContainer)
-              : (Colors.fgPrimaryContainer)
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
-            font.weight: Config.typeStrongWeight
-          }
-        }
-
-        Text {
-          text: notif ? (notif.appName || "Notification") : "Notification"
-          color: Colors.fgSurfaceVariant
-          font.family: "monospace"
-          font.pixelSize: Config.typeLabelSmallSize
-          font.capitalization: Font.AllUppercase
-          font.letterSpacing: Config.typeMonoTracking
-          Layout.fillWidth: true
-          elide: Text.ElideRight
-        }
-
-        Text {
-          text: root.critical ? "CRITICAL" : "NOW"
-          visible: true
-          color: root.critical ? Colors.error : Colors.fgSurfaceVariant
-          font.family: "monospace"
-          font.pixelSize: Config.typeLabelSmallSize
-          font.letterSpacing: Config.typeMonoTracking
-          opacity: root.critical ? 1.0 : 0.7
-        }
-        // Keep the native hit target without enlarging the compact header.
-        Item {
-          readonly property int visualSize: 28
-          implicitWidth: visualSize
-          implicitHeight: visualSize
-          Layout.alignment: Qt.AlignVCenter
-
-          IconButton {
-            anchors.centerIn: parent
-            size: parent.visualSize
-            iconSize: 14
-            iconLabel: "close"
-            iconColor: Colors.fgSurfaceVariant
-            accessibleName: "Dismiss notification"
-            tooltipText: "Dismiss notification"
-            onClicked: root.dismiss()
-          }
-        }
-      }
-
-      Rectangle {
-        Layout.fillWidth: true
-        height: 1
-        color: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.1)
-      }
-
-      ColumnLayout {
-        Layout.fillWidth: true
-        spacing: Config.spacingCompact
-
-        Text {
-          Layout.fillWidth: true
-          text: notif ? (notif.summary || "") : ""
-          color: Colors.fgSurface
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeTitleSmallSize
-          font.weight: Config.typeStrongWeight
-          font.letterSpacing: Config.typeTitleTracking
-          lineHeight: Config.typeTitleSmallLineHeight
-          lineHeightMode: Text.FixedHeight
-          wrapMode: Text.NoWrap
-          maximumLineCount: 1
-          elide: Text.ElideRight
-          visible: text !== ""
-        }
-
-        Text {
-          Layout.fillWidth: true
-          text: notif ? (notif.body || "") : ""
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeBodySmallSize
-          font.letterSpacing: Config.typeBodyTracking
-          lineHeight: Config.typeBodySmallLineHeight
-          lineHeightMode: Text.FixedHeight
-          elide: Text.ElideRight
-          maximumLineCount: 3
-          wrapMode: Text.WordWrap
-          visible: text !== ""
-        }
-      }
-
-      // App-defined actions (e.g. "Reply", "Open"). The server advertises
-      // action support, so each non-default action gets a button. The
-      // "default" action is the click-through the toast already replaces with
-      // dismiss, so it is not listed.
-      Row {
-        id: actionRow
-        Layout.fillWidth: true
-        spacing: Config.spacingSmall
-        visible: actionRepeater.count > 0
-
-        Repeater {
-          id: actionRepeater
-          model: {
-            var out = []
-            var list = notif && notif.actions ? notif.actions : []
-            for (var i = 0; i < list.length && out.length < 3; i++)
-              if (list[i].identifier !== "default") out.push(list[i])
-            return out
+            Text {
+              objectName: "summaryText"
+              width: parent.width - summaryGlyph.width - parent.spacing
+              text: ToastModel.title(card.summary, card.count)
+              color: Colors.fgSurface
+              font.family: Config.fontFamily
+              font.pixelSize: root.textPx
+              elide: Text.ElideMiddle
+              maximumLineCount: 1
+            }
           }
 
-          delegate: ActionButton {
-            required property var modelData
-            height: implicitHeight
-            width: Math.max(72, (actionRow.width - actionRow.spacing * (actionRepeater.count - 1)) / actionRepeater.count)
-            labelText: modelData.text
-            horizontalContent: true
-            variant: "tonal"
-            accessibleName: modelData.text
-            accessibleDescription: "Notification action"
-            onActivated: {
-              // invoke() can synchronously close the notification and destroy this delegate.
-              var toast = root
-              modelData.invoke()
-              toast.clearCurrent()
+          Row {
+            id: bodyRow
+            width: parent.width
+            spacing: Config.dp(10)
+            visible: card.body !== ""
+            Text {
+              id: bodyGlyph
+              objectName: "bodyGlyph"
+              text: "\ue90d"
+              color: Colors.elenaAccent(8)
+              font.family: BottomBarFonts.family
+              font.pixelSize: root.glyphPx
+            }
+            Text {
+              objectName: "bodyText"
+              width: parent.width - bodyGlyph.width - parent.spacing
+              text: card.body
+              color: Colors.fgSurface
+              font.family: Config.fontFamily
+              font.pixelSize: root.textPx
+              wrapMode: Text.WordWrap
+              maximumLineCount: 3
+              elide: Text.ElideRight
+            }
+          }
+
+          // App-defined actions; "default" is the middle-click action.
+          Row {
+            id: actionRow
+            width: parent.width
+            spacing: Config.spacingSmall
+            visible: card.actionList.length > 0
+            Repeater {
+              model: card.actionList
+              delegate: ActionButton {
+                required property var modelData
+                height: implicitHeight
+                width: Math.max(72, (actionRow.width - actionRow.spacing * (card.actionList.length - 1)) / card.actionList.length)
+                labelText: modelData.text
+                horizontalContent: true
+                variant: "tonal"
+                accessibleName: modelData.text
+                accessibleDescription: "Notification action"
+                onActivated: {
+                  // invoke() can synchronously close the notification and destroy this delegate.
+                  var toast = root
+                  var uid = card.uid
+                  modelData.invoke()
+                  toast.removeUid(uid)
+                }
+              }
             }
           }
         }

@@ -1178,6 +1178,26 @@ Flickable {
       }
     }
 
+    ListItem {
+      Layout.fillWidth: true
+      leadingIcon: "mic"
+      title: "Microphone indicator"
+      subtitle: Settings.micIndicator ? "Tab at the top center: red while live, dim when muted" : "Hidden"
+      toggleControl: micIndicatorSwitch
+      SwitchControl {
+        id: micIndicatorSwitch
+        checked: Settings.micIndicator
+        activeColor: Colors.primary
+        surfaceContainerHigh: Colors.surfaceContainerHigh
+        surfaceContainerHighest: Colors.surfaceContainerHighest
+        outline: Colors.outline
+        motionDuration: Config.motionMedium
+        reducedMotion: Config.reducedMotion
+        accessibleName: "Microphone indicator"
+        onToggled: { Settings.micIndicator = !Settings.micIndicator; Settings.save() }
+      }
+    }
+
     SettingsSectionLabel { text: "Power menu" }
 
     Text {

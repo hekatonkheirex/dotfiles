@@ -25,11 +25,12 @@ FileView {
   // Keep persisted defaults in one place. JsonAdapter needs these values for
   // missing keys, while the reset actions reuse the same snapshot below.
   readonly property var defaults: ({
-    schemaVersion: 2,
+    schemaVersion: 3,
     barSize: 42,
     barWidgetOrder: "launcher,workspaces,layout,focused,gap,center,audio,display,media,weather,llm,battery,tray,notifications,clock",
     dockPinned: "brave-origin,kitty",
     sidebarEdgeHover: true,
+    micIndicator: true,
     powerMenuQuote: "Take a breath.",
     powerMenuQuoteAuthor: "",
     barClockInFlow: false,
@@ -70,7 +71,7 @@ FileView {
     notificationQuietHoursEnd: 420,
     notificationQuietHoursStart: 1320,
     notificationToastPosition: "top-right",
-    notificationToastDurationMs: 5000,
+    notificationToastDurationMs: 8000,
     reduceMotion: false,
     spacingScale: 1.0,
     systemShowUptime: true,
@@ -116,6 +117,9 @@ FileView {
           || (typeof stored.ccShowClaude === "boolean" ? stored.ccShowClaude : true)
       }
       barWidgetOrder = BarOrder.normalize(barWidgetOrder).join(",")
+      // R6: her normal toast timeout is 8 s; only the old untouched 5 s default moves.
+      if (stored.schemaVersion < 3 && stored.notificationToastDurationMs === 5000)
+        notificationToastDurationMs = root.defaults.notificationToastDurationMs
       adapter.schemaVersion = root.defaults.schemaVersion
     }
     if (stored.barForm === undefined && typeof stored.fullBar === "boolean") {
@@ -146,6 +150,7 @@ FileView {
   property alias barWidgetOrder: adapter.barWidgetOrder
   property alias dockPinned: adapter.dockPinned
   property alias sidebarEdgeHover: adapter.sidebarEdgeHover
+  property alias micIndicator: adapter.micIndicator
   property alias powerMenuQuote: adapter.powerMenuQuote
   property alias powerMenuQuoteAuthor: adapter.powerMenuQuoteAuthor
   property alias barClockInFlow: adapter.barClockInFlow
@@ -238,6 +243,7 @@ FileView {
     barWidgetOrder = root.defaults.barWidgetOrder
     dockPinned = root.defaults.dockPinned
     sidebarEdgeHover = root.defaults.sidebarEdgeHover
+    micIndicator = root.defaults.micIndicator
     barClockInFlow = root.defaults.barClockInFlow
     calendarWeekStartsMonday = root.defaults.calendarWeekStartsMonday
     ccShowAudio = root.defaults.ccShowAudio
@@ -291,6 +297,7 @@ FileView {
     property string barWidgetOrder: root.defaults.barWidgetOrder
     property string dockPinned: root.defaults.dockPinned
     property bool sidebarEdgeHover: root.defaults.sidebarEdgeHover
+    property bool micIndicator: root.defaults.micIndicator
     property string powerMenuQuote: root.defaults.powerMenuQuote
     property string powerMenuQuoteAuthor: root.defaults.powerMenuQuoteAuthor
     property bool barClockInFlow: root.defaults.barClockInFlow

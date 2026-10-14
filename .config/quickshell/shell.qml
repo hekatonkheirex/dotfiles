@@ -10,6 +10,7 @@ import Quickshell.Io
 import "config"
 import "config/BarForm.js" as BarForm
 import "config/DockModel.js" as DockModel
+import "config/LauncherLayout.js" as LauncherLayout
 import "config/BottomBarModel.js" as BottomBarModel
 import "bar"
 
@@ -645,6 +646,12 @@ ShellRoot {
     onVisibleChanged: if (!visible) shell.sidebarClosedAt = Date.now()
   }
 
+  MicIndicator {
+    id: micIndicator
+    screen: bar.screen
+    allowed: !lockScreen.locked && !lockScreen.compositorLocked
+  }
+
   AlarmsWindow {
     id: alarmsWindow
     visible: bar.openPopup === "alarms" && !lockScreen.locked && !lockScreen.compositorLocked
@@ -830,7 +837,8 @@ ShellRoot {
     anchors.right: false
     anchors.top: true
     anchors.bottom: false
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
+    // Her rofi window sits at the screen center (location 0).
+    margins.left: LauncherLayout.centered(bar.screen.width, implicitWidth)
+    margins.top: LauncherLayout.centered(bar.screen.height, implicitHeight)
   }
 }
