@@ -52,6 +52,7 @@ RowLayout {
   Item { Layout.fillWidth: true }
   SliderControl {
     id: slider
+    Layout.rightMargin: Config.spacingSmall
     value: root.max > root.min ? (root.value - root.min) / (root.max - root.min) : 0
     stepSize: root.max > root.min ? Math.pow(10, -root.decimals) / (root.max - root.min) : 0.01
     accessibleMinimumValue: root.min

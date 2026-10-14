@@ -290,6 +290,7 @@ Flickable {
 
           Item { Layout.fillWidth: true }
           SliderControl {
+            Layout.rightMargin: Config.spacingSmall
             value: (Settings.weatherRefreshIntervalMinutes - 5) / 55
             stepSize: 5 / 55
             accessibleMinimumValue: 5

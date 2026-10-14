@@ -88,7 +88,6 @@ Flickable {
 
         RowLayout {
           Layout.fillWidth: true
-          Layout.preferredHeight: 40
           spacing: Config.spacingSmall
 
           Text {
@@ -105,6 +104,7 @@ Flickable {
 
           Item { Layout.fillWidth: true }
           SliderControl {
+            Layout.rightMargin: Config.spacingSmall
             value: (Settings.notificationToastDurationMs - 2000) / 8000
             stepSize: 500 / 8000
             accessibleMinimumValue: 2
@@ -143,10 +143,11 @@ Flickable {
             Layout.leftMargin: Config.spacingSmall
           }
 
+          Item { Layout.fillWidth: true }
           Item {
-            Layout.fillWidth: true
-            Layout.preferredHeight: Math.max(Config.controlHitSize,
-              Config.typeLabelMediumLineHeight + (24))
+            Layout.preferredWidth: 160
+            Layout.preferredHeight: 30
+            Layout.rightMargin: Config.spacingSmall
 
             Row {
               anchors.fill: parent
@@ -228,6 +229,7 @@ Flickable {
 
           Item { Layout.fillWidth: true }
           SliderControl {
+            Layout.rightMargin: Config.spacingSmall
             value: Settings.notificationQuietHoursStart / 1439
             stepSize: 1 / 1439
             accessibleMinimumValue: 0
@@ -266,6 +268,7 @@ Flickable {
 
           Item { Layout.fillWidth: true }
           SliderControl {
+            Layout.rightMargin: Config.spacingSmall
             value: Settings.notificationQuietHoursEnd / 1439
             stepSize: 1 / 1439
             accessibleMinimumValue: 0
