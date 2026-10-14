@@ -1,6 +1,6 @@
 // bar/primitives/RemoteChoiceRow.qml
-// Label + themed radio options backed by a niri_config CLI field. Intended for
-// string enums where only one option can be active at a time.
+// Label + drop-down backed by a niri_config CLI field. Intended for string
+// enums where only one option can be active at a time.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -16,7 +16,6 @@ RowLayout {
   property string label: ""
   property string leadingIcon: ""
   property var options: []
-  property int optionColumns: 2
   property bool live: true
   property string value: ""
   signal writeFailed(string message)
@@ -30,7 +29,8 @@ RowLayout {
     iconColor: Colors.fgSurfaceVariant
     iconSize: Config.iconSize
     Layout.preferredWidth: 20
-    Layout.alignment: Qt.AlignVCenter
+    Layout.alignment: Qt.AlignTop
+    Layout.topMargin: 6
   }
 
   Text {
@@ -43,41 +43,85 @@ RowLayout {
     lineHeightMode: Text.FixedHeight
     Layout.preferredWidth: Math.max(Config.settingsRowLabelWidth, implicitWidth)
     Layout.minimumWidth: Math.max(Config.settingsRowLabelWidth, implicitWidth)
-    Layout.alignment: Qt.AlignVCenter
+    Layout.alignment: Qt.AlignTop
+    Layout.topMargin: 7
   }
 
-  GridLayout {
-    id: optionsGrid
+  // Drop-down: a field showing the current choice; the options open inline
+  // below it (no popup window, so the sidebar's edges never clip them).
+  ColumnLayout {
+    id: choice
     Layout.fillWidth: true
     Layout.minimumWidth: 0
-    columns: Math.max(1, Math.min(root.optionColumns, root.options.length || 1))
-    columnSpacing: Config.themeOptionGap
-    rowSpacing: Config.themeOptionGap
+    Layout.alignment: Qt.AlignTop
+    spacing: 2
+    property bool expanded: false
+    readonly property string currentLabel: {
+      for (var i = 0; i < root.options.length; i++)
+        if (root.options[i].value === root.value) return root.options[i].label
+      return root.value
+    }
+
+    Rectangle {
+      id: field
+      Layout.fillWidth: true
+      Layout.preferredHeight: 32
+      radius: Config.shapeMedium
+      color: Colors.surface
+      border.width: Config.themeBorderWidth
+      border.color: choice.expanded || fieldMouse.containsMouse ? Colors.primary : Colors.outline
+      enabled: !writeProc.running
+      Accessible.role: Accessible.ComboBox
+      Accessible.name: root.label
+      Accessible.description: choice.currentLabel
+      Accessible.focusable: true
+
+      Text {
+        anchors.left: parent.left
+        anchors.right: chevron.left
+        anchors.leftMargin: Config.spacingMedium
+        anchors.verticalCenter: parent.verticalCenter
+        text: choice.currentLabel
+        color: Colors.fgSurface
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeBodyMediumSize
+        elide: Text.ElideRight
+      }
+      IconGlyph {
+        id: chevron
+        anchors.right: parent.right
+        anchors.rightMargin: Config.spacingSmall
+        anchors.verticalCenter: parent.verticalCenter
+        iconLabel: choice.expanded ? "expand_less" : "expand_more"
+        iconColor: Colors.fgSurfaceVariant
+        iconSize: Config.iconSize
+      }
+      MouseArea {
+        id: fieldMouse
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: choice.expanded = !choice.expanded
+      }
+    }
 
     Repeater {
-      model: root.options
+      model: choice.expanded ? root.options : []
 
       delegate: ListItem {
         required property var modelData
 
         Layout.fillWidth: true
         Layout.minimumWidth: 0
-        Layout.preferredHeight: 44
-        enabled: !writeProc.running
-        leadingIcon: root.value === modelData.value
-          ? "radio_button_checked"
-          : "radio_button_unchecked"
+        Layout.preferredHeight: 32
         title: modelData.label
         selected: root.value === modelData.value
         accessibleName: root.label + ": " + modelData.label
         accessibleDescription: selected ? "Selected" : "Select " + modelData.label
-        Accessible.role: Accessible.RadioButton
-        Accessible.checkable: true
-        Accessible.checked: selected
-        Accessible.selectable: true
-        Accessible.focusable: true
-        Accessible.focused: activeFocus
-        onClicked: root.commit(modelData.value)
+        onClicked: {
+          choice.expanded = false
+          root.commit(modelData.value)
+        }
       }
     }
   }

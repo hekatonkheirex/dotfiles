@@ -168,9 +168,6 @@ Flickable {
               leadingIcon: "screen_rotation"
 
 
-              optionColumns: displayInputTab.compactLayout
-                ? 1
-                : (3)
               options: displayInputTab.transformOptions
               onWriteFailed: displayInputTab.onFieldFailed(message)
             }
@@ -278,7 +275,6 @@ Flickable {
             cliFile: "inputs"; cliField: "touchpad-scroll-method"
             label: "Scroll method"
             leadingIcon: "swipe"
-            optionColumns: displayInputTab.compactLayout ? 1 : 2
             options: displayInputTab.scrollMethodOptions
             onWriteFailed: displayInputTab.onFieldFailed(message)
           }
