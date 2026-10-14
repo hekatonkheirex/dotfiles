@@ -150,7 +150,8 @@ assert.match(scroll, /if \(r\.steps !== 0\) AudioService\.setVolume\(AudioServic
 assert.match(bar, /property real wheelAccum: 0/)
 assert.match(bar, /SystemClock \{[^}]*enabled: root\.visible/, "no ticking while hidden")
 // Fix wave 2.
-assert.match(fonts, /Qt\.fontFamilies\(\)\.find\(n => n\.toLowerCase\(\) === "kyok medium"\)/)
+assert.match(fonts, /textFamily: pick\("Kyok medium"\)/)
+assert.match(fonts, /toLowerCase\(\) === want/)
 assert.match(fonts, /return f !== undefined \? f : Config\.fontFamily/, "falls back to the shell font")
 assert.match(rd("../../bar/bottombar/ValuePill.qml"), /font\.family: BottomBarFonts\.textFamily/)
 assert.match(rd("../../bar/bottombar/VolumeRing.qml"), /onHeightChanged: canvas\.requestPaint\(\)/)
