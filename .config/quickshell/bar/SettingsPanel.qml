@@ -130,8 +130,6 @@ PanelWindow {
     { tab: 6, category: "Media popup", icon: "image", title: "Show album art", subtitle: "Show artwork in the media popup" },
     { tab: 6, category: "Media popup", icon: "linear_scale", title: "Show progress bar", subtitle: "Show playback progress" },
     { tab: 6, category: "Media popup", icon: "touch_app", title: "Controls always visible", subtitle: "Keep media controls visible when paused" },
-    { tab: 7, category: "Lock screen", icon: "music_note", title: "Show now playing", subtitle: "Show the current track on the lock screen" },
-    { tab: 7, category: "Lock screen", icon: "wallpaper", title: "Use current wallpaper", subtitle: "Use the active wallpaper on the lock screen" },
     { tab: 7, category: "Idle and power", icon: "lock", title: "Lock after inactivity", subtitle: "Set the idle lock timeout" },
     { tab: 7, category: "Idle and power", icon: "bedtime", title: "Suspend after inactivity", subtitle: "Set the idle suspend timeout" },
     { tab: 7, category: "Power", icon: "bolt", title: "Power Profiles", anchor: "Power profiles", subtitle: "Choose the automatic power profile" },

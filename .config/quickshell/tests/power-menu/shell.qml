@@ -8,6 +8,7 @@ import QtTest
 import Quickshell
 import "config"
 import "bar/powermenu"
+import "bar"
 
 ShellRoot {
   FloatingWindow {
@@ -59,6 +60,25 @@ ShellRoot {
       color: Colors.surface
       PowerMenuContent { id: l; anchors.fill: parent; locked: true; revealed: true }
     }
+    // Full lock surface, wired the way LockScreen.qml wires it.
+    Item {
+      id: frameS
+      property string pw: ""
+      property int submits: 0
+      y: frameA.height + frameB.height + frameL.height
+      width: 1200; height: 700
+      LockSurfaceContent {
+        id: s
+        anchors.fill: parent
+        password: frameS.pw
+        onEdited: frameS.pw = typed
+        onSubmitted: frameS.submits++
+      }
+    }
+
+    // Loads LockScreen.qml unlocked: compiles both surface bodies without
+    // ever requesting a session lock (nothing here calls lockScreen()).
+    LockScreen { id: lockProbe }
 
     Timer { id: quitTimer; interval: 100; onTriggered: Qt.quit() }
     Item {
@@ -169,6 +189,43 @@ ShellRoot {
           l.forceActiveFocus()
           keyClick(Qt.Key_Escape)
           win.check("locked leaves keys to the lock surface", lockDismiss === 0)
+
+          win.check("LockScreen.qml loads and stays unlocked", lockProbe.locked === false && !lockProbe.secure)
+
+          // (g) Full lock surface: typed keys drive the ring and the mask.
+          var sMask = win.find(s, "terminalValue")
+          var sRing = win.find(s, "lockRing")
+          win.check("lock surface content faded in", win.find(s, "lockContent").opacity === 1)
+          s.shown = false
+          wait(60)
+          var hidden = win.find(s, "lockContent").opacity
+          s.shown = true
+          wait(60)
+          win.check("reduced motion: fade is instant", hidden === 0 && win.find(s, "lockContent").opacity === 1)
+          mouseClick(frameS, 3, 3)
+          win.check("lock input holds focus", win.find(s, "lockInput").activeFocus)
+          var seq = [["a", 1, "insert"], ["b", 2, "insert"], ["c", 3, "insert"]]
+          for (i = 0; i < seq.length; i++) {
+            keyClick(seq[i][0])
+            win.check("typed " + seq[i][1] + ": " + seq[i][2], s.lastAction === seq[i][2]
+              && sMask.text === "*".repeat(seq[i][1]) && frameS.pw.length === seq[i][1])
+          }
+          win.check("password reaches the host", frameS.pw === "abc")
+          wait(50)
+          grab(frameS, "s_3_insert")
+          win.geom("s_3_insert", frameS, "lockRing")
+          keyClick(Qt.Key_Backspace)
+          win.check("backspace: delete, 2 left", s.lastAction === "delete" && sMask.text === "**" && frameS.pw === "ab")
+          wait(50)
+          grab(frameS, "s_2_delete")
+          win.geom("s_2_delete", frameS, "lockRing")
+          keyClick(Qt.Key_Return)
+          win.check("enter submits", frameS.submits === 1)
+          frameS.pw = ""
+          win.check("host clear (PAM failure) clears the field", s.typed === "" && s.lastAction === "clear" && sMask.text === "")
+          s.authFailed = true
+          win.check("lock surface shows failed auth", win.find(s, "lockGlyph").text === glyph.text)
+          win.check("buttons hidden on the lock surface", !win.find(s, "buttonGrid").visible)
 
           console.log("DONE powermenu " + win.failures + " fail")
           quitTimer.start()

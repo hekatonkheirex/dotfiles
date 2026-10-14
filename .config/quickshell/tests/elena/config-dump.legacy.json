@@ -7,5 +7,10 @@
   "lockClockFace": "gooey",
   "colorSource": "fixed",
   "colorPalette": "elenapan",
-  "themePreference": 1
+  "themePreference": 1,
+  "lockShowSeconds": true,
+  "lockFontSize": 18,
+  "lockClockSize": 72,
+  "lockShowMedia": true,
+  "lockUseWallpaper": true
 }

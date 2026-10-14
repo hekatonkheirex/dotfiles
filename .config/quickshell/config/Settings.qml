@@ -61,9 +61,6 @@ FileView {
     lastSettingsTab: 0,
     settingsPanelWidth: -1,
     settingsPanelHeight: -1,
-    lockClockSize: 72,
-    lockShowMedia: true,
-    lockUseWallpaper: false,
     mediaControlsAlwaysVisible: false,
     mediaShowAlbumArt: true,
     mediaShowProgressBar: true,
@@ -180,9 +177,6 @@ FileView {
   property alias lastSettingsTab: adapter.lastSettingsTab
   property alias settingsPanelWidth: adapter.settingsPanelWidth
   property alias settingsPanelHeight: adapter.settingsPanelHeight
-  property alias lockClockSize: adapter.lockClockSize
-  property alias lockShowMedia: adapter.lockShowMedia
-  property alias lockUseWallpaper: adapter.lockUseWallpaper
   property alias mediaControlsAlwaysVisible: adapter.mediaControlsAlwaysVisible
   property alias mediaShowAlbumArt: adapter.mediaShowAlbumArt
   property alias mediaShowProgressBar: adapter.mediaShowProgressBar
@@ -267,9 +261,6 @@ FileView {
     lastSettingsTab = root.defaults.lastSettingsTab
     settingsPanelWidth = root.defaults.settingsPanelWidth
     settingsPanelHeight = root.defaults.settingsPanelHeight
-    lockClockSize = root.defaults.lockClockSize
-    lockShowMedia = root.defaults.lockShowMedia
-    lockUseWallpaper = root.defaults.lockUseWallpaper
     mediaControlsAlwaysVisible = root.defaults.mediaControlsAlwaysVisible
     mediaShowAlbumArt = root.defaults.mediaShowAlbumArt
     mediaShowProgressBar = root.defaults.mediaShowProgressBar
@@ -332,9 +323,6 @@ FileView {
     // -1 = user hasn't resized the settings panel yet; fall back to Config's default size.
     property int settingsPanelWidth: root.defaults.settingsPanelWidth
     property int settingsPanelHeight: root.defaults.settingsPanelHeight
-    property real lockClockSize: root.defaults.lockClockSize
-    property bool lockShowMedia: root.defaults.lockShowMedia
-    property bool lockUseWallpaper: root.defaults.lockUseWallpaper
     property bool mediaControlsAlwaysVisible: root.defaults.mediaControlsAlwaysVisible
     property bool mediaShowAlbumArt: root.defaults.mediaShowAlbumArt
     property bool mediaShowProgressBar: root.defaults.mediaShowProgressBar

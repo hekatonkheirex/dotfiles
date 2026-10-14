@@ -3,7 +3,8 @@
 # KEEP_DIR=path keeps a copy of the renders, even when the check fails)
 # Renders PowerMenuContent under the elenapan palette in a scratch HOME
 # (tests/power-menu/shell.qml): revealed, revealed with reboot selected, and
-# locked at five ring states. Fails on any QML error in the log, runs the
+# locked at five ring states, plus the full lock surface (LockSurfaceContent)
+# driven by typed keys. Fails on any QML error in the log, runs the
 # hover/keyboard/mask checks in QML, and pixel-checks the six button glyph
 # colors, hover dimming, the palette row, the terminal line and the lock ring
 # border per last action. Boxes come from the GEOM log lines.
@@ -102,6 +103,15 @@ for tag, col in RING:
     px = [patch(x + bw // 2, y + h // 2, 1), patch(x + w - 1 - bw // 2, y + h // 2, 1), patch(x + w // 2, y + bw // 2, 1)]
     check(f"ring {tag} border px", sum(count(img, p, col, 6) for p in px), 27, 27)
 check("locked: glyph ink inside the ring", ink("ring_0_clear", box("ring_0_clear", "lockGlyph")), 200)
+# (g) Full lock surface after typing "abc" then backspace: opaque surface
+# backdrop, ring x2 (third insert) then outline 0.3 (delete at 2).
+for img, col in (("s_3_insert", X[2]), ("s_2_delete", mix(OUT, SURF, 0.3))):
+    x, y, w, h = G[(img, "lockRing")]
+    bw = round(6 * 1.5)
+    px = [patch(x + bw // 2, y + h // 2, 1), patch(x + w - 1 - bw // 2, y + h // 2, 1), patch(x + w // 2, y + bw // 2, 1)]
+    check(f"surface {img} ring border px", sum(count(img, p, col, 6) for p in px), 27, 27)
+    W, H = im(img).size
+    check(f"surface {img} backdrop is opaque surface", sum(count(img, patch(cx, cy), SURF, 2) for cx, cy in ((4, 4), (W - 5, H - 5))), 50, 50)
 
 if not all(checks):
     print(f"FAIL: {checks.count(False)} of {len(checks)} checks")
