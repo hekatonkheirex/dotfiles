@@ -11,8 +11,8 @@ Item {
   property color fillColor: root.muted ? Colors.elenaAccent(8) : Colors.fgSurface
   readonly property color backdrop: Colors.surfaceContainerHighest
 
-  implicitWidth: Config.dp(23)
-  implicitHeight: Config.dp(23)
+  implicitWidth: Config.bottomBarDp(23)
+  implicitHeight: Config.bottomBarDp(23)
 
   onValueChanged: canvas.requestPaint()
   onMutedChanged: canvas.requestPaint()
@@ -28,7 +28,7 @@ Item {
     onPaint: {
       var ctx = getContext("2d")
       ctx.reset()
-      var t = Config.dp(5)
+      var t = Config.bottomBarDp(5)
       var r = Math.min(width, height) / 2 - t / 2
       var cx = width / 2, cy = height / 2
       ctx.lineWidth = t

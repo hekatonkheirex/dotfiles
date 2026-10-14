@@ -6,7 +6,7 @@ import "../config"
 import "../config/BottomBarModel.js" as BottomBarModel
 import "bottombar"
 
-// Elena's bottom bar: a full-width layer-shell window below normal windows
+// Elena's bottom bar: a full-width, screen-fixed layer-shell window
 // that reserves its height. Data comes from the existing services; actions
 // leave through signals that shell.qml wires.
 PanelWindow {
@@ -40,7 +40,7 @@ PanelWindow {
   exclusionMode: ExclusionMode.Normal
   exclusiveZone: root.implicitHeight
   WlrLayershell.namespace: Config.layerNamespace("bottombar")
-  WlrLayershell.layer: WlrLayer.Bottom
+  WlrLayershell.layer: WlrLayer.Top
 
   // Own writer flags: the bar is the only consumer of these services' slow
   // paths while it is visible.

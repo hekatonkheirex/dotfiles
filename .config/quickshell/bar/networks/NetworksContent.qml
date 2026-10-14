@@ -137,15 +137,20 @@ Item {
       color: Colors.surfaceContainer
       visible: root.forgetFor !== ""
       Text {
+        objectName: "forgetName"
         anchors.left: parent.left
         anchors.leftMargin: Config.dp(11)
+        anchors.right: forgetChoices.left
+        anchors.rightMargin: Config.dp(6)
         anchors.verticalCenter: parent.verticalCenter
         text: "forget " + NetworkList.shortName(root.forgetFor) + "?"
         color: Colors.fgSurface
         font.family: Config.fontFamily
         font.pixelSize: Math.round(8 * 4 / 3 * Config.elenaScale)
+        elide: Text.ElideRight
       }
       Row {
+        id: forgetChoices
         anchors.right: parent.right
         anchors.rightMargin: Config.dp(6)
         anchors.verticalCenter: parent.verticalCenter

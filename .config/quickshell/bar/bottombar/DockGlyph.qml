@@ -22,8 +22,8 @@ Item {
   signal closeRequested()
   signal cycled(int direction)
 
-  implicitWidth: Config.dp(35)
-  implicitHeight: Config.dp(26) + Config.dp(6) + Config.dp(3)
+  implicitWidth: Config.bottomBarDp(35)
+  implicitHeight: Config.bottomBarDp(26) + Config.bottomBarDp(6) + Config.bottomBarDp(3)
 
   Text {
     id: glyph
@@ -32,7 +32,7 @@ Item {
     text: root.sym.symbol
     color: root.glyphColor
     font.family: root.sym.font === "material" ? BottomBarFonts.materialFamily : BottomBarFonts.family
-    font.pixelSize: Math.round(16 * 4 / 3 * Config.elenaScale)   // 16pt * scale
+    font.pixelSize: Math.round(16 * 4 / 3 * Config.bottomBarScale)   // 16pt * scale
     Behavior on color {
       enabled: !Config.reducedMotion
       ColorAnimation { duration: 200 }
@@ -43,8 +43,8 @@ Item {
     objectName: "focusIndicator"
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
-    width: Config.dp(6)
-    height: Config.dp(3)
+    width: Config.bottomBarDp(6)
+    height: Config.bottomBarDp(3)
     radius: height / 2
     color: root.accent
     opacity: root.focused ? 1 : 0

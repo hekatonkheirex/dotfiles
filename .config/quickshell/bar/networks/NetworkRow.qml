@@ -57,13 +57,13 @@ Item {
     anchors.left: typeDisc.right
     anchors.leftMargin: Config.dp(11)
     anchors.right: buttonRow.left
+    anchors.rightMargin: Config.dp(6)
     anchors.verticalCenter: parent.verticalCenter
     text: NetworkList.shortName(row.name)
     color: Colors.fgSurface
     font.family: Config.fontFamily
     font.pixelSize: Math.round(8 * 4 / 3 * Config.elenaScale)   // 8pt
-    elide: Text.ElideNone
-    clip: true
+    elide: Text.ElideRight
   }
 
   Row {

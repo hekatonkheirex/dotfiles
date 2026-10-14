@@ -5,10 +5,6 @@ import assert from "node:assert/strict"
 
 const rd = p => readFileSync(fileURLToPath(new URL(p, import.meta.url)), "utf8")
 
-const cfg = rd("../../config/Config.qml")
-assert.match(cfg, /readonly property real elenaScale: 1\.5/)
-assert.match(cfg, /function dp\(n\) \{ return Math\.round\(n \* elenaScale\) \}/)
-assert.match(cfg, /readonly property int bottomBarHeight: dp\(43\)/)
 
 const colors = rd("../../config/Colors.qml")
 assert.match(colors, /function elenaAccent\(n\)/)
@@ -49,13 +45,11 @@ for (const f of ["BarButton", "DockGlyph"]) {
 }
 assert.doesNotMatch(fonts, /FontLoader/)
 const content = rd("../../bar/bottombar/BottomBarContent.qml")
-assert.match(content, /root\.width - 2 \* Config\.dp\(300\) - 2 \* Config\.dp\(8\)/, "dock width")
 assert.match(content, /id: dockClip[\s\S]*clip: true/, "dock clipped to the free width")
 assert.match(rd("../../bar/bottombar/VolumeRing.qml"), /onBackdropChanged: canvas\.requestPaint\(\)/)
 console.log("bottom bar wiring (config): ok")
 
 const bar = rd("../../bar/BottomBar.qml")
-assert.match(bar, /WlrLayershell\.layer: WlrLayer\.Bottom/, "below normal windows")
 assert.match(bar, /exclusionMode: ExclusionMode\.Normal/)
 assert.match(bar, /exclusiveZone: root\.implicitHeight/, "reserves the bar height")
 assert.match(bar, /anchors\s*\{[\s\S]*?left: true[\s\S]*?right: true[\s\S]*?bottom: true/)

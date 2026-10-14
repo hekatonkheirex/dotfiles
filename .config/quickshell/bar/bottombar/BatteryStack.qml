@@ -9,15 +9,15 @@ Column {
   property real pct: -1
   property color fillColor: Colors.elenaAccent(6)
 
-  spacing: 4
+  spacing: Config.bottomBarDp(8 / 3)
   readonly property var parts: BottomBarModel.batteryParts(root.pct)
 
   Repeater {
     model: root.parts
     Rectangle {
       required property string modelData
-      width: Config.dp(14)
-      height: (Config.dp(23) - root.spacing * 2) / 3
+      width: Config.bottomBarDp(14)
+      height: (Config.bottomBarDp(23) - root.spacing * 2) / 3
       radius: height / 2
       color: modelData === "empty" ? Colors.surfaceContainerHighest : root.fillColor
       opacity: modelData === "half" ? 0.5 : 1

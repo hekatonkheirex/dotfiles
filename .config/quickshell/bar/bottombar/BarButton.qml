@@ -17,24 +17,24 @@ Item {
   signal middleClicked()
   signal wheel(int delta)
 
-  implicitWidth: Config.dp(67)
+  implicitWidth: Config.bottomBarDp(67)
   implicitHeight: Config.bottomBarHeight
 
   Row {
     anchors.centerIn: parent
-    spacing: Config.dp(10)
+    spacing: Config.bottomBarDp(10)
 
     Text {
       anchors.verticalCenter: parent.verticalCenter
       text: root.symbol
       color: root.accent
       font.family: BottomBarFonts.family
-      font.pixelSize: Math.round(12 * 4 / 3 * Config.elenaScale)   // 12pt * scale
+      font.pixelSize: Math.round(12 * 4 / 3 * Config.bottomBarScale)   // 12pt * scale
     }
     Row {
       id: contentRow
       anchors.verticalCenter: parent.verticalCenter
-      spacing: Config.dp(10)
+      spacing: Config.bottomBarDp(10)
     }
   }
 
@@ -42,7 +42,7 @@ Item {
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    height: Config.dp(3)
+    height: Config.bottomBarDp(3)
     color: root.hovered ? root.accent : "transparent"
     Behavior on color {
       enabled: !Config.reducedMotion

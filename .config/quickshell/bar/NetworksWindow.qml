@@ -22,7 +22,8 @@ PanelWindow {
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
-  WlrLayershell.namespace: Config.layerNamespace("networks")
+  // Match the existing popup no-blur rule, including the transparent corners.
+  WlrLayershell.namespace: Config.layerNamespace("popup-networks")
   WlrLayershell.layer: WlrLayer.Overlay
   WlrLayershell.keyboardFocus: root.visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 

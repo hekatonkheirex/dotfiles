@@ -422,6 +422,14 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **BtPanel**: Bluetooth controls live in the Settings Bluetooth tab, including discovery/pairing and connected-device actions. Wi-Fi lives in the networks window (bottom-bar network button).
 - **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu, orientation-aware layout.
 - **PowerMenu**: her powermenu as a full-screen Overlay layer with exclusive keyboard focus over a 0.7 surface backdrop. Six glyph buttons (poweroff x1, reboot x2, exit x4, hibernate x6, suspend x3, lock x5) fade in staggered; hover dims the rest to 0.3 and writes the action into the terminal line. Arrows step the 3x2 grid (`PowerMenuModel.step`), Enter acts, Esc, middle click or a click outside the buttons closes. Poweroff, reboot and exit close the menu and open the existing confirmation overlay; hibernate and suspend run `systemctl` (failures logged); lock takes the secure lock route. The QuickMenu caffeine, airplane and Bluetooth toggles are gone: Caffeine lives in Settings > Lock & Power, DND in Settings > Notifications, airplane mode and Bluetooth power stay on their keys (`XF86WLAN`/`F8`/`Mod+F8`, `XF86Bluetooth`/`F10`/`Mod+F10`), and Bluetooth devices in Settings > Bluetooth.
+  Hover selection follows direct button-to-button movement; a departing button
+  only clears its own selection, so its late exit cannot erase the next action.
+  The menu title is `/ Y Ū G E N /`; the locked title remains `[ L O C K D O W N ]`.
+  A single seated cat is traced from the supplied reference and rendered as
+  themed vector strokes, without mixed-script font dependencies. Its relaxed
+  eyes become `> <` on hover; pixel checks verify that the entire body stays
+  unchanged. The mascot is 96 × 104 px at the current scale. Both menu frames
+  share one content-driven height, keeping their top and bottom edges aligned.
 - **Launcher**: App/action/clipboard search uses a screen-bounded 460px single-column Elena card with a dashed rounded frame, monospace uppercase provider/count labels, contextual keyboard hints and an accent selection marker. Names and selected descriptions keep the regular body font and normal case; popup height follows content without a separate details pane. Ctrl+F returns to search, arrows select results, Enter activates, and Tab reaches provider controls. Right-click or Shift+F10/Menu exposes opening, copying parsed POSIX-shell-quoted application arguments, or deleting a clipboard entry; Escape closes the context menu before dismissing. `@` still hands off to the wallpaper filmstrip. Speech recognition, its microphone button, recording/transcription processes and helper are removed; system packages and downloaded models outside the repo are untouched.
 - **Settings**: Provides ten tabs, remembers the last selected tab, and keeps Bluetooth Settings-only. The QuickMenu Settings tile was dropped with the QuickMenu and the Network tab with R4; reach Settings from `XF86Tools`. The panel moves from its header and resizes from the bottom-right corner, with a 560px minimum width and a maximum height bounded by screen margins. Sidebar navigation scrolls on overflow without a visible scrollbar; keyboard navigation brings the selected tab into view. Search prioritizes control titles, reports result counts or an empty state, and opens and highlights matching controls.
 - **Settings presentation**: Defaults to 1100×900 when no saved size exists, can expand to 1440px, and bounds the navigation pane and page width. General sections become side-by-side above 800px and stack below. Narrow labels elide with tooltips; rows wrap and grow. Ctrl+F searches from any control, without stealing content editing/navigation keys.
@@ -514,8 +522,14 @@ Bindings, confirmation execution and authentication remain unchanged.
 
 ## Bottom bar
 
-`bar/BottomBar.qml` is a full-width layer-shell window on the Bottom layer
-that reserves its height (`Config.bottomBarHeight`), so windows tile above it.
+`bar/BottomBar.qml` is a full-width layer-shell window on the Top layer,
+anchored to the bottom. It reserves 48 px (`Config.bottomBarHeight`),
+so windows tile above it, and stays screen-fixed during workspace transitions
+and overview rather than moving with each workspace preview.
+`Config.bottomBarScale = 48 / 43` and `Config.bottomBarDp()` size only its
+content: side clusters are 335 px wide, button icons 18 px, dock icons 24 px
+and value pills 26 px tall. Sidebar, networks and power-menu sizing remains
+on the separate `elenaScale = 1.5`; their bottom offsets follow the bar height.
 It shows while the top bar is visible and the session is unlocked. The
 content (`bar/bottombar/BottomBarContent.qml`) has three parts:
 
@@ -620,15 +634,26 @@ open. The bottom bar's network button toggles it (route `"networks"`); Esc,
 a middle click, a click outside (the popup shield) or focus moving to another
 window close it. The Settings Network tab and the old Wi-Fi panel are gone; this
 window is the only Wi-Fi UI.
+Its layer namespace is `quickshell-popup-networks`, matching the compositor's
+existing no-blur popup rule so transparent corners do not expose a rectangular
+blur patch. The IPC route remains `"networks"`.
+
+Settings persists a numeric `lastSettingsTab`, clamped to the current 0-9 range,
+not a page identity. Removing Network shifts the later pages: saved index 4 now
+opens Bluetooth. Existing values are not automatically migrated or reset.
+The removed Wi-Fi power toggle and per-network autoconnect controls are not
+replaced in this window; `XF86WLAN` still toggles airplane mode.
 
 - **List** (4 rows of `dp(60)`, scrolls): a `dp(6)` left border by signal
   (>= 75 and >= 50 x4, >= 25 x3, else x8; dotted, solid on the connected row),
-  a saved/new type disc, the name cut at 22 characters (19 + "..."), and
+  a saved/new type disc, the name cut at 22 characters (19 + "...") and
+  further elided to the available width before the action buttons, and
   forget (x3, saved), disconnect (x1, connected) or connect (x2). Empty:
   a symbol and "No networks found".
 - **Connect**: saved or open networks connect at once; a new secured one opens
   an inline masked passphrase row (Enter connects, Esc cancels; the text is
-  cleared whenever the row hides). Forget asks yes/no inline. Failures run
+  cleared whenever the row hides). Forget asks yes/no inline; its prompt
+  elides before the confirmation buttons. Failures run
   `notify-send -u low Networks "Could not connect to <name>"` (or disconnect,
   forget).
 - **Bandwidth**: down x1 and up x2 in MB/s from `SystemMetricsService` (all
@@ -646,10 +671,10 @@ events, after an action and on the 10 s fallback poll with `--rescan no`
 (NM's cache). The connect, disconnect and forget commands are the old
 Settings Wi-Fi panel ones, byte for byte.
 
-Checks: `node tests/networks/*.test.mjs` (parsers, buckets, wiring, Settings
+Checks: `node --test tests/networks/*.test.mjs` (parsers, buckets, wiring, Settings
 tab removal) and `bash scripts/networks-render.sh` (rows, empty state,
-bandwidth, toolbar and passphrase pixels, keys and clicks, and the service
-against fixture nmcli output; connect, disconnect and forget never run for
+bandwidth, toolbar and passphrase pixels, long-name elision, keys and clicks,
+and the service against fixture nmcli output; connect, disconnect and forget never run for
 real). Dev IPC: `qs ipc call shell popup networks`, `qs ipc call shell
 forgetPrompt <name>`. Specification:
 `docs/superpowers/specs/2026-10-14-elena-networks-r4-design.md`.

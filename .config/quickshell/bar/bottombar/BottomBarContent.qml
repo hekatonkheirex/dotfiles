@@ -34,14 +34,14 @@ Item {
 
   implicitHeight: Config.bottomBarHeight
 
-  readonly property int outerRadius: Config.dp(20)
+  readonly property int outerRadius: Config.bottomBarDp(20)
 
   // Left cluster
   Rectangle {
     id: left
     anchors.left: parent.left
     anchors.bottom: parent.bottom
-    width: Config.dp(300)
+    width: Config.bottomBarDp(300)
     height: parent.height
     color: Colors.surface
     topRightRadius: root.outerRadius
@@ -56,7 +56,7 @@ Item {
         forceHover: root.forceHover === "glance"
         onClicked: root.glanceClicked()
         onRightClicked: root.glanceRightClicked()
-        ValuePill { text: root.clockText; minWidth: Config.dp(34) }
+        ValuePill { text: root.clockText; minWidth: Config.bottomBarDp(34) }
       }
       BarButton {
         width: parent.width / 3
@@ -89,16 +89,16 @@ Item {
     id: dockClip
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
-    anchors.bottomMargin: Config.dp(6)
-    width: Math.max(0, root.width - 2 * Config.dp(300) - 2 * Config.dp(8))
-    height: Config.dp(26) + Config.dp(6) + Config.dp(3)
+    anchors.bottomMargin: Config.bottomBarDp(6)
+    width: Math.max(0, root.width - 2 * Config.bottomBarDp(300) - 2 * Config.bottomBarDp(8))
+    height: Config.bottomBarDp(26) + Config.bottomBarDp(6) + Config.bottomBarDp(3)
     clip: true
 
     Row {
       id: dock
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.bottom: parent.bottom
-      spacing: Config.dp(4)
+      spacing: Config.bottomBarDp(4)
 
       Repeater {
         model: root.items
@@ -120,7 +120,7 @@ Item {
     id: right
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    width: Config.dp(300)
+    width: Config.bottomBarDp(300)
     height: parent.height
     color: Colors.surface
     topLeftRadius: root.outerRadius
@@ -144,8 +144,8 @@ Item {
         forceHover: root.forceHover === "alarms"
         onClicked: root.alarmsClicked()
         Item {
-          width: Config.dp(23)
-          height: Config.dp(23)
+          width: Config.bottomBarDp(23)
+          height: Config.bottomBarDp(23)
           ValuePill {
             anchors.centerIn: parent
             visible: root.alarmCount > 0
@@ -154,8 +154,8 @@ Item {
           Rectangle {   // no alarms: the slashed line
             anchors.centerIn: parent
             visible: root.alarmCount === 0
-            width: Config.dp(23)
-            height: Config.dp(4)
+            width: Config.bottomBarDp(23)
+            height: Config.bottomBarDp(4)
             radius: height / 2
             rotation: 38
             color: Colors.elenaAccent(3)

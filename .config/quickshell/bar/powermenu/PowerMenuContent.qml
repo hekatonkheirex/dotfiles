@@ -5,7 +5,7 @@ import "../../config/PowerMenuModel.js" as Model
 
 // Her powermenu (config/eww/windows/powermenu.yuck), window-less so the
 // overlay and the lock surfaces host it and the render check can grab it.
-// Left: greeting, quote, palette row. Right: bunny, 3x2 buttons (or the lock
+// Left: greeting, quote, palette row. Right: cat, 3x2 buttons (or the lock
 // ring when `locked`), terminal line. The host paints the backdrop and gives
 // this item keyboard focus; key handling is off while locked (the lock
 // surface owns password input).
@@ -25,6 +25,9 @@ Item {
 
   readonly property var buttons: Model.buttons()
   readonly property color border30: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.3)
+  readonly property real panelHeight: Math.max(
+    leftCol.implicitHeight + Config.dp(27) + Config.dp(54),
+    rightCol.implicitHeight + 2 * Config.dp(27))
   function pt(n) { return Math.round(n * 4 / 3 * Config.elenaScale) }
   function indexOf(id) {
     for (var i = 0; i < root.buttons.length; i++) if (root.buttons[i].id === id) return i
@@ -65,9 +68,10 @@ Item {
 
     Item {
       id: left
+      objectName: "greetingPanel"
       anchors.verticalCenter: parent.verticalCenter
       implicitWidth: leftCol.implicitWidth + Config.dp(47) + Config.dp(74)
-      implicitHeight: leftCol.implicitHeight + Config.dp(27) + Config.dp(54)
+      implicitHeight: root.panelHeight
       width: implicitWidth
       height: implicitHeight
 
@@ -166,9 +170,10 @@ Item {
 
     Rectangle {
       id: right
+      objectName: "actionsPanel"
       anchors.verticalCenter: parent.verticalCenter
       implicitWidth: rightCol.implicitWidth + 2 * Config.dp(47)
-      implicitHeight: Math.max(left.height, rightCol.implicitHeight + 2 * Config.dp(27))
+      implicitHeight: root.panelHeight
       width: implicitWidth
       height: implicitHeight
       radius: Config.dp(27)
@@ -199,7 +204,7 @@ Item {
         anchors.centerIn: parent
         spacing: 30
 
-        BunnyBlock { anchors.horizontalCenter: parent.horizontalCenter }
+        CatBlock { anchors.horizontalCenter: parent.horizontalCenter }
 
         // Fixed height: the buttons and the ring swap in the same slot.
         Item {
@@ -225,7 +230,12 @@ Item {
                 revealed: root.revealed
                 dimmed: root.selected !== "" && root.selected !== modelData.id
                 onEntered: { root.selected = modelData.id; root.hovered(modelData.id) }
-                onExited: { root.selected = ""; root.hovered("") }
+                // A previous button can exit after the next one has entered.
+                onExited: {
+                  if (root.selected !== modelData.id) return
+                  root.selected = ""
+                  root.hovered("")
+                }
                 onClicked: root.activated(modelData.id)
               }
             }
@@ -245,7 +255,7 @@ Item {
           objectName: "terminalLine"
           anchors.horizontalCenter: parent.horizontalCenter
           live: root.revealed   // the overlay binds revealed to its window's visibility
-          flavor: root.locked ? "[ L O C K D O W N ]" : "/ A P H E L I O N /"
+          flavor: root.locked ? "[ L O C K D O W N ]" : "/ Y Ū G E N /"
           prompt: root.locked ? "> " : "$ "
           value: root.locked ? Model.maskInput(root.inputLength) : root.selected
           ink: Colors.elenaAccent(root.locked ? 1 : 2)   // locked x1, else her x10 (bright x2)

@@ -40,7 +40,7 @@ grep -o 'GEOM .*' "$home/qs.log" > "$home/geom.txt"
 pix_ok=1
 python3 -I - "$home/out" "$home/geom.txt" <<'PY' || pix_ok=0
 import sys
-from PIL import Image
+from PIL import Image, ImageChops
 out = sys.argv[1]
 G = {}
 for line in open(sys.argv[2]):
@@ -48,7 +48,11 @@ for line in open(sys.argv[2]):
     G[(img, name)] = tuple(int(v) for v in (x, y, w, h))
 imgs = {}
 def im(name):
-    if name not in imgs: imgs[name] = Image.open(f"{out}/{name}.png").convert("RGB")
+    if name not in imgs:
+        image = Image.open(f"{out}/{name}.png").convert("RGBA")
+        if name.startswith("cat-"):
+            image = Image.alpha_composite(Image.new("RGBA", image.size, (*SURF, 255)), image)
+        imgs[name] = image.convert("RGB")
     return imgs[name]
 def hx(s): return tuple(int(s[i:i+2], 16) for i in (1, 3, 5))
 SURF, OUT, OUTV, FGS = hx("#1a1f2b"), hx("#5b6578"), hx("#3a4254"), hx("#f2f4f8")
@@ -112,6 +116,18 @@ for img, col in (("s_3_insert", X[2]), ("s_2_delete", mix(OUT, SURF, 0.3))):
     check(f"surface {img} ring border px", sum(count(img, p, col, 6) for p in px), 27, 27)
     W, H = im(img).size
     check(f"surface {img} backdrop is opaque surface", sum(count(img, patch(cx, cy), SURF, 2) for cx, cy in ((4, 4), (W - 5, H - 5))), 50, 50)
+
+# Cat hover changes only the eye strokes, not the silhouette or its position.
+normal, happy, restored = (im("cat-" + state) for state in ("normal", "happy", "restored"))
+check("cat state captures keep identical bounds", int(normal.size == happy.size == restored.size), 1, 1)
+diff = ImageChops.difference(normal, happy)
+w, h = normal.size
+eyes = (int(23 * w / 48), int(15 * h / 52), int(41 * w / 48) + 1, int(22 * h / 52) + 1)
+changed = lambda image: sum(pixel != (0, 0, 0) for pixel in image.get_flattened_data())
+eye_changes = changed(diff.crop(eyes))
+check("cat hover redraws its eyes", eye_changes, 8)
+check("cat hover leaves every body pixel unchanged", changed(diff) - eye_changes, 0, 0)
+check("leaving the cat restores its resting expression", changed(ImageChops.difference(normal, restored)), 0, 0)
 
 if not all(checks):
     print(f"FAIL: {checks.count(False)} of {len(checks)} checks")

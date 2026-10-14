@@ -129,6 +129,17 @@ ShellRoot {
             && win.find(win.find(a, "row_0"), "connectButton") === null)
           win.check("long name cut to 19 + ...", win.find(win.find(a, "row_2"), "nameText").text === "TheQuickBrownFoxJum...")
           win.check("short name kept", win.find(win.find(a, "row_0"), "nameText").text === "HomeNet")
+          var connectedRow = win.find(a, "row_0")
+          var connectedName = win.find(connectedRow, "nameText")
+          connectedRow.name = "DATASYSTEMS VISITORS"
+          wait(50)
+          win.check("saved connected name elides rather than clipping", connectedName.truncated)
+          var forgetButton = win.find(connectedRow, "forgetButton")
+          win.check("name leaves space before forget button",
+            connectedName.mapToItem(connectedRow, connectedName.width, 0).x
+              < forgetButton.mapToItem(connectedRow, 0, 0).x)
+          grab(frameA, "long-name")
+          connectedRow.name = "HomeNet"
           win.check("saved and new rows use different type glyphs",
             win.find(win.find(a, "row_0"), "typeDisc").glyph !== win.find(win.find(a, "row_1"), "typeDisc").glyph)
           win.check("empty state hidden with rows", !win.find(a, "emptyState").visible)
@@ -242,6 +253,15 @@ ShellRoot {
           mouseClick(win.find(win.find(a, "row_3"), "forgetButton"))
           mouseClick(win.find(win.find(a, "forgetRow"), "forgetYes"))
           win.check("Yes confirms", last() === "forget:Weak" && a.forgetFor === "")
+          a.forgetFor = "WWWWWWWWWWWWWWWWWWWWWW"
+          wait(50)
+          var forgetName = win.find(fr, "forgetName")
+          win.check("long forget prompt elides before confirmation buttons", forgetName.truncated
+            && forgetName.mapToItem(fr, forgetName.width, 0).x
+              < win.find(fr, "forgetYes").mapToItem(fr, 0, 0).x)
+          grab(frameA, "long-forget")
+          mouseClick(win.find(fr, "forgetNo"))
+          win.check("long-name forget cancellation emits no action", a.forgetFor === "" && last() === "forget:Weak")
 
           // Toolbar.
           var tools = [["tool_vpn", "vpn"], ["tool_scan", "scan"], ["tool_speed", "speedtest"], ["tool_ping", "ping"]]

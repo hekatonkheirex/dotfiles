@@ -103,6 +103,12 @@ ShellRoot {
           s.visible = true
           win.check("lock input refocused when shown again", lockInput.focus
             && (!lockInput.Window.active || lockInput.activeFocus))
+          for (var menu of [a, l]) {
+            var greetingPanel = win.find(menu, "greetingPanel")
+            var actionsPanel = win.find(menu, "actionsPanel")
+            win.check("menu frames share top and bottom edges (locked " + menu.locked + ")",
+              greetingPanel.y === actionsPanel.y && greetingPanel.height === actionsPanel.height)
+          }
           grab(frameA, "a")
           grab(frameB, "b")
           var ids = ["poweroff", "reboot", "exit", "hibernate", "suspend", "lock"]
@@ -156,12 +162,31 @@ ShellRoot {
           mouseMove(exitBtn, exitBtn.width / 2, exitBtn.height / 2)
           win.check("hover selects exit", a.selected === "exit" && hovers[hovers.length - 1] === "exit")
           win.check("hover dims the others", win.find(a, "button_poweroff").opacity === 0.3 && exitBtn.opacity === 1)
+          var hoverIds = ["poweroff", "reboot", "exit", "suspend", "hibernate", "lock",
+            "hibernate", "suspend", "exit", "reboot", "poweroff"]
+          for (var targetId of hoverIds) {
+            var targetButton = win.find(a, "button_" + targetId)
+            mouseMove(targetButton, targetButton.width / 2, targetButton.height / 2)
+            win.check("direct hover selects " + targetId, a.selected === targetId
+              && win.find(a, "terminalValue").text === targetId
+              && hovers[hovers.length - 1] === targetId)
+            for (var otherId of ["poweroff", "reboot", "exit", "suspend", "hibernate", "lock"]) {
+              win.check("hover " + targetId + " sets opacity of " + otherId,
+                win.find(a, "button_" + otherId).opacity === (otherId === targetId ? 1 : 0.3))
+            }
+          }
           mouseMove(frameA, 2, 2)
           win.check("leaving clears the selection", a.selected === "" && hovers[hovers.length - 1] === "")
-          var bunny = win.find(a, "bunnyHead")
-          var head = bunny.text
-          mouseMove(win.find(a, "bunnyHover"), 4, 4)
-          win.check("hovering the bunny pats its head", bunny.text === "( ^ ^) " && head === "( . .) ")
+          var catHover = win.find(a, "catHover")
+          var cat = catHover.parent
+          grab(cat, "cat-normal")
+          mouseMove(catHover, 4, 4)
+          wait(50)
+          grab(cat, "cat-happy")
+          grab(frameA, "cat-hover")
+          mouseMove(frameA, 2, 2)
+          wait(50)
+          grab(cat, "cat-restored")
 
           // Clicks: a button acts; outside dismisses; middle click dismisses.
           var acted = []

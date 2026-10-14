@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Usage: bottom-bar-render.sh [quickshell-root]   (env BOTTOM_BAR_RENDER_ROOT
 # overrides it; KEEP_PNG=path keeps a copy of the render, even when the check fails)
-# Renders two BottomBarContent instances under the elenapan palette in a scratch
-# HOME, fails on any QML error in the log, and pixel-checks cluster surfaces,
-# hover border, dock indicators, battery (40 % so the half part shows), signal, volume ring, alarm pill, and
-# that the icon glyphs are not tofu.
+# Renders three BottomBarContent instances under the elenapan palette in a scratch
+# HOME, fails on QML errors, and pixel-checks cluster surfaces, hover borders,
+# dock indicators, battery parts, signal, volume ring and alarm pill.
+# Icon-font identity is checked separately by bar-font-check.sh.
 set -euo pipefail
 root=$(realpath "${BOTTOM_BAR_RENDER_ROOT:-${1:-$(dirname "$0")/..}}")
 real_home=$HOME
@@ -53,8 +53,11 @@ def count(box, col, t=8):
     x0, y0, x1, y1 = box
     return sum(near(im.getpixel((x, y)), col, t) for x in range(x0, x1) for y in range(y0, y1))
 def area(box): return (box[2] - box[0]) * (box[3] - box[1])
-def dp(n): return int(n * 1.5 + 0.5)
-W, BH = 1100, dp(43)               # stage width, bar height (65)
+SCALE = 48 / 43
+INK_SCALE = (SCALE / 1.5) ** 2
+def dp(n): return int(n * SCALE + 0.5)
+W, BH = 1100, 48
+CW, BW = dp(300), dp(300) / 3
 OFF = {"A": 0, "B": 85, "C": 170}  # A: idle; B: hover on glance; C: disconnected, 20 items
 checks = []
 def check(name, n, lo, hi=None):
@@ -64,22 +67,22 @@ def check(name, n, lo, hi=None):
 def patch(cx, cy, r=1): return (cx - r, cy - r, cx + r + 1, cy + r + 1)
 
 # 2. cluster surface and rounded outer corners
-for lab, (x, y) in (("left", (20, 30)), ("right", (W - 20, 30))):
+for lab, (x, y) in (("left", (20, BH - 10)), ("right", (W - 20, BH - 10))):
     box = (x, y, x + 6, y + 6)
     check(f"A {lab} cluster surface px", count(box, SURF, 3), 36, 36)
-# (440, 3) lies 33.6 px from the arc centre (420, 30): outside the 30 px radius
-# (a 4 px radius would paint it with the surface color).
-check("A left cluster corner is stage bg", int(near(im.getpixel((440, 3)), BG, 3)), 1, 1)
-check("A right cluster corner is stage bg", int(near(im.getpixel((W - 441, 3)), BG, 3)), 1, 1)
+# Sample outside the scaled upper corner's arc, but inside its bounding box.
+check("A left cluster corner is stage bg", int(near(im.getpixel((CW - dp(7), 3)), BG, 3)), 1, 1)
+check("A right cluster corner is stage bg", int(near(im.getpixel((W - CW + dp(7), 3)), BG, 3)), 1, 1)
 
 # 3. hover border: bottom dp(3) strip under the glance button, accent only in B
 for lab in "AB":
     y = OFF[lab] + BH - dp(3)
-    n = count((10, y, 140, y + dp(3)), ERR)
-    if lab == "B": check("B glance border px", n, int(0.95 * 130 * dp(3)))
+    x0, x1 = dp(7), int(BW) - dp(7)
+    n = count((x0, y, x1, y + dp(3)), ERR)
+    if lab == "B": check("B glance border px", n, int(0.95 * (x1 - x0) * dp(3)))
     else: check("A glance border px", n, 0, 0)
 y = OFF["B"] + BH - dp(3)
-check("B other-button border px", count((160, y, 290, y + dp(3)), ERR), 0, 0)
+check("B other-button border px", count((int(BW) + dp(7), y, int(2 * BW) - dp(7), y + dp(3)), ERR), 0, 0)
 
 # 4. dock: items are dp(35) wide, dp(4) apart, centred; the focused indicator
 # is dp(6) x dp(3) at the item's bottom, dp(6) above the bar bottom.
@@ -89,18 +92,21 @@ ix = [int(dx0 + i * (iw + gap)) for i in range(3)]
 ybot = BH - dp(6)                  # item bottom
 band = lambda i: (ix[i] + iw // 2 - 5, ybot - dp(3) - 1, ix[i] + iw // 2 + 5, ybot)
 item = lambda i: (ix[i], 0, ix[i] + iw, ybot)
-b0 = (ix[0] + iw // 2 - 3, ybot - dp(3) + 1, ix[0] + iw // 2 + 4, ybot - 1)
+b0 = (ix[0] + iw // 2 - 2, ybot - dp(3) + 1, ix[0] + iw // 2 + 3, ybot - 1)
 check("A kitty indicator px (inversePrimary)", count(b0, INVP), int(0.9 * area(b0)))
 accents = (ERR, SEC, TER, PRI, INVP, FGTC)
 check("A firefox indicator-band accent px", sum(count(band(1), a) for a in accents), 0, 0)
-check("A firefox glyph muted px (outline)", count(item(1), OUT), 150)
+check("A firefox glyph muted px (outline)", count(item(1), OUT), int(150 * INK_SCALE))
 check("A firefox glyph accent px (tertiary)", count(item(1), TER), 0, 0)
-check("A mpv glyph px (fgTertiaryContainer)", count(item(2), FGTC), 100)
+check("A mpv glyph px (fgTertiaryContainer)", count(item(2), FGTC), int(100 * INK_SCALE))
 check("A mpv indicator-band px", count(band(2), FGTC), 0, 0)
 
-# 5. battery stack: right cluster, third button; 3 parts of (dp(23)-8)/3 = 9
-bx = W - 57                        # stack centre x (measured: 1033..1054)
-stack = lambda lab, k: patch(bx, OFF[lab] + 19 + 13 * k, 3)   # part centres 19, 32, 45
+# 5. Battery sample points follow the scaled, centred icon/content row.
+icon_width = dp(16)   # 12pt icon converted to pixels before bar scaling
+bx = round(W - CW / 6 + (icon_width + dp(10)) / 2)
+stack_gap = dp(8 / 3)
+part_height = (dp(23) - 2 * stack_gap) / 3
+stack = lambda lab, k: patch(bx, round(OFF[lab] + (BH - dp(23)) / 2 + part_height / 2 + k * (part_height + stack_gap)), 1)
 half = tuple((a + b) // 2 for a, b in zip(FGTC, SURF))
 for k in range(3):
     check(f"A battery part {k} full px", count(stack("A", k), FGTC), area(stack("A", k)))
@@ -108,26 +114,28 @@ check("B battery top empty px", count(stack("B", 0), HIGH), area(stack("B", 0)))
 check("B battery middle half px", count(stack("B", 1), half), area(stack("B", 1)))
 check("B battery bottom full px", count(stack("B", 2), FGTC), area(stack("B", 2)))
 
-# 6. signal bars: x centres 726, 738, 750, 762; heights grow left to right
-sx = [W - 374 + 12 * i for i in range(4)]
+# 6. Signal bars share the same icon/content centering.
+signal_width = 4 * dp(5) + 3 * dp(8 / 3)
+signal_left = W - CW + CW / 6 + (icon_width + dp(10) - signal_width) / 2
+sx = [round(signal_left + dp(5) / 2 + (dp(5) + dp(8 / 3)) * i) for i in range(4)]
 def colh(lab, x, col):
     return sum(near(im.getpixel((x, y)), col) for y in range(OFF[lab], OFF[lab] + BH))
 for i, x in enumerate(sx):
-    mid = patch(x, OFF["A"] + BH // 2, 2)
+    mid = patch(x, OFF["A"] + BH // 2, 1)
     check(f"A signal bar {i} px (primary)", count(mid, PRI), area(mid))
-    midb = patch(x, OFF["B"] + BH // 2, 2)
+    midb = patch(x, OFF["B"] + BH // 2, 1)
     want, nm = (PRI, "primary") if i < 2 else (HIGH, "container")
     check(f"B signal bar {i} px ({nm})", count(midb, want), area(midb))
 hs = [colh("A", x, PRI) for x in sx]
 print("signal bar heights", hs)
 check("A signal heights strictly increase", int(all(a < b for a, b in zip(hs, hs[1:]))), 1, 1)
 
-# 7. volume ring: centre (394, 32), outer radius dp(23)/2 = 17.5, stroke dp(5)
+# 7. Volume-ring samples stay on the scaled stroke's centre line.
 import math
-rcx, rr = 394, 13
+rcx, rr = 5 * CW / 6 + (icon_width + dp(10)) / 2, (dp(23) - dp(5)) / 2
 def ring(lab, deg):    # deg counter-clockwise from 12 o'clock
     t = math.radians(deg)
-    return patch(int(round(rcx - rr * math.sin(t))), int(round(OFF[lab] + 32 - rr * math.cos(t))), 1)
+    return patch(int(round(rcx - rr * math.sin(t))), int(round(OFF[lab] + BH / 2 - rr * math.cos(t))), 0)
 for deg in range(0, 360, 45):
     b = ring("A", deg)
     check(f"A ring {deg:3d} deg px (fgSurface)", count(b, FGS), area(b))
@@ -139,42 +147,34 @@ for deg in (180, 230, 290, 340):
     check(f"B ring {deg:3d} deg px (backdrop)", count(b, HIGH), area(b))
 
 # 8. alarm count: pill in A, slashed line in B (button 2 of the right cluster)
-ab = lambda lab: (W - 232, OFF[lab] + 10, W - 180, OFF[lab] + BH - 10)
-check("A alarm pill px (container)", count(ab("A"), HIGH), 700)
+alarm_x = W - CW / 2 + (icon_width + dp(10)) / 2
+ab = lambda lab: (round(alarm_x - dp(23) / 2), OFF[lab] + (BH - dp(23)) // 2, round(alarm_x + dp(23) / 2), OFF[lab] + (BH + dp(23)) // 2)
+check("A alarm pill px (container)", count(ab("A"), HIGH), int(700 * INK_SCALE))
 check("A alarm slash px (tertiary)", count(ab("A"), TER), 0, 0)
-check("B alarm slash px (tertiary)", count(ab("B"), TER), 150)
+check("B alarm slash px (tertiary)", count(ab("B"), TER), int(0.6 * dp(23) * dp(4)))
 check("B alarm pill px (container)", count(ab("B"), HIGH), 0, 20)
 
-# 10. disconnected (bar C): four short muted bars, dp(6) tall (7 px of column
-# ink after the round caps), and a 10 % battery of empty, empty, half.
+# 10. Disconnected bars collapse to the scaled short height; battery parts
+# remain empty, empty, half for the 10 % fixture.
 for i, x in enumerate(sx):
-    mid = patch(x, OFF["C"] + BH // 2, 2)
+    mid = patch(x, OFF["C"] + BH // 2, 1)
     check(f"C signal bar {i} px (muted)", count(mid, OUT), area(mid))
-    check(f"C signal bar {i} height px", colh("C", x, OUT), 6, 8)
+    check(f"C signal bar {i} height px", colh("C", x, OUT), dp(6) - 2, dp(6))
 check("C battery top empty px", count(stack("C", 0), HIGH), area(stack("C", 0)))
 check("C battery middle empty px", count(stack("C", 1), HIGH), area(stack("C", 1)))
 check("C battery bottom half px", count(stack("C", 2), half), area(stack("C", 2)))
 
-# 11. 20 dock items on a 1100 px stage: the row is clipped to the free width
-# (462..638). Nothing paints in the 12 px margins, nor in the empty gaps of the
-# left cluster (the dock is drawn under the right cluster), and items show.
+# 11. A long dock row stays clipped between the resized clusters and leaves
+# the side margins and gaps between button content clear.
 bgc = lambda box: sum(not near(im.getpixel((x, y)), BG, 3) for x in range(box[0], box[2]) for y in range(box[1], box[3]))
 sfc = lambda box: sum(not near(im.getpixel((x, y)), SURF, 3) for x in range(box[0], box[2]) for y in range(box[1], box[3]))
 yc0, yc1 = OFF["C"] + 3, OFF["C"] + BH - 3
-fl, fr = 450 + dp(8), W - 450 - dp(8)
-check("C dock ink left of free band px", bgc((450, yc0, fl, yc1)), 0, 0)
-check("C dock ink right of free band px", bgc((fr, yc0, W - 450, yc1)), 0, 0)
-check("C dock ink in free band px", bgc((fl, yc0, fr, yc1)), 400)
-check("C left cluster gap 1 px", sfc((120, yc0, 170, yc1)), 0, 0)
-check("C left cluster gap 2 px", sfc((270, yc0, 320, yc1)), 0, 0)
-
-# 9. glyphs are not tofu or the wrong file: each button glyph of bar A (command,
-# star, headphones, shield, bell, bolt) measures 38..60 accent px at 12pt.
-glyphs = (("clock command", (20, ERR), 60), ("date star", (170, SEC), 45),
-          ("media headphones", (320, INVP), 38), ("network shield", (W - 430, PRI), 30),
-          ("alarms bell", (W - 280, TER), 54), ("battery bolt", (W - 130, FGTC), 38))
-for nm, (x, col), want in glyphs:
-    check(f"A {nm} glyph accent px", count((x, 15, x + 45, 50), col), int(want * 0.6), int(want * 1.6))
+fl, fr = CW + dp(8), W - CW - dp(8)
+check("C dock ink left of free band px", bgc((CW, yc0, fl, yc1)), 0, 0)
+check("C dock ink right of free band px", bgc((fr, yc0, W - CW, yc1)), 0, 0)
+check("C dock ink in free band px", bgc((fl, yc0, fr, yc1)), int(400 * INK_SCALE))
+check("C left cluster gap 1 px", sfc((dp(80) + 2, yc0, dp(113), yc1)), 0, 0)
+check("C left cluster gap 2 px", sfc((dp(180) + 2, yc0, dp(213), yc1)), 0, 0)
 
 if not all(checks):
     print(f"FAIL: {checks.count(False)} of {len(checks)} checks")

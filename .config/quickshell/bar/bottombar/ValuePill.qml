@@ -5,10 +5,10 @@ import "../../config"
 Rectangle {
   id: root
   property string text: ""
-  property int minWidth: Config.dp(23)
+  property int minWidth: Config.bottomBarDp(23)
 
-  implicitHeight: Config.dp(23)
-  implicitWidth: Math.max(root.minWidth, label.implicitWidth + Config.dp(8))
+  implicitHeight: Config.bottomBarDp(23)
+  implicitWidth: Math.max(root.minWidth, label.implicitWidth + Config.bottomBarDp(8))
   radius: height / 2
   color: Colors.surfaceContainerHighest
 
@@ -18,6 +18,6 @@ Rectangle {
     text: root.text
     color: Colors.fgSurface
     font.family: BottomBarFonts.textFamily
-    font.pixelSize: Math.round(8 * 4 / 3 * Config.elenaScale)   // 8pt * scale
+    font.pixelSize: Math.round(8 * 4 / 3 * Config.bottomBarScale)   // 8pt * scale
   }
 }

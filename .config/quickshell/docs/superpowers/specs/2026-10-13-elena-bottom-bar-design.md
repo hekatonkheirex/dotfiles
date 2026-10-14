@@ -9,15 +9,17 @@ volume ring), centre dock (glyph per app, focus indicator), right cluster
 Measured by: node gates for the pure modules pass, the render check
 (`scripts/bottom-bar-render.sh`) shows the clusters, glyphs, indicator, battery
 parts and ring in the expected colors, `qs ipc call shell dockState` still
-matches `niri msg -j windows`, and `niri msg layers` shows the bottom layer
+matches `niri msg -j windows`, and `niri msg layers` shows the Top layer
 surface with an exclusive zone of the bar height.
 
 ## Reference
 `config/eww/windows/bottom-bar.yuck`, `bottom-bar.scss` and
 `config/eww/scripts/daemons/sway-dock.py` in github.com/elenapan/dotfiles
-(master, 2025-09-07), and the Aphelion showcase video. Her scale is 1.5 on a
-1080p screen; every `dpi(Npx)` below is `N * S` with `S = Config.elenaScale = 1.5`
-(one constant, no setting).
+(master, 2025-09-07), and the Aphelion showcase video. Her reference scale is
+1.5 on a 1080p screen. User adaptation 2026-10-14 for the ThinkPad X390:
+the bar is 48 px tall; `S = Config.bottomBarScale = 48 / 43` and dimensions
+below use `Config.bottomBarDp(N) = round(N * S)`. The sidebar, networks window
+and power menu retain `Config.elenaScale = 1.5`.
 
 ## Decisions (user, 2026-10-13)
 - Replicate her widgets exactly; keep OUR palette ("minus the new color theme").
@@ -31,8 +33,10 @@ surface with an exclusive zone of the bar height.
   visible.
 
 ## Layout
-- Window: anchors left, right, bottom; `WlrLayer.Bottom`; exclusive zone equal
-  to the bar height; height `43 * S` (65 px at S = 1.5); transparent window.
+- Window: anchors left, right, bottom; `WlrLayer.Top`; exclusive zone equal
+  to the bar height; height 48 px; transparent window.
+  User correction 2026-10-14: screen-fixed during workspace switching and
+  overview, like the top workspace strip, not part of workspace previews.
 - Left cluster: width `300 * S`, background `Colors.surface`, top-right radius
   `20 * S`; three buttons spread evenly.
 - Right cluster: width `300 * S`, background `Colors.surface`, top-left radius
@@ -91,7 +95,7 @@ without touching the bar.
 | `config/NetworkStatusService.qml` | `signal` (0..4), `connected`, `vpn`; `nmcli monitor` triggers a refresh, 10 s fallback poll; runs `nmcli -t -f ACTIVE,SIGNAL dev wifi` and `nmcli -t -f TYPE,STATE con show --active` |
 | `bar/BottomBar.qml` | the window, clusters, input |
 | `bar/bottombar/{BarButton,VolumeRing,BatteryStack,SignalBars,DockItem}.qml` | pieces; `BottomBarContent.qml` is the window-less content (render-checkable) |
-| `config/Config.qml` | `elenaScale` constant, bar height helper |
+| `config/Config.qml` | `bottomBarHeight`, independent `bottomBarScale`, `bottomBarDp()` sizing helper |
 | `config/Colors.qml` | `elenaAccent(n)` |
 | `shell.qml` | instance, `openSidebarPage(n)`, `bottomBarState()` IPC, removes `Dock`, `dockReveal` |
 | deleted | `bar/Dock.qml`, `bar/dock/*`, `scripts/dock-render.sh`, `tests/dock/{item,window}.test.mjs` (replaced by the new gates), `dockReveal` IPC |

@@ -21,10 +21,13 @@ QtObject {
   readonly property bool spatialMotion: true
   readonly property bool expressiveMotion: true
   readonly property int tagStripHeight: 8
-  // The bottom bar follows the reference rice's dpi() scale (1.5 on 1080p).
+  // Reference scale for the sidebar, networks window and power menu.
   readonly property real elenaScale: 1.5
   function dp(n) { return Math.round(n * elenaScale) }
-  readonly property int bottomBarHeight: dp(43)
+  // Laptop-sized bottom bar; its content has an independent scale.
+  readonly property int bottomBarHeight: 48
+  readonly property real bottomBarScale: bottomBarHeight / 43
+  function bottomBarDp(n) { return Math.round(n * bottomBarScale) }
 
   function layerNamespace(kind) {
     return "quickshell-" + kind

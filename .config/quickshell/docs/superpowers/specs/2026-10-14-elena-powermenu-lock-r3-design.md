@@ -23,12 +23,16 @@ github.com/elenapan/dotfiles (master, 2025-09-07). Scale S = `Config.elenaScale`
   the lock surface with their settings.
 - Destructive actions confirm (poweroff, reboot, exit) through the existing
   PowerConfirmation; hibernate, suspend, lock run immediately.
-- Greeting and bunny stay; quote and author come from settings.
+- Greeting stays; quote and author come from settings. User adaptation:
+  a single seated Unicode cat replaces the bunny, with eye-only hover feedback.
 
 ## Overlay
 `bar/PowerMenu.qml`: layer Overlay, anchors all edges, exclusion Ignore,
 keyboard focus exclusive while open, background `Colors.surface` at 0.7 alpha
 (locked: opaque).
+
+Both frames use the same content-driven height (the larger padded column),
+so the joined top and bottom edges stay aligned.
 
 - **Left side** (border 6 S `outline` at 0.3, no right border, radius 27 S left
   corners, padding 27/74/54/47 S): greeting "Hello" in BattleAndy 80pt S
@@ -37,9 +41,12 @@ keyboard focus exclusive while open, background `Colors.surface` at 0.7 alpha
   right aligned `fgSurfaceVariant`); palette row of six 29 S circles on a 4 S
   `surface` border in order x1, x3, x2, x6, x4, x5.
 - **Right side** (radius 27 S, color `surface`, border 6 S dashed `outline` 0.3,
-  padding 0/47 S): bunny block `(\ /)`, head, `c(")(")` with the quotes in x1;
-  hover on the bunny shows `( ^ ^)`; button grid 3x2, buttons 54 S square,
-  glyph 30pt S in the icon font; terminal line "/ A P H E L I O N /" and
+  padding 0/47 S): seated cat traced from the user's single-cat reference,
+  rendered with fixed, themed vector strokes in a 48 × 52 coordinate frame
+  (96 × 104 px at the current scale). Relaxed eyes become `> <` on hover;
+  every body pixel remains unchanged. No font fallback or text spacing.
+  Button grid 3x2, buttons 54 S square, glyph 30pt S in the icon font;
+  terminal line "/ Y Ū G E N /" and
   `$ <hovered action>_` with a blinking underscore (1 s, 2 steps).
 - **Buttons:** poweroff x1, reboot x2, exit x4, hibernate x6, suspend x3, lock
   x5; muted (`outline` 0.6) until revealed, then colors fade in staggered
@@ -76,7 +83,7 @@ masked input; terminal color x1.
 |---|---|
 | `config/PowerMenuModel.js` (pure) | `buttons()` order/colors, `ringColorIndex(len, action)`, `maskInput(len)`, `selectionStep(index, key)` |
 | `bar/PowerMenu.qml` | overlay window |
-| `bar/powermenu/{PowerButton,BunnyBlock,PaletteRow,TerminalLine,LockRing}.qml` | pieces; `PowerMenuContent.qml` is window-less (render-checkable) |
+| `bar/powermenu/{PowerButton,CatBlock,PaletteRow,TerminalLine,LockRing}.qml` | pieces; `PowerMenuContent.qml` is window-less (render-checkable) |
 | `bar/LockScreen.qml` | surface uses `PowerMenuContent` in locked mode; PAM/session lock unchanged |
 | `shell.qml` | instance, `togglePowerMenu`, repoint `quickmenu` IPC and runtime trigger; bar logout button; remove QuickMenu |
 | `config/Settings.qml`, `bar/settings/AppearanceTab.qml` | quote settings and rows; removal of lock settings and rows |
