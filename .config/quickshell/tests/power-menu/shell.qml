@@ -202,6 +202,16 @@ ShellRoot {
 
           win.check("LockScreen.qml loads and stays unlocked", lockProbe.locked === false && !lockProbe.secure)
 
+          // Cursor blink runs only while revealed and motion is allowed.
+          var term = win.find(a, "terminalLine")
+          Config.reducedMotion = false
+          win.check("cursor blinks while revealed", term.blinking)
+          a.revealed = false
+          win.check("cursor blink stops while hidden", !term.blinking)
+          a.revealed = true
+          Config.reducedMotion = true
+          win.check("cursor blink stops under reduced motion", !term.blinking)
+
           // (g) Full lock surface: typed keys drive the ring and the mask.
           var sMask = win.find(s, "terminalValue")
           var sRing = win.find(s, "lockRing")

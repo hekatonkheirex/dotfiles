@@ -242,7 +242,9 @@ Item {
         }
 
         TerminalLine {
+          objectName: "terminalLine"
           anchors.horizontalCenter: parent.horizontalCenter
+          live: root.revealed   // the overlay binds revealed to its window's visibility
           flavor: root.locked ? "[ L O C K D O W N ]" : "/ A P H E L I O N /"
           prompt: root.locked ? "> " : "$ "
           value: root.locked ? Model.maskInput(root.inputLength) : root.selected

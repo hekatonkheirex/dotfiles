@@ -2,9 +2,12 @@ import QtQuick
 import "../../config"
 
 // Her terminal block: a flavor line, then prompt + value + a cursor that
-// blinks once per second in two steps (solid under reduced motion).
+// blinks once per second in two steps (solid under reduced motion). The host
+// sets `live` false while its window is hidden so the timer stops.
 Column {
   id: root
+  property bool live: true
+  readonly property bool blinking: blinkTimer.running
   property string flavor: ""
   property string prompt: "$ "
   property string value: ""
@@ -46,9 +49,10 @@ Column {
       font.bold: true
       font.pixelSize: root.fontSize
       Timer {
+        id: blinkTimer
         interval: 500
         repeat: true
-        running: root.visible && !Config.reducedMotion
+        running: root.visible && root.live && !Config.reducedMotion
         onTriggered: cursor.on = !cursor.on
         onRunningChanged: cursor.on = true
       }

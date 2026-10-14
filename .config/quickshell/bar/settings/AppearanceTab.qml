@@ -1763,14 +1763,29 @@ Flickable {
       }
     }
 
+    SettingsSectionLabel { text: "Power menu" }
+
+    Text {
+      text: "Quote"
+      color: Colors.fgSurfaceVariant
+      font.family: Config.fontFamily
+      font.pixelSize: Config.typeLabelLargeSize
+    }
+
     TextFieldControl {
       id: powerMenuQuoteField
       Layout.fillWidth: true
       leadingIcon: "format_quote"
       placeholder: "Power menu quote"
       accessibleName: "Power menu quote"
-      accessibleDescription: "Shown on the power menu"
+      accessibleDescription: "The quote shown on the power menu"
       Component.onCompleted: input.text = Settings.powerMenuQuote
+      Connections {
+        target: Settings
+        function onPowerMenuQuoteChanged() {
+          if (!powerMenuQuoteField.input.activeFocus) powerMenuQuoteField.input.text = Settings.powerMenuQuote
+        }
+      }
       onAccepted: { Settings.powerMenuQuote = input.text; Settings.save() }
       Connections {
         target: powerMenuQuoteField.input
@@ -1783,14 +1798,27 @@ Flickable {
       }
     }
 
+    Text {
+      text: "Author line"
+      color: Colors.fgSurfaceVariant
+      font.family: Config.fontFamily
+      font.pixelSize: Config.typeLabelLargeSize
+    }
+
     TextFieldControl {
       id: powerMenuQuoteAuthorField
       Layout.fillWidth: true
       leadingIcon: "person"
       placeholder: "Power menu quote author"
       accessibleName: "Power menu quote author"
-      accessibleDescription: "Shown on the power menu"
+      accessibleDescription: "The author line under the power menu quote; leave empty to hide it"
       Component.onCompleted: input.text = Settings.powerMenuQuoteAuthor
+      Connections {
+        target: Settings
+        function onPowerMenuQuoteAuthorChanged() {
+          if (!powerMenuQuoteAuthorField.input.activeFocus) powerMenuQuoteAuthorField.input.text = Settings.powerMenuQuoteAuthor
+        }
+      }
       onAccepted: { Settings.powerMenuQuoteAuthor = input.text; Settings.save() }
       Connections {
         target: powerMenuQuoteAuthorField.input

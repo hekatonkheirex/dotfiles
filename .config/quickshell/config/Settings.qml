@@ -224,6 +224,8 @@ FileView {
     accentPalette = root.defaults.accentPalette
     accentActive = root.defaults.accentActive
     themePreference = root.defaults.themePreference
+    powerMenuQuote = root.defaults.powerMenuQuote
+    powerMenuQuoteAuthor = root.defaults.powerMenuQuoteAuthor
   }
 
   function resetAppearanceToDefaults() {
@@ -236,8 +238,6 @@ FileView {
     barWidgetOrder = root.defaults.barWidgetOrder
     dockPinned = root.defaults.dockPinned
     sidebarEdgeHover = root.defaults.sidebarEdgeHover
-    powerMenuQuote = root.defaults.powerMenuQuote
-    powerMenuQuoteAuthor = root.defaults.powerMenuQuoteAuthor
     barClockInFlow = root.defaults.barClockInFlow
     calendarWeekStartsMonday = root.defaults.calendarWeekStartsMonday
     ccShowAudio = root.defaults.ccShowAudio

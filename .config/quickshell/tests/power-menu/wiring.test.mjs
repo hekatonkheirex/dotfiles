@@ -58,7 +58,7 @@ assert.match(menu, /MouseArea \{\s*anchors\.fill: parent[\s\S]*?onClicked: root\
 console.log("power-menu task 3 wiring ok")
 
 // Task 2 review fixes.
-assert.match(rd("../../bar/powermenu/TerminalLine.qml"), /running: root\.visible && !Config\.reducedMotion/, "cursor stays solid under reduced motion")
+assert.match(rd("../../bar/powermenu/TerminalLine.qml"), /running: root\.visible && root\.live && !Config\.reducedMotion/, "cursor stays solid under reduced motion")
 assert.match(rd("../../bar/powermenu/PaletteRow.qml"), /leftPadding: Config\.dp\(16\) - Config\.dp\(15\)/, "first circle takes her -15 S margin too")
 assert.match(rd("../../bar/powermenu/PowerMenuContent.qml"), /objectName: "heart"[\s\S]*?bottomPadding: Config\.dp\(8\)/, "heart keeps her margin-bottom 8 S")
 console.log("power-menu review fixes ok")
@@ -77,3 +77,15 @@ assert.match(menu, /function confirmPending\(\) \{[^}]*Quickshell\.execDetached\
 assert.match(menu, /onVisibleChanged: \{\s*if \(!visible\) return[\s\S]*?root\.pendingIndex = -1/)
 assert.match(shell, /function requestLock\(\) \{[^}]*powerMenu\.cancelPending\(\)/)
 console.log("power-menu logout safety ok")
+
+// Final review: Reset Appearance restores the quote; the rows keep visible labels.
+const resetFn = settings.slice(settings.indexOf("function resetAppearanceDefaults()"), settings.indexOf("function resetAppearanceToDefaults()"))
+for (const k of ["powerMenuQuote", "powerMenuQuoteAuthor"]) {
+  assert.match(resetFn, new RegExp(`${k} = root\\.defaults\\.${k}`), "Reset Appearance resets " + k)
+  assert.match(tab, new RegExp(`function on${k[0].toUpperCase() + k.slice(1)}Changed\\(\\) \\{\\s*if \\(!${k}Field\\.input\\.activeFocus\\) ${k}Field\\.input\\.text = Settings\\.${k}`), k + " field follows resets")
+}
+assert.match(tab, /SettingsSectionLabel \{ text: "Power menu" \}\s*Text \{\s*text: "Quote"[\s\S]*?id: powerMenuQuoteField[\s\S]*?Text \{\s*text: "Author line"[\s\S]*?id: powerMenuQuoteAuthorField/, "visible labels")
+assert.match(tab, /accessibleName: "Power menu quote author"\s*accessibleDescription: "The author line under the power menu quote/)
+assert.match(rd("../../bar/powermenu/PowerMenuContent.qml"), /live: root\.revealed/)
+assert.match(menu, /revealed: root\.visible/)
+console.log("power-menu final review ok")

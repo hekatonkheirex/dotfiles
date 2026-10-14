@@ -28,8 +28,6 @@ function step(index, key, count) {
   return (((index + d) % count) + count) % count
 }
 
-function terminalText(selectedId) { return "$ " + (selectedId || "") }
-
 // Icon-font glyphs, extracted from the :symbol attributes and the lock and
 // heart boxes in config/eww/windows/powermenu.yuck (github.com/elenapan/dotfiles,
 // master 2025-09-07). scripts/bar-font-check.sh proves each icon codepoint
