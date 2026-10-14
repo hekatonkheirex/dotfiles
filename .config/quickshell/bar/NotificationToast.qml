@@ -14,7 +14,7 @@ import "primitives"
 // (low x6, normal x2, critical x1). Same text twice stacks with a count.
 // Left click closes, middle click runs the default action then closes, right
 // click closes every card. App actions keep their buttons. Delivery, history,
-// DND and quiet hours stay in shell.qml and NotificationPopup.
+// DND and quiet hours stay in shell.qml; there is no history store.
 PanelWindow {
   id: root
 
@@ -61,11 +61,15 @@ PanelWindow {
     return -1
   }
 
-  function removeUid(uid) {
+  // `release`: the card goes without a user action (timeout, overflow, DND),
+  // so the notification is expired and untracked; there is no history store.
+  function removeUid(uid, release) {
     var i = root.indexOfUid(uid)
     if (i < 0) return
+    var n = root.objs[uid]
     stack.remove(i)
     delete root.objs[uid]
+    if (release && n) n.expire()
   }
 
   function expiryFor(n) {
@@ -89,9 +93,7 @@ PanelWindow {
       return
     }
     for (var d = 0; d < p.drop; d++) {
-      var old = stack.get(0)
-      delete root.objs[old.uid]
-      stack.remove(0)
+      root.removeUid(stack.get(0).uid, true)
     }
     var uid = root.nextUid++
     root.objs[uid] = n
@@ -112,8 +114,9 @@ PanelWindow {
   // DND hides the toast surface without dismissing the notifications; they
   // remain available in the history popup.
   function suppress() {
-    stack.clear()
-    root.objs = ({})
+    var uids = []
+    for (var i = 0; i < stack.count; i++) uids.push(stack.get(i).uid)
+    for (var j = 0; j < uids.length; j++) root.removeUid(uids[j], true)
   }
 
   function dismissUid(uid) {
@@ -146,7 +149,7 @@ PanelWindow {
       var now = Date.now()
       for (var i = stack.count - 1; i >= 0; i--) {
         var at = stack.get(i).expiresAt
-        if (at > 0 && at <= now) root.removeUid(stack.get(i).uid)
+        if (at > 0 && at <= now) root.removeUid(stack.get(i).uid, true)
       }
     }
   }
@@ -287,7 +290,7 @@ PanelWindow {
                   var toast = root
                   var uid = card.uid
                   modelData.invoke()
-                  toast.removeUid(uid)
+                  toast.removeUid(uid, true)
                 }
               }
             }

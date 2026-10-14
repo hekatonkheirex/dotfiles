@@ -10,11 +10,10 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Sidebar and dock**: a three-page sidebar (Home, Agenda, Media) that also opens from the left screen edge and a full-width bottom bar (page buttons, volume, app dock, clock, battery, network) that reserves its height. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
 - **Lock screen** in her power-menu look (lock ring, masked LOCKDOWN line) with PAM + fingerprint authentication.
 - **Notification handling** with dashed Elena history cards and her dunst-style toast stack (R6): urgency-colored glyph rows, up to five cards with duplicate counts, critical toasts that stay.
-- **Do Not Disturb** suppresses toast popups while retaining incoming notifications in the bell history; toggle it in Settings > Notifications (persisted).
+- **Do Not Disturb** suppresses toast popups (suppressed notifications are released, there is no history store); toggle it in Settings > Notifications (persisted).
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
 - **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, shell actions via `>`, clipboard history via `;`, and wallpaper search via `@`. Speech recognition is removed.
 - **On-Screen Display (OSD)** overlay for volume, brightness, mic mute, airplane mode, bluetooth, and keyboard backlight (polled from sysfs since the EC never emits a key event for it).
-- **LLM usage**: Read-only Codex and Claude quota popup (`qs ipc call shell popup llm`), including five-hour and weekly usage, reset countdowns, and available reset credits. It has no bar widget any more; the popup is reachable only through IPC.
 - **Settings panel**: A multi-functional, resizable and draggable panel launched via `XF86Tools` with ten tabs:
   - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
   - **General**: Motion, uptime, notification timestamp format, calendar week start, and weather location/refresh/privacy/unit settings
@@ -23,7 +22,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
   - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls; Bluetooth is Settings-only and has no compact bar indicator
   - **Media**: Media artwork, progress, and control visibility
   - **Lock & Power**: Idle lock/suspend timeouts, Caffeine, and TLP power profiles
-  - **Notifications**: Do Not Disturb, quiet hours, critical bypass, toast position/duration, history retention, clear-history, and test-notification controls
+  - **Notifications**: Do Not Disturb, quiet hours, critical bypass, toast position/duration and test-notification controls
   - **System**: CPU, memory, disk, swap, thermal, fan, battery health/cycles, diagnostics copy, reload, and confirmed reset actions
   - **Shortcuts**: Curated active-compositor keybind reference with source open and copy actions
 - **Persisted user settings** (`settings.json`, `config/Settings.qml`) separate from build-time layout/typography tokens (`config/Config.qml`).
@@ -45,9 +44,6 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── BatteryService.qml     # Shared UPower battery-device selection
 │   ├── MediaService.qml       # Shared MPRIS monitor state
 │   ├── WeatherService.qml     # Shared weather fetch/cache state
-│   ├── LlmUsageService.qml    # Shared quota polling and stale-reading state
-│   ├── CodexUsageService.qml  # Codex quota singleton
-│   ├── ClaudeUsageService.qml # Claude quota singleton
 │   ├── WindowService.qml       # Read-only Niri window stream
 │   ├── WindowState.js          # Window-event reducer
 │   ├── DockModel.js            # Pin order and running-app grouping
@@ -83,13 +79,6 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── LockScreen.qml          # PAM auth, fingerprint and compositor-enforced session lock
 │   ├── WorkspaceIndicator.qml  # Niri/mango workspace state and actions (no visuals)
 │   ├── LauncherPopup.qml       # App/provider search (apps, clipboard, wallpapers, actions)
-│   ├── AudioPopup.qml          # Volume + mic sliders (shared bordered surface, correct active/mute states)
-│   ├── BrightnessPopup.qml     # Brightness slider (shared bordered surface)
-│   ├── BatteryPopup.qml        # Detailed battery info (shared bordered surface)
-│   ├── MediaPopup.qml          # Media controls and circular cava visualizer
-│   ├── WeatherPopup.qml        # Current conditions and forecast
-│   ├── LlmUsagePopup.qml       # Combined Codex and Claude usage popup
-│   ├── LlmUsageSection.qml     # Provider usage, resets, and refresh state
 │   ├── NetworksWindow.qml       # Her networks window, right+bottom anchored overlay (route "networks")
 │   ├── networks/                # NetworksContent, NetworkRow, PassphraseRow, BandwidthRow, ToolbarButton
 │   ├── AlarmsWindow.qml         # Her alarms window, right+bottom anchored overlay (route "alarms")
@@ -100,19 +89,15 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── powermenu/              # PowerMenuContent, its pieces and LockSurfaceContent (the lock look)
 │   ├── OsdOverlay.qml          # Volume/brightness/mic/airplane/bluetooth/kbd-backlight OSD popup
 │   ├── CalendarLogic.js        # Calendar weekday ordering and day-cell model
-│   ├── CalendarPopup.qml       # Calendar month grid (shared bordered surface)
-│   ├── NotificationPopup.qml   # Notification history popup list
 │   ├── NotificationToast.qml   # Her dunst toast stack (R6b): five cards, duplicate counts, urgency colors
 │   ├── MicIndicator.qml        # Her top-center microphone tab (R6a)
 │   ├── PopupBase.qml           # Shared popup background, border and spring entrance
 │   ├── PopupShield.qml         # Full-screen click-outside-to-dismiss surface
-│   ├── PopupDivider.qml        # Reusable popup section divider
 │   ├── PowerConfirmation.qml   # Confirmation surface for destructive power actions
 │   ├── FocusDismiss.qml        # Popup dismissal on app focus loss
 │   ├── FileTrigger.qml         # Private runtime trigger-file watcher (single inotifywait for all triggers)
 │   ├── SliderControl.qml       # Elena slider facade (volume/brightness/etc.)
 │   ├── SwitchControl.qml       # Elena switch facade
-│   ├── WaveProgressBar.qml     # Single wave-progress canvas
 │   ├── primitives/             # Shared buttons, list items, and text fields
 │   │   ├── ActionButton.qml
 │   │   ├── IconGlyph.qml          # Shared Material Symbols font glyph; no per-style icon implementation
@@ -159,8 +144,6 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── mpris_monitor.py         # Active MPRIS state broadcaster (DBus + private FIFO listener)
 │   ├── mpris_control.py         # MPRIS play/pause/stop/next/prev control for the active player
 │   ├── weather.py               # Open-Meteo weather fetcher script
-│   ├── codex-usage.py           # Read-only OpenAI subscription usage/reset inventory
-│   └── claude-usage.py          # Read-only Anthropic subscription usage/reset inventory
 └── bin/
     └── desktop-parser.py        # .desktop → JSON for launcher
 ```
@@ -276,7 +259,7 @@ When `XDG_RUNTIME_DIR` is unavailable, Quickshell uses
 - `ipc.settings()` — toggle Settings popup
 - `ipc.commandcenter()` — legacy alias for `ipc.settings()`
 - `ipc.layout()` — toggle bar orientation
-- `ipc.popup(name)`: toggle a popup by route (`audio`, `brightness`, `media`, `weather`, `llm`, `battery`, `notification`, `calendar`, `quickmenu`, `launcher`, `sidebar`, `networks`, `alarms`); `false` for an unknown name
+- `ipc.popup(name)`: toggle a popup by route (`quickmenu`, `launcher`, `sidebar`, `networks`, `alarms`); `false` for an unknown name
 - `ipc.settingsTab(n)`: dev/testing: select Settings tab `n` (0-9: Account, General, Appearance, Display & Input, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts) in memory
 - `ipc.forgetPrompt(name)`: dev/testing: open the networks window with the "forget <name>?" row shown (never forgets by itself); `""` clears the row
 
@@ -326,11 +309,10 @@ manual restart. File watching remains disabled while the lock is active.
 
 ## Popup System
 
-Popup visibility is driven entirely by the bar's `openPopup` string property, held on `Bar.qml` and read by `shell.qml`. Each indicator widget signals a popup name, and the corresponding popup shows/hides accordingly.
+Popup visibility is driven entirely by the bar's `openPopup` string property, held on `Bar.qml` and read by `shell.qml`. The bottom bar, sidebar and IPC signal a popup name, and the corresponding window shows or hides accordingly.
 
 Popup positioning follows the active bar placement (computed in `shell.qml`'s `popupMarginLeft`/`popupMarginTop`):
-- **Top/bottom**: Anchored past the bar edge and horizontally centered on the clicked widget's X coordinate, clamped to fit the screen.
-- **Left/right**: Anchored past the bar edge and vertically aligned to the triggering widget's Y coordinate.
+The remaining windows are placed by their own geometry (launcher centered, networks and alarms bottom-right, sidebar left).
 
 All bar-owned popups, the shield, Settings, notifications, and power confirmation use the bar's display. Placement and wallpaper-launcher sizing are clamped in that display's local coordinates rather than the primary monitor's dimensions.
 
@@ -338,13 +320,7 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 
 | Popup | Trigger | Content |
 |---|---|---|
-| Launcher | `Launcher` button / `Mod+D` | App/provider search (`>` actions and capture, `;` clipboard history, `@` wallpapers) + `.desktop` list |
-| Audio | `qs ipc call shell popup audio` | Volume + mic sliders (Elena switches; active check = sound enabled, unchecked = muted). Pointer adjustments do not leave a focus outline; keyboard focus stays visible while adjusting and resets when the popup closes. |
-| Brightness | `qs ipc call shell popup brightness` | Brightness slider (shared bordered surface) |
-| Battery | `qs ipc call shell popup battery` | Percentage, energy capacity, status, rate, cycles, model (shared bordered surface) |
-| LLM usage | Themed LLM indicator / `qs ipc call shell popup llm` | Codex and Claude five-hour/weekly usage, reset countdowns, available reset credits, and per-provider refresh |
-| Calendar | `qs ipc call shell popup calendar` | Month grid with navigation (shared bordered surface) |
-| Notifications | `qs ipc call shell popup notification` | Dashed history cards with timestamp, live actions and dismiss/remove controls |
+| Launcher | `Mod+D` | App/provider search (`>` actions and capture, `;` clipboard history, `@` wallpapers) + `.desktop` list |
 | Power Menu | bottom-bar logout / `Mod+Escape` | Full-screen overlay: greeting, quote, palette; poweroff, reboot, exit (confirmed), hibernate, suspend, lock |
 | Networks | Bottom-bar network button / `qs ipc call shell popup networks` | Her networks window: Wi-Fi list, connect/disconnect/forget, bandwidth, vpn, scan, speedtest, ping (see Networks window (R4)) |
 | Alarms | Bottom-bar alarm button / `qs ipc call shell popup alarms` | Her alarms window: ring in / ring at, browse and delete, real scheduling (see Alarms window (R5)) |
@@ -363,24 +339,10 @@ Named text roles use the existing 12px UI-size baseline (body medium 14px, body 
 
 Icon buttons and switches reserve 48px minimum input targets independently of visual size. The switch track is a 58×30 pill; sliders are level-fill tiles; selected icon buttons use a white round badge. Switch-bearing Settings rows activate from the label or Enter/Space, honor disabled/busy controls and do not double-activate a direct switch click.
 
-Shared icon and action-button tooltips appear only while their control is visible and enabled. Hiding a control also hides its tooltip, so clearing notification history does not leave a hint covering the empty-state message.
+Shared icon and action-button tooltips appear only while their control is visible and enabled.
 
 Control-color effects retain the existing non-overshooting RGBA springs. Reduced Motion snaps color effects, including in-flight transitions, and removes spatial entrances.
 
-
-### Codex and Claude subscription usage
-
-One angular-sparkle indicator opens a single **LLM usage** popup with Codex and Claude sections. It uses the shared indicator color, input target, keyboard activation, loading spinner, tooltip and error badge.
-
-Usage bars and media progress use the single wave renderer. Normal usage uses the semantic primary accent; usage at or above 90% retains the error color. Quota values and reset times are independent of palette choices.
-
-`scripts/codex-usage.py` reads the existing OAuth sign-in from `$CODEX_HOME/auth.json`, or `~/.codex/auth.json` when unset. Sign in with `codex login`; API keys cannot report ChatGPT-plan Codex quota. The helper calls OpenAI's `wham/usage` and `wham/rate-limit-reset-credits` endpoints using Python's standard library. These account endpoints can change independently of the public API. Credentials are not passed through QML, written to settings, logged, refreshed, or modified. The helper emits quota data only, without account identifiers.
-
-`scripts/claude-usage.py` reads the existing Claude Code OAuth sign-in from `$CLAUDE_CONFIG_DIR/.credentials.json`, or `~/.claude/.credentials.json` when unset. The sign-in needs `user:profile` scope; an inference-only token or API key is not a subscription reporting credential. It reads Anthropic's OAuth usage endpoint with the optional `cedar_ember` reset inventory. Reset eligibility requires a supported installed Claude Code version: the helper runs only `claude --version` to identify that version, never an interactive session or login. Missing or ineligible inventory remains unavailable. Supported, active, unpaused grants contribute their remaining resets; exhausted, future, and expired grants do not.
-
-Codex polls every five minutes and Claude every 15 minutes while the single indicator or popup is visible; opening the popup reuses readings or failed attempts younger than that provider's polling interval. Each section's refresh button only refreshes that provider. Scheduled polling makes at most 12 Codex refreshes and four Claude refreshes per hour, with two OpenAI reads per Codex refresh and one Anthropic read per Claude refresh. These are account endpoints, not public reporting APIs with a guaranteed polling allowance. A Claude HTTP 429 starts a cooldown of at least five minutes, honoring longer `Retry-After` delays in seconds or HTTP-date form; automatic and manual refreshes are blocked until it expires, and the section shows a countdown. Provider failures are independent: a failed refresh retains its usage as explicitly **stale**, but clears its reset inventory. The indicator's red `!` means a provider failed or has stale data, including failures before its first successful reading. Missing windows or unreadable reset inventory show **Unavailable**, not zero; valid empty inventory shows zero. Expired cached inventory is hidden until refreshed. `ccShowLlm` controls visibility; the `llm` entry in `barWidgetOrder` controls placement. Former `codex` and `claude` entries collapse to `llm` at the first saved provider position without reordering other widgets. The old visibility preferences migrate to one toggle, enabled if either provider was enabled.
-
-Successful readings become stale only after twice the provider's polling interval: over 10 minutes for Codex or 30 minutes for Claude. Refresh errors still warn immediately. Run `scripts/test-llm-usage.sh` for isolated native Quickshell regression checks of freshness boundaries and errors; it makes no account requests.
 
 ### `config/Settings.qml`
 
@@ -432,7 +394,7 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **Settings support**: Retired hidden-bar visibility/order, placement/form, workspace count/marker, bar/clock size, coupled Bar Scale, seconds and timezone controls are removed along with their search entries. Font, icon and spacing controls remain independently available under **Interface sizing** and do not resize the fixed 8px workspace strip or 48px bottom bar. Legacy saved keys and hidden service owners are intentionally retained; this UI cleanup does not rewrite personal preferences or implement R5/R6.
 - **ActionButton**: Label-only buttons reserve no icon height or icon-to-label spacing; compact Settings actions retain centered labels.
 - **Weather**: Uses a configured manual location by default, optionally supports IP geolocation, refreshes on the persisted interval and reports the last update time. Refreshes coalesce rather than aborting an active fetch; invalid responses and command failures appear as popup errors.
-- **Notifications**: History keeps dashed rounded framing and monospace metadata; toasts follow her dunst look (R6b, below). DND/quiet hours suppress toasts without discarding history; critical bypass, placement and retention stay persisted. Default/named actions and closed-entry behavior remain. Named toast actions capture the owner before invocation because an action can synchronously close its notification and destroy the button delegate.
+- **Notifications**: toasts follow her dunst look (R6b, below). DND/quiet hours suppress toasts; critical bypass and placement stay persisted. There is no notification history; a toast that times out or is dismissed releases its notification. Default/named actions and closed-entry behavior remain. Named toast actions capture the owner before invocation because an action can synchronously close its notification and destroy the button delegate.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a polling re-query runs in `shell.qml` after reloads.
 - **Palette ownership**: Live comes from wallpaper-driven Matugen; Fixed comes from `PaletteCatalog.js`. `sync-active-palette.sh` activates separate source caches and refreshes the generated companions. Wallpaper changes still refresh Live while Fixed is selected. SDDM updates remain explicit.
 - **Deployment**: `scripts/install-ui-suite.sh` installs only the palette-driven Matugen companions and optional light/dark greeters. Use `--dry-run` or `--skip-sddm`; `verify-ui-suite.sh` checks the matching assets. Existing outside-tree themes are untouched. Installing the updated SDDM bridge requires an explicit privileged action; no system installation is performed by the cutover.
@@ -513,7 +475,7 @@ fixture proves stale settings cannot activate a removed style or density.
 
 After QML cutovers, cold-restart Quickshell before live IPC verification:
 `systemctl --user restart quickshell.service`. Launcher and session/power
-presentation redesigns are implemented, including notification history and toasts.
+presentation redesigns are implemented, including toasts.
 Bindings, confirmation execution and authentication remain unchanged.
 
 ## Bottom bar
@@ -708,7 +670,7 @@ app, summary and body stack into one with `(N)`. Timeouts: the app's own value
 (`notificationToastDurationMs`, migrated from the old 5 s default once), critical
 sticky. Left click closes, middle click runs the default action then closes,
 right click closes every card; action buttons stay. Delivery, history, DND and
-quiet hours are unchanged, and dropped cards remain in history.
+quiet hours are unchanged; cards dropped past five, expired or suppressed notifications are released (no history store).
 
 **Launcher** (`bar/LauncherPopup.qml`, `config/LauncherLayout.js`): see the
 Launcher entry above; providers, ranking, `>`, `;` and `@` are unchanged.
@@ -797,22 +759,3 @@ safe-logout Python cases and the obsolete-style gate passed. Live
 display-only checks await the user's cold restart. Specification:
 `docs/superpowers/specs/2026-10-13-elena-power-menu-design.md`.
 
-## Notification redesign
-
-History and toasts use the shared dashed-frame primitive; critical toasts keep
-their solid error outline and an explicit urgency label. Summary/body text,
-placement, action labels, persistent/held-toast rules, DND, quiet hours and
-history retention remain unchanged.
-
-A private D-Bus full-shell scenario passed 15 checks using real notifications
-and a real action-observing client: delivery, timeout retaining history,
-persistent restoration, close/archive/removal, DND and critical bypass,
-default/named action invocation, quiet hours, history trimming and clearing.
-Normal/critical toast and populated/empty history captures were visually
-inspected. It reproduced and fixed a named-action delegate-lifetime
-ReferenceError; the corrected run has no new QML errors.
-
-QML lint, 14 Node regression commands, 31 control behavior checks and the
-obsolete-style gate passed. Live delivery/display verification awaits the
-user's cold restart. Specification:
-`docs/superpowers/specs/2026-10-13-elena-notifications-design.md`.

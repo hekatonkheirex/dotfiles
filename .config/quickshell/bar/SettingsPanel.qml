@@ -15,7 +15,6 @@ PanelWindow {
 
   signal dismissed()
   signal lockRequested()
-  property QtObject notificationPopup: null
   property bool sessionLocked: false
 
   property bool isHorizontal: false
@@ -1078,7 +1077,6 @@ PanelWindow {
             id: notificationsTabComponent
             NotificationsTab {
               root: tabContainer.panelRoot
-              notificationPopup: tabContainer.panelRoot.notificationPopup
             }
           }
 

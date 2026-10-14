@@ -22,8 +22,10 @@ ShellRoot {
       property var actions: []
       property int dismissCount: 0
       property int invoked: 0
+      property int expireCount: 0
       signal closed()
       function dismiss() { dismissCount++; closed() }
+      function expire() { expireCount++; closed() }
     }
   }
   Component {
@@ -233,7 +235,8 @@ ShellRoot {
           wait(150)
           win.check("limit of five cards", toast.count === 5)
           win.check("oldest cards dropped", win.find(toast.stackColumn, "summaryText").text === "N2")
-          win.check("dropped cards are not dismissed", held[0].dismissCount === 0 && held[1].dismissCount === 0)
+          win.check("dropped cards are expired, not dismissed", held[0].dismissCount === 0 && held[1].dismissCount === 0
+            && held[0].expireCount === 1 && held[1].expireCount === 1)
           toast.suppress()
 
           // Expiry: app timeout wins; critical, unset-critical and 0 stay.
@@ -242,14 +245,14 @@ ShellRoot {
           var stickyCrit = make(2, "Crit", "")
           toast.show(shortLived); toast.show(stickyZero); toast.show(stickyCrit)
           wait(800)
-          win.check("app timeout expires the card", toast.count === 2)
+          win.check("app timeout expires the card and the notification", toast.count === 2 && shortLived.expireCount === 1)
           win.check("timeout 0 and critical stay", win.find(toast.stackColumn, "toast_" + 0) === null && toast.count === 2)
           // Closing from outside removes the card.
           stickyCrit.closed()
           wait(100)
           win.check("closed signal removes the card", toast.count === 1)
           toast.suppress()
-          win.check("suppress hides without dismissing", toast.count === 0 && stickyZero.dismissCount === 0)
+          win.check("suppress releases without dismissing", toast.count === 0 && stickyZero.dismissCount === 0 && stickyZero.expireCount === 1)
         }
       }
     }

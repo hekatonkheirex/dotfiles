@@ -10,7 +10,6 @@ import "../../config"
 Flickable {
   id: notificationsTab
   property QtObject root: null
-  property QtObject notificationPopup: null
   readonly property bool compactLayout: root ? root.compactLayout : false
   readonly property int segmentedButtonGap: 0
   anchors.fill: parent
@@ -41,7 +40,7 @@ Flickable {
 
     SettingsPageHeader {
       pageTitle: "Notifications"
-      subtitle: "Manage notification behavior, quiet hours, and history."
+      subtitle: "Manage notification behavior and quiet hours."
     }
 
     // Behavior card
@@ -70,7 +69,7 @@ Flickable {
             leadingIcon: "do_not_disturb_on"
             title: "Do Not Disturb"
             subtitle: Settings.doNotDisturb
-              ? "Toasts suppressed; history retained"
+              ? "Toasts suppressed"
               : "Toast notifications enabled"
           toggleControl: dndSwitch
           SwitchControl {
@@ -345,62 +344,6 @@ Flickable {
           }
         }
 
-        SettingsSectionLabel {
-          text: "History"
-          Layout.leftMargin: Config.spacingSmall
-        }
-
-        RowLayout {
-          Layout.fillWidth: true
-          spacing: Config.spacingSmall
-
-          Text {
-            text: "History limit"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : (110)
-            Layout.leftMargin: Config.spacingCompact
-          }
-
-          SliderControl {
-            Layout.fillWidth: true
-            value: (Settings.notificationHistoryLimit - 10) / 90
-            stepSize: 5 / 90
-            accessibleMinimumValue: 10
-            accessibleMaximumValue: 100
-            accessibleUnit: "notifications"
-            activeColor: Colors.primary
-            surfaceContainerHigh: Colors.surfaceContainerHigh
-            surfaceContainerHighest: Colors.surfaceContainerHighest
-            outline: Colors.outline
-            focusColor: Colors.primary
-            motionDuration: Config.motionMedium
-            reducedMotion: Config.reducedMotion
-            accessibleName: "Notification history limit"
-            accessibleDescription: "Maximum number of notifications retained in the bell history"
-            onChanged: function(val) {
-              Settings.notificationHistoryLimit = Math.max(10, Math.min(100, Math.round((10 + val * 90) / 5) * 5))
-            }
-            onInteractionFinished: Settings.save()
-          }
-
-          Text {
-            text: Settings.notificationHistoryLimit
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 30
-            Layout.rightMargin: Config.spacingCompact
-          }
-        }
       }
     }
 
@@ -412,30 +355,18 @@ Flickable {
       labelText: "Send Test Notification"
       variant: "elevated"
       accessibleName: "Send test notification"
-      accessibleDescription: "Fires a sample notification; DND suppresses its toast and keeps it in history"
+      accessibleDescription: "Fires a sample notification; DND suppresses its toast"
       onActivated: {
         testNotifyProc.running = false
         testNotifyProc.running = true
       }
     }
 
-    ActionButton {
-      Layout.fillWidth: true
-      Layout.preferredHeight: Config.themeLabeledActionButtonHeight
-      iconLabel: "delete_sweep"
-      contentSpacing: Config.spacingMedium
-      labelText: "Clear Notification History"
-      variant: "outlined"
-      enabled: notificationPopup !== null && notificationPopup.count > 0
-      accessibleName: "Clear notification history"
-      accessibleDescription: "Dismiss all notifications retained by the bell history"
-      onActivated: if (notificationPopup) notificationPopup.clearAll()
-    }
 
     Text {
       Layout.fillWidth: true
       Layout.leftMargin: Config.spacingCompact
-      text: "Quiet hours retain history. Critical alerts can bypass suppression. The bell popup also supports per-notification dismissal."
+      text: "Critical alerts can bypass Do Not Disturb and quiet hours. Click a toast to dismiss it."
       color: Colors.fgSurfaceVariant
       font.family: Config.fontFamily
       font.pixelSize: Config.typeLabelSmallSize

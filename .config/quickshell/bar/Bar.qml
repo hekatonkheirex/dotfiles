@@ -62,9 +62,8 @@ PanelWindow {
   property int popupAnchorX: 0
   property int popupAnchorY: 0
 
-  // The popups that survive the widget removal (audio, brightness, media,
-  // weather, battery, llm, calendar, notification, quickmenu, launcher) have no
-  // indicator to hang from; they open at a fixed spot under the strip.
+  // The launcher and power menu have no widget to hang from; they open at a
+  // fixed spot under the strip.
   function defaultAnchorX() {
     return root.screen ? Math.round(root.screen.width * 0.75) : 0
   }
@@ -92,9 +91,7 @@ PanelWindow {
       openPopup = openPopup === name ? "" : name
       return true
     }
-    var known = ["audio", "brightness", "media", "weather", "battery", "notification",
-                 "llm", "calendar", "quickmenu", "launcher"]
-    if (known.indexOf(name) < 0) return false
+    if (name !== "quickmenu" && name !== "launcher") return false
     togglePopup(name)
     return true
   }

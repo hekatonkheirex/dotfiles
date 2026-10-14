@@ -374,9 +374,7 @@ ShellRoot {
       bar.openPopup = bar.openPopup === "settings" ? "" : "settings"
     }
 
-    // popup("audio" | "brightness" | "media" | "weather" | "llm" | "battery" |
-    // "notification" | "calendar" | "quickmenu" | "launcher" | "sidebar" |
-    // "networks" | "alarms"): toggle a bar popup.
+    // popup("quickmenu" | "launcher" | "sidebar" | "networks" | "alarms"): toggle a popup.
     function popup(name: string): bool {
       return bar.togglePopupByName(name)
     }
@@ -532,8 +530,10 @@ ShellRoot {
           if (batteryAlert.alertNotif === notif) batteryAlert.alertNotif = null
         })
       }
-      if (!shell.notificationSuppressed(notif)) notificationToast.show(notif)
-      notificationPopup.onNotificationReceived(notif)
+      // No history store: a suppressed notification is released at once and a
+      // shown one is released when its toast goes (NotificationToast).
+      if (shell.notificationSuppressed(notif)) notif.expire()
+      else notificationToast.show(notif)
     }
   }
 
@@ -582,58 +582,6 @@ ShellRoot {
       && Settings.initialLoadComplete
       && !lockScreen.locked
       && !lockScreen.compositorLocked
-  }
-
-  AudioPopup {
-    id: audioPopup
-    visible: bar.openPopup === "audio" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
-    onDismissed: bar.openPopup = ""
-    screen: bar.screen
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
-  }
-
-  BrightnessPopup {
-    id: brightnessPopup
-    visible: bar.openPopup === "brightness" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
-    screen: bar.screen
-    onDismissed: bar.openPopup = ""
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
-  }
-
-  MediaPopup {
-    id: mediaPopup
-    visible: bar.openPopup === "media" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
-    screen: bar.screen
-    onDismissed: bar.openPopup = ""
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
-  }
-
-  WeatherPopup {
-    id: weatherPopup
-    visible: bar.openPopup === "weather" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
-    screen: bar.screen
-    onDismissed: bar.openPopup = ""
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
   }
 
   Sidebar {
@@ -708,57 +656,6 @@ ShellRoot {
   }
 
 
-  LlmUsagePopup {
-    visible: bar.openPopup === "llm" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
-    screen: bar.screen
-    onDismissed: bar.openPopup = ""
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
-  }
-
-  BatteryPopup {
-    id: batteryPopup
-    visible: bar.openPopup === "battery" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
-    screen: bar.screen
-    onDismissed: bar.openPopup = ""
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
-  }
-
-  CalendarPopup {
-    id: calendarPopup
-    visible: bar.openPopup === "calendar" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
-    screen: bar.screen
-    onDismissed: bar.openPopup = ""
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
-  }
-
-  NotificationPopup {
-    id: notificationPopup
-    visible: bar.openPopup === "notification" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
-    screen: bar.screen
-    onDismissed: bar.openPopup = ""
-
-    anchors.left: true
-    margins.left: shell.popupMarginLeft(implicitWidth, bar.screen.width)
-    anchors.top: true
-    margins.top: shell.popupMarginTop(implicitHeight, bar.screen.height)
-  }
-
   PowerMenu {
     id: powerMenu
     visible: bar.openPopup === "quickmenu" && !lockScreen.locked && !lockScreen.compositorLocked
@@ -805,7 +702,6 @@ ShellRoot {
     barPosition: bar.barPosition
     onResetAppearance: shell.resetAppearanceToDefaults()
     onResetAllSettings: shell.resetAllSettingsToDefaults()
-    notificationPopup: notificationPopup
     sessionLocked: lockScreen.locked || lockScreen.compositorLocked
   }
 
