@@ -1763,6 +1763,46 @@ Flickable {
       }
     }
 
+    TextFieldControl {
+      id: powerMenuQuoteField
+      Layout.fillWidth: true
+      leadingIcon: "format_quote"
+      placeholder: "Power menu quote"
+      accessibleName: "Power menu quote"
+      accessibleDescription: "Shown on the power menu"
+      Component.onCompleted: input.text = Settings.powerMenuQuote
+      onAccepted: { Settings.powerMenuQuote = input.text; Settings.save() }
+      Connections {
+        target: powerMenuQuoteField.input
+        function onActiveFocusChanged() {
+          if (!powerMenuQuoteField.input.activeFocus && Settings.powerMenuQuote !== powerMenuQuoteField.input.text) {
+            Settings.powerMenuQuote = powerMenuQuoteField.input.text
+            Settings.save()
+          }
+        }
+      }
+    }
+
+    TextFieldControl {
+      id: powerMenuQuoteAuthorField
+      Layout.fillWidth: true
+      leadingIcon: "person"
+      placeholder: "Power menu quote author"
+      accessibleName: "Power menu quote author"
+      accessibleDescription: "Shown on the power menu"
+      Component.onCompleted: input.text = Settings.powerMenuQuoteAuthor
+      onAccepted: { Settings.powerMenuQuoteAuthor = input.text; Settings.save() }
+      Connections {
+        target: powerMenuQuoteAuthorField.input
+        function onActiveFocusChanged() {
+          if (!powerMenuQuoteAuthorField.input.activeFocus && Settings.powerMenuQuoteAuthor !== powerMenuQuoteAuthorField.input.text) {
+            Settings.powerMenuQuoteAuthor = powerMenuQuoteAuthorField.input.text
+            Settings.save()
+          }
+        }
+      }
+    }
+
     DockSection { Layout.fillWidth: true }
   }
 }

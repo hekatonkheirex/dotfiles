@@ -30,6 +30,8 @@ FileView {
     barWidgetOrder: "launcher,workspaces,layout,focused,gap,center,audio,display,media,weather,llm,battery,tray,notifications,clock",
     dockPinned: "brave-origin,kitty",
     sidebarEdgeHover: true,
+    powerMenuQuote: "Take a breath.",
+    powerMenuQuoteAuthor: "",
     barClockInFlow: false,
     calendarWeekStartsMonday: false,
     ccShowAudio: true,
@@ -147,6 +149,8 @@ FileView {
   property alias barWidgetOrder: adapter.barWidgetOrder
   property alias dockPinned: adapter.dockPinned
   property alias sidebarEdgeHover: adapter.sidebarEdgeHover
+  property alias powerMenuQuote: adapter.powerMenuQuote
+  property alias powerMenuQuoteAuthor: adapter.powerMenuQuoteAuthor
   property alias barClockInFlow: adapter.barClockInFlow
   property alias calendarWeekStartsMonday: adapter.calendarWeekStartsMonday
   property alias ccShowAudio: adapter.ccShowAudio
@@ -238,6 +242,8 @@ FileView {
     barWidgetOrder = root.defaults.barWidgetOrder
     dockPinned = root.defaults.dockPinned
     sidebarEdgeHover = root.defaults.sidebarEdgeHover
+    powerMenuQuote = root.defaults.powerMenuQuote
+    powerMenuQuoteAuthor = root.defaults.powerMenuQuoteAuthor
     barClockInFlow = root.defaults.barClockInFlow
     calendarWeekStartsMonday = root.defaults.calendarWeekStartsMonday
     ccShowAudio = root.defaults.ccShowAudio
@@ -294,6 +300,8 @@ FileView {
     property string barWidgetOrder: root.defaults.barWidgetOrder
     property string dockPinned: root.defaults.dockPinned
     property bool sidebarEdgeHover: root.defaults.sidebarEdgeHover
+    property string powerMenuQuote: root.defaults.powerMenuQuote
+    property string powerMenuQuoteAuthor: root.defaults.powerMenuQuoteAuthor
     property bool barClockInFlow: root.defaults.barClockInFlow
     property bool calendarWeekStartsMonday: root.defaults.calendarWeekStartsMonday
     property bool ccShowAudio: root.defaults.ccShowAudio

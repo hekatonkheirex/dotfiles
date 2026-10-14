@@ -105,6 +105,8 @@ PanelWindow {
     { tab: 2, category: "Workspaces", icon: "looks_5", title: "Visible workspaces", subtitle: "Show active workspaces, one through five, or one through ten" },
     { tab: 2, category: "Workspaces", icon: "shapes", title: "Workspace marker style", anchor: "Workspace buttons", subtitle: "Choose expressive, pill, rounded, circle, dots, glyph, or other shapes" },
     { tab: 2, category: "Sidebar", icon: "left_panel_open", title: "Sidebar edge hover", anchor: "Open sidebar at the left screen edge", subtitle: "Open the sidebar at the left screen edge" },
+    { tab: 2, category: "Power menu", icon: "format_quote", title: "Power menu quote", anchor: "Power menu quote", subtitle: "Quote shown on the power menu" },
+    { tab: 2, category: "Power menu", icon: "person", title: "Power menu quote author", anchor: "Power menu quote author", subtitle: "Author line under the power menu quote" },
     { tab: 2, category: "Dock", icon: "dock_to_bottom", title: "Dock pinned apps", anchor: "Dock pinned apps", subtitle: "Apps the Elena dock always shows" },
     { tab: 2, category: "Sizing", icon: "format_size", title: "UI Font Size", subtitle: "Adjust the shell's base text size" },
     { tab: 2, category: "Sizing", icon: "schedule", title: "Clock Size", subtitle: "Adjust the bar clock size" },
