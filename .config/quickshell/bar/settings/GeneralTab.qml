@@ -12,7 +12,7 @@ Flickable {
   readonly property bool compactLayout: root ? root.compactLayout : false
 
   anchors.fill: parent
-  visible: root.currentTab === 1
+  visible: root.currentTab === 0
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight
@@ -35,7 +35,7 @@ Flickable {
 
     SettingsPageHeader {
       pageTitle: "General"
-      subtitle: "Configure motion, calendar, notification times, and weather."
+      subtitle: "Calendar, notification times, and weather."
     }
 
     GridLayout {
@@ -43,77 +43,6 @@ Flickable {
       columns: generalTab.width >= 800 ? 2 : 1
       columnSpacing: Config.spacingLarge
       rowSpacing: Config.spacingLarge
-
-    GridLayout {
-      Layout.fillWidth: true
-      Layout.preferredWidth: 0
-      Layout.alignment: Qt.AlignTop
-      columns: 1
-      columnSpacing: Config.spacingLarge
-      rowSpacing: Config.spacingSmall
-
-      SettingsSectionLabel { text: "Behavior" }
-
-      // Behavior toggle group
-      SettingsCard {
-        variant: "filled"
-        Layout.fillWidth: true
-        Layout.preferredHeight: behaviorCol.implicitHeight + Config.spacingSmall * 2
-        radius: Config.settingsCardRadius
-        surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.outlineVariant
-        outlineWidth: Config.themeBorderWidth
-
-        ColumnLayout {
-          id: behaviorCol
-          anchors.fill: parent
-          anchors.margins: Config.spacingSmall
-          spacing: 0
-
-          ListItem {
-            Layout.fillWidth: true
-            leadingIcon: "motion_photos_off"
-            title: "Reduced motion"
-            subtitle: Config.reducedMotion ? "Animations minimized" : "Expressive transitions"
-            toggleControl: motionSwitch
-            SwitchControl {
-              id: motionSwitch
-              checked: Settings.reduceMotion
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Reduced motion"
-              onToggled: { Settings.reduceMotion = !Settings.reduceMotion; Settings.save() }
-            }
-          }
-
-
-          ListItem {
-            Layout.fillWidth: true
-            leadingIcon: "schedule"
-            title: "Show uptime"
-            subtitle: Settings.systemShowUptime ? "Shown on the Account tab" : "Hidden from the Account tab"
-            toggleControl: uptimeSwitch
-            SwitchControl {
-              id: uptimeSwitch
-              checked: Settings.systemShowUptime
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Show uptime"
-              onToggled: { Settings.systemShowUptime = !Settings.systemShowUptime; Settings.save() }
-            }
-          }
-        }
-      }
-
-    }
 
     GridLayout {
       Layout.fillWidth: true

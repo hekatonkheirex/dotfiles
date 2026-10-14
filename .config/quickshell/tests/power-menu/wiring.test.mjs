@@ -5,7 +5,6 @@ import assert from "node:assert/strict"
 const rd = p => readFileSync(fileURLToPath(new URL(p, import.meta.url)), "utf8")
 const settings = rd("../../config/Settings.qml")
 const tab = rd("../../bar/settings/AppearanceTab.qml")
-const panel = rd("../../bar/SettingsPanel.qml")
 
 assert.match(settings, /powerMenuQuote: "Take a breath\."/)
 assert.match(settings, /powerMenuQuoteAuthor: ""/)
@@ -17,8 +16,6 @@ for (const k of ["powerMenuQuote", "powerMenuQuoteAuthor"]) {
 }
 assert.match(tab, /accessibleName: "Power menu quote"/)
 assert.match(tab, /accessibleName: "Power menu quote author"/)
-assert.match(panel, /anchor: "Power menu quote"/)
-assert.match(panel, /anchor: "Power menu quote author"/)
 console.log("power-menu wiring ok")
 
 // Task 3: the overlay replaces the QuickMenu; route name stays "quickmenu".

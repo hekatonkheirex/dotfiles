@@ -1,65 +1,54 @@
 // Gate test: node tests/settings-tabs/test.mjs
-// Tab numbers are hardcoded in several places; they must all agree.
+// Settings lives in the right sidebar (bar/SettingsSidebar.qml): six pages,
+// each page file shows itself for its own index, and the retired pages and
+// sections stay removed.
 import assert from "node:assert/strict"
 import { existsSync, readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
 const path = p => fileURLToPath(new URL(p, import.meta.url))
 const read = p => readFileSync(path(p), "utf8")
-const panel = read("../../bar/SettingsPanel.qml")
+const content = read("../../bar/settingsbar/SettingsSidebarContent.qml")
 
-const defs = panel.slice(panel.indexOf("tabDefinitions: ["), panel.indexOf("readonly property int tabCount"))
-const labels = [...defs.matchAll(/label: "([^"]+)"/g)].map(m => m[1])
-assert.ok(labels.length >= 10, "tab definitions parsed: " + labels)
-assert.ok(!labels.includes("Wallpaper"), "the Wallpaper tab is gone")
-
-// switch (root.currentTab): case N -> <name>TabComponent -> bar/settings/<Name>Tab.qml shows itself for N.
-const cases = [...panel.matchAll(/case (\d+): return (\w+)TabComponent/g)].map(m => [+m[1], m[2]])
-assert.equal(cases.length, labels.length, "one case per tab")
-assert.deepEqual(cases.map(c => c[0]), labels.map((_, i) => i), "cases are 0..n-1 in order")
-for (const [index, name] of cases) {
-  const file = `../../bar/settings/${name[0].toUpperCase() + name.slice(1)}Tab.qml`
-  assert.ok(existsSync(path(file)), "tab file exists: " + file)
-  assert.ok(new RegExp(`visible: root\\.currentTab === ${index}\\b`).test(read(file)), `${file} shows itself for tab ${index}`)
-}
-assert.ok(!existsSync(path("../../bar/settings/WallpaperTab.qml")), "WallpaperTab.qml is removed")
-assert.ok(!/WallpaperTab/.test(panel), "SettingsPanel no longer references it")
-
-// Labels line up with the files in order (sidebar order == switch order).
-// Network left Settings in R4 (bar/NetworksWindow.qml is the only network UI).
-const order = ["Account", "General", "Appearance", "Display & Input", "Bluetooth", "Media", "Lock & Power", "Notifications", "System", "Shortcuts"]
-assert.deepEqual(labels, order, "sidebar order")
-const fileFor = { "Display & Input": "displayInput", "Lock & Power": "lockMedia" }
-labels.forEach((label, i) => {
-  const want = (fileFor[label] || label.toLowerCase()) + "Tab"
-  assert.equal(cases[i][1].toLowerCase() + "tab", want.toLowerCase().replace(/^(.*)tab$/, "$1tab") , `case ${i} is ${label}`)
+// Page order: switch case N -> component -> bar/settings/<Name>.qml shows itself for N.
+const order = ["GeneralTab", "AppearanceTab", "DisplayInputTab", "BluetoothTab", "LockMediaTab", "NotificationsTab"]
+assert.match(content, /readonly property int pageCount: 6\b/)
+const comps = Object.fromEntries([...content.matchAll(/Component \{ id: (\w+); (\w+) \{ root: host \} \}/g)].map(m => [m[1], m[2]]))
+const cases = [...content.matchAll(/case (\d+): return (\w+)/g)].map(m => [+m[1], comps[m[2]]])
+const byIndex = [comps.generalPage, ...cases.sort((a, b) => a[0] - b[0]).map(c => c[1])]
+assert.deepEqual(byIndex, order, "pages in order (default case is General)")
+order.forEach((name, i) => {
+  const src = read(`../../bar/settings/${name}.qml`)
+  assert.ok(new RegExp(`visible: root\\.currentTab === ${i}\\b`).test(src), `${name} shows itself for page ${i}`)
 })
 
-// Search entries point at real tabs, and the wallpaper entry lands on Appearance.
-const entries = [...panel.matchAll(/\{ tab: (\d+), category: "([^"]*)"[^}]*?title: "([^"]*)"/g)].map(m => ({ tab: +m[1], category: m[2], title: m[3] }))
-assert.ok(entries.length > 60)
-for (const e of entries) assert.ok(e.tab >= 0 && e.tab < labels.length, `search entry "${e.title}" points at tab ${e.tab}`)
-const wp = entries.find(e => e.category === "Wallpaper")
-assert.equal(wp.tab, labels.indexOf("Appearance"), "wallpaper search entry lands on Appearance")
-const byTitle = t => entries.find(e => e.title === t).tab
-assert.ok(!entries.some(e => e.title === "Wi-Fi"), "no Wi-Fi search entry")
-assert.equal(byTitle("Bluetooth"), labels.indexOf("Bluetooth"))
-assert.equal(byTitle("Show album art"), labels.indexOf("Media"))
-assert.equal(byTitle("Lock after inactivity"), labels.indexOf("Lock & Power"))
-assert.equal(byTitle("Do Not Disturb"), labels.indexOf("Notifications"))
-assert.equal(byTitle("CPU Usage"), labels.indexOf("System"))
-assert.equal(byTitle("App shortcuts"), labels.indexOf("Shortcuts"))
-assert.equal(byTitle("Display mode"), labels.indexOf("Display & Input"))
-assert.ok(new RegExp(`running: root\\.visible && root\\.currentTab === ${labels.indexOf("System")}\\b`).test(panel), "system polling follows the System tab")
-console.log("PASS settings-tabs")
-
-// The Appearance page owns the wallpaper entry point, and the shell exposes both actions.
+// Retired pages and sections are gone.
+for (const f of ["AccountTab", "MediaTab", "SystemTab", "ShortcutsTab", "AccentSwatch"])
+  assert.ok(!existsSync(path(`../../bar/settings/${f}.qml`)), f + ".qml removed")
+assert.ok(!existsSync(path("../../bar/SettingsPanel.qml")), "floating SettingsPanel removed")
+const general = read("../../bar/settings/GeneralTab.qml")
+assert.doesNotMatch(general, /text: "Behavior"|Show uptime|Reduced motion/, "General has no Behavior section")
 const appearance = read("../../bar/settings/AppearanceTab.qml")
-assert.ok(/text: "Wallpaper"/.test(appearance), "search anchor text exists")
-assert.ok(/"call", "shell", "wallpapers"/.test(appearance) && /"call", "shell", "randomWallpaper"/.test(appearance), "Choose and Random buttons")
+assert.doesNotMatch(appearance, /AccentSwatch|AccentPalette|Interface sizing|sizingCard|Active accent/, "Appearance has no accent or scaling cards")
+
+// Sidebar wiring: right and bottom anchored, same single-open-popup route model.
+const side = read("../../bar/SettingsSidebar.qml")
+assert.match(side, /anchors\.right: true/)
+assert.match(side, /anchors\.bottom: true/)
+assert.match(side, /anchors\.left: false/)
 const shell = read("../../shell.qml")
+assert.match(shell, /SettingsSidebar \{\n\s+id: settingsSidebar\n/)
+assert.match(shell, /visible: bar\.openPopup === "settings" && !lockScreen\.locked && !lockScreen\.compositorLocked/)
+assert.match(shell, /SidebarActivator \{\n\s+rightEdge: true/)
+assert.match(read("../../bar/Bar.qml"), /name === "settings"/)
+const act = read("../../bar/SidebarActivator.qml")
+assert.match(act, /anchors \{ left: !root\.rightEdge; right: root\.rightEdge;/)
+
+// The appearance page still owns the wallpaper entry point and the shell exposes both actions.
+assert.ok(/text: "Wallpaper"/.test(appearance), "wallpaper row exists")
+assert.ok(/"call", "shell", "wallpapers"/.test(appearance) && /"call", "shell", "randomWallpaper"/.test(appearance), "Choose and Random buttons")
 assert.ok(/function randomWallpaper\(\)/.test(shell) && /random-wallpaper\.sh/.test(shell), "randomWallpaper IPC")
 const film = read("../../bar/WallpaperFilmstrip.qml")
-assert.ok(/generate-thumbnails\.sh/.test(film) && /thumbScript/.test(film), "the filmstrip now generates thumbnails")
+assert.ok(/generate-thumbnails\.sh/.test(film) && /thumbScript/.test(film), "the filmstrip generates thumbnails")
 assert.ok(/Qt\.Key_R && \(event\.modifiers & Qt\.ControlModifier\)/.test(film), "Ctrl+R applies a random wallpaper")
-console.log("PASS wallpaper-entry-points")
+console.log("PASS settings-tabs")

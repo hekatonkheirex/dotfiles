@@ -253,6 +253,7 @@ ShellRoot {
   // Bottom-bar page buttons: closed opens at the page, the open page closes
   // it, another page switches (BottomBarModel.sidebarToggle).
   property real sidebarClosedAt: 0
+  property real settingsClosedAt: 0
   function openSidebarPage(n) {
     if (lockScreen.locked) return false
     var r = BottomBarModel.sidebarToggle(bar.openPopup, sidebar.currentPage, n, sidebar.pageCount)
@@ -331,11 +332,6 @@ ShellRoot {
     shell.setBarPosition("top")
   }
 
-  function resetAllSettingsToDefaults() {
-    Settings.resetToDefaults()
-    shell.setBarPosition("top")
-  }
-
   LockScreen {
     id: lockScreen
   }
@@ -366,15 +362,10 @@ ShellRoot {
     }
 
     function settings() {
-      if (bar.horizontal) {
-        bar.popupAnchorX = bar.getSettingsX()
-      } else {
-        bar.popupAnchorY = bar.getSettingsY()
-      }
-      bar.openPopup = bar.openPopup === "settings" ? "" : "settings"
+      bar.togglePopupByName("settings")
     }
 
-    // popup("quickmenu" | "launcher" | "sidebar" | "networks" | "tray"): toggle a popup.
+    // popup("quickmenu" | "launcher" | "sidebar" | "settings" | "networks" | "tray"): toggle a popup.
     function popup(name: string): bool {
       return bar.togglePopupByName(name)
     }
@@ -387,14 +378,11 @@ ShellRoot {
     }
 
 
-    // Dev/testing: select a Settings tab (0-9) in memory. Not saved unless
-    // something else calls Settings.save().
+    // Dev/testing: show Settings page `index` (0-5: General, Appearance,
+    // Display & Input, Bluetooth, Lock & Power, Notifications) in memory.
     function settingsTab(index: int): int {
-      Settings.lastSettingsTab = index
-      // currentTab loses its binding to the setting once the panel assigns it
-      // (any tab click), so set it directly too.
-      settingsPanel.currentTab = index
-      return settingsPanel.currentTab
+      settingsSidebar.showPage(index)
+      return settingsSidebar.currentPage
     }
 
     // Dev/testing: open the networks window with the "forget <name>?" row
@@ -606,6 +594,15 @@ ShellRoot {
       shell.openSidebarPage(sidebar.currentPage)
   }
 
+  // Right-edge hover opens Settings, same toggle and dwell as the left edge.
+  SidebarActivator {
+    rightEdge: true
+    screen: bar.screen
+    enabledByState: !lockScreen.locked
+    onActivated: if (bar.openPopup !== "settings" && Date.now() - shell.settingsClosedAt >= 300)
+      bar.openPopup = "settings"
+  }
+
   BottomBar {
     id: bottomBar
     visible: bar.visible && !lockScreen.locked
@@ -674,17 +671,13 @@ ShellRoot {
     }
   }
 
-  SettingsPanel {
-    id: settingsPanel
+  SettingsSidebar {
+    id: settingsSidebar
     screen: bar.screen
     visible: bar.openPopup === "settings" && !lockScreen.locked && !lockScreen.compositorLocked
     onDismissed: bar.openPopup = ""
-    onLockRequested: shell.requestLock()
-    isHorizontal: bar.horizontal
-    barPosition: bar.barPosition
     onResetAppearance: shell.resetAppearanceToDefaults()
-    onResetAllSettings: shell.resetAllSettingsToDefaults()
-    sessionLocked: lockScreen.locked || lockScreen.compositorLocked
+    onVisibleChanged: if (!visible) shell.settingsClosedAt = Date.now()
   }
 
   OsdOverlay {

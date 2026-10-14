@@ -13,7 +13,7 @@ Flickable {
   readonly property bool compactLayout: root ? root.compactLayout : false
   readonly property int segmentedButtonGap: 0
   anchors.fill: parent
-  visible: root.currentTab === 7
+  visible: root.currentTab === 5
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight

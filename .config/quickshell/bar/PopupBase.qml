@@ -21,6 +21,8 @@ PanelWindow {
   // Child popups provide the surface dimensions.
   property real surfaceWidth: Config.popupWidth
   property real surfaceHeight: 0
+  // Scale origin of the entry animation: 0 grows from the left edge.
+  property real entryOriginX: 0
 
   property color surfaceColor: Colors.readingSurface
   readonly property alias bg: bg
@@ -95,7 +97,7 @@ PanelWindow {
 
       transform: [
         Translate { id: transX; x: 0 },
-        Scale { id: scaleTransform; origin.x: 0; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
+        Scale { id: scaleTransform; origin.x: root.entryOriginX; origin.y: bg.height / 2; xScale: 1.0; yScale: 1.0 }
       ]
 
       MaterialEntrance {

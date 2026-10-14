@@ -23,11 +23,5 @@ assert.equal(writes.length, 1, "single write site")
 assert.doesNotMatch(section, /Settings\.dockPinned =(?! DockModel\.pinnedToCsv\()/, "no raw writes")
 
 assert.match(rd("../../bar/settings/AppearanceTab.qml"), /DockSection \{/, "wired into Appearance")
-const panel = rd("../../bar/SettingsPanel.qml")
-assert.match(panel, /title: "Dock pinned apps"/, "search entry")
-assert.match(panel, /tab: 2, category: "Dock"/, "search entry on Appearance tab")
-// the search anchor must be findable: the section exposes it as objectName
-const m = panel.match(/title: "Dock pinned apps", anchor: "([^"]+)"/)
-assert.ok(m, "search entry has an anchor")
-assert.ok(section.includes('objectName: "' + m[1] + '"'), "anchor matches DockSection objectName")
+assert.ok(section.includes('objectName: "Dock pinned apps"'), "DockSection exposes its objectName")
 console.log("dock section: ok")

@@ -230,9 +230,7 @@ for (const k of ["lockShowSeconds", "lockFontSize", "lockClockSize", "lockShowMe
   assert.ok(!new RegExp(`\\b${k}\\b`).test(settings), "Settings.qml drops " + k)
   assert.ok(k in legacy, "config-dump legacy fixture lists " + k)
 }
-const panel = rd("../../bar/SettingsPanel.qml")
 const lockTab = rd("../../bar/settings/LockMediaTab.qml")
-assert.doesNotMatch(panel, /title: "Show now playing"|title: "Use current wallpaper"/)
 assert.doesNotMatch(lockTab, /Settings\.lock(ShowMedia|UseWallpaper|ClockSize)/)
 assert.ok(!existsSync(fileURLToPath(new URL("../../bar/QuickMenu.qml", import.meta.url))))
 console.log("lock-wiring ok")

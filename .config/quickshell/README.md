@@ -14,17 +14,14 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 - **Battery alert watcher**: warning at 20%, critical alert at 10%, persistent `notify-send` notifications driven off `UPower.onBattery` (not raw charge state, which sawtooths under charge-conservation thresholds).
 - **App launcher** with fuzzy app search that honors hidden/unavailable desktop entries and user overrides, shell actions via `>`, clipboard history via `;`, and wallpaper search via `@`. Speech recognition is removed.
 - **On-Screen Display (OSD)** overlay for volume, brightness, mic mute, airplane mode, bluetooth, and keyboard backlight (polled from sysfs since the EC never emits a key event for it).
-- **Settings panel**: A multi-functional, resizable and draggable panel launched via `XF86Tools` with ten tabs:
-  - **Account**: Profile, session, uptime, machine information, lock, and Quickshell restart actions
-  - **General**: Motion, uptime, notification timestamp format, calendar week start, and weather location/refresh/privacy/unit settings
-  - **Appearance**: Wallpaper filmstrip and random wallpaper, Auto/Light/Dark mode, Live wallpaper colors or Fixed palettes (including Elenapan), accent shortlist, contrast, dock pins, power menu quote and author line, shared interface font/icon/spacing controls, color reload, and confirmed appearance reset (which also restores the quote). No UI-style picker, retired bar controls, or separate compact-control density setting.
-  - **Display & Input**: Per-output mode, scale, and transform controls plus touchpad, mouse, trackpoint, and edge-gesture settings
-  - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls; Bluetooth is Settings-only and has no compact bar indicator
-  - **Media**: Media artwork, progress, and control visibility
-  - **Lock & Power**: Idle lock/suspend timeouts, Caffeine, and TLP power profiles
+- **Settings sidebar**: a right-edge sidebar (`bar/SettingsSidebar.qml`, route `settings`), the mirror of the left sidebar. Opens from the right screen edge (same hover toggle as the left), the launcher's settings action or `qs ipc call shell popup settings`. Six pages under the same page dots (Ctrl+PageUp/PageDown, wheel, click):
+  - **General**: notification timestamp format, calendar week start, and weather location/refresh/privacy/unit settings
+  - **Appearance**: wallpaper filmstrip and random wallpaper, Auto/Light/Dark mode, Live wallpaper colors or Fixed palettes (including Elenapan), contrast, dock pins, power menu quote and author line, color reload, and confirmed appearance reset (which also restores the quote)
+  - **Display & Input**: per-output mode, scale, and transform controls plus touchpad, mouse, trackpoint, and edge-gesture settings
+  - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls
+  - **Lock & Power**: idle lock/suspend timeouts, Caffeine, and TLP power profiles
   - **Notifications**: Do Not Disturb, quiet hours, critical bypass, toast position/duration and test-notification controls
-  - **System**: CPU, memory, disk, swap, thermal, fan, battery health/cycles, diagnostics copy, reload, and confirmed reset actions
-  - **Shortcuts**: Curated active-compositor keybind reference with source open and copy actions
+  There is no search and no Account, Media, System or Shortcuts page; the accent shortlist, interface sizing sliders, reduced-motion and uptime toggles have no UI (their saved keys are kept).
 - **Persisted user settings** (`settings.json`, `config/Settings.qml`) separate from build-time layout/typography tokens (`config/Config.qml`).
 
 ## Project Structure
@@ -62,19 +59,9 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── sidebar/               # SidebarContent, HomePage, AgendaPage, MediaPage, SliderTile, PageIndicators, SeekLine, SymbolDisc, InfoPill, TextPill, StepArrows, PadButton
 │   ├── BottomBar.qml          # Bottom bar window (content in bottombar/)
 │   ├── bottombar/             # BottomBarContent, BarButton, DockGlyph, ValuePill, VolumeRing, BatteryStack, SignalBars
-│   ├── SettingsPanel.qml       # Settings panel shell (state, processes, tab bar) — content in settings/
-│   ├── settings/
-│   │   ├── AccountTab.qml
-│   │   ├── AppearanceTab.qml
-│   │   ├── DisplayInputTab.qml
-│   │   ├── GeneralTab.qml
-│   │   ├── LockMediaTab.qml
-│   │   ├── MediaTab.qml
-│   │   ├── PowerProfileCard.qml
-│   │   ├── BluetoothTab.qml
-│   │   ├── NotificationsTab.qml
-│   │   ├── ShortcutsTab.qml
-│   │   └── SystemTab.qml
+│   ├── SettingsSidebar.qml     # Right-edge Settings sidebar (route "settings")
+│   ├── settingsbar/            # SettingsSidebarContent (page loader, page dots, idle check)
+│   ├── settings/               # Page files: GeneralTab, AppearanceTab, DisplayInputTab, BluetoothTab, LockMediaTab, NotificationsTab, DockSection, PowerProfileCard, shared cards
 │   ├── LockScreen.qml          # PAM auth, fingerprint and compositor-enforced session lock
 │   ├── WorkspaceIndicator.qml  # Niri/mango workspace state and actions (no visuals)
 │   ├── LauncherPopup.qml       # App/provider search (apps, clipboard, wallpapers, actions)
@@ -257,7 +244,7 @@ When `XDG_RUNTIME_DIR` is unavailable, Quickshell uses
 - `ipc.commandcenter()` — legacy alias for `ipc.settings()`
 - `ipc.layout()` — toggle bar orientation
 - `ipc.popup(name)`: toggle a popup by route (`quickmenu`, `launcher`, `sidebar`, `networks`, `tray`); `false` for an unknown name
-- `ipc.settingsTab(n)`: dev/testing: select Settings tab `n` (0-9: Account, General, Appearance, Display & Input, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts) in memory
+- `ipc.settingsTab(n)`: dev/testing: select Settings tab `n` (0-5: General, Appearance, Display & Input, Bluetooth, Lock & Power, Notifications) in memory
 - `ipc.forgetPrompt(name)`: dev/testing: open the networks window with the "forget <name>?" row shown (never forgets by itself); `""` clears the row
 
 - `ipc.openSidebarPage(n)`: bottom-bar page toggle: opens the sidebar at page `n` (clamped to the pages that exist), closes it when that page is already open, switches otherwise; `false` while locked
@@ -385,14 +372,14 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 - **Launcher**: App/action/clipboard search uses her rofi layout (R6c): centered, half the screen wide (min `dp(560)`), a solid 6 S x0 border with 12 S radius, an input bar with her prompt glyph in x1, a message bar with provider/count/keys, and eight fixed lines with the selected row in x0 and x4 text. Ctrl+F returns to search, arrows, Ctrl+N/P, Alt+J/K and Tab select results, Enter, Ctrl+M, Alt+M, Alt+A or a click activates. Right-click or Shift+F10/Menu exposes opening, copying parsed POSIX-shell-quoted application arguments, or deleting a clipboard entry; Escape closes the context menu before dismissing. `@` still hands off to the wallpaper filmstrip. Speech recognition, its microphone button, recording/transcription processes and helper are removed; system packages and downloaded models outside the repo are untouched.
 - **Settings**: Provides ten tabs, remembers the last selected tab, and keeps Bluetooth Settings-only. The QuickMenu Settings tile was dropped with the QuickMenu and the Network tab with R4; reach Settings from `XF86Tools`. The panel moves from its header and resizes from the bottom-right corner, with a 560px minimum width and a maximum height bounded by screen margins. Sidebar navigation scrolls on overflow without a visible scrollbar; keyboard navigation brings the selected tab into view. Search prioritizes control titles, reports result counts or an empty state, and opens and highlights matching controls.
 - **Settings presentation**: Defaults to 1100×900 when no saved size exists, can expand to 1440px, and bounds the navigation pane and page width. General sections become side-by-side above 800px and stack below. Narrow labels elide with tooltips; rows wrap and grow. Ctrl+F searches from any control, without stealing content editing/navigation keys.
-- **Settings support**: Retired hidden-bar visibility/order, placement/form, workspace count/marker, bar/clock size, coupled Bar Scale, seconds and timezone controls are removed along with their search entries. Font, icon and spacing controls remain independently available under **Interface sizing** and do not resize the fixed 8px workspace strip or 48px bottom bar. Legacy saved keys and hidden service owners are intentionally retained; this UI cleanup does not rewrite personal preferences or implement R5/R6.
+- **Settings support**: Retired hidden-bar visibility/order, placement/form, workspace count/marker, bar/clock size, coupled Bar Scale, seconds and timezone controls are removed. The font, icon and spacing sliders were removed with the Settings sidebar redesign; their saved keys remain and the fixed 8px workspace strip and 48px bottom bar are unaffected. Legacy saved keys and hidden service owners are intentionally retained; this UI cleanup does not rewrite personal preferences or implement R5/R6.
 - **ActionButton**: Label-only buttons reserve no icon height or icon-to-label spacing; compact Settings actions retain centered labels.
 - **Weather**: Uses a configured manual location by default, optionally supports IP geolocation, refreshes on the persisted interval and reports the last update time. Refreshes coalesce rather than aborting an active fetch; invalid responses and command failures appear as popup errors.
 - **Notifications**: toasts follow her dunst look (R6b, below). DND/quiet hours suppress toasts; critical bypass and placement stay persisted. There is no notification history; a toast that times out or is dismissed releases its notification. Default/named actions and closed-entry behavior remain. Named toast actions capture the owner before invocation because an action can synchronously close its notification and destroy the button delegate.
 - **Dark Mode Preference**: Event-driven tracking via a one-time startup query (`gsettings get`) and a continuous background monitor (`gsettings monitor`) with a `SplitParser` listener, saving CPU cycles. Because `Colors.qml` hot-reloads reset `systemDark` to its template default, a polling re-query runs in `shell.qml` after reloads.
 - **Palette ownership**: Live comes from wallpaper-driven Matugen; Fixed comes from `PaletteCatalog.js`. `sync-active-palette.sh` activates separate source caches and refreshes the generated companions. Wallpaper changes still refresh Live while Fixed is selected. SDDM updates remain explicit.
 - **Deployment**: `scripts/install-ui-suite.sh` installs only the palette-driven Matugen companions and optional light/dark greeters. Use `--dry-run` or `--skip-sddm`; `verify-ui-suite.sh` checks the matching assets. Existing outside-tree themes are untouched. Installing the updated SDDM bridge requires an explicit privileged action; no system installation is performed by the cutover.
-- **Appearance**: Palette, accent, contrast, wallpaper, dock pins, power menu quote and author line (`powerMenuQuote`, default "Take a breath."; `powerMenuQuoteAuthor`, empty hides the line), shared interface sizing and confirmed reset remain. Removed styles and retired bar preferences have no picker, preview or search entry.
+- **Appearance**: Palette, contrast, wallpaper, dock pins, power menu quote and author line (`powerMenuQuote`, default "Take a breath."; `powerMenuQuoteAuthor`, empty hides the line) and confirmed reset remain. Removed styles and retired bar preferences have no picker or preview.
 - **Display & Input tab**: Reads and safely edits Niri output, input, and edge-gesture settings through the validated `scripts.niri_config` CLI. Remote controls only read while their Settings page is active.
 - **Wallpaper thumbnails**: `scripts/generate-thumbnails.sh` produces 200×130 center-cropped thumbnails under `~/.cache/quickshell/wallpaper-thumbs`, regenerating only when the source is newer, with bounded concurrency, atomic publishing and a nonzero exit status on failure. The filmstrip runs it, then `scripts/generate-previews.sh`, once per shell session at low priority. There is no Wallpaper tab: choose from Appearance, the launcher's `@`, or `qs ipc call shell wallpapers`; `qs ipc call shell randomWallpaper` (and Ctrl+R in the filmstrip) applies a random one through `scripts/random-wallpaper.sh`.
 - **Lock & Power**: Owns idle lock/suspend timeouts, Caffeine and automatic AC/battery power-profile restoration.
@@ -590,9 +577,9 @@ Its layer namespace is `quickshell-popup-networks`, matching the compositor's
 existing no-blur popup rule so transparent corners do not expose a rectangular
 blur patch. The IPC route remains `"networks"`.
 
-Settings persists a numeric `lastSettingsTab`, clamped to the current 0-9 range,
-not a page identity. Removing Network shifts the later pages: saved index 4 now
-opens Bluetooth. Existing values are not automatically migrated or reset.
+Settings persists a numeric `lastSettingsTab`, clamped to the current 0-5 range,
+not a page identity. Removing pages shifts the later ones; existing values are
+not migrated or reset.
 The removed Wi-Fi power toggle and per-network autoconnect controls are not
 replaced in this window; `XF86WLAN` still toggles airplane mode.
 

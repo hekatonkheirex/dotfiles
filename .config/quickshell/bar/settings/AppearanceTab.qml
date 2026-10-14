@@ -7,7 +7,6 @@ import "../"
 import "../primitives"
 import "../../config"
 import "../../config/PaletteCatalog.js" as PaletteCatalog
-import "../../config/AccentPalette.js" as AccentPalette
 
 Flickable {
   id: appearanceTab
@@ -18,14 +17,13 @@ Flickable {
   // Stacked icon + label choices keep breathing room at the global type scale.
   readonly property int optionButtonHeight: Math.max(Config.controlHitSize, Config.typeLabelMediumLineHeight + (24))
   anchors.fill: parent
-  visible: root.currentTab === 2
+  visible: root.currentTab === 1
   clip: true
   contentWidth: width
   contentHeight: mainColumn.implicitHeight
   interactive: contentHeight > height
   boundsBehavior: Flickable.StopAtBounds
   ScrollBar.vertical: SettingsScrollBar { scrollTarget: appearanceTab }
-
 
   property string themeStatus: ""
   property bool resetConfirm: false
@@ -130,7 +128,6 @@ Flickable {
     }
   }
 
-
   ColumnLayout {
     id: mainColumn
     width: Math.max(0, appearanceTab.width - Config.settingsScrollbarGutter)
@@ -138,9 +135,8 @@ Flickable {
 
     SettingsPageHeader {
       pageTitle: "Appearance"
-      subtitle: "Customize wallpapers, colors, interface sizing, and effects."
+      subtitle: "Customize wallpapers, colors, and effects."
     }
-
 
     ColumnLayout {
       id: appearanceCardsColumn
@@ -283,15 +279,6 @@ Flickable {
             onActivated: Quickshell.execDetached(["qs", "ipc", "call", "shell", "randomWallpaper"])
           }
         }
-      }
-
-      // Shared interface sizing
-
-      Loader {
-        id: sizingCardLoader
-        Layout.fillWidth: true
-        Layout.preferredHeight: item ? item.implicitHeight : 0
-        sourceComponent: sizingCardComponent
       }
 
       ColumnLayout {
@@ -662,346 +649,6 @@ Flickable {
         }
       }
 
-      // Accent colors: shortlist of Matugen roles plus the active accent.
-      SettingsCard {
-        id: accentCard
-        readonly property var picked: AccentPalette.normalize(Settings.accentPalette)
-        readonly property string active: AccentPalette.resolve(Settings.accentPalette, Settings.accentActive)
-        readonly property bool full: picked.length >= AccentPalette.MAX
-        variant: "filled"
-        Layout.fillWidth: true
-        Layout.preferredHeight: accentColumn.implicitHeight + Config.spacingLarge * 2
-        radius: Config.settingsCardRadius
-        surfaceColor: Colors.surfaceContainer
-        outlineColor: Colors.outlineVariant
-        outlineWidth: Config.themeBorderWidth
-
-        ColumnLayout {
-          id: accentColumn
-          anchors.fill: parent
-          anchors.margins: Config.spacingLarge
-          spacing: Config.spacingSmall
-
-          Text {
-            text: "Accent colors"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyLargeSize
-            font.weight: Config.typeStrongWeight
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyLargeLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.alignment: Qt.AlignHCenter
-          }
-
-          Text {
-            text: "Shortlist up to " + AccentPalette.MAX + " colors from the palette ("
-              + accentCard.picked.length + " of " + AccentPalette.MAX + " chosen)"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
-            font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.fillWidth: true
-          }
-
-          Flow {
-            Layout.fillWidth: true
-            spacing: Config.spacingMedium
-
-            Repeater {
-              model: AccentPalette.ROLES
-
-              delegate: AccentSwatch {
-                required property var modelData
-                readonly property bool member: accentCard.picked.indexOf(modelData.key) >= 0
-                swatchColor: Colors.accentRoleColor(modelData.key)
-                mark: member
-                enabled: member || !accentCard.full
-                label: modelData.label
-                description: member ? "In shortlist. Activate to remove" : "Activate to add to shortlist"
-                onActivated: {
-                  Settings.accentPalette = AccentPalette.toggle(Settings.accentPalette, modelData.key)
-                  var dropsActive = Settings.accentActive === modelData.key && member
-                  if (dropsActive) Settings.accentActive = ""
-                  Settings.save()
-                  if (dropsActive) appearanceTab.requestPaletteSync()
-                }
-              }
-            }
-          }
-
-          Text {
-            text: "Active accent"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
-            font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.fillWidth: true
-          }
-
-          Flow {
-            Layout.fillWidth: true
-            spacing: Config.spacingMedium
-
-            AccentSwatch {
-              swatchColor: Colors.accentRoleColor("primary")
-              ring: accentCard.active === ""
-              label: "Default accent"
-              description: "Use the style's own primary color"
-              onActivated: {
-                Settings.accentActive = ""
-                Settings.save()
-                appearanceTab.requestPaletteSync()
-              }
-            }
-
-            Repeater {
-              model: accentCard.picked
-
-              delegate: AccentSwatch {
-                required property string modelData
-                swatchColor: Colors.accentRoleColor(modelData)
-                ring: accentCard.active === modelData
-                label: AccentPalette.find(modelData).label + " accent"
-                description: "Use this color as the active accent"
-                onActivated: {
-                  Settings.accentActive = modelData
-                  Settings.save()
-                  appearanceTab.requestPaletteSync()
-                }
-              }
-            }
-          }
-
-          Text {
-            text: accentCard.active === ""
-              ? "Default is the first swatch; pick one of your shortlist to recolor the shell, GTK, Qt, Kvantum, Niri and terminals"
-              : "The shell and desktop use " + AccentPalette.find(accentCard.active).label.toLowerCase()
-                + (appearanceTab.themeStatus !== "" ? " · " + appearanceTab.themeStatus : "")
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeLabelSmallSize
-            font.letterSpacing: Config.typeLabelTracking
-            lineHeight: Config.typeLabelSmallLineHeight
-            lineHeightMode: Text.FixedHeight
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-          }
-        }
-      }
-
-
-    }
-
-    // Font / Icon / Spacing sliders
-    Component {
-      id: sizingCardComponent
-
-      SettingsCard {
-      variant: "filled"
-      Layout.fillWidth: true
-      Layout.preferredHeight: sizingColumn.implicitHeight + Config.spacingMedium * 2
-      implicitHeight: sizingColumn.implicitHeight + Config.spacingMedium * 2
-      radius: Config.settingsCardRadius
-      surfaceColor: Colors.surfaceContainer
-      outlineColor: Colors.outlineVariant
-      outlineWidth: Config.themeBorderWidth
-
-      ColumnLayout {
-        id: sizingColumn
-        anchors.fill: parent
-        anchors.margins: Config.spacingMedium
-        spacing: Config.spacingSmall
-
-        Text {
-          text: "Interface sizing"
-          color: Colors.fgSurface
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeBodyLargeSize
-          font.weight: Config.typeStrongWeight
-          font.letterSpacing: Config.typeBodyTracking
-          lineHeight: Config.typeBodyLargeLineHeight
-          lineHeightMode: Text.FixedHeight
-        }
-
-        Text {
-          Layout.fillWidth: true
-          text: "These controls size Settings and shared interfaces, not the fixed workspace strip or bottom bar."
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.typeLabelSmallSize
-          wrapMode: Text.WordWrap
-        }
-
-        ColumnLayout {
-          Layout.fillWidth: true
-          spacing: Config.spacingSmall
-
-          // UI font size
-          RowLayout {
-            Layout.fillWidth: true
-            spacing: Config.spacingMedium
-
-            Text {
-              text: "UI Font Size"
-              color: Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyMediumSize
-              font.letterSpacing: Config.typeBodyTracking
-              lineHeight: Config.typeBodyMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-
-              Layout.preferredWidth: Math.max(90, implicitWidth)
-            }
-
-            SliderControl {
-              Layout.fillWidth: true
-              value: (Settings.fontPixelSize - 7) / 9
-              stepSize: 1 / 9
-              accessibleMinimumValue: 7
-              accessibleMaximumValue: 16
-              accessibleUnit: "px"
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              focusColor: Colors.primary
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "UI font size"
-              accessibleDescription: "Adjust text size in Settings and shared shell controls"
-              onChanged: function(val) {
-                Settings.fontPixelSize = Math.round(7 + val * 9)
-              }
-              onInteractionFinished: Settings.save()
-            }
-
-            Text {
-              text: Settings.fontPixelSize + "px"
-              color: Colors.fgSurface
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeLabelMediumSize
-              font.letterSpacing: Config.typeLabelTracking
-              lineHeight: Config.typeLabelMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-              Layout.preferredWidth: 44
-            }
-          }
-
-
-          // Icon size
-          RowLayout {
-            Layout.fillWidth: true
-            spacing: Config.spacingMedium
-
-            Text {
-              text: "Icon Size"
-              color: Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyMediumSize
-              font.letterSpacing: Config.typeBodyTracking
-              lineHeight: Config.typeBodyMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-
-              Layout.preferredWidth: Math.max(90, implicitWidth)
-            }
-
-            SliderControl {
-              Layout.fillWidth: true
-              value: (Settings.iconSize - 12) / 16
-              stepSize: 1 / 16
-              accessibleMinimumValue: 12
-              accessibleMaximumValue: 28
-              accessibleUnit: "px"
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              focusColor: Colors.primary
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Icon size"
-              accessibleDescription: "Adjust icons in Settings and shared shell controls"
-              onChanged: function(val) {
-                Settings.iconSize = Math.round(12 + val * 16)
-              }
-              onInteractionFinished: Settings.save()
-            }
-
-            Text {
-              text: Settings.iconSize + "px"
-              color: Colors.fgSurface
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeLabelMediumSize
-              font.letterSpacing: Config.typeLabelTracking
-              lineHeight: Config.typeLabelMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-              Layout.preferredWidth: 44
-            }
-          }
-
-          // Spacing
-          RowLayout {
-            Layout.fillWidth: true
-            spacing: Config.spacingMedium
-
-            Text {
-              text: "Spacing"
-              color: Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeBodyMediumSize
-              font.letterSpacing: Config.typeBodyTracking
-              lineHeight: Config.typeBodyMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-
-              Layout.preferredWidth: (appearanceTab.compactLayout ? 64 : 90)
-            }
-
-            SliderControl {
-              Layout.fillWidth: true
-              value: (Settings.spacingScale - 0.75) / 0.75
-              stepSize: 0.05 / 0.75
-              accessibleMinimumValue: 75
-              accessibleMaximumValue: 150
-              accessibleUnit: "%"
-              activeColor: Colors.primary
-              surfaceContainerHigh: Colors.surfaceContainerHigh
-              surfaceContainerHighest: Colors.surfaceContainerHighest
-              outline: Colors.outline
-              focusColor: Colors.primary
-              motionDuration: Config.motionMedium
-              reducedMotion: Config.reducedMotion
-              accessibleName: "Spacing"
-              accessibleDescription: "Adjust spacing in Settings and shared shell controls"
-              onChanged: function(val) {
-                Settings.spacingScale = Math.round((0.75 + val * 0.75) * 20) / 20
-              }
-              onInteractionFinished: Settings.save()
-            }
-
-            Text {
-              text: Math.round(Settings.spacingScale * 100) + "%"
-              color: Colors.fgSurface
-              font.family: Config.fontFamily
-              font.pixelSize: Config.typeLabelMediumSize
-              font.letterSpacing: Config.typeLabelTracking
-              lineHeight: Config.typeLabelMediumLineHeight
-              lineHeightMode: Text.FixedHeight
-              Layout.preferredWidth: 44
-            }
-          }
-
-        }
-
-      }
-    }
-
     }
 
     ColumnLayout {
@@ -1161,8 +808,8 @@ Flickable {
     ListItem {
       Layout.fillWidth: true
       leadingIcon: "left_panel_open"
-      title: "Open sidebar at the left screen edge"
-      subtitle: Settings.sidebarEdgeHover ? "Hover the left edge to open" : "Use the bar button only"
+      title: "Open sidebars at the screen edges"
+      subtitle: Settings.sidebarEdgeHover ? "Left edge: sidebar, right edge: Settings" : "Use the bar button only"
       toggleControl: edgeHoverSwitch
       SwitchControl {
         id: edgeHoverSwitch
@@ -1173,7 +820,7 @@ Flickable {
         outline: Colors.outline
         motionDuration: Config.motionMedium
         reducedMotion: Config.reducedMotion
-        accessibleName: "Open sidebar at the left screen edge"
+        accessibleName: "Open sidebars at the screen edges"
         onToggled: { Settings.sidebarEdgeHover = !Settings.sidebarEdgeHover; Settings.save() }
       }
     }

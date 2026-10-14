@@ -68,8 +68,6 @@ PanelWindow {
     return root.screen ? Math.round(root.screen.width * 0.75) : 0
   }
   function getLauncherX() { return root.horizontal ? Math.round((root.screen ? root.screen.width : 0) / 2) : 0 }
-  function getSettingsX() { return root.horizontal ? root.defaultAnchorX() : 0 }
-  function getSettingsY() { return root.height }
 
   function togglePopup(name) {
     if (openPopup === name) {
@@ -86,8 +84,8 @@ PanelWindow {
   // IPC entry point: open (or toggle closed) a popup by name. Returns false
   // for unknown names.
   function togglePopupByName(name) {
-    // The sidebar, networks and tray windows have no anchor.
-    if (name === "sidebar" || name === "networks" || name === "tray") {
+    // The sidebars, networks and tray windows have no anchor.
+    if (name === "sidebar" || name === "settings" || name === "networks" || name === "tray") {
       openPopup = openPopup === name ? "" : name
       return true
     }
