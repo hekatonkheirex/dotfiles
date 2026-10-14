@@ -1,7 +1,7 @@
 import QtQuick
 import "../../config"
 
-// Circle (or pill) holding a short value: the clock, the date, the alarm count.
+// Circle (or pill) holding a short value: the clock, the date.
 Rectangle {
   id: root
   property string text: ""

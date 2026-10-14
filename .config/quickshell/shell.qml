@@ -374,7 +374,7 @@ ShellRoot {
       bar.openPopup = bar.openPopup === "settings" ? "" : "settings"
     }
 
-    // popup("quickmenu" | "launcher" | "sidebar" | "networks" | "alarms" | "tray"): toggle a popup.
+    // popup("quickmenu" | "launcher" | "sidebar" | "networks" | "tray"): toggle a popup.
     function popup(name: string): bool {
       return bar.togglePopupByName(name)
     }
@@ -407,24 +407,6 @@ ShellRoot {
       return networksWindow.forgetFor
     }
 
-
-    // Dev/testing: alarm list as JSON.
-    function alarmState(): string {
-      return JSON.stringify({ count: AlarmService.count, loaded: AlarmService.loaded,
-        lastRung: AlarmService.lastRung, alarms: AlarmService.alarms })
-    }
-
-    // Dev/testing: schedule an alarm `minutes` from now (fractions allowed);
-    // returns the new count.
-    function alarmAdd(minutes: real, label: string): int {
-      AlarmService.add(AlarmService.nowFn() + Math.round(minutes * 60000), label === "" ? "beep beep" : label)
-      return AlarmService.count
-    }
-
-    // Dev/testing: delete the alarm at sorted position `index`; true when it existed.
-    function alarmRemove(index: int): bool {
-      return AlarmService.removeAt(index)
-    }
 
     // Dev/testing: dock state as JSON (items and window inputs).
     function dockState(): string {
@@ -602,13 +584,6 @@ ShellRoot {
   TrayWindow {
     id: trayWindow
     visible: bar.openPopup === "tray" && !lockScreen.locked && !lockScreen.compositorLocked
-    screen: bar.screen
-    onDismissed: bar.openPopup = ""
-  }
-
-  AlarmsWindow {
-    id: alarmsWindow
-    visible: bar.openPopup === "alarms" && !lockScreen.locked && !lockScreen.compositorLocked
     screen: bar.screen
     onDismissed: bar.openPopup = ""
   }

@@ -11,6 +11,5 @@ singleton WindowService 1.0 WindowService.qml
 singleton BottomBarFonts 1.0 BottomBarFonts.qml
 singleton NetworkStatusService 1.0 NetworkStatusService.qml
 singleton NetworkListService 1.0 NetworkListService.qml
-singleton AlarmService 1.0 AlarmService.qml
 singleton MicService 1.0 MicService.qml
 singleton TrayService 1.0 TrayService.qml

@@ -86,8 +86,8 @@ PanelWindow {
   // IPC entry point: open (or toggle closed) a popup by name. Returns false
   // for unknown names.
   function togglePopupByName(name) {
-    // The sidebar, networks and alarms windows have no anchor.
-    if (name === "sidebar" || name === "networks" || name === "alarms" || name === "tray") {
+    // The sidebar, networks and tray windows have no anchor.
+    if (name === "sidebar" || name === "networks" || name === "tray") {
       openPopup = openPopup === name ? "" : name
       return true
     }
