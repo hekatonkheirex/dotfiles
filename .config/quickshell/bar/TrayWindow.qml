@@ -9,7 +9,7 @@ import "../config"
 // The system tray (route "tray"): right and bottom anchored overlay above the
 // bottom bar, no reserved space. A grid of the tray icons; left click
 // activates, right click opens the app's menu, middle click is the secondary
-// action. Dismiss: Esc, middle click on the background, click outside
+// action; activating an item closes the window. Dismiss: Esc, middle click on the background, click outside
 // (shell.qml's PopupShield) and the bar button again. No focus-loss dismissal:
 // an app menu takes the keyboard focus while it is open.
 PanelWindow {
@@ -131,8 +131,8 @@ PanelWindow {
               acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
               onClicked: function(m) {
                 if (m.button === Qt.RightButton && slot.modelData.hasMenu) menuAnchor.open()
-                else if (m.button === Qt.MiddleButton) slot.modelData.secondaryActivate()
-                else slot.modelData.activate()
+                else if (m.button === Qt.MiddleButton) { slot.modelData.secondaryActivate(); root.dismissed() }
+                else { slot.modelData.activate(); root.dismissed() }
               }
             }
           }
