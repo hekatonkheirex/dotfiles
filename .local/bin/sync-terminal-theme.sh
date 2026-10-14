@@ -1,8 +1,9 @@
 #!/bin/bash
 # Syncs kitty, starship, fzf, btop, Neovim and Niri/Mango window decorations to the
-# current light/dark mode + colorscheme (matugen | claude) and Quickshell UI style. Called from
-# sync-theme-mode.sh (mode changes) and Quickshell style/color changes. Safe to
-# call with no args: re-reads current state and re-applies.
+# current light/dark mode + colorscheme (matugen | claude). Called from
+# sync-theme-mode.sh (mode changes) and Quickshell color changes. Safe to
+# call with no args: re-reads current state and re-applies. The third argument
+# is accepted and ignored: the shell has one UI style.
 set -euo pipefail
 
 # Direct calls get the same serialization as the desktop synchronizer. Nested
@@ -15,19 +16,9 @@ mkdir -p -- "$theme_state_dir"
 
 MODE="${1:-}"
 SCHEME="${2:-}"
-UI_STYLE="${3:-}"
-
 QS_SCHEME_FILE="$HOME/.config/quickshell/colorscheme"
 [ -z "$SCHEME" ] && SCHEME=$(cat "$QS_SCHEME_FILE" 2>/dev/null || echo matugen)
 [ "$SCHEME" != "claude" ] && [ "$SCHEME" != "matugen" ] && SCHEME=matugen
-
-if [ -z "$UI_STYLE" ]; then
-  UI_STYLE=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || echo material3)
-fi
-case "$UI_STYLE" in
-nothing | ghost) ;;
-*) UI_STYLE=material3 ;;
-esac
 
 if [ -z "$MODE" ] || [ "$MODE" = "auto" ]; then
   MODE=$("$HOME/.local/bin/auto-detect-theme.sh" 2>/dev/null)
@@ -36,25 +27,15 @@ fi
 
 BTOP_CONFIG="$HOME/.config/btop/btop.conf"
 BTOP_DEFAULT_THEME="$HOME/.config/btop/themes/catppuccin_mocha.theme"
-BTOP_GHOST_THEME="$HOME/.config/btop/themes/ghost.theme"
 NVIM_THEME_STATE="$HOME/.cache/quickshell/nvim-colorscheme"
 
 sync_editor_and_monitor_themes() {
   local btop_theme="$BTOP_DEFAULT_THEME"
   local nvim_colorscheme="claude"
 
-  if [ "$UI_STYLE" = "ghost" ]; then
-    # The recovered btop palette is intentionally dark-only, like the Ghost
-    # SDDM greeter. Neovim has authored variants for both resolved modes.
-    btop_theme="$BTOP_GHOST_THEME"
-    nvim_colorscheme="ghost"
-    [ "$MODE" = "light" ] && nvim_colorscheme="ghost-light"
-  elif [ "$UI_STYLE" = "nothing" ]; then
-    nvim_colorscheme="nothing"
-    [ "$MODE" = "light" ] && nvim_colorscheme="nothing-light"
-  elif [ "$SCHEME" = "matugen" ]; then
-    # Material 3 (the default UI_STYLE) follows the selected terminal
-    # colorscheme: matugen here, claude via the default above.
+  if [ "$SCHEME" = "matugen" ]; then
+    # Follows the selected terminal colorscheme: matugen here, claude via the
+    # default above.
     nvim_colorscheme="matugen"
     [ "$MODE" = "light" ] && nvim_colorscheme="matugen-light"
   fi
@@ -75,24 +56,13 @@ sync_editor_and_monitor_themes() {
   echo "Neovim colorscheme state -> $nvim_colorscheme"
 }
 
-# The UI style owns the terminal palette when it has a distinct identity.
-# Material 3 keeps the selected terminal colorscheme; Nothing and Ghost are fixed.
 KITTY_THEME_NAME="$SCHEME-$MODE.conf"
 STARSHIP_THEME_NAME="$SCHEME-$MODE.toml"
-if [ "$UI_STYLE" = "nothing" ]; then
-  KITTY_THEME_NAME="nothing-$MODE.conf"
-  STARSHIP_THEME_NAME="nothing-$MODE.toml"
-elif [ "$UI_STYLE" = "ghost" ]; then
-  # Ghost keeps fixed mode-paired Kitty and Starship assets recovered from
-  # the same theme suite.
-  KITTY_THEME_NAME="ghost-$MODE.conf"
-  STARSHIP_THEME_NAME="ghost-$MODE.toml"
-fi
 KITTY_CONF="$HOME/.config/kitty/$KITTY_THEME_NAME"
 STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
 
 {
-  echo "=== $(date) sync-terminal-theme MODE=$MODE SCHEME=$SCHEME UI_STYLE=$UI_STYLE KITTY=$KITTY_THEME_NAME STARSHIP=$STARSHIP_THEME_NAME ==="
+  echo "=== $(date) sync-terminal-theme MODE=$MODE SCHEME=$SCHEME KITTY=$KITTY_THEME_NAME STARSHIP=$STARSHIP_THEME_NAME ==="
 
   sync_editor_and_monitor_themes
 
@@ -195,52 +165,6 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
     fi
   fi
 
-  # Nothing Evolution (only) takes the user-picked accent from Appearance >
-  # Accent colors for its focus ring; Classic and Ghost stay fixed. The role
-  # is read straight from the Matugen cache.
-  accent_ring=""
-  if [ "$UI_STYLE" = "nothing" ] && [ "$SCHEME" != "claude" ] && command -v jq &>/dev/null \
-     && [ -f "$HOME/.cache/matugen/current_palette.json" ] \
-     && [ "$(jq -r '.nothingVariant // ""' "$HOME/.config/quickshell/settings.json" 2>/dev/null)" = "evolution" ]; then
-    accent_role=$(jq -r '.accentActive // ""' "$HOME/.config/quickshell/settings.json" 2>/dev/null || true)
-    accent_list=$(jq -r '.accentPalette // ""' "$HOME/.config/quickshell/settings.json" 2>/dev/null || true)
-    case ",$accent_list," in
-      *",$accent_role,"*)
-        if [[ "$accent_role" =~ ^(primary|secondary|tertiary)(_container|_fixed|_fixed_dim)?$ ]]; then
-          accent_ring=$(jq -r --arg m "$MODE" --arg r "$accent_role" \
-            '."scheme-expressive"[$m][$r] // empty' "$HOME/.cache/matugen/current_palette.json" 2>/dev/null || true)
-          [[ "$accent_ring" =~ ^#[0-9A-Fa-f]{6}$ ]] || accent_ring=""
-        fi
-        ;;
-    esac
-  fi
-
-  # Nothing is intentionally independent of the wallpaper-derived Matugen
-  # palette. Keep Niri's window decorations on the same fixed neutral/red
-  # roles as Quickshell's config/Colors.qml, including first boot/cache misses.
-  if [ "$UI_STYLE" = "nothing" ]; then
-    if [ "$MODE" = "light" ]; then
-      primary="#d71920"
-      outline="#858585"
-      on_surface="#1a1a1a"
-    else
-      primary="#d71920"
-      outline="#888884"
-      on_surface="#f2f2f0"
-    fi
-    shadow="#000000"
-  fi
-
-  # Ghost is the recovered GITS palette: a fixed void/cyan HUD, not derived
-  # from the wallpaper and not mode-paired (it never had a light variant of
-  # its own). Same active/inactive ring regardless of $MODE.
-  if [ "$UI_STYLE" = "ghost" ]; then
-    primary="#57d9cc"
-    outline="#2f6f68"
-    on_surface="#57d9cc"
-    shadow="#000000"
-  fi
-
   if [ -n "${primary:-}" ] && [ "$primary" != "null" ]; then
     if [ -z "${on_surface:-}" ] || [ "$on_surface" = "null" ]; then
       on_surface="${FG:-$outline}"
@@ -249,25 +173,11 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
       shadow="#000000"
     fi
 
-    if [ "$UI_STYLE" = "nothing" ]; then
-      focus_width=2
-      focus_active="${accent_ring:-$on_surface}"
-      focus_inactive="$outline"
-      niri_corner_radius=20
-      layout_gaps=""
-    elif [ "$UI_STYLE" = "ghost" ]; then
-      focus_width=1
-      focus_active="$on_surface"
-      focus_inactive="$outline"
-      niri_corner_radius=0
-      layout_gaps=""
-    else
-      focus_width=2
-      focus_active="$primary"
-      focus_inactive="$outline"
-      niri_corner_radius=16
-      layout_gaps=""
-    fi
+    focus_width=2
+    focus_active="$primary"
+    focus_inactive="$outline"
+    niri_corner_radius=16
+    layout_gaps=""
 
     mkdir -p "$HOME/.config/niri"
     colors_file="$HOME/.config/niri/colors.kdl"
@@ -289,68 +199,9 @@ layout {
         urgent-color "$primary"
     }
 EOF
-    if [ "$UI_STYLE" = "nothing" ] || [ "$UI_STYLE" = "ghost" ]; then
-      cat <<EOF >>"$colors_tmp"
-    shadow {
-        off
-    }
-EOF
-    fi
     cat <<EOF >>"$colors_tmp"
 }
 EOF
-    if [ "$UI_STYLE" = "nothing" ]; then
-      cat <<EOF >>"$colors_tmp"
-window-rule {
-    background-effect {
-        blur false
-    }
-}
-layer-rule {
-    background-effect {
-        blur false
-    }
-}
-animations {
-    workspace-switch {
-        duration-ms 250
-        curve "ease-out-quad"
-    }
-    window-open {
-        duration-ms 200
-        curve "ease-out-quad"
-    }
-    window-close {
-        duration-ms 120
-        curve "ease-out-quad"
-    }
-    horizontal-view-movement {
-        duration-ms 150
-        curve "ease-out-quad"
-    }
-    window-movement {
-        duration-ms 150
-        curve "ease-out-quad"
-    }
-    window-resize {
-        duration-ms 150
-        curve "ease-out-quad"
-    }
-    config-notification-open-close {
-        duration-ms 150
-        curve "ease-out-quad"
-    }
-    screenshot-ui-open {
-        duration-ms 150
-        curve "ease-out-quad"
-    }
-    overview-open-close {
-        duration-ms 250
-        curve "ease-out-quad"
-    }
-}
-EOF
-    fi
     cat <<EOF >>"$colors_tmp"
 window-rule {
     geometry-corner-radius $niri_corner_radius
@@ -358,18 +209,9 @@ window-rule {
 }
 EOF
     mv -f "$colors_tmp" "$colors_file"
-    echo "niri colors.kdl -> style=$UI_STYLE gaps=${neo_gap:-default} width=$focus_width radius=$niri_corner_radius active=$focus_active inactive=$focus_inactive shadow=${shadow_color:-default} offset=${neo_shadow_offset:-default}"
+    echo "niri colors.kdl -> gaps=${neo_gap:-default} width=$focus_width radius=$niri_corner_radius active=$focus_active inactive=$focus_inactive shadow=${shadow_color:-default} offset=${neo_shadow_offset:-default}"
 
-    # Ghost uses ghost-section9; the shared fallback is Bibata. Liquid Glass
-    # applies its mode-specific MacTahoe cursor after this synchronizer.
     cursor_theme="Bibata-Modern-Classic"
-    if [ "$UI_STYLE" = "ghost" ]; then
-      if [ -f "$HOME/.icons/ghost-section9/index.theme" ]; then
-        cursor_theme="ghost-section9"
-      else
-        echo "Ghost cursor theme not found at ~/.icons/ghost-section9; keeping $cursor_theme."
-      fi
-    fi
     gsettings set org.gnome.desktop.interface cursor-theme "$cursor_theme"
     for ini in "$HOME/.config/gtk-3.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini"; do
       if [ -f "$ini" ]; then
@@ -408,9 +250,6 @@ EOF
       mango_shadow_x=0
       mango_shadow_y=5
       mango_shadow_color="$(mango_color "$shadow" 66)"
-      if [ "$UI_STYLE" = "nothing" ] || [ "$UI_STYLE" = "ghost" ]; then
-        mango_shadows=0
-      fi
 
       mango_theme_file="$HOME/.config/mango/theme.conf"
       mango_theme_tmp="$mango_theme_file.tmp.$$"
@@ -436,7 +275,7 @@ border_radius=$niri_corner_radius
 cursor_theme=$cursor_theme
 EOF
       mv -f "$mango_theme_tmp" "$mango_theme_file"
-      echo "mango theme.conf -> style=$UI_STYLE gaps=$mango_gap width=$focus_width radius=$niri_corner_radius"
+      echo "mango theme.conf -> gaps=$mango_gap width=$focus_width radius=$niri_corner_radius"
     fi
 
     # Reload only the compositor that owns the current session. Both binaries

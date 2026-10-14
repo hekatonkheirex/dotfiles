@@ -12,16 +12,9 @@ mkdir -p -- "$theme_state_dir"
 
 MODE="${1:-auto}"
 NOTIFY_MODE="${2:-}"
-UI_STYLE="${3:-}"
+# $3 (UI style) is accepted for old callers and ignored: the shell has one
+# style, so the SDDM synchronizer always receives "material3".
 SYNC_SDDM="${4:-}"
-
-if [ -z "$UI_STYLE" ] && command -v jq &>/dev/null; then
-  UI_STYLE=$(jq -r '.themeStyle // "material3"' "$HOME/.config/quickshell/settings.json" 2>/dev/null || echo material3)
-fi
-case "$UI_STYLE" in
-  nothing|material3|ghost) ;;
-  *) UI_STYLE=material3 ;;
-esac
 
 {
   echo "=== $(date) START MODE=$MODE ==="
@@ -100,64 +93,10 @@ esac
       qt_theme="Material3-Expressive-Dynamic-Dark"
     fi
 
-    if [ "$UI_STYLE" = "nothing" ]; then
-      local nothing_theme="Nothing-OS"
-      local nothing_icon_theme="Nothing-Light-Icons"
-      [ "$mode" = "dark" ] && nothing_theme="Nothing-OS-Dark"
-      [ "$mode" = "dark" ] && nothing_icon_theme="Nothing-Dark-Icons"
-      if [ -d "$HOME/.themes/$nothing_theme/gtk-4.0" ]; then
-        gtk_theme="$nothing_theme"
-        gtk_font="NType 82 13"
-      else
-        echo "Nothing GTK theme not found at ~/.themes/$nothing_theme; keeping Material 3 GTK."
-      fi
-      if [ -f "$HOME/.local/share/icons/$nothing_icon_theme/index.theme" ] || \
-        [ -f "$HOME/.icons/$nothing_icon_theme/index.theme" ]; then
-        icon_theme="$nothing_icon_theme"
-      else
-        echo "Nothing icon theme not found at ~/.local/share/icons/$nothing_icon_theme or ~/.icons/$nothing_icon_theme; keeping Material 3 icons."
-      fi
-      qt_theme="$nothing_theme"
-      qt_fixed_font="NType 82 Mono,14,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"
-      qt_general_font="NType 82,13,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"
-    fi
-
-
-    if [ "$UI_STYLE" = "ghost" ]; then
-      local ghost_theme="Ghost-Light"
-      local ghost_icon_theme="Ghost-Light-Icons"
-      # Kvantum's recovered dirs kept their original (inconsistent) naming:
-      # "Ghost" for light, "Ghost-Dark" for dark — not the Ghost-Light pair
-      # GTK/icons use.
-      local ghost_qt_theme="Ghost"
-      [ "$mode" = "dark" ] && ghost_theme="Ghost-Dark"
-      [ "$mode" = "dark" ] && ghost_icon_theme="Ghost-Dark-Icons"
-      [ "$mode" = "dark" ] && ghost_qt_theme="Ghost-Dark"
-      if [ -d "$HOME/.themes/$ghost_theme/gtk-4.0" ]; then
-        gtk_theme="$ghost_theme"
-        gtk_font="JetBrains Mono 13"
-      else
-        echo "Ghost GTK theme not found at ~/.themes/$ghost_theme; keeping Material 3 GTK."
-      fi
-      if [ -f "$HOME/.config/Kvantum/$ghost_qt_theme/$ghost_qt_theme.kvconfig" ]; then
-        qt_theme="$ghost_qt_theme"
-      else
-        echo "Ghost Kvantum theme not found at ~/.config/Kvantum/$ghost_qt_theme; keeping Material 3 Qt style."
-      fi
-      if [ -f "$HOME/.local/share/icons/$ghost_icon_theme/index.theme" ] || \
-        [ -f "$HOME/.icons/$ghost_icon_theme/index.theme" ]; then
-        icon_theme="$ghost_icon_theme"
-      else
-        echo "Ghost icon theme not found at ~/.local/share/icons/$ghost_icon_theme or ~/.icons/$ghost_icon_theme; keeping Material 3 icons."
-      fi
-      qt_fixed_font="JetBrains Mono,14,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"
-      qt_general_font="JetBrains Mono,13,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular,0,0"
-    fi
-
     apply_theme "$gtk_theme" "$icon_theme" "$qt_theme" "$gtk_font" "$qt_fixed_font" "$qt_general_font"
-    "$HOME/.local/bin/sync-terminal-theme.sh" "$mode" "" "$UI_STYLE"
+    "$HOME/.local/bin/sync-terminal-theme.sh" "$mode" ""
     if [ "$SYNC_SDDM" = "--sync-sddm" ]; then
-      "$HOME/.local/bin/sync-sddm-theme.sh" "$mode" "$UI_STYLE" \
+      "$HOME/.local/bin/sync-sddm-theme.sh" "$mode" "material3" \
         && echo "SDDM theme synchronized" \
         || echo "SDDM theme synchronization failed; current session remains unchanged"
     fi
