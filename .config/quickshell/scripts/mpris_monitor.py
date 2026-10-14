@@ -263,21 +263,8 @@ t.start()
 
 update_and_print()
 
-
-def tick():
-    # Position changes without a PropertiesChanged signal, so re-read the
-    # active player once a second, only while it is Playing.
-    sender = preferred_player_sender
-    cur = players.get(sender) if sender else None
-    if cur and cur.get('status') == 'Playing':
-        info = get_player_info(sender)
-        if info:
-            players[sender] = info
-            update_and_print()
-    return True
-
-
-GLib.timeout_add_seconds(1, tick)
+# No position tick here: MediaService polls `mpris_control.py position` only
+# while the sidebar's Media page is open and a player is Playing.
 
 loop = GLib.MainLoop()
 try:

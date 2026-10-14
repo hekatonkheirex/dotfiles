@@ -32,6 +32,27 @@ QtObject {
 
   readonly property bool active: indicatorActive || popupActive || sidebarActive || waveActive
 
+  // Position moves without an MPRIS signal. Poll it once a second only while
+  // the Media page is open and playing; the monitor still reports it on every
+  // state change and on Seeked.
+  readonly property bool positionPolling: root.sidebarActive && root.status === "Playing"
+  property var positionTimer: Timer {
+    interval: 1000
+    repeat: true
+    triggeredOnStart: true
+    running: root.positionPolling
+    onTriggered: if (!root.positionProc.running) root.positionProc.running = true
+  }
+  property var positionProc: Process {
+    command: ["python3", root.control, "position"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var v = parseFloat(text)
+        if (root.positionPolling && isFinite(v) && v >= 0) root.positionSec = v
+      }
+    }
+  }
+
   onActiveChanged: {
     if (!root.active) monitorRetry.stop()
   }

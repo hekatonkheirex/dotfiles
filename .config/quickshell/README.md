@@ -592,7 +592,13 @@ network rate from `/proc/net/dev`, uptime from `/proc/uptime`, hostname from
 `/etc/hostname`, disk from `df -P /`, temperature from
 `/sys/class/thermal/thermal_zone*/temp`. Volume comes from `AudioService`,
 brightness from `BrightnessService`, battery from `BatteryService`, weather from
-`WeatherService`; each runs only while its page is visible.
+`WeatherService`. Home holds the metrics, weather, audio and brightness services
+active while it is shown; other consumers (the bottom bar, the media indicator,
+the wave) may keep audio and media running, and battery is always live. The
+Media page's position is polled once a second (`mpris_control.py position`)
+only while that page is open and a player is Playing; the MPRIS monitor itself
+reports position only on state changes and seeks. Hovering a seek line
+highlights it.
 
 Checks: `node tests/sidebar/*.mjs` (metric parsing, page stepping, month grid,
 media math, structural wiring of the window, activator and shell) and

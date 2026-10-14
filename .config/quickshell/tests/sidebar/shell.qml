@@ -103,6 +103,15 @@ ShellRoot {
           mouseMove(ring, 4, 4)
           win.check("leaving the cover shows the ring", ring.visible)
 
+          // Seek hover: the line under the pointer turns fgSurface, then reverts.
+          var cell10 = win.find(stage, "seekCell10")
+          var bar10 = win.find(stage, "seekBar10")
+          var idle10 = bar10.color
+          mouseMove(cell10, cell10.width / 2, cell10.height / 2)
+          win.check("hovered seek line highlights", Qt.colorEqual(bar10.color, Colors.fgSurface))
+          mouseMove(ring, 4, 4)
+          win.check("seek highlight clears on leave", Qt.colorEqual(bar10.color, idle10))
+
           // Seek line: line 0's left 40 % seeks to 0, its right side to 1/20.
           var seekTo = -1
           media.seekFraction.connect(function(f) { seekTo = f })

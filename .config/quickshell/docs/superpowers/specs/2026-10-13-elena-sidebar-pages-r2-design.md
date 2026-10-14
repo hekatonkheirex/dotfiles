@@ -113,35 +113,37 @@ Top to bottom, centered, 40 S top padding:
 `bar/SidebarActivator.qml`: a layer-shell window, 1 px wide, anchored left, top
 and bottom, layer Top, exclusion Ignore, transparent, with a `HoverHandler`;
 hovering for 120 ms opens the sidebar at the page last shown (page 0 when never
-opened). It is disabled while the lock screen is active, while a fullscreen
-window is focused (`WindowService`), and when `Settings.sidebarEdgeHover` is
+opened). It is disabled while the lock screen is active and when
+`Settings.sidebarEdgeHover` is
 false (new setting, default true, in Settings > Appearance next to the dock
 pins).
 
 ## Data and files
 | File | Role |
 |---|---|
-| `config/SystemMetrics.js` (pure) | `cpuPercent(prev, cur)`, `tempC(text)`, `diskPercent(text)`, `swapPercent(text)`, `netRate(prev, cur, dtSec)`, `uptimeParts(seconds)`, reusing `SidebarStats.js` `memory()` |
+| `config/SystemMetrics.js` (pure) | `cpuPercent(prev, cur)`, `tempC(text)`, `diskPercent(text)`, `swapPercent(text)`, `netRate(prev, cur, dtSec)`, `uptimeParts(seconds)`, `memoryPercent(text)` (own meminfo parser; `SidebarStats.js` is deleted) |
 | `config/BottomBarFonts.qml` | adds `clockFamily` and `clockMinutesFamily` (case-insensitive `Qt.fontFamilies()` match, fallback `Config.fontFamily`) |
-| `config/SystemMetricsService.qml` | singleton; `active` flag set by the Home page; one `sh` Process per 2 s tick reading `/proc/stat`, `/proc/meminfo`, `/sys/class/thermal/thermal_zone*/temp`, `df -P /`, `/proc/net/dev`, `/proc/uptime`, hostname |
-| `config/MediaService.qml`, `scripts/mpris_monitor.py`, `scripts/mpris_control.py` | `positionSec` (monitor emits `position_sec`, refreshed each second while Playing and the page is visible), `seek(deltaSec)`, `seekTo(sec)`, `stop()`, `setPlayerVolume(delta)`; controls through `mpris_control.py` |
+| `config/SystemMetricsService.qml` | singleton; `active` flag set by the Home page; a 2 s tick reloading FileViews for `/proc/stat`, `/proc/meminfo`, `/proc/net/dev`, `/proc/uptime` and `/etc/hostname`, plus `df -P /` and `cat /sys/class/thermal/thermal_zone*/temp` Processes |
+| `config/MediaService.qml`, `scripts/mpris_monitor.py`, `scripts/mpris_control.py` | `positionSec` (monitor emits `position_sec` on state changes and `Seeked`; MediaService polls `mpris_control.py position` each second only while `sidebarActive` and Playing), `seekBy(deltaSec)`, `seekTo(sec)`, `stop()`, `playerVolumeBy(delta)`; controls through `mpris_control.py` |
 | `bar/CalendarLogic.js` | new `buildMonthGrid(date, startsMonday)` returning 42 cells `{day, other}` |
 | `bar/sidebar/{HomePage,AgendaPage,MediaPage,SliderTile,PageIndicators,SeekLine}.qml` | pages and pieces; `SidebarContent.qml` hosts them |
 | `bar/SidebarActivator.qml`, `shell.qml`, `config/Settings.qml`, `bar/settings/AppearanceTab.qml` | activator, wiring, new setting + row |
-| `config/SidebarPages.js` (pure) | `stepPage(current, delta, count)`, `indicatorWidth(selected)`, `scrollToPage(currentPage, wheelDelta, count)` |
+| `config/SidebarPages.js` (pure) | `stepPage(current, delta, count)`, `indicatorWidth(selected)` (wheel paging uses `BottomBarModel.notchSteps`) |
 | deleted | `bar/sidebar/{BatteryPill,CalendarCard,ClockCard,DashboardPage,LevelBar,LevelBars,MediaCard,SearchField,StatsCard,WeatherCard}.qml`, `tests/sidebar/{search,stats}.test.mjs` (stats parsing moves to `tests/sidebar/metrics.test.mjs`), IPC `sidebarSearch`, `Sidebar.searchSubmitted` and `settingsRequested`, `config/Weekdays.js` (the strip is built in `HomePage.qml` from the clock) |
-| kept | `LauncherPopup.initialQuery`, IPC `launcherQuery`, `shell.openLauncherWith` (used by other callers), `SidebarStats.js` pure helpers |
+| kept | `LauncherPopup.initialQuery`, IPC `launcherQuery`, `shell.openLauncherWith` (no caller left; kept for the launcher `initialQuery` hook) |
 
 ## Verification
 - Node: `tests/sidebar/metrics.test.mjs` (cpu delta incl. counter wrap and zero
   total, temp zone selection and unavailable, disk and swap parse, net rate with
   a counter reset, uptime parts at 59 s, 1 h, 1 d 1 h, 8 d), `tests/sidebar/pages.test.mjs`
-  (`stepPage` clamps, `indicatorWidth`, scroll steps one page per notch),
+  (`stepPage` clamps, `indicatorWidth`),
   `tests/sidebar/calendar.test.mjs` (`buildMonthGrid`: 42 cells, Feb leap year,
   Dec/Jan boundaries, Sunday/Monday first), `tests/sidebar/media.test.mjs`
-  (position fraction, seek clamp to 0..length, seek line index from fraction,
+  (position fraction, `fractionOfLine`,
   position text mm:ss), wiring assertions for the activator (1 px, left/top/
-  bottom anchors, disabled under lock and fullscreen, setting gate).
+  bottom anchors, disabled under lock, setting gate). No fullscreen gate: niri
+  26.04 window JSON has no fullscreen flag, and niri draws fullscreen windows
+  above the Top layer, which covers the strip.
 - Render checks (scratch HOME, fixed stage per page): Home (tile fill pixel at
   25 % and 75 % of a 50 % tile, volume muted fill color, weekday today fill, the
   weather pill), Agenda (today round, dimmed other-month number, empty state

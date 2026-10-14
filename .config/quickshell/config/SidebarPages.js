@@ -7,9 +7,3 @@ function stepPage(current, delta, count) {
 }
 
 function indicatorWidth(selected) { return selected ? 27 : 14 }
-
-// Scrolling up goes to the previous page, down to the next (her scripts).
-function wheelPage(current, deltaY, count) {
-  if (!deltaY) return current
-  return stepPage(current, deltaY > 0 ? -1 : 1, count)
-}
