@@ -83,6 +83,9 @@ PanelWindow {
 
   onVisibleChanged: {
     if (!visible) return
+    // activate() sets the index before dismissed(), so the handoff to the
+    // confirmation survives the close; a fresh open drops any stale one.
+    root.pendingIndex = -1
     content.selected = ""
     content.forceActiveFocus()
   }

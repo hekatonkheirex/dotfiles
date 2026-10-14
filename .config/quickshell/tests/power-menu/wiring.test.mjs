@@ -28,14 +28,14 @@ const menu = rd("../../bar/PowerMenu.qml")
 assert.ok(!existsSync(fileURLToPath(new URL("../../bar/QuickMenu.qml", import.meta.url))), "bar/QuickMenu.qml is gone")
 assert.doesNotMatch(shell, /\bQuickMenu\s*\{|quickMenu\./, "shell.qml no longer uses QuickMenu")
 assert.match(shell, /PowerMenu \{\s*id: powerMenu/)
-assert.match(shell, /visible: bar\.openPopup === "quickmenu" && !lockScreen\.locked/)
+assert.match(shell, /visible: bar\.openPopup === "quickmenu" && !lockScreen\.locked && !lockScreen\.compositorLocked/)
 const logout = shell.match(/onLogoutRequested: \{[^}]*\}/)[0]
 assert.match(logout, /bar\.togglePopupByName\("quickmenu"\)/)
 assert.doesNotMatch(logout, /until R3/)
 assert.match(shell, /"qsquickmenu-trigger": "quickmenu"/)
-assert.match(shell, /function quickmenu\(\) \{\s*bar\.openPopup = bar\.openPopup === "quickmenu" \? "" : "quickmenu"/)
+assert.match(shell, /function quickmenu\(\) \{\s*if \(lockScreen\.locked\) return\s*bar\.openPopup = bar\.openPopup === "quickmenu" \? "" : "quickmenu"/)
 const confirm = shell.match(/id: powerConfirmationWindow[\s\S]*?\n  \}\n/)[0]
-assert.match(confirm, /visible: powerMenu\.pendingIndex >= 0 && !lockScreen\.locked/)
+assert.match(confirm, /visible: powerMenu\.pendingIndex >= 0 && !lockScreen\.locked && !lockScreen\.compositorLocked/)
 for (const k of ["actionLabel", "actionDescription", "actionIcon"])
   assert.match(confirm, new RegExp(`${k}: powerMenu\\.`), `${k} reads the PowerMenu pending button`)
 assert.match(confirm, /onConfirmed: powerMenu\.confirmPending\(\)/)
@@ -62,3 +62,18 @@ assert.match(rd("../../bar/powermenu/TerminalLine.qml"), /running: root\.visible
 assert.match(rd("../../bar/powermenu/PaletteRow.qml"), /leftPadding: Config\.dp\(16\) - Config\.dp\(15\)/, "first circle takes her -15 S margin too")
 assert.match(rd("../../bar/powermenu/PowerMenuContent.qml"), /objectName: "heart"[\s\S]*?bottomPadding: Config\.dp\(8\)/, "heart keeps her margin-bottom 8 S")
 console.log("power-menu review fixes ok")
+
+// Logout safety routing (Task 3 review): exit goes through safe-logout.sh,
+// confirm ids park in pendingIndex before any immediate run, and only
+// confirmPending() executes a detached command.
+assert.match(menu, /exit: \["sh", root\.home \+ "\/\.config\/quickshell\/scripts\/safe-logout\.sh"\]/, "exit maps to safe-logout.sh")
+const activate = menu.match(/function activate\(id\) \{[\s\S]*?\n  \}\n/)[0]
+const iConfirm = activate.search(/if \(root\.buttons\[i\]\.confirm\) \{\s*root\.pendingIndex = i/)
+const iRunner = activate.indexOf("runner.command")
+assert.ok(iConfirm >= 0 && iRunner > iConfirm, "confirm ids set pendingIndex before the runner branch")
+assert.equal((menu.match(/execDetached/g) || []).length, 1, "one execDetached call site")
+assert.match(menu, /function confirmPending\(\) \{[^}]*Quickshell\.execDetached\(cmd\)/, "it lives in confirmPending")
+// Stale pending is cleared on open; lock cancels a pending confirmation.
+assert.match(menu, /onVisibleChanged: \{\s*if \(!visible\) return[\s\S]*?root\.pendingIndex = -1/)
+assert.match(shell, /function requestLock\(\) \{[^}]*powerMenu\.cancelPending\(\)/)
+console.log("power-menu logout safety ok")

@@ -112,6 +112,8 @@ ShellRoot {
 
   function requestLock() {
     bar.openPopup = ""
+    // A pending power confirmation must not come back after unlock.
+    powerMenu.cancelPending()
     lockScreen.lockScreen()
   }
 
@@ -362,6 +364,7 @@ ShellRoot {
 
     // Toggles the full-screen power menu (route name kept for callers).
     function quickmenu() {
+      if (lockScreen.locked) return
       bar.openPopup = bar.openPopup === "quickmenu" ? "" : "quickmenu"
     }
 
@@ -720,7 +723,7 @@ ShellRoot {
 
   PowerMenu {
     id: powerMenu
-    visible: bar.openPopup === "quickmenu" && !lockScreen.locked
+    visible: bar.openPopup === "quickmenu" && !lockScreen.locked && !lockScreen.compositorLocked
     screen: bar.screen
     onDismissed: bar.openPopup = ""
     onLockRequested: shell.requestLock()
@@ -729,7 +732,7 @@ ShellRoot {
   PanelWindow {
     id: powerConfirmationWindow
     screen: bar.screen
-    visible: powerMenu.pendingIndex >= 0 && !lockScreen.locked
+    visible: powerMenu.pendingIndex >= 0 && !lockScreen.locked && !lockScreen.compositorLocked
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: Config.layerNamespace("confirmation")
