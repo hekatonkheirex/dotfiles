@@ -91,7 +91,7 @@ Flickable {
           Layout.fillWidth: true
           leadingIcon: "lock"
           title: "Lock after inactivity"
-          subtitle: lockMediaTab.timeoutLabel(Settings.idleLockTimeoutSeconds)
+          subtitle: "Lock the session when idle"
           accessibleName: "Lock after inactivity"
           accessibleDescription: "Choose when the session locks while idle"
 
@@ -126,7 +126,7 @@ Flickable {
           Layout.fillWidth: true
           leadingIcon: "bedtime"
           title: "Suspend after inactivity"
-          subtitle: lockMediaTab.timeoutLabel(Settings.idleSuspendTimeoutSeconds)
+          subtitle: "Suspend the computer when idle"
           accessibleName: "Suspend after inactivity"
           accessibleDescription: "Choose when the computer suspends while idle"
 

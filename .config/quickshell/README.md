@@ -21,6 +21,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
   - **Bluetooth**: Bluetooth power, discovery, pairing, connected-device, and rename controls
   - **Lock & Power**: idle lock/suspend timeouts, Caffeine, and TLP power profiles
   - **Notifications**: Do Not Disturb, quiet hours, critical bypass, toast position/duration and test-notification controls
+  `bash scripts/settings-sidebar-render.sh` renders the six pages at sidebar width in a scratch HOME and fails on QML errors or any item that overflows its page (`KEEP_PNG=path` keeps the image).
   There is no search and no Account, Media, System or Shortcuts page; the accent shortlist, interface sizing sliders, reduced-motion and uptime toggles have no UI (their saved keys are kept).
 - **Persisted user settings** (`settings.json`, `config/Settings.qml`) separate from build-time layout/typography tokens (`config/Config.qml`).
 

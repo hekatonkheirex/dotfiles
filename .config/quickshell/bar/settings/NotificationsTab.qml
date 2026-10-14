@@ -145,7 +145,7 @@ Flickable {
 
           Item { Layout.fillWidth: true }
           Item {
-            Layout.preferredWidth: 160
+            Layout.preferredWidth: 216
             Layout.preferredHeight: 30
             Layout.rightMargin: Config.spacingSmall
 
