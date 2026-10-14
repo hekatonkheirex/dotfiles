@@ -14,6 +14,9 @@ PanelWindow {
   signal activated()
 
   anchors { left: true; top: true; bottom: true }
+  // Clear the top strip and the bottom bar so their x=0 pixels stay clickable.
+  margins.top: Config.barWidth
+  margins.bottom: Config.bottomBarHeight
   implicitWidth: 1
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore

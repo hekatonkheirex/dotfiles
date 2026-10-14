@@ -249,6 +249,7 @@ ShellRoot {
 
   // Bottom-bar page buttons: closed opens at the page, the open page closes
   // it, another page switches (BottomBarModel.sidebarToggle).
+  property real sidebarClosedAt: 0
   function openSidebarPage(n) {
     if (lockScreen.locked) return false
     var r = BottomBarModel.sidebarToggle(bar.openPopup, sidebar.currentPage, n, sidebar.pageCount)
@@ -623,6 +624,8 @@ ShellRoot {
     visible: bar.openPopup === "sidebar" && !lockScreen.locked
     screen: bar.screen
     onDismissed: bar.openPopup = ""
+    // Every close path (Esc, middle click, bar button, click outside) passes here.
+    onVisibleChanged: if (!visible) shell.sidebarClosedAt = Date.now()
   }
 
   // Left-edge hover opens the sidebar at the page last shown; an open sidebar
@@ -631,7 +634,9 @@ ShellRoot {
     id: sidebarActivator
     screen: bar.screen
     enabledByState: !lockScreen.locked
-    onActivated: if (bar.openPopup !== "sidebar") shell.openSidebarPage(sidebar.currentPage)
+    // A close with the pointer resting on the edge must not reopen at once.
+    onActivated: if (bar.openPopup !== "sidebar" && Date.now() - shell.sidebarClosedAt >= 300)
+      shell.openSidebarPage(sidebar.currentPage)
   }
 
   BottomBar {

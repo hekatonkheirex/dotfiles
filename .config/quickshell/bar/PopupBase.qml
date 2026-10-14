@@ -41,7 +41,7 @@ PanelWindow {
   anchors.left: true
 
   margins.left: Config.barWidth + Config.barFormMetrics.edgeGap + Config.spacingMedium
-  property int screenH: Screen.desktopAvailableHeight
+  property int screenH: root.screen ? root.screen.height : Screen.desktopAvailableHeight
 
   anchors.top: true
   margins.top: Math.max(topMarginFloor, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight - bottomMarginPad))

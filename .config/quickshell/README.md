@@ -574,8 +574,10 @@ motion). Three pages:
 Open it with the bottom bar's glance, tasks or media button (page 0, 1, 2),
 `Mod+Shift+D`, or by resting the pointer on the left screen edge for 120 ms
 (`bar/SidebarActivator.qml`, a 1 px layer-shell strip). The edge opens the page
-last shown and never closes an open sidebar. Turn it off with Settings >
-Appearance > Sidebar edge hover (`Settings.sidebarEdgeHover`, default on). The
+last shown, never closes an open sidebar, and ignores hovers within 300 ms of
+the sidebar closing (Esc or a middle click with the pointer on the edge). Turn it off with Settings >
+Appearance > Open sidebar at the left screen edge (`Settings.sidebarEdgeHover`,
+default on). The strip stops short of the top strip and the bottom bar. The
 edge is off while the session is locked. niri reports no fullscreen flag, so
 there is no fullscreen gate; niri draws fullscreen windows above the Top layer,
 so the strip sits under them anyway.
