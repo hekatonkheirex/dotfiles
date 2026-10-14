@@ -375,7 +375,7 @@ ShellRoot {
 
     // popup("audio" | "brightness" | "media" | "weather" | "llm" | "battery" |
     // "notification" | "calendar" | "quickmenu" | "launcher" | "sidebar" |
-    // "networks"): toggle a bar popup.
+    // "networks" | "alarms"): toggle a bar popup.
     function popup(name: string): bool {
       return bar.togglePopupByName(name)
     }
@@ -408,6 +408,24 @@ ShellRoot {
       return networksWindow.forgetFor
     }
 
+
+    // Dev/testing: alarm list as JSON.
+    function alarmState(): string {
+      return JSON.stringify({ count: AlarmService.count, loaded: AlarmService.loaded,
+        lastRung: AlarmService.lastRung, alarms: AlarmService.alarms })
+    }
+
+    // Dev/testing: schedule an alarm `minutes` from now (fractions allowed);
+    // returns the new count.
+    function alarmAdd(minutes: real, label: string): int {
+      AlarmService.add(AlarmService.nowFn() + Math.round(minutes * 60000), label === "" ? "beep beep" : label)
+      return AlarmService.count
+    }
+
+    // Dev/testing: delete the alarm at sorted position `index`; true when it existed.
+    function alarmRemove(index: int): bool {
+      return AlarmService.removeAt(index)
+    }
 
     // Dev/testing: dock state as JSON (items and window inputs).
     function dockState(): string {
@@ -627,6 +645,13 @@ ShellRoot {
     onVisibleChanged: if (!visible) shell.sidebarClosedAt = Date.now()
   }
 
+  AlarmsWindow {
+    id: alarmsWindow
+    visible: bar.openPopup === "alarms" && !lockScreen.locked && !lockScreen.compositorLocked
+    screen: bar.screen
+    onDismissed: bar.openPopup = ""
+  }
+
   NetworksWindow {
     id: networksWindow
     visible: bar.openPopup === "networks" && !lockScreen.locked && !lockScreen.compositorLocked
@@ -656,6 +681,11 @@ ShellRoot {
     onLauncherRequested: {
       if (lockScreen.locked) return
       ipc.launcher()
+    }
+    // Her alarms window; a second click closes it.
+    onAlarmsRequested: {
+      if (lockScreen.locked) return
+      bar.togglePopupByName("alarms")
     }
     // Her networks window; a second click closes it.
     onNetworkRequested: {

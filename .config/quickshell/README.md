@@ -54,6 +54,8 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── DockSymbols.js          # App id -> icomoon glyph and accent slot (elenapan's dock table)
 │   ├── BottomBarModel.js       # Pure bottom-bar decisions (clock, battery, signal, nmcli parsing, page toggle, wheel notches)
 │   ├── NetworkStatusService.qml # Wi-Fi signal bucket and VPN state for the bottom bar
+│   ├── Alarms.js               # Pure alarm logic: next occurrence, entry keys, due, file parse
+│   ├── AlarmService.qml        # Alarms: file store, single re-armed timer, sound and notification (command seam)
 │   ├── NetworkList.js          # Pure nmcli parsers, signal buckets, name cut, ping lines, MB/s label
 │   ├── NetworkListService.qml  # Networks window: Wi-Fi list, scan, ping, connect/disconnect/forget (one command seam)
 │   ├── BottomBarFonts.qml      # Icon and text font families for the bottom bar
@@ -98,6 +100,8 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── LlmUsageSection.qml     # Provider usage, resets, and refresh state
 │   ├── NetworksWindow.qml       # Her networks window, right+bottom anchored overlay (route "networks")
 │   ├── networks/                # NetworksContent, NetworkRow, PassphraseRow, BandwidthRow, ToolbarButton
+│   ├── AlarmsWindow.qml         # Her alarms window, right+bottom anchored overlay (route "alarms")
+│   ├── alarms/                  # AlarmsContent, AlarmButton
 │   ├── BtPanel.qml              # Bluetooth controls used by the Settings Bluetooth tab
 │   ├── SystemTrayArea.qml      # StatusNotifier tray icons (orientation-aware)
 │   ├── MenuIndicator.qml       # Power menu bar trigger
@@ -283,10 +287,13 @@ When `XDG_RUNTIME_DIR` is unavailable, Quickshell uses
 - `ipc.settings()` — toggle Settings popup
 - `ipc.commandcenter()` — legacy alias for `ipc.settings()`
 - `ipc.layout()` — toggle bar orientation
-- `ipc.popup(name)`: toggle a popup by route (`audio`, `brightness`, `media`, `weather`, `llm`, `battery`, `notification`, `calendar`, `quickmenu`, `launcher`, `sidebar`, `networks`); `false` for an unknown name
+- `ipc.popup(name)`: toggle a popup by route (`audio`, `brightness`, `media`, `weather`, `llm`, `battery`, `notification`, `calendar`, `quickmenu`, `launcher`, `sidebar`, `networks`, `alarms`); `false` for an unknown name
 - `ipc.settingsTab(n)`: dev/testing: select Settings tab `n` (0-9: Account, General, Appearance, Display & Input, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts) in memory
 - `ipc.forgetPrompt(name)`: dev/testing: open the networks window with the "forget <name>?" row shown (never forgets by itself); `""` clears the row
 
+- `ipc.alarmState()`: dev/testing: pending alarms as JSON (`count`, `loaded`, `lastRung`, `alarms`)
+- `ipc.alarmAdd(minutes, label)`: dev/testing: schedule a real alarm `minutes` from now (fractions allowed); returns the count
+- `ipc.alarmRemove(index)`: dev/testing: delete the alarm at sorted position `index`
 - `ipc.openSidebarPage(n)`: bottom-bar page toggle: opens the sidebar at page `n` (clamped to the pages that exist), closes it when that page is already open, switches otherwise; `false` while locked
 - `ipc.bottomBarState()`: dev/testing: bottom bar inputs as JSON (`items`, `clockText`, `dateText`, `volume`, `muted`, `batteryPct`, `charging`, `signal`, `connected`, `vpn`, `alarmCount`, `height`, `page`)
 - `ipc.dockState()`: dev/testing: dock items and window inputs as JSON (`workspaceEmpty`, `windows`, `items`)
@@ -351,6 +358,7 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 | Notifications | `NotificationIndicator` click / `qs ipc call shell popup notification` | Dashed history cards with timestamp, live actions and dismiss/remove controls |
 | Power Menu | `MenuIndicator` click / bottom-bar logout / `Mod+Escape` | Full-screen overlay: greeting, quote, palette; poweroff, reboot, exit (confirmed), hibernate, suspend, lock |
 | Networks | Bottom-bar network button / `qs ipc call shell popup networks` | Her networks window: Wi-Fi list, connect/disconnect/forget, bandwidth, vpn, scan, speedtest, ping (see Networks window (R4)) |
+| Alarms | Bottom-bar alarm button / `qs ipc call shell popup alarms` | Her alarms window: ring in / ring at, browse and delete, real scheduling (see Alarms window (R5)) |
 | Settings | `XF86Tools` | 10 tabs: Account, General, Appearance, Display & Input, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts (responsive surface with persisted last tab, drag-to-move, and resize handle) |
 | OSD | volume/brightness/mic/airplane/bluetooth/kbd-backlight keys | Auto-dismissing bottom-anchored status card (not part of the `openPopup` system — a separate always-on-top window) |
 
@@ -546,8 +554,8 @@ content (`bar/bottombar/BottomBarContent.qml`) has three parts:
 - **Right cluster**: network (VPN shield or link, then four signal bars),
   alarms (count pill or a slash), battery (three parts and a charging bolt).
 
-The network button toggles her networks window (R4). Interim targets until
-later releases: alarms do nothing (R5); logout toggles the power menu (R3). The sidebar and bottom-right toasts
+The network button toggles her networks window (R4), the alarm button her
+alarms window (R5), logout the power menu (R3). The sidebar and bottom-right toasts
 leave the bar's height free so its buttons stay clickable.
 
 **Fonts.** The icons come from her icomoon font set in
@@ -678,6 +686,43 @@ and the service against fixture nmcli output; connect, disconnect and forget nev
 real). Dev IPC: `qs ipc call shell popup networks`, `qs ipc call shell
 forgetPrompt <name>`. Specification:
 `docs/superpowers/specs/2026-10-14-elena-networks-r4-design.md`.
+
+## Alarms window (R5)
+
+`bar/AlarmsWindow.qml` is her alarms window: a `dp(300)` Overlay anchored
+right and bottom above the bottom bar (route `"alarms"`, namespace
+`quickshell-popup-alarms`, covered by the popup no-blur rule). The bar's alarm
+button toggles it; Esc (a time entry first), middle click, click outside, focus
+loss and the button dismiss it.
+
+- **Left column**: "ring in" (quick) and "ring at" (standard) buttons around an
+  expanding cancel/confirm row. **Quick** steps +1 +5 +10 +60 minutes from now.
+  **Standard** steps -h +h -m +m to the next occurrence of HH:MM (tomorrow if
+  past). Both accept typed digits (hours up to 23, minutes up to 59), Tab and
+  Shift+Tab cycle hours, minutes and the 16-character label, Backspace and
+  Ctrl+Backspace edit, Enter confirms, Esc cancels. The mouse wheel over the
+  hour or minute steps by 60 or 1; as in her script, wheel up steps back.
+- **Browse**: previous, delete, next move through pending alarms, soonest first;
+  "no alarms" and "all clear" when empty. Default label is `beep beep`.
+- **Persistence**: `~/.local/state/quickshell/alarms.json` (`[{id, at, label}]`,
+  `at` in epoch ms). Her version keeps sleeping processes in `/tmp`; this one
+  survives a shell restart. An alarm that came due while the shell was down, or
+  more than 90 s late after a suspend, rings once with "(missed, was HH:MM)".
+- **Scheduling**: `config/AlarmService.qml` keeps one timer armed to the earliest
+  deadline, never beyond 30 s, and compares against the clock on each tick.
+- **Ring**: `pw-play` plays the freedesktop `alarm-clock-elapsed.oga` once and
+  `notify-send -u critical -t 0 -a quickshell-alarm Alarm <label>` posts a
+  notification that stays; critical bypasses DND and quiet hours, and it rings
+  while locked. Adding shows a 2 s "Will ring at HH:MM" notice.
+- **Bar**: the bottom bar's alarm pill shows the pending count (a slash at 0).
+
+Checks: `node tests/alarms/alarms.test.mjs` (model), `node
+tests/alarms/wiring.test.mjs` and `bash scripts/alarms-render.sh` (every state,
+clicks and keys, plus the service against a fake clock with fake sound and
+notify commands: add, early tick, ring once, cancel, late wake, restart with a
+past and a future alarm, corrupt file). Dev IPC: `qs ipc call shell popup
+alarms`, `alarmState`, `alarmAdd 1 test` (a real alarm), `alarmRemove 0`.
+Specification: `docs/superpowers/specs/2026-10-14-elena-alarms-r5-design.md`.
 
 ## Launcher redesign and speech removal
 
