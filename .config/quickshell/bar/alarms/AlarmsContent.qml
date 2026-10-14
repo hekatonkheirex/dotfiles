@@ -52,6 +52,13 @@ Item {
     if (root.selecting) root.input = Alarms.stepMinutes(root.input, delta)
   }
 
+  // Clicking a field selects it and puts the keyboard on the content.
+  function selectField(f) {
+    if (!root.selecting) return
+    root.input = { field: f, hours: root.input.hours, minutes: root.input.minutes, label: root.input.label }
+    root.forceActiveFocus()
+  }
+
   function key(k) { root.input = Alarms.applyKey(root.input, k) }
 
   // Her list returns to the first alarm whenever it changes.
@@ -284,6 +291,7 @@ Item {
             MouseArea {
               anchors.fill: parent
               enabled: root.selecting
+              onClicked: root.selectField("hours")
               onWheel: function(w) { root.step(w.angleDelta.y > 0 ? -60 : 60) }
             }
           }
@@ -302,6 +310,7 @@ Item {
             MouseArea {
               anchors.fill: parent
               enabled: root.selecting
+              onClicked: root.selectField("minutes")
               onWheel: function(w) { root.step(w.angleDelta.y > 0 ? -1 : 1) }
             }
           }
@@ -321,6 +330,15 @@ Item {
           color: root.field_label ? Colors.elenaAccent(3) : placeholder || root.noAlarms ? Colors.elenaAccent(8) : Colors.fgSurface
           font.family: "monospace"; font.bold: true
           font.pixelSize: Math.round(10 * 4 / 3 * Config.elenaScale)
+          MouseArea {
+            objectName: "labelHit"
+            anchors.centerIn: parent
+            width: info.width
+            height: parent.height + Config.dp(10)
+            enabled: root.selecting
+            cursorShape: Qt.IBeamCursor
+            onClicked: root.selectField("label")
+          }
           Timer {
             running: root.field_label && !Config.reducedMotion
             repeat: true
