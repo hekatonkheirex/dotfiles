@@ -32,5 +32,5 @@ for (const fn of ["alarmState()", "alarmAdd(minutes: real, label: string)", "ala
   assert.ok(shell.includes(`function ${fn}`), fn)
 
 assert.match(rd("../../bar/Bar.qml"), /name === "networks" \|\| name === "alarms"/)
-assert.match(rd("../../scripts/popup-ipc-check.sh"), /sidebar networks alarms; do/)
+assert.match(rd("../../scripts/popup-ipc-check.sh"), /sidebar networks alarms tray; do/)
 console.log("alarms wiring: ok")
