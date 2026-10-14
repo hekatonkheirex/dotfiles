@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Widgets
 import "../../config"
 import "."
 import "../primitives"
@@ -15,6 +16,7 @@ SliderBase {
     ? root.pressOverlay
     : (root.hovered || root.activeFocus ? root.hoverOverlay : Qt.rgba(0, 0, 0, 0))
 
+  property string valueText: ""
   height: 40
   // A pointer press retains keyboard adjustment without painting a selection
   // outline. Tab focus and keyboard adjustment still show the focus ring.
@@ -46,15 +48,17 @@ SliderBase {
     visible: root.focusRingVisible
   }
 
-  Rectangle {  // track tile
+  // Her slider tile, laid on its side: rounded trough, flat-edged fill and a
+  // round label at the end that carries the value. The trough is a
+  // ClippingRectangle so the fill follows its rounded corners.
+  ClippingRectangle {  // track tile
+    id: trough
     anchors.fill: parent
-    radius: Config.shapeMedium
+    radius: Math.round(height * 0.36)
     color: root.surfaceContainerHighest
-    clip: true
     Rectangle {  // level fill
       width: root.fillWidth
       height: parent.height
-      radius: parent.radius
       ColorSpring {
         id: trackEffect
         animate: !root.reducedMotion && !Config.reducedMotion
@@ -62,14 +66,25 @@ SliderBase {
       }
       color: trackEffect.color
     }
-    Rectangle {  // white round thumb at the end of the fill
-      visible: root.fillWidth > 0
-      width: 24
-      height: 24
-      radius: 12
-      x: Math.max(3, root.fillWidth - width - 3)
+    Rectangle {  // round value label
+      visible: root.valueText !== ""
+      readonly property real inset: Math.round(parent.height * 0.14)
+      height: parent.height - 2 * inset
+      width: Math.max(height, labelText.implicitWidth + inset * 2)
+      radius: height / 2
+      anchors.right: parent.right
+      anchors.rightMargin: inset
       anchors.verticalCenter: parent.verticalCenter
-      color: "#ffffff"
+      color: Colors.fgSurface
+      Text {
+        id: labelText
+        anchors.centerIn: parent
+        text: root.valueText
+        color: Colors.surface
+        font.family: Config.fontFamily
+        font.pixelSize: Config.typeLabelMediumSize
+        font.weight: Config.typeMediumWeight
+      }
     }
   }
 

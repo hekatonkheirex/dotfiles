@@ -124,6 +124,7 @@ Flickable {
               var index = Math.round(val * (lockMediaTab.lockTimeoutOptions.length - 1))
               Settings.idleLockTimeoutSeconds = lockMediaTab.lockTimeoutOptions[index]
             }
+            valueText: lockMediaTab.timeoutLabel(Settings.idleLockTimeoutSeconds)
             onInteractionFinished: lockMediaTab.applyIdleSettings()
           }
         }
@@ -159,6 +160,7 @@ Flickable {
               var index = Math.round(val * (lockMediaTab.suspendTimeoutOptions.length - 1))
               Settings.idleSuspendTimeoutSeconds = lockMediaTab.suspendTimeoutOptions[index]
             }
+            valueText: lockMediaTab.timeoutLabel(Settings.idleSuspendTimeoutSeconds)
             onInteractionFinished: lockMediaTab.applyIdleSettings()
           }
         }

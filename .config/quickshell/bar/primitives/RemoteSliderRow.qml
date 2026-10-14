@@ -71,20 +71,10 @@ RowLayout {
       root.value = root.min + val * (root.max - root.min)
     }
     onInteractionFinished: root.commit()
-  }
-
-  Text {
-    text: !root.hasValue
+    valueText: !root.hasValue
       ? "Default"
       : (root.decimals > 0 ? root.value.toFixed(root.decimals) + root.unit : Math.round(root.value) + root.unit)
-    color: Colors.fgSurface
-    font.family: Config.fontFamily
-    font.pixelSize: Config.typeLabelSmallSize
-    font.letterSpacing: Config.typeLabelTracking
-    lineHeight: Config.typeLabelSmallLineHeight
-    lineHeightMode: Text.FixedHeight
-    Layout.preferredWidth: 50
-  }
+}
 
   Process {
     id: readProc

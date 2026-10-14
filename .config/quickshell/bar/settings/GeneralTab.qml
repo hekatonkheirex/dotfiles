@@ -309,19 +309,7 @@ Flickable {
               Settings.weatherRefreshIntervalMinutes = Math.max(5, Math.min(60, Math.round((5 + val * 55) / 5) * 5))
             }
             onInteractionFinished: Settings.save()
-          }
-
-          Text {
-            text: Settings.weatherRefreshIntervalMinutes + "m"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 30
-            Layout.rightMargin: Config.spacingCompact
+            valueText: Settings.weatherRefreshIntervalMinutes + "m"
           }
         }
       }

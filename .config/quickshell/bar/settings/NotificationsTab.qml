@@ -99,7 +99,7 @@ Flickable {
             font.letterSpacing: Config.typeBodyTracking
             lineHeight: Config.typeBodyMediumLineHeight
             lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: notificationsTab.compactLayout ? 72 : (110)
+            Layout.preferredWidth: notificationsTab.compactLayout ? 104 : (110)
             Layout.leftMargin: Config.spacingSmall
           }
 
@@ -123,19 +123,7 @@ Flickable {
               Settings.notificationToastDurationMs = Math.round(2000 + val * 8000)
             }
             onInteractionFinished: Settings.save()
-          }
-
-          Text {
-            text: (Settings.notificationToastDurationMs / 1000).toFixed(1) + "s"
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 36
-            Layout.rightMargin: Config.spacingSmall
+            valueText: (Settings.notificationToastDurationMs / 1000).toFixed(1) + "s"
           }
         }
 
@@ -255,19 +243,7 @@ Flickable {
             accessibleName: "Quiet hours start"
             onChanged: function(val) { Settings.notificationQuietHoursStart = Math.round(val * 1439) }
             onInteractionFinished: Settings.save()
-          }
-
-          Text {
-            text: formatMinutes(Settings.notificationQuietHoursStart)
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 42
-            Layout.rightMargin: Config.spacingCompact
+            valueText: formatMinutes(Settings.notificationQuietHoursStart)
           }
         }
 
@@ -305,19 +281,7 @@ Flickable {
             accessibleName: "Quiet hours end"
             onChanged: function(val) { Settings.notificationQuietHoursEnd = Math.round(val * 1439) }
             onInteractionFinished: Settings.save()
-          }
-
-          Text {
-            text: formatMinutes(Settings.notificationQuietHoursEnd)
-            color: Colors.fgSurface
-            font.family: Config.fontFamily
-            font.pixelSize: Config.typeBodyMediumSize
-            font.weight: Config.typeMediumWeight
-            font.letterSpacing: Config.typeBodyTracking
-            lineHeight: Config.typeBodyMediumLineHeight
-            lineHeightMode: Text.FixedHeight
-            Layout.preferredWidth: 42
-            Layout.rightMargin: Config.spacingCompact
+            valueText: formatMinutes(Settings.notificationQuietHoursEnd)
           }
         }
 

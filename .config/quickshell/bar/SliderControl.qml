@@ -23,6 +23,8 @@ FocusScope {
   property real accessibleMinimumValue: 0
   property real accessibleMaximumValue: 100
   property string accessibleUnit: "%"
+  // Shown in the round label at the end of the track (her slider tile); empty hides it.
+  property string valueText: ""
 
   signal changed(real value)
   signal interactionFinished()
@@ -67,6 +69,7 @@ FocusScope {
   Binding { target: implementation.item; property: "accessibleMinimumValue"; value: root.accessibleMinimumValue }
   Binding { target: implementation.item; property: "accessibleMaximumValue"; value: root.accessibleMaximumValue }
   Binding { target: implementation.item; property: "accessibleUnit"; value: root.accessibleUnit }
+  Binding { target: implementation.item; property: "valueText"; value: root.valueText }
   Binding { target: implementation.item; property: "enabled"; value: root.enabled }
   Binding { target: implementation.item; property: "activeFocusOnTab"; value: root.activeFocusOnTab }
   Binding { target: implementation.item; property: "focus"; value: true }
