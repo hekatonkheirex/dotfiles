@@ -1,5 +1,15 @@
 # Elena networks window (R4) Implementation Plan
 
+**Status: DONE (2026-10-14).** R4 implementation and final fixes are committed
+and pushed through `5a13c5ea`. Live read-only window/list/scan/ping/dismissal
+checks and fixture command/render checks passed. Connect, disconnect and forget
+were never exercised against the live connection. Final review was inline;
+configured review providers were unavailable. Existing Wayland text-input
+warnings and the separate RSS investigation are not unresolved R4 features.
+The original checklists below are the implementation recipe, not current
+backlog. Next phase: R5 alarms. Claude's memory note and index are synchronized.
+
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Her networks window replaces the Settings Network tab; the bar's network button toggles it.
