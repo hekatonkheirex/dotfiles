@@ -57,6 +57,7 @@ ShellRoot {
         weekStartsMonday: false
       }
       MediaPage {
+        id: media
         x: 900; width: 450; height: parent.height
         status: "Playing"
         title: "Aphelion"
@@ -93,15 +94,47 @@ ShellRoot {
           var done = false
           stage.grabToImage(function(r) { done = r.saveToFile(Quickshell.env("GOLDEN_OUT")) })
           tryVerify(function() { return done }, 5000)
-          var names = ["tile_cpu", "tile_volume", "weekStrip", "todayCell", "dayCell0", "taskList",
-                       "artRing", "seekLine", "playButton", "pageDots"]
+          var names = ["tile_cpu", "tile_volume", "weekStrip", "weatherPill", "todayCell", "dayCell0", "taskList",
+                       "artRing", "seekLine", "playButton", "prevButton", "nextButton", "volumeUpButton",
+                       "volumeDownButton", "stopButton", "favoriteButton", "pageDots"]
           for (var i = 0; i < names.length; i++) win.geom(names[i])
 
+          // Media hover is the cover only; the label area leaves the ring alone.
+          var ring = win.find(stage, "artRing")
+          var artArea = win.find(stage, "artArea")
+          mouseMove(ring, 4, ring.height / 2)
+          win.check("hover beside the cover keeps the ring", ring.visible)
+          mouseMove(artArea, artArea.width / 2, artArea.height / 2)
+          win.check("hover on the cover hides the ring", !ring.visible)
+          mouseMove(ring, 4, 4)
+          win.check("leaving the cover shows the ring", ring.visible)
+
+          // Seek line: line 0's left 40 % seeks to 0, its right side to 1/20.
+          var seekTo = -1
+          media.seekFraction.connect(function(f) { seekTo = f })
+          var cell0 = win.find(stage, "seekCell0")
+          mouseClick(cell0, 1, cell0.height / 2)
+          win.check("seek line 0 left edge seeks to 0", seekTo === 0)
+          mouseClick(cell0, cell0.width - 1, cell0.height / 2)
+          win.check("seek line 0 right side seeks to 1/20", Math.abs(seekTo - 0.05) < 1e-9)
+          mouseClick(win.find(stage, "seekCell4"), 2, cell0.height / 2)
+          win.check("seek line 4 seeks to 5/20", Math.abs(seekTo - 0.25) < 1e-9)
+
+          // The shell's activation path: no forceActiveFocus here; the content
+          // takes focus itself when `active` turns true.
           content.visible = true
-          content.forceActiveFocus()
+          content.currentPage = 1
+          content.active = true
+          wait(150)
+          win.check("compat dashboardActive true when open on page 1", content.dashboardActive === true)
+          var agenda = win.find(content, "agendaPage")
+          mouseClick(win.find(agenda, "monthUp"))
+          win.check("month up arrow is next month", agenda.monthOffset === 1)
+          mouseClick(win.find(agenda, "yearDown"))
+          win.check("year down arrow is previous year", agenda.monthOffset === -11)
           keyClick(Qt.Key_PageDown, Qt.ControlModifier)
-          win.check("ctrl+pagedown steps to agenda", content.currentPage === 1)
-          keyClick(Qt.Key_PageDown, Qt.ControlModifier)
+          win.check("ctrl+pagedown steps to media after activation", content.currentPage === 2)
+          win.check("leaving the agenda page keeps the shown month", agenda.monthOffset === -11)
           keyClick(Qt.Key_PageDown, Qt.ControlModifier)
           win.check("paging clamps at media", content.currentPage === 2)
           keyClick(Qt.Key_PageUp, Qt.ControlModifier)
@@ -111,7 +144,23 @@ ShellRoot {
           keyClick(Qt.Key_Escape)
           win.check("escape emits escaped", escaped)
           win.check("compat statusActive is constant false", content.statusActive === false)
-          win.check("compat dashboardActive follows page 1", content.dashboardActive === false)
+          content.active = false
+          wait(20)
+          win.check("closing the sidebar resets the shown month", agenda.monthOffset === 0)
+
+          // Wheel over the indicators: one page per 120-unit notch.
+          content.currentPage = 2
+          var ind = win.find(content, "pageIndicators")
+          mouseWheel(ind, 5, 5, 0, 40)
+          mouseWheel(ind, 5, 5, 0, 40)
+          win.check("two 40-unit deltas do not page", content.currentPage === 2)
+          mouseWheel(ind, 5, 5, 0, 40)
+          win.check("a full notch steps one page back", content.currentPage === 1)
+          mouseWheel(ind, 5, 5, 0, 120)
+          win.check("the next notch steps again", content.currentPage === 0)
+          mouseWheel(ind, 5, 5, 0, 80)
+          mouseWheel(ind, 5, 5, 0, -120)
+          win.check("a direction flip drops the partial notch", content.currentPage === 1)
 
           for (var k = 0; k < 3; k++) {
             race.live = true

@@ -56,33 +56,26 @@ Item {
     onPositionChanged: function(m) { if (pressed) setFrom(m) }
   }
 
-  Rectangle {
+  // Her slider-with-label: the round label sits 9 S in from the trough's
+  // bottom-right corner; hovering the tile grows it (150 ms) to 64 - 18 S and
+  // swaps the glyph for the value at 11pt.
+  HoverHandler { id: hover }
+  SymbolDisc {
     id: label
-    x: trough.x + trough.width - width - Config.dp(5)
-    y: trough.y + trough.height - height - Config.dp(5)
-    width: Config.dp(26)
-    height: width
-    radius: width / 2
-    color: Colors.surface
-    border.width: 1
-    border.color: Colors.surfaceContainerHighest
-
+    objectName: "tileLabel"
+    x: trough.x + trough.width - width - Config.dp(9)
+    y: trough.y + trough.height - height - Config.dp(9)
+    width: hover.hovered ? Config.dp(64 - 18) : Config.dp(23)
+    glyph: root.glyph
+    glyphOpacity: hover.hovered ? 0 : 1
+    Behavior on width { enabled: !Config.reducedMotion; NumberAnimation { duration: 150 } }
     Text {
       anchors.centerIn: parent
-      visible: !hover.hovered
-      text: root.glyph
-      color: Colors.fgSurface
-      font.family: BottomBarFonts.family
-      font.pixelSize: Config.dp(11)
-    }
-    Text {
-      anchors.centerIn: parent
-      visible: hover.hovered
+      opacity: hover.hovered ? 1 : 0
       text: root.valueText
-      color: Colors.fgSurface
+      color: Colors.surface
       font.family: Config.fontFamily
-      font.pixelSize: Config.dp(7)
+      font.pixelSize: Math.round(11 * 4 / 3 * Config.elenaScale)   // 11pt
     }
-    HoverHandler { id: hover }
   }
 }

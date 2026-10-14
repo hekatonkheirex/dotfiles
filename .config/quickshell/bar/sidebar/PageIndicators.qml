@@ -1,21 +1,29 @@
 import QtQuick
 import "../../config"
 import "../../config/SidebarPages.js" as SidebarPages
+import "../../config/BottomBarModel.js" as BottomBarModel
 
 // Her page dots under a separator: x1, x2, x5 pills, the selected one wider.
-// Click selects a page; the wheel anywhere over the section steps pages.
+// Click selects a page; the wheel anywhere over the section steps one page per
+// 120-unit notch (touchpad deltas accumulate; a direction flip resets).
 Item {
   id: root
+  objectName: "pageIndicators"
   property int currentPage: 0
   property int count: 3
   signal pageSelected(int page)
-  signal pageScrolled(int deltaY)
+  signal pageStepped(int delta)   // +1 = next page; wheel up = previous
+  property real wheelAccum: 0
   implicitHeight: column.implicitHeight
 
   MouseArea {   // wheel anywhere over the section (under the dots' clicks)
     anchors.fill: parent
     acceptedButtons: Qt.NoButton
-    onWheel: function(w) { root.pageScrolled(w.angleDelta.y) }
+    onWheel: function(w) {
+      var r = BottomBarModel.notchSteps(root.wheelAccum, w.angleDelta.y)
+      root.wheelAccum = r.accum
+      if (r.steps !== 0) root.pageStepped(-r.steps)
+    }
   }
 
   Column {

@@ -10,6 +10,9 @@ Item {
   property bool active: false
   property date today: new Date()
   property bool weekStartsMonday: false
+  // Sidebar-level open flag (not this page's `active`): closing the sidebar
+  // resets the shown month, switching pages does not.
+  property bool sidebarOpen: false
   // Months away from today's month; the arrows move it, closing resets it.
   property int monthOffset: 0
   readonly property date shownMonth: new Date(root.today.getFullYear(), root.today.getMonth() + root.monthOffset, 1)
@@ -23,7 +26,7 @@ Item {
 
   SystemClock { id: clock; precision: SystemClock.Hours; enabled: root.active }
   Binding { target: root; property: "today"; value: clock.date; when: root.active }
-  onActiveChanged: if (!root.active) root.monthOffset = 0
+  onSidebarOpenChanged: if (!root.sidebarOpen) root.monthOffset = 0
 
   Column {
     anchors.top: parent.top
@@ -81,49 +84,27 @@ Item {
         }
       }
 
+      StepArrows { months: 1; onStepped: function(m) { root.monthOffset += m } }
       Column {
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Config.dp(2)
-        Repeater {
-          // [label, months per step]
-          model: [[Qt.formatDate(root.shownMonth, "MMMM"), 1], [Qt.formatDate(root.shownMonth, "yyyy"), 12]]
-          Row {
-            id: stepRow
-            required property var modelData
-            readonly property int months: modelData[1]
-            spacing: Config.dp(6)
-            Text {
-              width: Config.dp(84)
-              anchors.verticalCenter: parent.verticalCenter
-              text: modelData[0]
-              color: modelData[1] === 1 ? Colors.fgSurface : Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.pixelSize: Config.dp(modelData[1] === 1 ? 14 : 11)
-              font.weight: modelData[1] === 1 ? Font.Bold : Font.Normal
-            }
-            Repeater {
-              model: [[-1, ""], [1, ""]]   // up = earlier, down = later
-              Text {
-                required property var modelData
-                property int step: modelData[0]
-                anchors.verticalCenter: parent.verticalCenter
-                text: modelData[1]
-                color: arrow.containsMouse ? Colors.elenaAccent(2) : Colors.fgSurfaceVariant
-                font.family: BottomBarFonts.family
-                font.pixelSize: Config.dp(12)
-                MouseArea {
-                  id: arrow
-                  anchors.fill: parent
-                  anchors.margins: -Config.dp(3)
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: root.monthOffset += parent.step * stepRow.months
-                }
-              }
-            }
-          }
+        width: Config.dp(84)
+        Text {
+          anchors.horizontalCenter: parent.horizontalCenter
+          text: Qt.formatDate(root.shownMonth, "MMMM")
+          color: Colors.fgSurface
+          font.family: Config.fontFamily
+          font.pixelSize: Config.dp(14)
+          font.weight: Font.Bold
+        }
+        Text {
+          anchors.horizontalCenter: parent.horizontalCenter
+          text: Qt.formatDate(root.shownMonth, "yyyy")
+          color: Colors.fgSurfaceVariant
+          font.family: Config.fontFamily
+          font.pixelSize: Config.dp(11)
         }
       }
+      StepArrows { months: 12; onStepped: function(m) { root.monthOffset += m } }
     }
 
     Row {   // weekday letters

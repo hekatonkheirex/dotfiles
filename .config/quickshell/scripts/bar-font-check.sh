@@ -72,11 +72,12 @@ qml = open(f"{root}/bar/bottombar/BottomBarContent.qml", encoding="utf-8").read(
 js = open(f"{root}/config/DockSymbols.js", encoding="utf-8").read()
 a = {ord(c) for c in qml if 0xE000 <= ord(c) <= 0xF8FF}
 b = {int(h, 16) for h in re.findall(r"\\u([eEfF][0-9a-fA-F]{3})", js)}
-# The sidebar pages hold literal PUA characters too.
+# The sidebar pages hold literal PUA characters and \uXXXX escapes.
 c = set()
-for page in ("HomePage", "AgendaPage", "MediaPage"):
+for page in ("HomePage", "AgendaPage", "MediaPage", "StepArrows"):
     src = open(f"{root}/bar/sidebar/{page}.qml", encoding="utf-8").read()
     c |= {ord(ch) for ch in src if 0xE000 <= ord(ch) <= 0xF8FF}
+    c |= {int(h, 16) for h in re.findall(r"\\u([eEfF][0-9a-fA-F]{3})", src)}
 if not a or not b or not c: sys.exit("no codepoints found")
 print(",".join(str(c) for c in sorted(a | b | c) + [extra]))
 PY3

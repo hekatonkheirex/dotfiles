@@ -47,6 +47,7 @@ for line in open(sys.argv[2]):
 def hx(s): return tuple(int(s[i:i+2], 16) for i in (1, 3, 5))
 SURF, HIGH, ERR = hx("#1a1f2b"), hx("#343c4d"), hx("#ff6b6b")
 SEC, INVP, OUT, FGS = hx("#f06292"), hx("#8e4f90"), hx("#5b6578"), hx("#f2f4f8")
+FGTC = hx("#cfeefa")
 def mix(a, b, t): return tuple(round(a[i] * t + b[i] * (1 - t)) for i in range(3))
 def near(a, b, t=8): return all(abs(a[i] - b[i]) <= t for i in range(3))
 def count(box, col, t=8):
@@ -84,11 +85,22 @@ tx, ty, s = trough("tile_volume")
 check("muted volume fill is x8 #5b6578", count(patch(tx + s // 3, ty + 3 * s // 4), OUT), 25, 25)
 check("muted volume fill has no x5", count(patch(tx + s // 3, ty + 3 * s // 4), INVP), 0, 0)
 x, y, w, h = G["weekStrip"]
-cw, gap = dp(36), dp(8)
+cw = dp(36)
+gap = (w - 7 * cw) // 6
+check("week strip 12 S clear of the page edges", min(x, 450 - (x + w)), dp(12))
 hl = [count((x + i * (cw + gap) + 4, y + 4, x + i * (cw + gap) + cw - 4, y + h - 4), HIGH) for i in range(7)]
 print("week strip highlight px", hl)
 check("week strip highlighted days", sum(1 for n in hl if n > 300), 1, 1)
 check("week strip highlight is Wednesday (index 3)", int(hl.index(max(hl))), 3, 3)
+
+x, y, w, h = G["weatherPill"]
+disc = (x, y, x + h, y + h)
+check("weather disc fgSurface px", count(disc, FGS), int(0.45 * area(disc)))
+check("weather temp + description ink px", sum(not near(im.getpixel((i, j)), HIGH, 6) and not near(im.getpixel((i, j)), SURF, 6)
+      for i in range(x + h + 2, x + w - 2) for j in range(y + 3, y + h - 3)), 150)
+check("weather separator dot px (x8)", count((x, y, x + w, y + h), OUT, 10), 25)
+check("weather description ink px (right half)", sum(not near(im.getpixel((i, j)), HIGH, 6)
+      for i in range(x + w // 2, x + w - dp(7)) for j in range(y + 3, y + h - 3)), 60)
 
 # 2. Agenda: today's filled round, dimmed leading day, empty-state ink.
 x, y, w, h = G["todayCell"]
@@ -124,9 +136,19 @@ check("seek line colored lines", len(lit), 5, 5)
 check("seek line muted lines", len(dark), 15, 15)
 check("colored lines are the leftmost", int(max(s for s, _ in lit) < min(s for s, _ in dark)), 1, 1)
 x, y, w, h = G["playButton"]
-inner = patch(x + w // 2, y + h // 2, dp(10))  # inside the round, clear of its corners
-check("play button glyph px (not x5 inside the round)", area(inner) - count(inner, INVP, 12), 60)
-check("play button fill px (x5)", count(inner, INVP), 40)
+inner = patch(x + w // 2, y + h // 2, dp(8))
+check("play glyph ink px", ink(inner), 60)
+top = max((im.getpixel((i, j)) for i in range(inner[0], inner[2]) for j in range(inner[1], inner[3])), key=sum)
+check("play glyph brightest px is x6 (playing)", int(near(top, FGTC, 12)), 1, 1)
+check("play button disc px (surface)", count(inner, SURF), 150)
+# Gameboy cross: arms are x0 around the play disc; B (stop) sits 20 S below A.
+for nm in ("prevButton", "nextButton", "volumeUpButton", "volumeDownButton"):
+    x, y, w, h = G[nm]
+    check(f"{nm} arm x0 px", count((x + 2, y + 2, x + w - 2, y + h - 2), HIGH), int(0.3 * (w - 4) * (h - 4)))
+check("prev/next arms meet (pair width 100 S)", G["nextButton"][0] + G["nextButton"][2] - G["prevButton"][0], dp(100) - 1, dp(100) + 1)
+check("volume arms stack (pair height 100 S)", G["volumeDownButton"][1] + G["volumeDownButton"][3] - G["volumeUpButton"][1], dp(100) - 1, dp(100) + 1)
+check("B button 20 S below A", G["stopButton"][1] - G["favoriteButton"][1], dp(20) - 1, dp(20) + 1)
+check("A button right of B", int(G["favoriteButton"][0] > G["stopButton"][0]), 1, 1)
 
 # 4. Indicators at page 1: 21, 41, 21 px pills; x2 selected, the rest at 0.3.
 x, y, w, h = G["pageDots"]

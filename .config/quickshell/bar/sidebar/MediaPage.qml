@@ -5,8 +5,9 @@ import "../../config/MediaMath.js" as MediaMath
 import "../../config/BottomBarModel.js" as BottomBarModel
 
 // Page 2: round cover with a half-ring of progress along its bottom, title and
-// artist pills, the seek line and the control row. Plain inputs (SidebarContent
-// binds them to MediaService) so the render check can feed fixed values.
+// artist pills, the seek line and her gameboy control cross. Plain inputs
+// (SidebarContent binds them to MediaService) so the render check can feed
+// fixed values.
 Item {
   id: root
   property string status: "NoPlayer"
@@ -29,26 +30,7 @@ Item {
   readonly property real fraction: MediaMath.fraction(root.positionSec, root.lengthSec)
   readonly property bool playing: root.status === "Playing"
   readonly property string playGlyph: root.playing ? "" : ""   // pause : play
-
-  // Glyph button: left and right click signals, hover tint.
-  component GlyphButton: Text {
-    id: btn
-    property color tint: Colors.fgSurfaceVariant
-    signal leftClicked()
-    signal rightClicked()
-    color: area.containsMouse ? Colors.elenaAccent(5) : btn.tint
-    font.family: BottomBarFonts.family
-    font.pixelSize: Config.dp(14)
-    MouseArea {
-      id: area
-      anchors.fill: parent
-      anchors.margins: -Config.dp(5)
-      hoverEnabled: true
-      acceptedButtons: Qt.LeftButton | Qt.RightButton
-      cursorShape: Qt.PointingHandCursor
-      onClicked: function(m) { if (m.button === Qt.RightButton) btn.rightClicked(); else btn.leftClicked() }
-    }
-  }
+  readonly property int buttonGlyph: Math.round(10 * 4 / 3 * Config.elenaScale)   // 10pt
 
   Column {
     anchors.top: parent.top
@@ -62,12 +44,13 @@ Item {
       width: root.width
       height: Config.dp(160) + 2 * Config.dp(14)
       readonly property real ringRadius: Config.dp(80) + Config.dp(9)
+      readonly property bool hovered: artArea.containsMouse
 
       Canvas {
         id: ring
         objectName: "artRing"
         anchors.fill: parent
-        visible: !artHover.hovered
+        visible: !cover.hovered
         property real fraction: root.fraction
         property color track: Colors.surfaceContainerHighest
         property color fill: Colors.elenaAccent(5)
@@ -94,8 +77,10 @@ Item {
           }
         }
       }
+      // Her position and length labels are both empty without a length.
       Text {
-        visible: ring.visible
+        objectName: "positionText"
+        visible: ring.visible && root.lengthSec > 0
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.horizontalCenter
         anchors.rightMargin: cover.ringRadius + Config.dp(10)
@@ -145,7 +130,7 @@ Item {
         }
         Rectangle {   // hover: dim the cover, show play or pause
           anchors.fill: parent
-          visible: artHover.hovered
+          visible: cover.hovered
           color: Qt.rgba(0, 0, 0, 0.45)
           Text {
             anchors.centerIn: parent
@@ -156,56 +141,29 @@ Item {
           }
         }
       }
-      HoverHandler { id: artHover; target: art }
+      // Hover and click only over the cover itself (not the labels or the
+      // empty space around it). The clipped content renders through a shader
+      // source, so the input item sits on top of it, sized to the cover.
       MouseArea {
+        id: artArea
+        objectName: "artArea"
         anchors.fill: art
+        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: root.playPause()
       }
     }
 
-    Repeater {   // title and artist pills, scrolling sideways when long
-      model: [["", root.title === "" ? "Nothing playing" : root.title, true],
-              ["", root.artist === "" ? "Unknown artist" : root.artist, false]]
-      Rectangle {
-        required property var modelData
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: Config.dp(240)
-        height: Config.dp(28)
-        radius: height / 2
-        color: Colors.surfaceContainerHighest
-        Text {
-          id: pillGlyph
-          anchors.left: parent.left
-          anchors.leftMargin: Config.dp(10)
-          anchors.verticalCenter: parent.verticalCenter
-          text: modelData[0]
-          color: modelData[2] ? Colors.elenaAccent(5) : Colors.elenaAccent(2)
-          font.family: BottomBarFonts.family
-          font.pixelSize: Config.dp(11)
-        }
-        Flickable {
-          anchors.left: pillGlyph.right
-          anchors.leftMargin: Config.dp(8)
-          anchors.right: parent.right
-          anchors.rightMargin: Config.dp(12)
-          anchors.verticalCenter: parent.verticalCenter
-          height: pillText.implicitHeight
-          clip: true
-          contentWidth: pillText.implicitWidth
-          contentHeight: height
-          flickableDirection: Flickable.HorizontalFlick
-          boundsBehavior: Flickable.StopAtBounds
-          Text {
-            id: pillText
-            text: modelData[1]
-            color: modelData[2] ? Colors.fgSurface : Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: Config.dp(10)
-            font.weight: modelData[2] ? Font.Bold : Font.Normal
-          }
-        }
-      }
+    TextPill {
+      anchors.horizontalCenter: parent.horizontalCenter
+      glyph: ""
+      text: root.title === "" ? "Nothing playing" : root.title
+      bold: true
+    }
+    TextPill {
+      anchors.horizontalCenter: parent.horizontalCenter
+      glyph: ""
+      text: root.artist === "" ? "Unknown artist" : root.artist
     }
 
     SeekLine {
@@ -215,76 +173,117 @@ Item {
       onSeekRequested: function(f) { root.seekFraction(f) }
     }
 
-    Row {   // controls
+    Row {   // her media-buttons: the gameboy cross, then the B and A buttons
       anchors.horizontalCenter: parent.horizontalCenter
-      spacing: Config.dp(14)
+      spacing: Config.dp(35)
 
-      GlyphButton {
-        anchors.verticalCenter: parent.verticalCenter
-        text: ""
-        onLeftClicked: root.previous()
-        onRightClicked: root.seekBy(-10)
-      }
-      GlyphButton {
-        anchors.verticalCenter: parent.verticalCenter
-        text: ""
-        onLeftClicked: root.next()
-        onRightClicked: root.seekBy(10)
-      }
-      Rectangle {   // play/pause, larger; the wheel sets the player volume
-        objectName: "playButton"
-        anchors.verticalCenter: parent.verticalCenter
-        width: Config.dp(36)
-        height: width
-        radius: width / 2
-        color: Colors.elenaAccent(5)
-        property real wheelAccum: 0
-        Text {
+      Item {   // cross: prev/next across, volume up/down down the middle, play on top
+        id: cross
+        objectName: "mediaCross"
+        width: Config.dp(100)
+        height: Config.dp(100)
+        readonly property real r: Config.dp(10)
+        readonly property real shift: Config.dp(18) / 2
+
+        Row {
           anchors.centerIn: parent
-          text: root.playGlyph
-          color: Colors.surface
-          font.family: BottomBarFonts.family
-          font.pixelSize: Config.dp(16)
+          PadButton {
+            objectName: "prevButton"
+            width: Config.dp(50); height: Config.dp(40)
+            topLeftRadius: cross.r; bottomLeftRadius: cross.r
+            glyph: ""
+            glyphDx: -cross.shift
+            onLeftClicked: root.previous()
+            onRightClicked: root.seekBy(-10)
+          }
+          PadButton {
+            objectName: "nextButton"
+            width: Config.dp(50); height: Config.dp(40)
+            topRightRadius: cross.r; bottomRightRadius: cross.r
+            glyph: ""
+            glyphDx: cross.shift
+            onLeftClicked: root.next()
+            onRightClicked: root.seekBy(10)
+          }
         }
-        MouseArea {
-          anchors.fill: parent
-          cursorShape: Qt.PointingHandCursor
-          onClicked: root.playPause()
-          onWheel: function(w) {
-            var r = BottomBarModel.notchSteps(parent.wheelAccum, w.angleDelta.y)
-            parent.wheelAccum = r.accum
-            if (r.steps !== 0) root.playerVolumeStep(0.02 * r.steps)
+        Column {
+          anchors.centerIn: parent
+          PadButton {
+            objectName: "volumeUpButton"
+            width: Config.dp(40); height: Config.dp(50)
+            topLeftRadius: cross.r; topRightRadius: cross.r
+            glyph: ""
+            glyphDy: -cross.shift
+            onLeftClicked: root.volumeStep(5)
+            onRightClicked: root.playerVolumeStep(0.1)
+          }
+          PadButton {
+            objectName: "volumeDownButton"
+            width: Config.dp(40); height: Config.dp(50)
+            bottomLeftRadius: cross.r; bottomRightRadius: cross.r
+            glyph: ""
+            glyphDy: cross.shift
+            onLeftClicked: root.volumeStep(-5)
+            onRightClicked: root.playerVolumeStep(-0.1)
+          }
+        }
+        Rectangle {   // play/pause on top of the cross; the wheel sets the player volume
+          objectName: "playButton"
+          anchors.centerIn: parent
+          width: Config.dp(40 - 4)
+          height: width
+          radius: width / 2
+          color: Colors.surface
+          property real wheelAccum: 0
+          Text {
+            anchors.centerIn: parent
+            text: root.playGlyph
+            color: root.playing ? Colors.elenaAccent(6) : Colors.elenaAccent(8)
+            font.family: BottomBarFonts.family
+            font.pixelSize: root.buttonGlyph
+          }
+          MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.playPause()
+            onWheel: function(w) {
+              var r = BottomBarModel.notchSteps(parent.wheelAccum, w.angleDelta.y)
+              parent.wheelAccum = r.accum
+              if (r.steps !== 0) root.playerVolumeStep(0.02 * r.steps)
+            }
           }
         }
       }
-      GlyphButton {
+
+      Item {   // B (stop) sits 20 S lower than A (favorite)
         anchors.verticalCenter: parent.verticalCenter
-        text: ""
-        onLeftClicked: root.volumeStep(5)
-        onRightClicked: root.playerVolumeStep(0.1)
-      }
-      GlyphButton {
-        anchors.verticalCenter: parent.verticalCenter
-        text: ""
-        onLeftClicked: root.volumeStep(-5)
-        onRightClicked: root.playerVolumeStep(-0.1)
-      }
-      GlyphButton {
-        anchors.verticalCenter: parent.verticalCenter
-        text: ""
-        onLeftClicked: root.stop()
-      }
-      GlyphButton {
-        id: favButton
-        anchors.verticalCenter: parent.verticalCenter
-        text: ""
-        property bool flash: false
-        tint: flash ? Colors.elenaAccent(1) : Colors.fgSurfaceVariant
-        onLeftClicked: {
-          if (root.title === "") return   // nothing to save
-          root.favorite(); flash = true; flashTimer.restart()
+        width: 2 * Config.dp(40) + Config.dp(6)
+        height: Config.dp(40) + Config.dp(20)
+        PadButton {
+          objectName: "stopButton"
+          y: Config.dp(20)
+          width: Config.dp(40); height: width
+          radius: width / 2
+          glyph: ""
+          glyphColor: Colors.elenaAccent(3)
+          onLeftClicked: root.stop()
         }
-        Timer { id: flashTimer; interval: 600; onTriggered: favButton.flash = false }
+        PadButton {
+          id: favButton
+          objectName: "favoriteButton"
+          x: Config.dp(40) + Config.dp(6)
+          width: Config.dp(40); height: width
+          radius: width / 2
+          property bool flash: false
+          color: flash ? Colors.elenaAccent(1) : Colors.surfaceContainerHighest
+          glyph: ""
+          glyphColor: flash ? Colors.surface : Colors.elenaAccent(1)
+          onLeftClicked: {
+            if (root.title === "") return   // nothing to save
+            root.favorite(); flash = true; flashTimer.restart()
+          }
+          Timer { id: flashTimer; interval: 600; onTriggered: favButton.flash = false }
+        }
       }
     }
   }

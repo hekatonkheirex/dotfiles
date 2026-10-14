@@ -11,6 +11,11 @@ Item {
   property int currentPage: 0
   readonly property int pageCount: 3
   signal escaped()
+  // PopupBase's FocusScope hands focus to this item; the timer re-takes it
+  // after the window has keyboard focus on open (the old search field did this).
+  focus: true
+  Timer { id: focusTimer; interval: 50; onTriggered: root.forceActiveFocus() }
+  onActiveChanged: if (root.active) focusTimer.restart(); else focusTimer.stop()
 
   // Compatibility for bar/Sidebar.qml until Task 4 swaps the window.
   // removed in Task 4: the old window still connects these two signals.
@@ -42,9 +47,11 @@ Item {
 
     HomePage { anchors.fill: parent; visible: root.currentPage === 0; active: root.active && root.currentPage === 0 }
     AgendaPage {
+      objectName: "agendaPage"
       anchors.fill: parent
       visible: root.currentPage === 1
       active: root.active && root.currentPage === 1
+      sidebarOpen: root.active
       weekStartsMonday: Settings.calendarWeekStartsMonday
     }
     MediaPage {
@@ -84,6 +91,6 @@ Item {
     currentPage: root.currentPage
     count: root.pageCount
     onPageSelected: function(p) { root.currentPage = p }
-    onPageScrolled: function(dy) { root.currentPage = SidebarPages.wheelPage(root.currentPage, dy, root.pageCount) }
+    onPageStepped: function(d) { root.currentPage = SidebarPages.stepPage(root.currentPage, d, root.pageCount) }
   }
 }

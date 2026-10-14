@@ -78,13 +78,14 @@ Item {
       }
     }
 
-    Row {   // weekday strip, Sunday-first
+    Row {   // weekday strip, Sunday-first; 12 S clear of the page edges
       objectName: "weekStrip"
       anchors.horizontalCenter: parent.horizontalCenter
-      spacing: Config.dp(8)
+      spacing: Math.floor((root.width - 2 * Config.dp(12) - 7 * Config.dp(36)) / 6)
       Repeater {
         model: root.days
         Rectangle {
+          required property int index
           required property var modelData
           width: Config.dp(36)
           height: Config.dp(52)
@@ -93,10 +94,10 @@ Item {
           Column {
             anchors.centerIn: parent
             spacing: Config.dp(4)
-            Text {
+            Text {   // her dotw letters: x1 x3 x2 x6 x4 x5 x1
               anchors.horizontalCenter: parent.horizontalCenter
               text: modelData.letter
-              color: modelData.today ? Colors.elenaAccent(1) : Colors.fgSurfaceVariant
+              color: Colors.elenaAccent([1, 3, 2, 6, 4, 5, 1][index])
               font.family: Config.fontFamily
               font.pixelSize: Config.dp(11)
               font.weight: Font.Bold
@@ -113,50 +114,14 @@ Item {
       }
     }
 
-    Rectangle {   // weather pill
+    InfoPill {
+      objectName: "weatherPill"
       anchors.horizontalCenter: parent.horizontalCenter
-      width: weatherRow.implicitWidth + Config.dp(20)
-      height: Config.dp(28)
-      radius: height / 2
-      color: Colors.surfaceContainerHighest
-      Row {
-        id: weatherRow
-        anchors.centerIn: parent
-        spacing: Config.dp(6)
-        readonly property bool loading: root.weatherStatus === "loading"
-        Text {
-          anchors.verticalCenter: parent.verticalCenter
-          text: root.weatherStatus === "ok" ? Colors.weatherIcon(root.weatherDesc) : "cloud_off"
-          visible: !weatherRow.loading
-          color: Colors.elenaAccent(3)
-          font.family: Config.iconFont
-          font.pixelSize: Config.dp(13)
-        }
-        Text {
-          anchors.verticalCenter: parent.verticalCenter
-          text: weatherRow.loading ? "Loading weather" : root.weatherTemp
-          color: Colors.fgSurface
-          font.family: Config.fontFamily
-          font.pixelSize: Config.dp(10)
-          font.weight: Font.Bold
-        }
-        Text {
-          anchors.verticalCenter: parent.verticalCenter
-          visible: !weatherRow.loading && root.weatherDesc !== ""
-          text: "·"
-          color: Colors.outline
-          font.family: Config.fontFamily
-          font.pixelSize: Config.dp(10)
-        }
-        Text {
-          anchors.verticalCenter: parent.verticalCenter
-          visible: !weatherRow.loading && root.weatherDesc !== ""
-          text: root.weatherDesc
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.dp(10)
-        }
-      }
+      readonly property bool loading: root.weatherStatus === "loading"
+      glyph: loading ? "hourglass_empty" : (root.weatherStatus === "ok" ? Colors.weatherIcon(root.weatherDesc) : "cloud_off")
+      glyphFamily: Config.iconFont
+      leftText: loading ? "Loading weather" : root.weatherTemp
+      rightText: loading ? "" : root.weatherDesc
     }
 
     Grid {   // 3 rows of 3 slider tiles
@@ -184,48 +149,12 @@ Item {
       }
     }
 
-    Rectangle {   // hostname chip
+    InfoPill {
+      objectName: "hostPill"
       anchors.horizontalCenter: parent.horizontalCenter
-      width: hostRow.implicitWidth + Config.dp(20)
-      height: Config.dp(28)
-      radius: height / 2
-      color: Colors.surfaceContainerHighest
-      Row {
-        id: hostRow
-        anchors.centerIn: parent
-        spacing: Config.dp(6)
-        Text {
-          anchors.verticalCenter: parent.verticalCenter
-          text: ""
-          color: Colors.elenaAccent(4)
-          font.family: BottomBarFonts.family
-          font.pixelSize: Config.dp(12)
-        }
-        Text {
-          anchors.verticalCenter: parent.verticalCenter
-          visible: root.hostname !== ""
-          text: root.hostname
-          color: Colors.fgSurface
-          font.family: Config.fontFamily
-          font.pixelSize: Config.dp(10)
-          font.weight: Font.Bold
-        }
-        Text {
-          anchors.verticalCenter: parent.verticalCenter
-          visible: root.hostname !== ""
-          text: "·"
-          color: Colors.outline
-          font.family: Config.fontFamily
-          font.pixelSize: Config.dp(10)
-        }
-        Text {
-          anchors.verticalCenter: parent.verticalCenter
-          text: root.uptime
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.dp(10)
-        }
-      }
+      glyph: "\uea6f"
+      leftText: root.hostname
+      rightText: root.uptime
     }
   }
 }

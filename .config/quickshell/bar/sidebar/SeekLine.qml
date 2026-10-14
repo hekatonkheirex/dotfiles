@@ -3,7 +3,8 @@ import "../../config"
 import "../../config/MediaMath.js" as MediaMath
 
 // 20 vertical lines; line i is colored while fractionOfLine(i) <= fraction,
-// and clicking it seeks to fractionOfLine(i).
+// and clicking it seeks to fractionOfLine(i) = (i + 1) / lines. That never
+// reaches 0, so a click in the left 40 % of line 0 seeks to the start.
 Row {
   id: root
   property real fraction: 0
@@ -15,6 +16,7 @@ Row {
     model: root.lines
     Item {
       required property int index
+      objectName: "seekCell" + index
       width: Config.dp(7)
       height: Config.dp(26)
       Rectangle {
@@ -31,7 +33,10 @@ Row {
         anchors.leftMargin: -Config.dp(2)
         anchors.rightMargin: -Config.dp(2)
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.seekRequested(MediaMath.fractionOfLine(index, root.lines))
+        onClicked: function(m) {
+          var f = (index === 0 && m.x < 0.4 * width) ? 0 : MediaMath.fractionOfLine(index, root.lines)
+          root.seekRequested(f)
+        }
       }
     }
   }
