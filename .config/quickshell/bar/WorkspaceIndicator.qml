@@ -525,6 +525,18 @@ Item {
       Quickshell.execDetached(["sh", "-c", "niri msg action focus-workspace " + idx])
   }
 
+  // Her right click: move the focused window to workspace `idx` without
+  // following it.
+  function moveFocusedWindowTo(idx) {
+    if (root.wmType === "mango") return
+    Quickshell.execDetached(["niri", "msg", "action", "move-window-to-workspace", "--focus", "false", String(idx)])
+  }
+
+  // Her wheel: -1 previous (up), +1 next (down).
+  function stepWorkspace(direction) {
+    root.scrollWorkspace(direction < 0 ? 1 : -1)
+  }
+
   function scrollWorkspace(deltaY) {
     if (root.wmType === "mango") {
       Quickshell.execDetached([

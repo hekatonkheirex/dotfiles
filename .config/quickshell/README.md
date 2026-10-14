@@ -6,7 +6,7 @@ A custom desktop shell built with [Quickshell](https://quickshell.outfoxxed.me/)
 
 This replaces a traditional status bar (waybar) and panel infrastructure with a unified QML-based shell. It provides:
 
-- **Workspace strip** (`bar/Bar.qml`): the whole top bar is an 8px row of workspace color blocks.
+- **Workspace strip** (`bar/Bar.qml`, `bar/TagStripBlocks.qml`, `config/TagStrip.js`): the whole top bar is an 8px row of workspace blocks in her color order (x1 x3 x2 x6 x4 x5, repeating). Niri workspaces are dynamic, so the row holds the workspaces that exist, not her fixed ten slots. Focused is solid, occupied 0.3, the empty trailing workspace is invisible (0.2 on hover; a non-focused block is 0.6 on hover), and bottom corners round against an empty neighbor. Click focuses, right click moves the focused window there without following it, the wheel steps to the previous or next workspace. Check: `node tests/tag-strip/model.test.mjs`, `bash scripts/tag-strip-render.sh`.
 - **Sidebar and dock**: a three-page sidebar (Home, Agenda, Media) that also opens from the left screen edge and a full-width bottom bar (page buttons, volume, app dock, clock, battery, network) that reserves its height. Saved bar forms, placement and widget settings remain stored, but Elena forces the top strip and hides the old in-bar widget layout; re-homing that machinery is a separate change.
 - **Lock screen** in her power-menu look (lock ring, masked LOCKDOWN line) with PAM + fingerprint authentication.
 - **Notification handling** with dashed Elena history cards and her dunst-style toast stack (R6): urgency-colored glyph rows, up to five cards with duplicate counts, critical toasts that stay.

@@ -426,8 +426,11 @@ PanelWindow {
         anchors.fill: parent
         visible: true
         z: 10
-        workspaces: wsIndicator.visibleWorkspaces
+        // The workspaces niri has; the retired workspaceCount padding is ignored.
+        workspaces: wsIndicator.workspaces
         onActivated: function(idx) { wsIndicator.focusWorkspace(idx) }
+        onMoveRequested: function(idx) { wsIndicator.moveFocusedWindowTo(idx) }
+        onStepped: function(direction) { wsIndicator.stepWorkspace(direction) }
       }
 
       GridLayout {
