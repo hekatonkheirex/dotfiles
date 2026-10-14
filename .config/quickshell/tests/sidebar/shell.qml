@@ -1,4 +1,7 @@
 // Staged at the config-copy root by scripts/sidebar-render.sh.
+// Four 450 px cells: Home, Agenda, Media, page indicators (page 1), all fed
+// fixed inputs; GEOM lines give the pixel checks their boxes. A SidebarContent
+// off the grabbed stage checks keyboard paging and the compatibility members.
 import QtQuick
 import QtTest
 import Quickshell
@@ -8,8 +11,8 @@ import "bar/sidebar"
 ShellRoot {
   FloatingWindow {
     id: win
-    implicitWidth: 320
-    implicitHeight: 720
+    implicitWidth: 1800
+    implicitHeight: 831
     color: Colors.surface
     mask: Region {}
     property int failures: 0
@@ -18,109 +21,107 @@ ShellRoot {
       if (!ok) failures++
       console.log((ok ? "PASS " : "FAIL ") + name)
     }
-    function find(item, predicate) {
-      if (predicate(item)) return item
+    function find(item, name) {
+      if (item.objectName === name) return item
       var children = item.children || []
       for (var i = 0; i < children.length; i++) {
-        var found = find(children[i], predicate)
+        var found = find(children[i], name)
         if (found) return found
       }
       return null
     }
-    function inner(item) {
-      for (var i = 0; i < item.children.length; i++)
-        if (item.children[i].item) return item.children[i].item
-      return item
+    function geom(name) {
+      var it = find(stage, name)
+      if (!it) { check("found " + name, false); return }
+      var p = it.mapToItem(stage, 0, 0)
+      console.log("GEOM " + name + " " + Math.round(p.x) + " " + Math.round(p.y) + " " + Math.round(it.width) + " " + Math.round(it.height))
     }
 
     Item {
       id: stage
-      width: 320
-      height: 720
+      width: 1800
+      height: Config.dp(554)
       Rectangle { anchors.fill: parent; color: Colors.surface }
-      SidebarContent {
-        id: sidebar
-        anchors.fill: parent
-        anchors.margins: Config.spacingMedium
-        active: false
+
+      HomePage {
+        x: 0; width: 450; height: parent.height
+        now: new Date(2026, 9, 7, 9, 5)
+        testValues: ({ volume: 60, muted: true, battery: 80, charging: false, cpu: 50,
+          brightness: 70, temp: 45, ram: 40, swap: 10, disk: 65, net: 20, netLabel: "2.0",
+          hostname: "elena", uptime: "1d 2h", weatherStatus: "ok", weatherTemp: "21°",
+          weatherDesc: "Partly cloudy" })
+      }
+      AgendaPage {
+        x: 450; width: 450; height: parent.height
+        today: new Date(2026, 9, 7, 9, 5)
+        weekStartsMonday: false
+      }
+      MediaPage {
+        x: 900; width: 450; height: parent.height
+        status: "Playing"
+        title: "Aphelion"
+        artist: "elenapan"
+        positionSec: 30
+        lengthSec: 120
+      }
+      PageIndicators {
+        x: 1350; y: Config.dp(40); width: 450
+        currentPage: 1
       }
     }
+
+    // Off the grabbed stage: the real page host.
+    SidebarContent {
+      id: content
+      x: 0; y: 0; width: 450; height: 831
+      visible: false
+      active: false
+    }
+    // Two writers on one property, as bar/Sidebar.qml (constant false) and the
+    // new pages (live value) do until Task 4: the live one must win every toggle.
+    QtObject { id: race; property bool target: false; property bool live: false }
+    Binding { target: race; property: "target"; value: content.statusActive }
+    Binding { target: race; property: "target"; value: race.live }
+
     Timer { id: quitTimer; interval: 100; onTriggered: Qt.quit() }
     Item {
       TestCase {
-        id: tc
         name: "sidebar-pages"
         when: true
-        function save(item, path) {
-          var done = false
-          item.grabToImage(function(result) { done = result.saveToFile(path) })
-          tryVerify(function() { return done }, 5000)
-        }
         function test_pages() {
-          wait(800)
-          sidebar.active = true
-          wait(100)
-          win.check("status visible without statistics polling", sidebar.statusActive && !sidebar.statisticsPolling)
-          save(stage, Quickshell.env("GOLDEN_OUT"))
-          var clock = win.find(sidebar, function(item) { return typeof item.rescheduleClock === "function" })
-          var search = win.find(sidebar, function(item) { return typeof item.focusField === "function" })
-          save(clock, Quickshell.env("CLOCK_OUT"))
-          save(search, Quickshell.env("SEARCH_OUT"))
-          sidebar.searchText = "@ forest"
-          search.focusField()
-          keyClick(Qt.Key_Left)
-          win.check("ordinary cursor keys do not change page", sidebar.currentPage === 0 && sidebar.searchText === "@ forest")
+          wait(1500)
+          var done = false
+          stage.grabToImage(function(r) { done = r.saveToFile(Quickshell.env("GOLDEN_OUT")) })
+          tryVerify(function() { return done }, 5000)
+          var names = ["tile_cpu", "tile_volume", "weekStrip", "todayCell", "dayCell0", "taskList",
+                       "artRing", "seekLine", "playButton", "pageDots"]
+          for (var i = 0; i < names.length; i++) win.geom(names[i])
+
+          content.visible = true
+          content.forceActiveFocus()
           keyClick(Qt.Key_PageDown, Qt.ControlModifier)
-          wait(100)
-          win.check("keyboard opens dashboard and retains query", sidebar.dashboardActive && sidebar.searchText === "@ forest")
-          win.check("dashboard owns statistics polling", sidebar.statisticsPolling && !sidebar.statusActive)
-          var stats = win.find(sidebar, function(item) { return item.uptimeSeconds !== undefined })
-          tryVerify(function() { return stats.uptimeSeconds >= 0 && stats.memoryUsage !== null && stats.loadAverage >= 0 }, 5000)
-          win.check("dashboard reads real procfs metrics", stats.uptimeSeconds > 0 && stats.memoryUsage.total >= stats.memoryUsage.used && stats.loadAverage >= 0)
-          var initialUptime = stats.uptimeSeconds
-          wait(5200)
-          win.check("visible dashboard refreshes metrics", stats.uptimeSeconds > initialUptime + 2)
-          var calendar = win.find(sidebar, function(item) { return typeof item.moveMonth === "function" })
-          calendar.displayMonth = new Date(2026, 11, 31)
-          calendar.moveMonth(1)
-          win.check("calendar crosses year without day drift", calendar.displayMonth.getFullYear() === 2027 && calendar.displayMonth.getMonth() === 0 && calendar.displayMonth.getDate() === 1)
-          calendar.displayMonth = new Date(2028, 1, 1)
-          win.check("calendar includes leap day", calendar.days.indexOf(29) >= 0 && calendar.days.indexOf(30) < 0)
-          calendar.displayMonth = new Date(calendar.today.getFullYear(), calendar.today.getMonth(), 1)
-          save(stage, Quickshell.env("DASHBOARD_OUT"))
-          search.focusField()
+          win.check("ctrl+pagedown steps to agenda", content.currentPage === 1)
+          keyClick(Qt.Key_PageDown, Qt.ControlModifier)
+          keyClick(Qt.Key_PageDown, Qt.ControlModifier)
+          win.check("paging clamps at media", content.currentPage === 2)
           keyClick(Qt.Key_PageUp, Qt.ControlModifier)
-          wait(100)
-          win.check("returning to status stops statistics", sidebar.statusActive && !sidebar.statisticsPolling)
-          var hiddenUptime = stats.uptimeSeconds
-          wait(5200)
-          win.check("hidden dashboard leaves metrics unchanged", stats.uptimeSeconds === hiddenUptime)
-          var dashboardButton = win.find(sidebar, function(item) { return item.accessibleName === "Dashboard sidebar page" })
-          win.inner(dashboardButton).forceActiveFocus()
-          keyClick(Qt.Key_Space)
-          wait(100)
-          win.check("page button supports Space", sidebar.currentPage === 1)
-          stage.height = 420
-          wait(100)
-          var scroll = win.find(sidebar, function(item) { return item.visible && item.contentHeight !== undefined && item.contentHeight > item.height })
-          win.check("short dashboard scrolls with fixed search", scroll !== null && search.mapToItem(stage, 0, search.height).y <= stage.height - Config.spacingMedium + 1)
-          scroll.contentY = scroll.contentHeight - scroll.height
-          wait(100)
-          win.check("short dashboard reaches statistics", stats.mapToItem(scroll, 0, stats.height).y <= scroll.height + 1)
-          save(stage, Quickshell.env("SHORT_OUT"))
-          sidebar.currentPage = 0
-          wait(100)
-          var statusScroll = win.find(sidebar, function(item) { return item.visible && item.contentHeight !== undefined && item.contentHeight > item.height })
-          win.check("short status page scrolls with fixed search", statusScroll !== null && search.mapToItem(stage, 0, search.height).y <= stage.height - Config.spacingMedium + 1)
-          sidebar.currentPage = 1
-          wait(100)
-          sidebar.active = false
-          wait(100)
-          win.check("closing clears query and stops both page gates", sidebar.searchText === "" && !sidebar.statisticsPolling && !sidebar.statusActive)
-          sidebar.active = true
-          wait(100)
-          win.check("reopening remembers dashboard", sidebar.currentPage === 1 && sidebar.statisticsPolling)
-          sidebar.active = false
+          win.check("ctrl+pageup steps back", content.currentPage === 1)
+          var escaped = false
+          content.escaped.connect(function() { escaped = true })
+          keyClick(Qt.Key_Escape)
+          win.check("escape emits escaped", escaped)
+          win.check("compat statusActive is constant false", content.statusActive === false)
+          win.check("compat dashboardActive follows page 1", content.dashboardActive === false)
+
+          for (var k = 0; k < 3; k++) {
+            race.live = true
+            wait(20)
+            var on = race.target === true
+            race.live = false
+            wait(20)
+            win.check("live writer wins toggle " + k, on && race.target === false)
+          }
+          content.visible = false
           console.log("DONE sidebar " + win.failures + " fail")
           quitTimer.start()
         }

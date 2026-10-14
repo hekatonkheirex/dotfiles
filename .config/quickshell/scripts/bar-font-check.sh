@@ -63,8 +63,8 @@ PY2
 [ -n "$extra" ] || { echo "FAIL: no codepoint distinguishes remix from iconic"; exit 1; }
 echo "fallback-order glyph U+$(printf '%04X' "$extra")"
 # Every icon codepoint the bar uses: literal PUA characters in
-# BottomBarContent.qml plus the \uXXXX escapes in DockSymbols.js, then the
-# fallback-order probe last.
+# BottomBarContent.qml and the sidebar pages plus the \uXXXX escapes in
+# DockSymbols.js, then the fallback-order probe last.
 cps=$(python3 -I - "$root" "$extra" <<'PY3'
 import re, sys
 root, extra = sys.argv[1], int(sys.argv[2])
@@ -72,8 +72,13 @@ qml = open(f"{root}/bar/bottombar/BottomBarContent.qml", encoding="utf-8").read(
 js = open(f"{root}/config/DockSymbols.js", encoding="utf-8").read()
 a = {ord(c) for c in qml if 0xE000 <= ord(c) <= 0xF8FF}
 b = {int(h, 16) for h in re.findall(r"\\u([eEfF][0-9a-fA-F]{3})", js)}
-if not a or not b: sys.exit("no codepoints found")
-print(",".join(str(c) for c in sorted(a | b) + [extra]))
+# The sidebar pages hold literal PUA characters too.
+c = set()
+for page in ("HomePage", "AgendaPage", "MediaPage"):
+    src = open(f"{root}/bar/sidebar/{page}.qml", encoding="utf-8").read()
+    c |= {ord(ch) for ch in src if 0xE000 <= ord(ch) <= 0xF8FF}
+if not a or not b or not c: sys.exit("no codepoints found")
+print(",".join(str(c) for c in sorted(a | b | c) + [extra]))
 PY3
 )
 [ -n "$cps" ] || { echo "FAIL: no bar codepoints read"; exit 1; }
