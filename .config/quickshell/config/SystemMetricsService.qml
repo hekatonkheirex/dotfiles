@@ -25,9 +25,24 @@ QtObject {
   property real prevNetAt: 0
   property real netCeilingBytes: 100 * 1000 * 1000     // 100 MB/s = 100 %
 
+  // Drop baselines and values when the page closes so the next open starts
+  // from a fresh 2 s delta instead of a stale one.
+  onActiveChanged: {
+    if (root.active) return
+    root.prevCpu = null; root.prevNet = null; root.prevNetAt = 0
+    root.cpu = -1; root.ram = -1; root.swap = -1; root.disk = -1
+    root.temp = -1; root.netPercent = -1; root.netLabel = "--"; root.uptime = "--"
+    root.firstTick = true
+  }
+
+  property bool firstTick: true
+
   function tick() {
     if (!root.active) return
-    statFile.reload(); meminfoFile.reload(); netFile.reload(); uptimeFile.reload()
+    // Setting `path` already loads the file on activation; that first read is
+    // the baseline, so skip the explicit reload to avoid a zero-length delta.
+    if (root.firstTick) root.firstTick = false
+    else { statFile.reload(); meminfoFile.reload(); netFile.reload(); uptimeFile.reload() }
     if (!dfProc.running) dfProc.running = true
     if (!thermalProc.running) thermalProc.running = true
   }
@@ -40,6 +55,7 @@ QtObject {
       if (cur) root.prevCpu = cur
       root.cpu = pct === null ? root.cpu : pct
     }
+    onLoadFailed: root.cpu = -1
   }
   property FileView meminfoFile: FileView {
     path: root.active ? "/proc/meminfo" : ""
@@ -49,6 +65,7 @@ QtObject {
       root.ram = m === null ? -1 : m
       root.swap = s === null ? -1 : s
     }
+    onLoadFailed: { root.ram = -1; root.swap = -1 }
   }
   property FileView netFile: FileView {
     path: root.active ? "/proc/net/dev" : ""
@@ -62,6 +79,7 @@ QtObject {
       root.netPercent = Math.max(0, Math.min(100, 100 * top / root.netCeilingBytes))
       root.netLabel = (top / 1000000).toFixed(top >= 10000000 ? 0 : 1)
     }
+    onLoadFailed: { root.netPercent = -1; root.netLabel = "--" }
   }
   property FileView uptimeFile: FileView {
     path: root.active ? "/proc/uptime" : ""
@@ -69,10 +87,12 @@ QtObject {
       var v = Number(String(text()).trim().split(/\s+/)[0])
       root.uptime = SystemMetrics.uptimeParts(isFinite(v) ? v : null)
     }
+    onLoadFailed: root.uptime = "--"
   }
   property FileView hostFile: FileView {
-    path: "/etc/hostname"
+    path: root.active ? "/etc/hostname" : ""
     onLoaded: root.hostname = String(text()).trim()
+    onLoadFailed: root.hostname = ""
   }
 
   property Process dfProc: Process {

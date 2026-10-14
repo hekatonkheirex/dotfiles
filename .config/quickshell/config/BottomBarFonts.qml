@@ -24,8 +24,5 @@ QtObject {
   }
   readonly property string clockFamily: pick("Baro Plain")
   readonly property string clockMinutesFamily: pick("Baro LineThree")
-  readonly property string textFamily: {
-    const f = Qt.fontFamilies().find(n => n.toLowerCase() === "kyok medium")
-    return f !== undefined ? f : Config.fontFamily
-  }
+  readonly property string textFamily: pick("Kyok medium")
 }

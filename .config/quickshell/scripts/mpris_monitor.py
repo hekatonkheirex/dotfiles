@@ -169,6 +169,21 @@ bus.add_signal_receiver(
     sender_keyword='sender'
 )
 
+def handle_seeked(position, path=None, sender=None):
+    # A seek on a paused player emits Seeked, not PropertiesChanged.
+    info = get_player_info(sender)
+    if info:
+        players[sender] = info
+        update_and_print()
+
+bus.add_signal_receiver(
+    handle_seeked,
+    signal_name='Seeked',
+    dbus_interface='org.mpris.MediaPlayer2.Player',
+    path='/org/mpris/MediaPlayer2',
+    sender_keyword='sender'
+)
+
 # Helper function to send commands
 def send_command(action):
     global preferred_player_sender
