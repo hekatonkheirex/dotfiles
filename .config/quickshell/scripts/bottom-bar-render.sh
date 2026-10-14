@@ -3,7 +3,7 @@
 # overrides it; KEEP_PNG=path keeps a copy of the render, even when the check fails)
 # Renders three BottomBarContent instances under the elenapan palette in a scratch
 # HOME, fails on QML errors, and pixel-checks cluster surfaces, hover borders,
-# dock indicators, battery parts, signal, volume ring and alarm pill.
+# dock indicators, battery parts, signal, volume ring and tray pill.
 # Icon-font identity is checked separately by bar-font-check.sh.
 set -euo pipefail
 root=$(realpath "${BOTTOM_BAR_RENDER_ROOT:-${1:-$(dirname "$0")/..}}")
@@ -146,13 +146,13 @@ for deg in (180, 230, 290, 340):
     b = ring("B", deg)
     check(f"B ring {deg:3d} deg px (backdrop)", count(b, HIGH), area(b))
 
-# 8. alarm count: pill in A, slashed line in B (button 2 of the right cluster)
-alarm_x = W - CW / 2 + (icon_width + dp(10)) / 2
-ab = lambda lab: (round(alarm_x - dp(23) / 2), OFF[lab] + (BH - dp(23)) // 2, round(alarm_x + dp(23) / 2), OFF[lab] + (BH + dp(23)) // 2)
-check("A alarm pill px (container)", count(ab("A"), HIGH), int(700 * INK_SCALE))
-check("A alarm slash px (tertiary)", count(ab("A"), TER), 0, 0)
-check("B alarm slash px (tertiary)", count(ab("B"), TER), int(0.6 * dp(23) * dp(4)))
-check("B alarm pill px (container)", count(ab("B"), HIGH), 0, 20)
+# 8. tray count: pill in A, slashed line in B (button 2 of the right cluster)
+tray_x = W - CW / 2 + (icon_width + dp(10)) / 2
+ab = lambda lab: (round(tray_x - dp(23) / 2), OFF[lab] + (BH - dp(23)) // 2, round(tray_x + dp(23) / 2), OFF[lab] + (BH + dp(23)) // 2)
+check("A tray pill px (container)", count(ab("A"), HIGH), int(700 * INK_SCALE))
+check("A tray slash px (tertiary)", count(ab("A"), TER), 0, 0)
+check("B tray slash px (tertiary)", count(ab("B"), TER), int(0.6 * dp(23) * dp(4)))
+check("B tray pill px (container)", count(ab("B"), HIGH), 0, 20)
 
 # 10. Disconnected bars collapse to the scaled short height; battery parts
 # remain empty, empty, half for the 10 % fixture.

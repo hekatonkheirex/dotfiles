@@ -25,7 +25,7 @@ PanelWindow {
   signal sidebarPageRequested(int page)
   signal launcherRequested()
   signal networkRequested()
-  signal alarmsRequested()
+  signal trayRequested()
   signal logoutRequested()
   signal itemActivated(string appId)
   signal itemClosed(string appId)
@@ -67,7 +67,7 @@ PanelWindow {
     signal: NetworkStatusService.signal
     connected: NetworkStatusService.connected
     vpn: NetworkStatusService.vpn
-    alarmCount: AlarmService.count
+    trayCount: TrayService.count
 
     onGlanceClicked: root.sidebarPageRequested(0)
     onGlanceRightClicked: root.launcherRequested()
@@ -82,7 +82,7 @@ PanelWindow {
     onMediaMiddleClicked: AudioService.toggleMute()
     onMediaRightClicked: Quickshell.execDetached(["sh", "-c", root.pavucontrolCommand])
     onNetworkClicked: root.networkRequested()
-    onAlarmsClicked: root.alarmsRequested()
+    onTrayClicked: root.trayRequested()
     onLogoutClicked: root.logoutRequested()
     onItemActivated: function(appId) { root.itemActivated(appId) }
     onItemClosed: function(appId) { root.itemClosed(appId) }

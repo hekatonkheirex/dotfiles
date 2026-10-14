@@ -27,7 +27,7 @@ ShellRoot {
         volume: 100; muted: false
         batteryPct: 100; charging: true
         signal: 4; connected: true; vpn: true
-        alarmCount: 3
+        trayCount: 3
       }
       BottomBarContent {          // B: hover on glance, 40 % battery, 2 bars, muted
         x: 0; y: 85; width: 1100
@@ -36,7 +36,7 @@ ShellRoot {
         volume: 40; muted: true
         batteryPct: 40; charging: false
         signal: 2; connected: true; vpn: false
-        alarmCount: 0
+        trayCount: 0
         forceHover: "glance"
       }
       BottomBarContent {          // C: disconnected, 10 % battery, 20 dock items
@@ -67,7 +67,7 @@ ShellRoot {
         volume: 0; muted: false
         batteryPct: 10; charging: false
         signal: 0; connected: false; vpn: false
-        alarmCount: 0
+        trayCount: 0
       }
     }
 

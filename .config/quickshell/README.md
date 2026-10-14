@@ -51,6 +51,7 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── BottomBarModel.js       # Pure bottom-bar decisions (clock, battery, signal, nmcli parsing, page toggle, wheel notches)
 │   ├── NetworkStatusService.qml # Wi-Fi signal bucket and VPN state for the bottom bar
 │   ├── Alarms.js               # Pure alarm logic: next occurrence, entry keys, due, file parse
+│   ├── TrayService.qml         # StatusNotifier items (also registers the watcher)
 │   ├── AlarmService.qml        # Alarms: file store, single re-armed timer, sound and notification (command seam)
 │   ├── NetworkList.js          # Pure nmcli parsers, signal buckets, name cut, ping lines, MB/s label
 │   ├── NetworkListService.qml  # Networks window: Wi-Fi list, scan, ping, connect/disconnect/forget (one command seam)
@@ -81,10 +82,10 @@ This replaces a traditional status bar (waybar) and panel infrastructure with a 
 │   ├── LauncherPopup.qml       # App/provider search (apps, clipboard, wallpapers, actions)
 │   ├── NetworksWindow.qml       # Her networks window, right+bottom anchored overlay (route "networks")
 │   ├── networks/                # NetworksContent, NetworkRow, PassphraseRow, BandwidthRow, ToolbarButton
+│   ├── TrayWindow.qml           # System tray window (route "tray")
 │   ├── AlarmsWindow.qml         # Her alarms window, right+bottom anchored overlay (route "alarms")
 │   ├── alarms/                  # AlarmsContent, AlarmButton
 │   ├── BtPanel.qml              # Bluetooth controls used by the Settings Bluetooth tab
-│   ├── SystemTrayArea.qml      # StatusNotifier tray icons (orientation-aware)
 │   ├── PowerMenu.qml           # Full-screen power menu overlay (route "quickmenu")
 │   ├── powermenu/              # PowerMenuContent, its pieces and LockSurfaceContent (the lock look)
 │   ├── OsdOverlay.qml          # Volume/brightness/mic/airplane/bluetooth/kbd-backlight OSD popup
@@ -259,7 +260,7 @@ When `XDG_RUNTIME_DIR` is unavailable, Quickshell uses
 - `ipc.settings()` — toggle Settings popup
 - `ipc.commandcenter()` — legacy alias for `ipc.settings()`
 - `ipc.layout()` — toggle bar orientation
-- `ipc.popup(name)`: toggle a popup by route (`quickmenu`, `launcher`, `sidebar`, `networks`, `alarms`); `false` for an unknown name
+- `ipc.popup(name)`: toggle a popup by route (`quickmenu`, `launcher`, `sidebar`, `networks`, `alarms`, `tray`); `false` for an unknown name
 - `ipc.settingsTab(n)`: dev/testing: select Settings tab `n` (0-9: Account, General, Appearance, Display & Input, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts) in memory
 - `ipc.forgetPrompt(name)`: dev/testing: open the networks window with the "forget <name>?" row shown (never forgets by itself); `""` clears the row
 
@@ -267,7 +268,7 @@ When `XDG_RUNTIME_DIR` is unavailable, Quickshell uses
 - `ipc.alarmAdd(minutes, label)`: dev/testing: schedule a real alarm `minutes` from now (fractions allowed); returns the count
 - `ipc.alarmRemove(index)`: dev/testing: delete the alarm at sorted position `index`
 - `ipc.openSidebarPage(n)`: bottom-bar page toggle: opens the sidebar at page `n` (clamped to the pages that exist), closes it when that page is already open, switches otherwise; `false` while locked
-- `ipc.bottomBarState()`: dev/testing: bottom bar inputs as JSON (`items`, `clockText`, `dateText`, `volume`, `muted`, `batteryPct`, `charging`, `signal`, `connected`, `vpn`, `alarmCount`, `height`, `page`)
+- `ipc.bottomBarState()`: dev/testing: bottom bar inputs as JSON (`items`, `clockText`, `dateText`, `volume`, `muted`, `batteryPct`, `charging`, `signal`, `connected`, `vpn`, `trayCount`, `height`, `page`)
 - `ipc.dockState()`: dev/testing: dock items and window inputs as JSON (`workspaceEmpty`, `windows`, `items`)
 
 Callable externally via `quickshell ipc call shell launcher` (and similarly for the others).
@@ -323,7 +324,8 @@ Escape or clicking outside (on another window) dismisses the active popup. All p
 | Launcher | `Mod+D` | App/provider search (`>` actions and capture, `;` clipboard history, `@` wallpapers) + `.desktop` list |
 | Power Menu | bottom-bar logout / `Mod+Escape` | Full-screen overlay: greeting, quote, palette; poweroff, reboot, exit (confirmed), hibernate, suspend, lock |
 | Networks | Bottom-bar network button / `qs ipc call shell popup networks` | Her networks window: Wi-Fi list, connect/disconnect/forget, bandwidth, vpn, scan, speedtest, ping (see Networks window (R4)) |
-| Alarms | Bottom-bar alarm button / `qs ipc call shell popup alarms` | Her alarms window: ring in / ring at, browse and delete, real scheduling (see Alarms window (R5)) |
+| Tray | Bottom-bar tray button / `qs ipc call shell popup tray` | Grid of the StatusNotifier items: left click activates, right click opens the app's menu, middle click is the secondary action |
+| Alarms | `qs ipc call shell popup alarms` | Her alarms window: ring in / ring at, browse and delete, real scheduling (see Alarms window (R5)) |
 | Settings | `XF86Tools` | 10 tabs: Account, General, Appearance, Display & Input, Bluetooth, Media, Lock & Power, Notifications, System, Shortcuts (responsive surface with persisted last tab, drag-to-move, and resize handle) |
 | OSD | volume/brightness/mic/airplane/bluetooth/kbd-backlight keys | Auto-dismissing bottom-anchored status card (not part of the `openPopup` system — a separate always-on-top window) |
 
@@ -371,14 +373,14 @@ Handles popup dismissal on app focus loss with target null checks. It observes f
 ## Widget Details
 
 - **Wallpaper filmstrip** (`bar/WallpaperFilmstrip.qml`, layout and list helpers in `config/WallpaperFilmstrip.js`, tested by `node tests/wallpaper-filmstrip/test.mjs` and `bash tests/wallpaper-filmstrip/previews.test.sh`, `random.test.sh`, and `node tests/settings-tabs/test.mjs` for tab numbering): a full-width picker of tall leaning slices with one wide accent-bordered card and its name and date below, sized from the screen width to match a reference capture. Typing `@` in the launcher opens it (the launcher closes; text typed after `@` pre-selects the first match), and `qs ipc call shell wallpapers` toggles it directly. Left/Right, Home/End or the wheel move; typing jumps to the first name that starts with or contains the text (Backspace edits, Escape clears it, then closes); Enter or a click on the card applies through `scripts/apply-wallpaper.sh`. It reads `~/Pictures/Walls`, uses the Wallpaper tab's thumbnails for slices, starts on the current wallpaper (from `awww query`) and shows a sharp 1600 px preview on the selected card once it has rested (`scripts/generate-previews.sh`: one preview on demand if missing, plus one niced bulk run per session into `~/.cache/quickshell/wallpaper-previews`; the original is the fallback). Slices avoid `clip`, which is stencil-only and jagged under a shear, and use edge antialiasing and mipmaps. Items are placed from a fractional position (not a `ListView`, whose origin drifts as delegates load), and only a window of delegates is alive. The launcher no longer has its own wallpaper grid; `@` is only the hand-off (the Settings > Wallpaper tab keeps its grid).
-- **Bar.qml**: The top workspace strip, popup routing (`openPopup`, anchors, `togglePopupByName`), the workspace data owner and the system-tray watcher. The old indicator widgets and form/order layout are removed; saved widget keys stay in `settings.json` and `config/BarForm.js` only supplies the strip geometry.
+- **Bar.qml**: The top workspace strip, popup routing (`openPopup`, anchors, `togglePopupByName`), the workspace data owner. The old indicator widgets and form/order layout are removed; saved widget keys stay in `settings.json` and `config/BarForm.js` only supplies the strip geometry.
 - **Clock presentation**: The bottom-bar clock shows system-local 24-hour time (`HHmm`). Seconds and timezone preferences belong to the hidden legacy clock and are no longer exposed in Settings. The retained `clock24h` preference controls notification-history timestamps, labeled “24-hour notification times” in General.
 - **Calendar**: Month navigation, a circular today badge and the Sunday/Monday week-start preference remain unchanged.
 - **WorkspaceIndicator**: Streams Niri (or mango) workspace state through the event stream and exposes `focusWorkspace`, `moveFocusedWindowTo` and `stepWorkspace`. It has no visuals; focused-window tracking and the mango layout symbol were removed with their only consumers.
 - **Audio, brightness, media and weather services**: Event-driven watchers and polling loops are bound to the active/visible state of the bottom bar, sidebar pages and popups that use them (weather refreshes on a timer only while one is open). Audio writes for sink and microphone are serialized and coalesced during rapid slider/toggle input, with a final state read after the latest write.
 - **BatteryService**: Utilizes UPower property bindings (no timers) to react directly to battery changes.
 - **BtPanel**: Bluetooth controls live in the Settings Bluetooth tab, including discovery/pairing and connected-device actions. Wi-Fi lives in the networks window (bottom-bar network button).
-- **SystemTrayArea**: Renders StatusNotifier items with left-click activate and right-click context menu, orientation-aware layout.
+- **TrayWindow / TrayService**: StatusNotifier items in a grid (left activate, right menu, middle secondary). `blueman` and `udiskie` stay filtered. `Bar.qml` no longer hosts a tray; referencing `SystemTray` in `TrayService` registers the watcher at startup.
 - **PowerMenu**: her powermenu as a full-screen Overlay layer with exclusive keyboard focus over a 0.7 surface backdrop. Six glyph buttons (poweroff x1, reboot x2, exit x4, hibernate x6, suspend x3, lock x5) fade in staggered; hover dims the rest to 0.3 and writes the action into the terminal line. Arrows step the 3x2 grid (`PowerMenuModel.step`), Enter acts, Esc, middle click or a click outside the buttons closes. Poweroff, reboot and exit close the menu and open the existing confirmation overlay; hibernate and suspend run `systemctl` (failures logged); lock takes the secure lock route. The QuickMenu caffeine, airplane and Bluetooth toggles are gone: Caffeine lives in Settings > Lock & Power, DND in Settings > Notifications, airplane mode and Bluetooth power stay on their keys (`XF86WLAN`/`F8`/`Mod+F8`, `XF86Bluetooth`/`F10`/`Mod+F10`), and Bluetooth devices in Settings > Bluetooth.
   Hover selection follows direct button-to-button movement; a departing button
   only clears its own selection, so its late exit cannot erase the next action.
@@ -502,10 +504,11 @@ content (`bar/bottombar/BottomBarContent.qml`) has three parts:
   Click focuses or launches, middle click closes, the wheel cycles windows
   one per notch.
 - **Right cluster**: network (VPN shield or link, then four signal bars),
-  alarms (count pill or a slash), battery (three parts and a charging bolt).
+  tray (count pill or a slash), battery (three parts and a charging bolt).
 
-The network button toggles her networks window (R4), the alarm button her
-alarms window (R5), logout the power menu (R3). The sidebar and bottom-right toasts
+The network button toggles her networks window (R4), the tray button the system tray window,
+logout the power menu (R3). The alarms window (R5) has no bar button and is
+reached with `qs ipc call shell popup alarms`. The sidebar and bottom-right toasts
 leave the bar's height free so its buttons stay clickable.
 
 **Fonts.** The icons come from her icomoon font set in
@@ -708,7 +711,7 @@ loss and the button dismiss it.
   `notify-send -u critical -t 0 -a quickshell-alarm Alarm <label>` posts a
   notification that stays; critical bypasses DND and quiet hours, and it rings
   while locked. Adding shows a 2 s "Will ring at HH:MM" notice.
-- **Bar**: the bottom bar's alarm pill shows the pending count (a slash at 0).
+- **Bar**: no bottom-bar button any more (the tray took its slot); open it with `qs ipc call shell popup alarms`.
 
 Checks: `node tests/alarms/alarms.test.mjs` (model), `node
 tests/alarms/wiring.test.mjs` and `bash scripts/alarms-render.sh` (every state,

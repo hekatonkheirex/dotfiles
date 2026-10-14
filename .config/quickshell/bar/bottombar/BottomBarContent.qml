@@ -15,7 +15,7 @@ Item {
   property int signal: 0
   property bool connected: false
   property bool vpn: false
-  property int alarmCount: 0
+  property int trayCount: 0
   property string forceHover: ""
 
   signal glanceClicked()
@@ -26,7 +26,7 @@ Item {
   signal mediaMiddleClicked()
   signal mediaScrolled(int delta)
   signal networkClicked()
-  signal alarmsClicked()
+  signal trayClicked()
   signal logoutClicked()
   signal itemActivated(string appId)
   signal itemClosed(string appId)
@@ -139,21 +139,21 @@ Item {
       BarButton {
         width: parent.width / 3
         height: parent.height
-        symbol: ""
+        symbol: "\ue941"
         accent: Colors.elenaAccent(3)
-        forceHover: root.forceHover === "alarms"
-        onClicked: root.alarmsClicked()
+        forceHover: root.forceHover === "tray"
+        onClicked: root.trayClicked()
         Item {
           width: Config.bottomBarDp(23)
           height: Config.bottomBarDp(23)
           ValuePill {
             anchors.centerIn: parent
-            visible: root.alarmCount > 0
-            text: String(root.alarmCount)
+            visible: root.trayCount > 0
+            text: String(root.trayCount)
           }
-          Rectangle {   // no alarms: the slashed line
+          Rectangle {   // no tray items: the slashed line
             anchors.centerIn: parent
-            visible: root.alarmCount === 0
+            visible: root.trayCount === 0
             width: Config.bottomBarDp(23)
             height: Config.bottomBarDp(4)
             radius: height / 2

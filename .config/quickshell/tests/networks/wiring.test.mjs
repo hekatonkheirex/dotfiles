@@ -94,7 +94,7 @@ assert.match(bb, /onNetworkRequested: \{\s*if \(lockScreen\.locked\) return\s*ba
 assert.doesNotMatch(shell, /settingsPanel\.currentTab = 4/)
 assert.doesNotMatch(shell, /devForgetName/)
 assert.match(shell, /function forgetPrompt\(name: string\): string \{[^}]*networksWindow\.forgetFor = name[^}]*bar\.openPopup = "networks"/)
-assert.match(rd("../../bar/Bar.qml"), /if \(name === "sidebar" \|\| name === "networks" \|\| name === "alarms"\)/)
+assert.match(rd("../../bar/Bar.qml"), /if \(name === "sidebar" \|\| name === "networks" \|\| name === "alarms" \|\| name === "tray"\)/)
 assert.match(rd("../../scripts/popup-ipc-check.sh"), /\bnetworks\b/)
 
 assert.ok(!existsSync(path("../../bar/WifiPanel.qml")), "WifiPanel.qml removed")

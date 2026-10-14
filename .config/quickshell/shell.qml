@@ -374,7 +374,7 @@ ShellRoot {
       bar.openPopup = bar.openPopup === "settings" ? "" : "settings"
     }
 
-    // popup("quickmenu" | "launcher" | "sidebar" | "networks" | "alarms"): toggle a popup.
+    // popup("quickmenu" | "launcher" | "sidebar" | "networks" | "alarms" | "tray"): toggle a popup.
     function popup(name: string): bool {
       return bar.togglePopupByName(name)
     }
@@ -443,7 +443,7 @@ ShellRoot {
       var c = bottomBar.content
       return JSON.stringify({ items: bottomBar.items, clockText: c.clockText, dateText: c.dateText,
         volume: c.volume, muted: c.muted, batteryPct: c.batteryPct, charging: c.charging,
-        signal: c.signal, connected: c.connected, vpn: c.vpn, alarmCount: c.alarmCount,
+        signal: c.signal, connected: c.connected, vpn: c.vpn, trayCount: c.trayCount,
         height: bottomBar.implicitHeight, page: sidebar.currentPage })
     }
 
@@ -599,6 +599,13 @@ ShellRoot {
     allowed: !lockScreen.locked && !lockScreen.compositorLocked
   }
 
+  TrayWindow {
+    id: trayWindow
+    visible: bar.openPopup === "tray" && !lockScreen.locked && !lockScreen.compositorLocked
+    screen: bar.screen
+    onDismissed: bar.openPopup = ""
+  }
+
   AlarmsWindow {
     id: alarmsWindow
     visible: bar.openPopup === "alarms" && !lockScreen.locked && !lockScreen.compositorLocked
@@ -636,10 +643,10 @@ ShellRoot {
       if (lockScreen.locked) return
       ipc.launcher()
     }
-    // Her alarms window; a second click closes it.
-    onAlarmsRequested: {
+    // The tray window; a second click closes it.
+    onTrayRequested: {
       if (lockScreen.locked) return
-      bar.togglePopupByName("alarms")
+      bar.togglePopupByName("tray")
     }
     // Her networks window; a second click closes it.
     onNetworkRequested: {

@@ -87,7 +87,7 @@ PanelWindow {
   // for unknown names.
   function togglePopupByName(name) {
     // The sidebar, networks and alarms windows have no anchor.
-    if (name === "sidebar" || name === "networks" || name === "alarms") {
+    if (name === "sidebar" || name === "networks" || name === "alarms" || name === "tray") {
       openPopup = openPopup === name ? "" : name
       return true
     }
@@ -136,18 +136,6 @@ PanelWindow {
       id: wsIndicator
       width: 0
       height: 0
-    }
-
-    // Registers the StatusNotifierWatcher so tray apps can start; no icons are
-    // shown until a tray home exists.
-    SystemTrayArea {
-      id: systemTray
-      width: 0
-      height: 0
-      opacity: 0
-      enabled: false
-      horizontal: root.horizontal
-      parentWindow: root
     }
   }
 }

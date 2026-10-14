@@ -25,14 +25,9 @@ assert.match(win, /Config\.layerNamespace\("popup-alarms"\)/, "matches the popup
 assert.match(win, /WlrLayer\.Overlay/)
 assert.match(win, /FocusDismiss/)
 
-const bar = rd("../../bar/BottomBar.qml")
-assert.match(bar, /alarmCount: AlarmService\.count/)
-assert.match(bar, /signal alarmsRequested\(\)/)
-assert.match(bar, /onAlarmsClicked: root\.alarmsRequested\(\)/)
-
 const shell = rd("../../shell.qml")
 assert.match(shell, /id: alarmsWindow\s+visible: bar\.openPopup === "alarms" && !lockScreen\.locked && !lockScreen\.compositorLocked/)
-assert.match(shell, /onAlarmsRequested: \{\s+if \(lockScreen\.locked\) return\s+bar\.togglePopupByName\("alarms"\)/)
+assert.doesNotMatch(shell, /onAlarmsRequested/, "alarms have no bottom-bar button; IPC only")
 for (const fn of ["alarmState()", "alarmAdd(minutes: real, label: string)", "alarmRemove(index: int)"])
   assert.ok(shell.includes(`function ${fn}`), fn)
 
