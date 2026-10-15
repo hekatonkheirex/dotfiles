@@ -2,7 +2,13 @@
 
 My Arch Linux desktop: the [Niri](https://github.com/YaLTeR/niri) compositor with a custom [Quickshell](https://quickshell.outfoxxed.me/) shell, managed with [yadm](https://yadm.io/).
 
-![Desktop](https://i.imgur.com/ljlYpNy.png)
+![Desktop](.config/quickshell/docs/screenshots/desktop.jpg)
+
+| | |
+|---|---|
+| ![Launcher](.config/quickshell/docs/screenshots/launcher.jpg) | ![Wallpaper filmstrip](.config/quickshell/docs/screenshots/wallpapers.jpg) |
+| ![Home sidebar](.config/quickshell/docs/screenshots/sidebar-home.jpg) | ![Settings](.config/quickshell/docs/screenshots/settings.jpg) |
+| ![Media sidebar](.config/quickshell/docs/screenshots/sidebar-media.jpg) | ![Power menu](.config/quickshell/docs/screenshots/powermenu.jpg) |
 
 ## What is here
 
