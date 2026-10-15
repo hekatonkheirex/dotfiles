@@ -40,6 +40,5 @@ assert.equal(M.step(2, "other", 6), 2)
 assert.deepEqual(["poweroff", "reboot", "exit", "hibernate", "suspend", "lock", "lockOpen", "lockFailed"]
   .map(id => M.glyph(id).codePointAt(0).toString(16)),
   ["ee10", "eb92", "ec9d", "ee0e", "ed60", "ec53", "eac8", "ea45"])
-assert.equal(M.glyph("heart"), "favorite")   // Material Symbols ligature
 assert.equal(M.glyph("nope"), "")
 console.log("power-menu model ok")

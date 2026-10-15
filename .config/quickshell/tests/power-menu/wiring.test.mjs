@@ -57,7 +57,6 @@ console.log("power-menu task 3 wiring ok")
 // Task 2 review fixes.
 assert.match(rd("../../bar/powermenu/TerminalLine.qml"), /running: root\.visible && root\.live && !Config\.reducedMotion/, "cursor stays solid under reduced motion")
 assert.match(rd("../../bar/powermenu/PaletteRow.qml"), /leftPadding: Config\.dp\(16\) - Config\.dp\(15\)/, "first circle takes her -15 S margin too")
-assert.match(rd("../../bar/powermenu/PowerMenuContent.qml"), /objectName: "heart"[\s\S]*?bottomPadding: Config\.dp\(8\)/, "heart keeps her margin-bottom 8 S")
 console.log("power-menu review fixes ok")
 
 // Logout safety routing (Task 3 review): exit goes through safe-logout.sh,

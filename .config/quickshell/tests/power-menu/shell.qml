@@ -122,10 +122,6 @@ ShellRoot {
           win.check("terminal shows $ reboot", b.selected === "reboot"
             && win.find(b, "terminalValue").text === "reboot")
 
-          var heart = win.find(a, "heart")
-          win.check("heart ligature is one glyph", heart.contentWidth > 0
-            && heart.contentWidth <= heart.font.pixelSize * 1.5 + heart.leftPadding)
-
           // Locked: buttons gone, ring per last action.
           win.check("locked hides the buttons", !win.find(l, "buttonGrid").visible)
           win.check("unlocked shows no ring", !win.find(a, "lockRing").visible)

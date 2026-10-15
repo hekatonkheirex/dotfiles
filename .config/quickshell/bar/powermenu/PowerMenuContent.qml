@@ -95,27 +95,12 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           // Battle Andy leaves room under the line; pull the subtitle up.
           spacing: -Config.dp(34)
-          Row {
-            Text {
-              text: "Hello"
-              color: Colors.elenaAccent(6)
-              font.family: BottomBarFonts.pick("Battle Andy")
-              font.pixelSize: root.pt(80)
-              rightPadding: Config.dp(27)
-            }
-            Text {
-              objectName: "heart"
-              anchors.verticalCenter: parent.verticalCenter
-              text: Model.glyph("heart")
-              color: Colors.elenaAccent(1)
-              font.family: BottomBarFonts.materialFamily
-              font.pixelSize: root.pt(10)
-              font.variableAxes: Config.iconVariableAxes(1, root.pt(10))   // filled, like her Material Icons heart
-              leftPadding: Config.dp(3)
-              // Her margin-bottom 8 S: GTK centers the glyph in the row height
-              // minus that margin, so it rides 4 S above the row center.
-              bottomPadding: Config.dp(8)
-            }
+          Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: "Wake up, Mura"
+            color: Colors.elenaAccent(6)
+            font.family: BottomBarFonts.pick("Battle Andy")
+            font.pixelSize: root.pt(56)
           }
           Text {
             anchors.horizontalCenter: parent.horizontalCenter

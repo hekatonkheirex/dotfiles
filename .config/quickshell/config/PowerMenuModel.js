@@ -29,15 +29,13 @@ function step(index, key, count) {
 }
 
 // Icon-font glyphs, extracted from the :symbol attributes and the lock and
-// heart boxes in config/eww/windows/powermenu.yuck (github.com/elenapan/dotfiles,
+// boxes in config/eww/windows/powermenu.yuck (github.com/elenapan/dotfiles,
 // master 2025-09-07). scripts/bar-font-check.sh proves each icon codepoint
-// resolves from remix.ttf. Her little heart is U+E87D from Material Icons
-// (not in any installed icomoon file): it is the Material Symbols ligature
-// "favorite" here, drawn with BottomBarFonts.materialFamily.
+// resolves from remix.ttf.
 var GLYPHS = {
   poweroff: "\uee10", reboot: "\ueb92", exit: "\uec9d",
   hibernate: "\uee0e", suspend: "\ued60", lock: "\uec53",
-  lockOpen: "\ueac8", lockFailed: "\uea45", heart: "favorite"
+  lockOpen: "\ueac8", lockFailed: "\uea45"
 }
 
 function glyph(id) { return GLYPHS[id] || "" }
