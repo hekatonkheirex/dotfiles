@@ -132,8 +132,7 @@ Item {
               visible: Settings.powerMenuQuoteAuthor !== ""
               text: Settings.powerMenuQuoteAuthor
               color: Colors.fgSurfaceVariant
-              font.family: Config.fontFamily
-              font.italic: true
+              font.family: "monospace"
               font.pixelSize: root.pt(14)
             }
           }
