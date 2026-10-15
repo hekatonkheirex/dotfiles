@@ -71,7 +71,7 @@ Niri binds call `scripts/launcher`, `quickmenu`, `settings`, `lock` and `emit-tr
 
 ## Theme pipeline
 
-`apply-wallpaper.sh` sets the wallpaper (awww), then `sync-active-palette.sh` renders the Matugen cache and runs `~/.local/bin/generate-all-themes.sh` and `sync-theme-mode.sh` for GTK, Qt, Kvantum, kitty, btop and niri. Fixed palettes (Elenapan, Catppuccin, Gruvbox, TokyoNight) are exported through the same path. `sync-theme-mode-locked.sh` serializes concurrent syncs through `theme-sync-lock.sh`.
+`apply-wallpaper.sh` sets the wallpaper (awww), then `sync-active-palette.sh` renders the Matugen cache and runs `~/.local/bin/generate-all-themes.sh` and `sync-theme-mode.sh` for GTK, Qt, Kvantum, kitty, btop and niri. Fixed palettes (Elenapan, Catppuccin, Gruvbox, TokyoNight) are exported through the same path. `sync-theme-mode-locked.sh` serializes concurrent syncs through `theme-sync-lock.sh`. The Settings Appearance tab starts the sync through `Colors.runPaletteSync()`, so the run survives closing the sidebar. `generate-all-themes.sh` rebuilds icons, Kvantum and GTK/Qt only; the SDDM theme is built by `install-ui-suite.sh`, not on palette changes.
 
 `install-ui-suite.sh` and `install-sddm-integration.sh` (with their `verify-*` twins) install the external Material 3 companions and the SDDM bridge. They use sudo; run them yourself.
 
