@@ -54,6 +54,8 @@ function slotOf(color) { return ((color - 1) % 6) + 1 }
 
 function symbolFor(appId) {
   var key = appId === undefined || appId === null ? "" : String(appId).toLowerCase()
-  var entry = lower[key] || lower["___default___"]
-  return { symbol: entry.symbol, font: entry.material ? "material" : "icomoon", slot: slotOf(entry.color) }
+  var hit = lower[key]
+  var entry = hit || lower["___default___"]
+  // known=false: no glyph of hers for this app, the dock shows its own icon.
+  return { symbol: entry.symbol, font: entry.material ? "material" : "icomoon", slot: slotOf(entry.color), known: !!hit }
 }

@@ -36,5 +36,11 @@ assert.equal(n, 35, "34 ported apps + default")
 // Prototype names miss the table and get the default glyph.
 const def = M.symbolFor("___default___")
 for (const id of ["constructor", "__proto__", "toString", "hasOwnProperty"])
-  assert.deepEqual(M.symbolFor(id), def, id)
+  assert.deepEqual(M.symbolFor(id), { ...def, known: false }, id)
 console.log("dock symbols: ok")
+
+// Unlisted apps are flagged so the dock can show their own icon.
+assert.equal(M.symbolFor("kitty").known, true)
+assert.equal(M.symbolFor("brave-origin").known, false)
+assert.equal(M.symbolFor("org.gnome.Nautilus").known, false)
+assert.equal(M.symbolFor("constructor").known, false)

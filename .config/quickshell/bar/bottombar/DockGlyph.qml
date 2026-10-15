@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import "../../config"
 import "../../config/DockSymbols.js" as DockSymbols
 import "../../config/BottomBarModel.js" as BottomBarModel
@@ -18,6 +19,13 @@ Item {
   readonly property color accent: Colors.elenaAccent(root.sym.slot)
   readonly property color glyphColor: root.running ? root.accent : Colors.elenaAccent(8)
 
+  // Apps without a glyph in the table show their desktop entry icon, so two
+  // unlisted apps do not collapse onto the same placeholder.
+  readonly property var entry: root.sym.known ? null : DesktopEntries.heuristicLookup(root.appId)
+  readonly property string iconPath: root.entry && root.entry.icon !== ""
+    ? Quickshell.iconPath(root.entry.icon, true) : ""
+  readonly property bool useIcon: root.iconPath !== ""
+
   signal activated()
   signal closeRequested()
   signal cycled(int direction)
@@ -25,8 +33,22 @@ Item {
   implicitWidth: Config.bottomBarDp(35)
   implicitHeight: Config.bottomBarDp(26) + Config.bottomBarDp(6) + Config.bottomBarDp(3)
 
+  Image {
+    id: appIcon
+    visible: root.useIcon
+    anchors.horizontalCenter: parent.horizontalCenter
+    anchors.top: parent.top
+    width: Config.bottomBarDp(22)
+    height: width
+    source: root.iconPath
+    sourceSize: Qt.size(width * 2, height * 2)
+    asynchronous: true
+    opacity: root.running ? 1 : 0.55
+  }
+
   Text {
     id: glyph
+    visible: !root.useIcon
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.top: parent.top
     text: root.sym.symbol
