@@ -6,7 +6,7 @@ import "../../config/PowerMenuModel.js" as Model
 
 // Her powermenu (config/eww/windows/powermenu.yuck), window-less so the
 // overlay and the lock surfaces host it and the render check can grab it.
-// Left: greeting, quote, palette row. Right: cat, 3x2 buttons (or the lock
+// Left: greeting, quote, palette row. Right: pills, 3x2 buttons (or the lock
 // ring when `locked`), terminal line. The host paints the backdrop and gives
 // this item keyboard focus; key handling is off while locked (the lock
 // surface owns password input).
@@ -187,7 +187,7 @@ Item {
         anchors.centerIn: parent
         spacing: 30
 
-        CatBlock { anchors.horizontalCenter: parent.horizontalCenter }
+        PillBlock { anchors.horizontalCenter: parent.horizontalCenter }
 
         // Fixed height: the buttons and the ring swap in the same slot.
         Item {

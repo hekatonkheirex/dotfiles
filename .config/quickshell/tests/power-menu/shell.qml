@@ -173,16 +173,22 @@ ShellRoot {
           }
           mouseMove(frameA, 2, 2)
           win.check("leaving clears the selection", a.selected === "" && hovers[hovers.length - 1] === "")
-          var catHover = win.find(a, "catHover")
-          var cat = catHover.parent
-          grab(cat, "cat-normal")
-          mouseMove(catHover, 4, 4)
-          wait(50)
-          grab(cat, "cat-happy")
-          grab(frameA, "cat-hover")
+          var pills = win.find(a, "pillBlock")
+          var redPill = win.find(a, "pillRed")
+          var bluePill = win.find(a, "pillBlue")
+          grab(pills, "pill-normal")
+          mouseMove(redPill, redPill.width / 2, redPill.height / 2)
+          wait(250)
+          win.check("hovering the red pill names it", pills.hovered === "red")
+          grab(pills, "pill-red")
+          mouseMove(bluePill, bluePill.width / 2, bluePill.height / 2)
+          wait(250)
+          win.check("hovering the blue pill names it", pills.hovered === "blue")
+          grab(pills, "pill-blue")
           mouseMove(frameA, 2, 2)
-          wait(50)
-          grab(cat, "cat-restored")
+          wait(250)
+          win.check("leaving the pills clears the hover", pills.hovered === "")
+          grab(pills, "pill-restored")
 
           // Clicks: a button acts; outside dismisses; middle click dismisses.
           var acted = []
