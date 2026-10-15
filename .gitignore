@@ -1,3 +1,4 @@
 # large binaries, installed separately
 .local/bin/uv
 .local/bin/omp
+.config/niri/.backups/

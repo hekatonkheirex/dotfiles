@@ -22,8 +22,3 @@ function listHeight(rowPx, spacingPx) {
 function centered(screenPx, sizePx) {
   return Math.max(0, Math.round((screenPx - sizePx) / 2))
 }
-
-function clampSelection(index, count) {
-  if (count <= 0) return 0
-  return Math.max(0, Math.min(count - 1, index))
-}

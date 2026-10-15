@@ -12,7 +12,6 @@ QtObject {
   property var state: WindowState.empty()
   readonly property var windows: root.state.windows
   readonly property var focusedWindowId: root.state.focusedWindowId
-  readonly property bool workspaceEmpty: WindowState.workspaceEmpty(root.state)
 
   property int retryMs: 1000
   // True between a stream ending and the retry firing. Part of the

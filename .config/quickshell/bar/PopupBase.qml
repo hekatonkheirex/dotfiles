@@ -14,9 +14,6 @@ import "primitives"
 PanelWindow {
   id: root
 
-  property int anchorY: 0
-  property int topMarginFloor: 0
-  property int bottomMarginPad: 0
   property bool dismissOnAppInactive: true
   // Child popups provide the surface dimensions.
   property real surfaceWidth: Config.popupWidth
@@ -42,11 +39,10 @@ PanelWindow {
 
   anchors.left: true
 
-  margins.left: Config.barWidth + Config.barFormMetrics.edgeGap + Config.spacingMedium
+  margins.left: Config.barWidth + Config.spacingMedium
   property int screenH: root.screen ? root.screen.height : Screen.desktopAvailableHeight
 
   anchors.top: true
-  margins.top: Math.max(topMarginFloor, Math.min(anchorY - implicitHeight / 2, screenH - implicitHeight - bottomMarginPad))
 
   onVisibleChanged: {
     if (visible) {

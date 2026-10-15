@@ -5,8 +5,6 @@ pragma Singleton
 import QtQml
 import Quickshell
 import Quickshell.Io
-import "BarOrder.js" as BarOrder
-import "BarForm.js" as BarForm
 import "PaletteCatalog.js" as PaletteCatalog
 import "DockModel.js" as DockModel
 
@@ -26,47 +24,20 @@ FileView {
   // missing keys, while the reset actions reuse the same snapshot below.
   readonly property var defaults: ({
     schemaVersion: 3,
-    barSize: 42,
-    barWidgetOrder: "launcher,workspaces,layout,focused,gap,center,audio,display,media,weather,llm,battery,tray,notifications,clock",
     dockPinned: "brave-origin,kitty",
     sidebarEdgeHover: true,
     micIndicator: true,
     powerMenuQuote: "Take a breath.",
     powerMenuQuoteAuthor: "",
-    barClockInFlow: false,
     calendarWeekStartsMonday: false,
-    ccShowAudio: true,
-    ccShowBattery: true,
-    ccShowLlm: true,
-    ccShowDisplay: true,
-    ccShowFocusedWindow: true,
-    ccShowLayout: true,
-    ccShowLauncher: true,
-    ccShowMedia: false,
-    ccShowNotifications: true,
-    ccShowClock: true,
-    ccShowTray: true,
-    ccShowWeather: false,
-    ccShowWorkspaces: true,
-    workspaceShape: "numbers",
-    workspaceCount: "active",
     clock24h: true,
-    clockShowSeconds: false,
-    clockFontSize: 14,
     doNotDisturb: false,
     fontPixelSize: 12,
-    barForm: "full",
     iconSize: 20,
     idleLockTimeoutSeconds: 300,
     idleSuspendTimeoutSeconds: 900,
     lastSettingsTab: 0,
-    settingsPanelWidth: -1,
-    settingsPanelHeight: -1,
-    mediaControlsAlwaysVisible: false,
-    mediaShowAlbumArt: true,
-    mediaShowProgressBar: true,
     notificationCriticalBypass: true,
-    notificationHistoryLimit: 50,
     notificationQuietHoursEnabled: false,
     notificationQuietHoursEnd: 420,
     notificationQuietHoursStart: 1320,
@@ -74,15 +45,11 @@ FileView {
     notificationToastDurationMs: 8000,
     reduceMotion: false,
     spacingScale: 1.0,
-    systemShowUptime: true,
     colorSource: "live",
     colorPalette: "material3",
     colorVariant: "auto",
     colorContrast: "standard",
-    accentPalette: "",
-    accentActive: "",
     themePreference: 0,
-    timezone: "",
     weatherAllowIpGeolocation: false,
     weatherLocation: "",
     weatherRefreshIntervalMinutes: 15,
@@ -110,21 +77,11 @@ FileView {
   onLoaded: {
     var stored = JSON.parse(root.text())
     var needsSave = stored.schemaVersion !== root.defaults.schemaVersion
-      || stored.ccShowCodex !== undefined || stored.ccShowClaude !== undefined
     if (needsSave) {
-      if (typeof stored.ccShowLlm !== "boolean") {
-        ccShowLlm = (typeof stored.ccShowCodex === "boolean" ? stored.ccShowCodex : true)
-          || (typeof stored.ccShowClaude === "boolean" ? stored.ccShowClaude : true)
-      }
-      barWidgetOrder = BarOrder.normalize(barWidgetOrder).join(",")
       // R6: her normal toast timeout is 8 s; only the old untouched 5 s default moves.
       if (stored.schemaVersion < 3 && stored.notificationToastDurationMs === 5000)
         notificationToastDurationMs = root.defaults.notificationToastDurationMs
       adapter.schemaVersion = root.defaults.schemaVersion
-    }
-    if (stored.barForm === undefined && typeof stored.fullBar === "boolean") {
-      barForm = BarForm.fromLegacy(stored.fullBar)
-      needsSave = true
     }
     var migratedPalette = PaletteCatalog.migratePaletteId(colorPalette)
     if (migratedPalette !== colorPalette) {
@@ -144,49 +101,21 @@ FileView {
     initialLoadComplete = true
   }
 
-  // Keep persisted aliases paired with active consumers. Remove obsolete fields
-  // from this schema and settings.json together during deliberate migrations.
-  property alias barSize: adapter.barSize
-  property alias barWidgetOrder: adapter.barWidgetOrder
+  // Every key here has a reader. Delete a key from this file and settings.json together.
   property alias dockPinned: adapter.dockPinned
   property alias sidebarEdgeHover: adapter.sidebarEdgeHover
   property alias micIndicator: adapter.micIndicator
   property alias powerMenuQuote: adapter.powerMenuQuote
   property alias powerMenuQuoteAuthor: adapter.powerMenuQuoteAuthor
-  property alias barClockInFlow: adapter.barClockInFlow
   property alias calendarWeekStartsMonday: adapter.calendarWeekStartsMonday
-  property alias ccShowAudio: adapter.ccShowAudio
-  property alias ccShowBattery: adapter.ccShowBattery
-  property alias ccShowLlm: adapter.ccShowLlm
-  property alias ccShowDisplay: adapter.ccShowDisplay
-  property alias ccShowFocusedWindow: adapter.ccShowFocusedWindow
-  property alias ccShowLayout: adapter.ccShowLayout
-  property alias ccShowLauncher: adapter.ccShowLauncher
-  property alias ccShowMedia: adapter.ccShowMedia
-  property alias ccShowNotifications: adapter.ccShowNotifications
-  property alias ccShowClock: adapter.ccShowClock
-  property alias ccShowTray: adapter.ccShowTray
-  property alias ccShowWeather: adapter.ccShowWeather
-  property alias ccShowWorkspaces: adapter.ccShowWorkspaces
-  property alias workspaceShape: adapter.workspaceShape
-  property alias workspaceCount: adapter.workspaceCount
   property alias clock24h: adapter.clock24h
-  property alias clockShowSeconds: adapter.clockShowSeconds
-  property alias clockFontSize: adapter.clockFontSize
   property alias doNotDisturb: adapter.doNotDisturb
   property alias fontPixelSize: adapter.fontPixelSize
-  property alias barForm: adapter.barForm
   property alias iconSize: adapter.iconSize
   property alias idleLockTimeoutSeconds: adapter.idleLockTimeoutSeconds
   property alias idleSuspendTimeoutSeconds: adapter.idleSuspendTimeoutSeconds
   property alias lastSettingsTab: adapter.lastSettingsTab
-  property alias settingsPanelWidth: adapter.settingsPanelWidth
-  property alias settingsPanelHeight: adapter.settingsPanelHeight
-  property alias mediaControlsAlwaysVisible: adapter.mediaControlsAlwaysVisible
-  property alias mediaShowAlbumArt: adapter.mediaShowAlbumArt
-  property alias mediaShowProgressBar: adapter.mediaShowProgressBar
   property alias notificationCriticalBypass: adapter.notificationCriticalBypass
-  property alias notificationHistoryLimit: adapter.notificationHistoryLimit
   property alias notificationQuietHoursEnabled: adapter.notificationQuietHoursEnabled
   property alias notificationQuietHoursEnd: adapter.notificationQuietHoursEnd
   property alias notificationQuietHoursStart: adapter.notificationQuietHoursStart
@@ -194,15 +123,11 @@ FileView {
   property alias notificationToastDurationMs: adapter.notificationToastDurationMs
   property alias reduceMotion: adapter.reduceMotion
   property alias spacingScale: adapter.spacingScale
-  property alias systemShowUptime: adapter.systemShowUptime
   property alias colorSource: adapter.colorSource
   property alias colorPalette: adapter.colorPalette
   property alias colorVariant: adapter.colorVariant
   property alias colorContrast: adapter.colorContrast
-  property alias accentPalette: adapter.accentPalette
-  property alias accentActive: adapter.accentActive
   property alias themePreference: adapter.themePreference
-  property alias timezone: adapter.timezone
   property alias weatherAllowIpGeolocation: adapter.weatherAllowIpGeolocation
   property alias weatherLocation: adapter.weatherLocation
   property alias weatherRefreshIntervalMinutes: adapter.weatherRefreshIntervalMinutes
@@ -213,77 +138,17 @@ FileView {
     root.writeAdapter()
   }
 
-  function resetAppearanceDefaults() {
-    barSize = root.defaults.barSize
-    clockFontSize = root.defaults.clockFontSize
+  function resetAppearanceToDefaults() {
     fontPixelSize = root.defaults.fontPixelSize
-    barForm = root.defaults.barForm
     iconSize = root.defaults.iconSize
     spacingScale = root.defaults.spacingScale
-    workspaceShape = root.defaults.workspaceShape
-    workspaceCount = root.defaults.workspaceCount
     colorSource = root.defaults.colorSource
     colorPalette = root.defaults.colorPalette
     colorVariant = root.defaults.colorVariant
     colorContrast = root.defaults.colorContrast
-    accentPalette = root.defaults.accentPalette
-    accentActive = root.defaults.accentActive
     themePreference = root.defaults.themePreference
     powerMenuQuote = root.defaults.powerMenuQuote
     powerMenuQuoteAuthor = root.defaults.powerMenuQuoteAuthor
-  }
-
-  function resetAppearanceToDefaults() {
-    resetAppearanceDefaults()
-    root.save()
-  }
-
-  function resetToDefaults() {
-    resetAppearanceDefaults()
-    barWidgetOrder = root.defaults.barWidgetOrder
-    dockPinned = root.defaults.dockPinned
-    sidebarEdgeHover = root.defaults.sidebarEdgeHover
-    micIndicator = root.defaults.micIndicator
-    barClockInFlow = root.defaults.barClockInFlow
-    calendarWeekStartsMonday = root.defaults.calendarWeekStartsMonday
-    ccShowAudio = root.defaults.ccShowAudio
-    ccShowBattery = root.defaults.ccShowBattery
-    ccShowLlm = root.defaults.ccShowLlm
-    ccShowDisplay = root.defaults.ccShowDisplay
-    ccShowFocusedWindow = root.defaults.ccShowFocusedWindow
-    ccShowLayout = root.defaults.ccShowLayout
-    ccShowLauncher = root.defaults.ccShowLauncher
-    ccShowMedia = root.defaults.ccShowMedia
-    ccShowNotifications = root.defaults.ccShowNotifications
-    ccShowClock = root.defaults.ccShowClock
-    ccShowTray = root.defaults.ccShowTray
-    ccShowWeather = root.defaults.ccShowWeather
-    ccShowWorkspaces = root.defaults.ccShowWorkspaces
-    clock24h = root.defaults.clock24h
-    clockShowSeconds = root.defaults.clockShowSeconds
-    doNotDisturb = root.defaults.doNotDisturb
-    idleLockTimeoutSeconds = root.defaults.idleLockTimeoutSeconds
-    idleSuspendTimeoutSeconds = root.defaults.idleSuspendTimeoutSeconds
-    lastSettingsTab = root.defaults.lastSettingsTab
-    settingsPanelWidth = root.defaults.settingsPanelWidth
-    settingsPanelHeight = root.defaults.settingsPanelHeight
-    mediaControlsAlwaysVisible = root.defaults.mediaControlsAlwaysVisible
-    mediaShowAlbumArt = root.defaults.mediaShowAlbumArt
-    mediaShowProgressBar = root.defaults.mediaShowProgressBar
-    notificationCriticalBypass = root.defaults.notificationCriticalBypass
-    notificationHistoryLimit = root.defaults.notificationHistoryLimit
-    notificationQuietHoursEnabled = root.defaults.notificationQuietHoursEnabled
-    notificationQuietHoursEnd = root.defaults.notificationQuietHoursEnd
-    notificationQuietHoursStart = root.defaults.notificationQuietHoursStart
-    notificationToastPosition = root.defaults.notificationToastPosition
-    notificationToastDurationMs = root.defaults.notificationToastDurationMs
-    reduceMotion = root.defaults.reduceMotion
-    systemShowUptime = root.defaults.systemShowUptime
-    timezone = root.defaults.timezone
-    weatherAllowIpGeolocation = root.defaults.weatherAllowIpGeolocation
-    weatherLocation = root.defaults.weatherLocation
-    weatherRefreshIntervalMinutes = root.defaults.weatherRefreshIntervalMinutes
-    weatherUnits = root.defaults.weatherUnits
     root.save()
   }
 
@@ -293,48 +158,20 @@ FileView {
     // Persisted format marker. Increment before a breaking key rename/removal
     // and migrate the stored data before writing the new schema.
     property int schemaVersion: root.defaults.schemaVersion
-    property int barSize: root.defaults.barSize
-    property string barWidgetOrder: root.defaults.barWidgetOrder
     property string dockPinned: root.defaults.dockPinned
     property bool sidebarEdgeHover: root.defaults.sidebarEdgeHover
     property bool micIndicator: root.defaults.micIndicator
     property string powerMenuQuote: root.defaults.powerMenuQuote
     property string powerMenuQuoteAuthor: root.defaults.powerMenuQuoteAuthor
-    property bool barClockInFlow: root.defaults.barClockInFlow
     property bool calendarWeekStartsMonday: root.defaults.calendarWeekStartsMonday
-    property bool ccShowAudio: root.defaults.ccShowAudio
-    property bool ccShowBattery: root.defaults.ccShowBattery
-    property bool ccShowLlm: root.defaults.ccShowLlm
-    property bool ccShowDisplay: root.defaults.ccShowDisplay
-    property bool ccShowFocusedWindow: root.defaults.ccShowFocusedWindow
-    property bool ccShowLayout: root.defaults.ccShowLayout
-    property bool ccShowLauncher: root.defaults.ccShowLauncher
-    property bool ccShowMedia: root.defaults.ccShowMedia
-    property bool ccShowNotifications: root.defaults.ccShowNotifications
-    property bool ccShowClock: root.defaults.ccShowClock
-    property bool ccShowTray: root.defaults.ccShowTray
-    property bool ccShowWeather: root.defaults.ccShowWeather
-    property bool ccShowWorkspaces: root.defaults.ccShowWorkspaces
-    property string workspaceShape: root.defaults.workspaceShape
-    property string workspaceCount: root.defaults.workspaceCount
     property bool clock24h: root.defaults.clock24h
-    property bool clockShowSeconds: root.defaults.clockShowSeconds
-    property int clockFontSize: root.defaults.clockFontSize
     property bool doNotDisturb: root.defaults.doNotDisturb
     property int fontPixelSize: root.defaults.fontPixelSize
-    property string barForm: root.defaults.barForm
     property int iconSize: root.defaults.iconSize
     property int idleLockTimeoutSeconds: root.defaults.idleLockTimeoutSeconds
     property int idleSuspendTimeoutSeconds: root.defaults.idleSuspendTimeoutSeconds
     property int lastSettingsTab: root.defaults.lastSettingsTab
-    // -1 = user hasn't resized the settings panel yet; fall back to Config's default size.
-    property int settingsPanelWidth: root.defaults.settingsPanelWidth
-    property int settingsPanelHeight: root.defaults.settingsPanelHeight
-    property bool mediaControlsAlwaysVisible: root.defaults.mediaControlsAlwaysVisible
-    property bool mediaShowAlbumArt: root.defaults.mediaShowAlbumArt
-    property bool mediaShowProgressBar: root.defaults.mediaShowProgressBar
     property bool notificationCriticalBypass: root.defaults.notificationCriticalBypass
-    property int notificationHistoryLimit: root.defaults.notificationHistoryLimit
     property bool notificationQuietHoursEnabled: root.defaults.notificationQuietHoursEnabled
     property int notificationQuietHoursEnd: root.defaults.notificationQuietHoursEnd
     property int notificationQuietHoursStart: root.defaults.notificationQuietHoursStart
@@ -342,20 +179,14 @@ FileView {
     property real notificationToastDurationMs: root.defaults.notificationToastDurationMs
     property bool reduceMotion: root.defaults.reduceMotion
     property real spacingScale: root.defaults.spacingScale
-    property bool systemShowUptime: root.defaults.systemShowUptime
     // Live reads the wallpaper-generated Matugen roles; fixed selects a
     // curated semantic palette from PaletteCatalog.js.
     property string colorSource: root.defaults.colorSource
     property string colorPalette: root.defaults.colorPalette
     property string colorVariant: root.defaults.colorVariant
     property string colorContrast: root.defaults.colorContrast
-    // Shortlist (csv of Matugen role keys, max 8) and the active accent role;
-    // empty active keeps the style default.
-    property string accentPalette: root.defaults.accentPalette
-    property string accentActive: root.defaults.accentActive
     // 0 = auto, 1 = light, 2 = dark.
     property int themePreference: root.defaults.themePreference
-    property string timezone: root.defaults.timezone
     property bool weatherAllowIpGeolocation: root.defaults.weatherAllowIpGeolocation
     property string weatherLocation: root.defaults.weatherLocation
     property int weatherRefreshIntervalMinutes: root.defaults.weatherRefreshIntervalMinutes

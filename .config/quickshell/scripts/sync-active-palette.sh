@@ -14,9 +14,6 @@ activate_only=0
 terminal_only=0
 mode=auto
 palette_source=auto
-accent_palette_arg=
-accent_active_arg=
-accent_args_given=0
 
 usage() {
   cat <<'EOF'
@@ -28,8 +25,6 @@ refresh the active desktop, terminal, editor, monitor, and Niri theme state.
   --skip-matugen  Use a cache that was already rendered by matugen image.
   --source        Activate the Live or Fixed cache before rendering.
   --activate-only Select the cache without running the theme generators.
-  --accent PALETTE ACTIVE  Use this accent shortlist and role instead of settings.json
-                  (the shell passes it so a pick never races the settings write).
   --terminal-only Refresh the existing Matugen terminal paths from the active cache.
 EOF
 }
@@ -56,17 +51,6 @@ while [[ $# -gt 0 ]]; do
       fi
       palette_source=$2
       shift 2
-      ;;
-    --accent)
-      if [[ $# -lt 3 ]]; then
-        printf 'Missing values for --accent.\n' >&2
-        usage >&2
-        exit 2
-      fi
-      accent_palette_arg=$2
-      accent_active_arg=$3
-      accent_args_given=1
-      shift 3
       ;;
     --help|-h)
       usage
@@ -222,47 +206,6 @@ render_matugen_cache() {
   fi
 
   mv -f -- "$rendered_cache" "$cache_file"
-}
-
-# The shell's accent picker swaps the primary pair for another Matugen role.
-# Apply it to the rendered active cache only, so the Live and Fixed source
-# caches stay pristine and every generator below (GTK, Kvantum, Niri, kitty,
-# ...) sees the chosen accent as "primary". Role rules mirror
-# config/AccentPalette.js.
-apply_accent_override() {
-  local settings="$HOME/.config/quickshell/settings.json"
-  [[ -f "$cache_file" ]] || return 0
-  (( accent_args_given )) || [[ -f "$settings" ]] || return 0
-
-  local palette active
-  if (( accent_args_given )); then
-    palette=$accent_palette_arg
-    active=$accent_active_arg
-  else
-    palette=$(jq -r '.accentPalette // ""' "$settings" 2>/dev/null || true)
-    active=$(jq -r '.accentActive // ""' "$settings" 2>/dev/null || true)
-  fi
-  [[ -n "$active" ]] || return 0
-  [[ "$active" =~ ^(primary|secondary|tertiary)(_container|_fixed|_fixed_dim)?$ ]] || return 0
-  case ",$palette," in *",$active,"*) ;; *) return 0 ;; esac
-
-  local on_role="on_${active%_dim}"
-  local accented
-  accented=$(mktemp "${cache_file}.accent.XXXXXX")
-  if jq --arg role "$active" --arg on "$on_role" '
-    ."scheme-expressive" as $scheme
-    | if ($scheme.light[$role] | type) == "string" and ($scheme.dark[$role] | type) == "string"
-      then reduce ("light", "dark") as $mode (.;
-        ."scheme-expressive"[$mode].primary = $scheme[$mode][$role]
-        | ."scheme-expressive"[$mode].on_primary =
-            ($scheme[$mode][$on] // $scheme[$mode].on_primary))
-      else . end
-  ' "$cache_file" >"$accented"; then
-    mv -f -- "$accented" "$cache_file"
-  else
-    rm -f -- "$accented"
-    printf 'Accent override failed; keeping the Matugen primary.\n' >&2
-  fi
 }
 
 # Keep the existing Matugen Kitty, Starship, and btop paths in sync with the
@@ -571,18 +514,12 @@ fi
 activate_palette_cache
 
 if (( activate_only )); then
-  # Shell startup and hot reload land here. Without this the activation
-  # copies the pristine source over the cache and drops the accent until the
-  # next full sync.
-  apply_accent_override
   exit 0
 fi
 
 if (( ! skip_matugen )); then
   render_matugen_cache
 fi
-
-apply_accent_override
 
 generation_failed=0
 if [[ -x "$theme_generator" ]]; then

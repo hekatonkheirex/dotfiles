@@ -8,11 +8,9 @@ import "primitives"
 // The top strip (elena): an 8 px row of workspace blocks. The window also owns
 // the popup routing (`openPopup`, anchors, `togglePopupByName`), the niri
 // workspace data (WorkspaceIndicator, invisible) and the system tray watcher.
-// The old bar indicator widgets and the form/order machinery are gone.
 PanelWindow {
   id: root
 
-  property string barPosition: "top"
   // PanelWindow's Wayland surface is not safe to reuse across a reload when
   // the theme-dependent namespace may have changed. The shell enables this
   // after one event-loop turn so a reloaded instance drops the old surface
@@ -21,33 +19,20 @@ PanelWindow {
   // Set by shell.qml: the lock screen covers the bar.
   property bool sessionLocked: false
 
-  readonly property bool horizontal: barPosition === "top" || barPosition === "bottom"
-  readonly property bool dockedTop: barPosition === "top"
-  readonly property bool dockedBottom: barPosition === "bottom"
-  readonly property bool dockedLeft: barPosition === "left"
-  readonly property bool dockedRight: barPosition === "right"
-
-  // Geometry (see config/BarForm.js); elena resolves to the full form.
-  readonly property int edgeGap: Config.barFormMetrics.edgeGap
-  readonly property int verticalPillPanelWidth: Config.barWidth
-  readonly property int normalPanelExtent: Config.barWidth
-
   anchors {
-    left: root.horizontal || root.dockedLeft
-    right: root.horizontal || root.dockedRight
-    top: root.horizontal ? root.dockedTop : true
-    bottom: root.horizontal ? root.dockedBottom : true
+    left: true
+    right: true
+    top: true
   }
 
   visible: false
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
-  exclusiveZone: (root.horizontal ? Config.barWidth : root.verticalPillPanelWidth) + root.edgeGap
+  exclusiveZone: Config.barWidth
   WlrLayershell.namespace: Config.layerNamespace("panel")
   WlrLayershell.layer: WlrLayer.Top
 
-  implicitHeight: root.normalPanelExtent
-  implicitWidth: root.normalPanelExtent
+  implicitHeight: Config.barWidth
 
   mask: Region { item: barBg }
 
@@ -59,37 +44,15 @@ PanelWindow {
   }
 
   property string openPopup: ""
-  property int popupAnchorX: 0
-  property int popupAnchorY: 0
-
-  // The launcher and power menu have no widget to hang from; they open at a
-  // fixed spot under the strip.
-  function defaultAnchorX() {
-    return root.screen ? Math.round(root.screen.width * 0.75) : 0
-  }
-  function getLauncherX() { return root.horizontal ? Math.round((root.screen ? root.screen.width : 0) / 2) : 0 }
 
   function togglePopup(name) {
-    if (openPopup === name) {
-      openPopup = ""
-      return
-    }
-    if (root.horizontal) {
-      popupAnchorX = root.defaultAnchorX()
-      popupAnchorY = root.height + Config.spacingLarge
-    }
-    openPopup = name
+    openPopup = openPopup === name ? "" : name
   }
 
   // IPC entry point: open (or toggle closed) a popup by name. Returns false
   // for unknown names.
   function togglePopupByName(name) {
-    // The sidebars, networks and tray windows have no anchor.
-    if (name === "sidebar" || name === "settings" || name === "networks" || name === "tray") {
-      openPopup = openPopup === name ? "" : name
-      return true
-    }
-    if (name !== "quickmenu" && name !== "launcher") return false
+    if (["sidebar", "settings", "networks", "tray", "quickmenu", "launcher"].indexOf(name) < 0) return false
     togglePopup(name)
     return true
   }
@@ -99,12 +62,8 @@ PanelWindow {
 
     Rectangle {
       id: barBg
-      x: root.horizontal
-        ? 0
-        : (root.dockedRight ? parent.width - root.verticalPillPanelWidth : 0)
-      y: 0
-      width: root.horizontal ? parent.width : root.verticalPillPanelWidth
-      height: root.horizontal ? Config.barWidth : parent.height
+      width: parent.width
+      height: Config.barWidth
       color: "transparent"
 
       MouseArea {

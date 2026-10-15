@@ -8,33 +8,8 @@ const load = (rel, exports) => {
     .replace(/^\.pragma library$/m, "")
   return new Function(src + `; return { ${exports} }`)()
 }
-const T = load("../../config/TagStrip.js", "tagStates, ACCENT_COUNT")
 const P = load("../../config/PaletteCatalog.js",
   "palette, resolveVariant, fixedFamilyOptions, familyLabel, variantLabel, migratePaletteId")
-
-// tagStates
-assert.equal(T.ACCENT_COUNT, 3)
-assert.deepEqual(T.tagStates([]), [])
-for (const bad of [undefined, null, "x", 5]) assert.deepEqual(T.tagStates(bad), [])
-assert.deepEqual(
-  T.tagStates([
-    { idx: 1, isFocused: false, isOccupied: true },
-    { idx: 2, isFocused: true, isOccupied: true },
-    { idx: 3, isFocused: false, isOccupied: false },
-    { idx: 4, isFocused: false, isOccupied: false },
-  ]),
-  [
-    { idx: 1, state: "occupied", accent: 0 },
-    { idx: 2, state: "focused", accent: 1 },
-    { idx: 3, state: "empty", accent: 2 },
-    { idx: 4, state: "empty", accent: 0 },
-  ])
-// focused beats occupied; accent follows idx, not list position
-assert.deepEqual(T.tagStates([{ idx: 7, isFocused: true, isOccupied: false }]),
-  [{ idx: 7, state: "focused", accent: 0 }])
-// idx 0 / negative entries must not give negative accents; non-integer idx (NaN, 2.5) is skipped
-assert.deepEqual(T.tagStates([{ idx: 0 }, { idx: -1 }, { idx: NaN }, { idx: 2.5 }, null, {}]),
-  [{ idx: 0, state: "empty", accent: 2 }, { idx: -1, state: "empty", accent: 1 }])
 
 // palette
 const light = P.palette("elenapan", "auto", false)

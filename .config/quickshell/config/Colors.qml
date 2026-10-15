@@ -9,7 +9,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "PaletteCatalog.js" as PaletteCatalog
-import "AccentPalette.js" as AccentPalette
 
 QtObject {
   id: colors
@@ -393,60 +392,28 @@ QtObject {
   // Resolved surface and content roles: Matugen or the fixed palette, with
   // authored fallbacks.
   property color background:                 paletteRole(darkMode ? "dark" : "light", "background", darkMode ? d_background : l_background)
-  property color bg:                         background
   property color surface:                   paletteRole(darkMode ? "dark" : "light", "surface", darkMode ? d_surface : l_surface)
-  property color surfaceDim:                paletteRole(darkMode ? "dark" : "light", "surface_dim", darkMode ? d_surfaceDim : l_surfaceDim)
-  property color surfaceBright:             paletteRole(darkMode ? "dark" : "light", "surface_bright", darkMode ? d_surfaceBright : l_surfaceBright)
-  property color surfaceContainerLowest:    paletteRole(darkMode ? "dark" : "light", "surface_container_lowest", darkMode ? d_surfaceContainerLowest : l_surfaceContainerLowest)
   property color surfaceContainerLow:       paletteRole(darkMode ? "dark" : "light", "surface_container_low", darkMode ? d_surfaceContainerLow : l_surfaceContainerLow)
   property color surfaceContainer:          paletteRole(darkMode ? "dark" : "light", "surface_container", darkMode ? d_surfaceContainer : l_surfaceContainer)
   property color surfaceContainerHigh:      paletteRole(darkMode ? "dark" : "light", "surface_container_high", darkMode ? d_surfaceContainerHigh : l_surfaceContainerHigh)
   property color surfaceContainerHighest:   paletteRole(darkMode ? "dark" : "light", "surface_container_highest", darkMode ? d_surfaceContainerHighest : l_surfaceContainerHighest)
-  property color surfaceVariant:            paletteRole(darkMode ? "dark" : "light", "surface_variant", darkMode ? d_surfaceVariant : l_surfaceVariant)
-  // User-picked accent: swaps the primary pair for another Matugen role.
-  // Authored palettes lacking the role fall back to their own primary.
-  readonly property string accentRole: AccentPalette.resolve(Settings.accentPalette, Settings.accentActive)
-  function accentRoleColor(role) {
-    var mode = darkMode ? "dark" : "light"
-    return paletteRole(mode, role, paletteRole(mode, "primary", darkMode ? d_primary : l_primary))
-  }
-  property color primary:                   accentRole === "" ? paletteRole(darkMode ? "dark" : "light", "primary", darkMode ? d_primary : l_primary) : accentRoleColor(accentRole)
-  property color fgPrimary:                 paletteRole(darkMode ? "dark" : "light", AccentPalette.onRole(accentRole), darkMode ? d_onPrimary : l_onPrimary)
+  property color primary:                   paletteRole(darkMode ? "dark" : "light", "primary", darkMode ? d_primary : l_primary)
+  property color fgPrimary:                 paletteRole(darkMode ? "dark" : "light", "on_primary", darkMode ? d_onPrimary : l_onPrimary)
   property color primaryContainer:          paletteRole(darkMode ? "dark" : "light", "primary_container", darkMode ? d_primaryContainer : l_primaryContainer)
-  property color fgPrimaryContainer:        paletteRole(darkMode ? "dark" : "light", "on_primary_container", darkMode ? d_onPrimaryContainer : l_onPrimaryContainer)
   property color secondary:                 paletteRole(darkMode ? "dark" : "light", "secondary", darkMode ? d_secondary : l_secondary)
-  property color fgSecondary:               paletteRole(darkMode ? "dark" : "light", "on_secondary", darkMode ? d_onSecondary : l_onSecondary)
   property color secondaryContainer:        paletteRole(darkMode ? "dark" : "light", "secondary_container", darkMode ? d_secondaryContainer : l_secondaryContainer)
   property color fgSecondaryContainer:      paletteRole(darkMode ? "dark" : "light", "on_secondary_container", darkMode ? d_onSecondaryContainer : l_onSecondaryContainer)
   property color tertiary:                  paletteRole(darkMode ? "dark" : "light", "tertiary", darkMode ? d_tertiary : l_tertiary)
-  property color fgTertiary:                paletteRole(darkMode ? "dark" : "light", "on_tertiary", darkMode ? d_onTertiary : l_onTertiary)
-  property color tertiaryContainer:         paletteRole(darkMode ? "dark" : "light", "tertiary_container", darkMode ? d_tertiaryContainer : l_tertiaryContainer)
   property color fgTertiaryContainer:       paletteRole(darkMode ? "dark" : "light", "on_tertiary_container", darkMode ? d_onTertiaryContainer : l_onTertiaryContainer)
   property color error:                    paletteRole(darkMode ? "dark" : "light", "error", darkMode ? d_error : l_error)
-  property color fgError:                  paletteRole(darkMode ? "dark" : "light", "on_error", darkMode ? d_onError : l_onError)
   property color errorContainer:           paletteRole(darkMode ? "dark" : "light", "error_container", darkMode ? d_errorContainer : l_errorContainer)
   property color fgErrorContainer:         paletteRole(darkMode ? "dark" : "light", "on_error_container", darkMode ? d_onErrorContainer : l_onErrorContainer)
-  property color fgBackground:             paletteRole(darkMode ? "dark" : "light", "on_background", darkMode ? d_onSurface : l_onSurface)
   property color fgSurface:                paletteRole(darkMode ? "dark" : "light", "on_surface", darkMode ? d_onSurface : l_onSurface)
   property color fgSurfaceVariant:         paletteRole(darkMode ? "dark" : "light", "on_surface_variant", darkMode ? d_onSurfaceVariant : l_onSurfaceVariant)
   property color outline:                 paletteRole(darkMode ? "dark" : "light", "outline", darkMode ? d_outline : l_outline)
   property color outlineVariant:          paletteRole(darkMode ? "dark" : "light", "outline_variant", darkMode ? d_outlineVariant : l_outlineVariant)
-  property color inverseSurface:           paletteRole(darkMode ? "dark" : "light", "inverse_surface", darkMode ? d_inverseSurface : l_inverseSurface)
-  property color inverseOnSurface:         paletteRole(darkMode ? "dark" : "light", "inverse_on_surface", darkMode ? d_inverseOnSurface : l_inverseOnSurface)
   property color inversePrimary:           paletteRole(darkMode ? "dark" : "light", "inverse_primary", darkMode ? d_inversePrimary : l_inversePrimary)
   property color primaryFixed:              paletteRole(darkMode ? "dark" : "light", "primary_fixed", primary)
-  property color primaryFixedDim:           paletteRole(darkMode ? "dark" : "light", "primary_fixed_dim", primaryContainer)
-  property color fgPrimaryFixed:            paletteRole(darkMode ? "dark" : "light", "on_primary_fixed", fgPrimary)
-  property color fgPrimaryFixedVariant:     paletteRole(darkMode ? "dark" : "light", "on_primary_fixed_variant", fgPrimaryContainer)
-  property color secondaryFixed:            paletteRole(darkMode ? "dark" : "light", "secondary_fixed", secondary)
-  property color secondaryFixedDim:         paletteRole(darkMode ? "dark" : "light", "secondary_fixed_dim", secondaryContainer)
-  property color fgSecondaryFixed:          paletteRole(darkMode ? "dark" : "light", "on_secondary_fixed", fgSecondary)
-  property color fgSecondaryFixedVariant:   paletteRole(darkMode ? "dark" : "light", "on_secondary_fixed_variant", fgSecondaryContainer)
-  property color tertiaryFixed:             paletteRole(darkMode ? "dark" : "light", "tertiary_fixed", tertiary)
-  property color tertiaryFixedDim:          paletteRole(darkMode ? "dark" : "light", "tertiary_fixed_dim", tertiaryContainer)
-  property color fgTertiaryFixed:           paletteRole(darkMode ? "dark" : "light", "on_tertiary_fixed", fgTertiary)
-  property color fgTertiaryFixedVariant:    paletteRole(darkMode ? "dark" : "light", "on_tertiary_fixed_variant", fgTertiaryContainer)
-  property color surfaceTint:              paletteRole(darkMode ? "dark" : "light", "surface_tint", primary)
   property color shadow:                  paletteRole(darkMode ? "dark" : "light", "shadow", darkMode ? d_shadow : l_shadow)
   property color scrim:                   paletteRole(darkMode ? "dark" : "light", "scrim", darkMode ? d_scrim : l_scrim)
 
@@ -458,57 +425,15 @@ QtObject {
   // secondaryContainer and the surrounding settings surface. Keep navigation
   // selection visible with a restrained fixed-accent wash while preserving
   // the normal M3 secondary container for Live palettes.
-  readonly property color navigationContainer: fixedPaletteActive
     ? Qt.tint(surfaceContainerLow, Qt.rgba(primaryFixed.r, primaryFixed.g, primaryFixed.b, darkMode ? 0.22 : 0.12))
     : secondaryContainer
-  readonly property color navigationContent: fixedPaletteActive ? fgSurface : fgSecondaryContainer
 
   // Semantic status roles. Components should use these aliases instead of
   // introducing local status colors.
-  readonly property color l_success:                    "#356a2f"
-  readonly property color l_onSuccess:                  "#ffffff"
-  readonly property color l_successContainer:           "#b9f2ac"
-  readonly property color l_onSuccessContainer:         "#0a2108"
-  readonly property color l_warning:                    "#735c00"
-  readonly property color l_onWarning:                  "#ffffff"
-  readonly property color l_warningContainer:           "#ffe082"
-  readonly property color l_onWarningContainer:         "#231a00"
-  readonly property color d_success:                    "#9bd88d"
-  readonly property color d_onSuccess:                  "#173714"
-  readonly property color d_successContainer:           "#1e4f1d"
-  readonly property color d_onSuccessContainer:         "#b9f2ac"
-  readonly property color d_warning:                    "#e6c556"
-  readonly property color d_onWarning:                  "#3b2f00"
-  readonly property color d_warningContainer:           "#574500"
-  readonly property color d_onWarningContainer:         "#ffe082"
 
-  property color success:                  darkMode ? d_success                  : l_success
-  property color fgSuccess:                darkMode ? d_onSuccess                : l_onSuccess
-  property color successContainer:         darkMode ? d_successContainer         : l_successContainer
-  property color fgSuccessContainer:       darkMode ? d_onSuccessContainer       : l_onSuccessContainer
-  property color warning:                  darkMode ? d_warning                  : l_warning
-  property color fgWarning:                darkMode ? d_onWarning                : l_onWarning
-  property color warningContainer:         darkMode ? d_warningContainer         : l_warningContainer
-  property color fgWarningContainer:       darkMode ? d_onWarningContainer       : l_onWarningContainer
-  property color info:                     primary
-  property color fgInfo:                   fgPrimary
   property color brightness:               primary
   property color destructive:              error
-  property color fgDestructive:            fgError
 
-  property color weatherClear:             warning
-  property color weatherPartlyCloudy:       primary
-  property color weatherCloud:             secondary
-  property color weatherFog:               outline
-  property color weatherRain:              info
-  property color weatherSnow:              tertiary
-  property color weatherThunder:           secondary
-  property color weatherFeelsLike:         error
-  property color weatherHumidity:          info
-  property color weatherWind:              success
-  property color weatherPressure:          tertiary
-  property color weatherUv:               warning
-  property color weatherPrecipitation:     info
 
   function weatherIcon(desc) {
     var d = (desc || "").toLowerCase();
@@ -523,24 +448,9 @@ QtObject {
     return "sunny";
   }
 
-  function weatherColor(desc) {
-    var d = (desc || "").toLowerCase();
-    if (d.indexOf("clear") !== -1) return weatherClear;
-    if (d.indexOf("partly") !== -1 || d.indexOf("mainly") !== -1) return weatherPartlyCloudy;
-    if (d.indexOf("cloudy") !== -1 || d.indexOf("overcast") !== -1) return weatherCloud;
-    if (d.indexOf("fog") !== -1) return weatherFog;
-    if (d.indexOf("drizzle") !== -1 || d.indexOf("shower") !== -1) return weatherRain;
-    if (d.indexOf("rain") !== -1) return weatherRain;
-    if (d.indexOf("snow") !== -1) return weatherSnow;
-    if (d.indexOf("thunder") !== -1) return weatherThunder;
-    return weatherClear;
-  }
-
   // M3 state layers. These are intentionally expressed from the active
   // semantic colors so light/dark behavior stays coherent.
   property color hoverOverlay:             Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, darkMode ? 0.08 : 0.08)
   property color pressOverlay:             Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, darkMode ? 0.12 : 0.12)
   property color focusOverlay:             Qt.rgba(primary.r, primary.g, primary.b, 0.12)
-  property color disabledContainer:       Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, 0.12)
-  property color disabledContent:          Qt.rgba(fgSurface.r, fgSurface.g, fgSurface.b, 0.38)
 }

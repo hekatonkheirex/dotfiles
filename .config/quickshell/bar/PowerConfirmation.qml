@@ -18,10 +18,8 @@ FocusScope {
   property color dialogTextColor: Colors.fgSurface
   property color dialogSecondaryTextColor: Colors.fgSurfaceVariant
   property color dialogBorderColor: Colors.outlineVariant
-  property color cancelColor: "transparent"
   property color cancelTextColor: Colors.primary
   property color confirmColor: Colors.error
-  property color confirmTextColor: Colors.fgError
   property int focusedButton: 0
   readonly property int dialogPadding: 24
   readonly property int dialogSpacing: 16

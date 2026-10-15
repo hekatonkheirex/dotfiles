@@ -8,7 +8,6 @@ import Quickshell.Services.Notifications
 import Quickshell.Services.UPower
 import Quickshell.Io
 import "config"
-import "config/BarForm.js" as BarForm
 import "config/DockModel.js" as DockModel
 import "config/LauncherLayout.js" as LauncherLayout
 import "config/BottomBarModel.js" as BottomBarModel
@@ -82,34 +81,8 @@ ShellRoot {
     Component.onCompleted: checkLevel()
   }
 
-  property string barPosition: "top"
-
-
-  readonly property bool isHorizontal: shell.barPosition === "top"
-    || shell.barPosition === "bottom"
   property bool paletteActivationComplete: false
   property bool startupThemeRefreshComplete: false
-
-  function normalizeBarPosition(value) {
-    var pref = String(value || "").trim()
-    if (pref === "top" || pref === "horizontal") return "top"
-    if (pref === "bottom" || pref === "left" || pref === "right") return pref
-    if (pref === "vertical") return "left"
-    return "top"
-  }
-
-  function setBarPosition(value) {
-    var next = shell.normalizeBarPosition(value)
-    if (shell.barPosition === next) return
-
-    shell.barPosition = next
-    Quickshell.execDetached([
-      "sh", "-c",
-      "printf '%s\\n' \"$1\" > \"$2\"",
-      "sh", next,
-      Quickshell.env("HOME") + "/.config/quickshell/layout"
-    ])
-  }
 
   function requestLock() {
     bar.openPopup = ""
@@ -202,54 +175,6 @@ ShellRoot {
     }
   }
 
-  Process {
-    id: readLayoutPref
-    command: ["sh", "-c", "cat " + Quickshell.env("HOME") + "/.config/quickshell/layout 2>/dev/null || echo horizontal"]
-    running: true
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var pref = text.trim()
-        shell.barPosition = shell.normalizeBarPosition(pref)
-      }
-    }
-  }
-
-  // Shared popup anchoring: centered along the bar, then offset past the
-  // selected edge. Callers pass their own implicit size and Screen bound so
-  // bindings stay reactive.
-  function popupBarInset() {
-    return bar.verticalPillPanelWidth + bar.edgeGap + Config.spacingMedium
-  }
-
-  // Anchors the launcher exactly as the launcher() IPC call does.
-  function anchorLauncher() {
-    if (bar.horizontal) {
-      bar.popupAnchorX = bar.getLauncherX()
-    } else {
-      bar.popupAnchorY = 0
-    }
-  }
-
-  // Opens the launcher with `query` already typed (LauncherPopup.initialQuery).
-  // Re-opening while the launcher is already visible must re-run its on-show
-  // reset, so close it first.
-  // `@` queries skip the launcher: wallpaper mode dismisses it from inside its
-  // own show handler, so open the filmstrip with the same query the launcher's
-  // onWallpaperModeChanged would pass to onWallpapersRequested.
-  function openLauncherWith(query) {
-    if (lockScreen.locked) return
-    if (query.trim().startsWith("@")) {
-      bar.openPopup = ""
-      shell.wallpaperFilmstripQuery = query.trim().substring(1).trim()
-      shell.wallpaperFilmstripOpen = true
-      return
-    }
-    anchorLauncher()
-    if (bar.openPopup === "launcher") bar.openPopup = ""
-    launcherPopup.initialQuery = query
-    bar.openPopup = "launcher"
-  }
-
   // Bottom-bar page buttons: closed opens at the page, the open page closes
   // it, another page switches (BottomBarModel.sidebarToggle).
   property real sidebarClosedAt: 0
@@ -299,37 +224,8 @@ ShellRoot {
     if (id !== null) shell.niriAction("focus-window --id " + Math.floor(id))
   }
 
-  function popupMarginLeft(w, screenW) {
-    if (bar.horizontal) {
-      // Float popups off the screen edge instead of clamping flush to it.
-      var gap = Config.spacingMedium
-      return Math.round(Math.max(gap, Math.min(bar.popupAnchorX - w / 2, screenW - w - gap)))
-    }
-    return bar.dockedRight
-      ? Math.max(0, screenW - w - popupBarInset())
-      : popupBarInset()
-  }
-
-  function popupMarginTop(h, screenH) {
-    if (bar.horizontal) {
-      return bar.dockedBottom
-        ? Math.max(0, screenH - h - popupBarInset())
-        : popupBarInset()
-    }
-    return Math.round(Math.max(0, Math.min(bar.popupAnchorY - h / 2, screenH - h)))
-  }
-
-  function toggleLayout() {
-    var next = shell.isHorizontal
-      ? (shell.barPosition === "bottom" ? "right" : "left")
-      : (shell.barPosition === "right" ? "bottom" : "top")
-    shell.setBarPosition(next)
-  }
-
-
   function resetAppearanceToDefaults() {
     Settings.resetAppearanceToDefaults()
-    shell.setBarPosition("top")
   }
 
   LockScreen {
@@ -342,7 +238,6 @@ ShellRoot {
     target: "shell"
 
     function launcher() {
-      shell.anchorLauncher()
       bar.openPopup = bar.openPopup === "launcher" ? "" : "launcher"
     }
 
@@ -370,14 +265,6 @@ ShellRoot {
       return bar.togglePopupByName(name)
     }
 
-    // Dev/testing: switch the bar form in memory (full, fit, dock, notch,
-    // pill). Unknown names normalize to full. Not saved.
-    function barForm(form: string): string {
-      Settings.barForm = BarForm.normalize(form)
-      return Settings.barForm
-    }
-
-
     // Dev/testing: show Settings page `index` (0-5: General, Appearance,
     // Display & Input, Bluetooth, Lock & Power, Notifications) in memory.
     function settingsTab(index: int): int {
@@ -396,15 +283,6 @@ ShellRoot {
     }
 
 
-    // Dev/testing: dock state as JSON (items and window inputs).
-    function dockState(): string {
-      return JSON.stringify({
-        workspaceEmpty: WindowService.workspaceEmpty,
-        windows: WindowService.windows.length,
-        items: bottomBar.items
-      })
-    }
-
     // Bottom-bar page request: same toggle as the bar buttons.
     function openSidebarPage(n: int): bool { return shell.openSidebarPage(n) }
 
@@ -415,11 +293,6 @@ ShellRoot {
         volume: c.volume, muted: c.muted, batteryPct: c.batteryPct, charging: c.charging,
         signal: c.signal, connected: c.connected, vpn: c.vpn, trayCount: c.trayCount,
         height: bottomBar.implicitHeight, page: sidebar.currentPage })
-    }
-
-    // Dev/testing: the launcher's current search text.
-    function launcherQuery(): string {
-      return launcherPopup.searchText
     }
 
     function currentPopup(): string {
@@ -441,15 +314,6 @@ ShellRoot {
       bar.openPopup = ""
       shell.wallpaperFilmstripQuery = ""
       shell.wallpaperFilmstripOpen = !shell.wallpaperFilmstripOpen
-    }
-
-    // Compatibility alias for existing scripts and external IPC callers.
-    function commandcenter() {
-      settings()
-    }
-
-    function layout() {
-      shell.toggleLayout()
     }
 
     function reloadPalette() {
@@ -510,7 +374,6 @@ ShellRoot {
   NotificationToast {
     id: notificationToast
     notificationServer: notifServer
-    barPosition: "top"
     screen: bar.screen
   }
 
@@ -543,8 +406,6 @@ ShellRoot {
 
   Bar {
     id: bar
-    // elena is a top-edge block row; the saved position stays untouched.
-    barPosition: "top"
     sessionLocked: lockScreen.locked || lockScreen.compositorLocked
     // Wait for persisted settings before exposing the panel so the first
     // mapped surface uses the final bar geometry and style.
@@ -696,7 +557,6 @@ ShellRoot {
     id: launcherPopup
     screen: bar.screen
     visible: bar.openPopup === "launcher" && !lockScreen.locked
-    anchorY: bar.popupAnchorY
     onDismissed: bar.openPopup = ""
     onWallpapersRequested: function(query) {
       shell.wallpaperFilmstripQuery = query

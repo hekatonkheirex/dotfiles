@@ -85,18 +85,6 @@ QtObject {
     root.runSinkControl()
   }
 
-  function setMicVolume(value) {
-    root.micVolume = Math.max(0, Math.min(1, value))
-    micVolumePending = true
-    root.runMicControl()
-  }
-
-  function toggleMicMute() {
-    root.micMuted = !root.micMuted
-    micMutePending = true
-    root.runMicControl()
-  }
-
   function restartWatcher() {
     if (!root.sinkActive) return
     root.watcherEnabled = false

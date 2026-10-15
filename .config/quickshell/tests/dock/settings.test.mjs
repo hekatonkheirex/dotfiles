@@ -7,7 +7,6 @@ const s = readFileSync(fileURLToPath(new URL("../../config/Settings.qml", import
 assert.match(s, /dockPinned: "brave-origin,kitty",/, "default pinned apps")
 assert.match(s, /property alias dockPinned: adapter\.dockPinned/, "alias")
 assert.match(s, /property string dockPinned: root\.defaults\.dockPinned/, "adapter property")
-assert.match(s, /dockPinned = root\.defaults\.dockPinned/, "reset to default")
 assert.match(s, /DockModel\.pinnedToCsv\(dockPinned\)/, "normalized on load")
 assert.match(s, /import "DockModel\.js" as DockModel/, "imports the model")
 

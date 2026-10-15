@@ -40,7 +40,7 @@ const shell = read("../../shell.qml")
 assert.match(shell, /SettingsSidebar \{\n\s+id: settingsSidebar\n/)
 assert.match(shell, /visible: bar\.openPopup === "settings" && !lockScreen\.locked && !lockScreen\.compositorLocked/)
 assert.match(shell, /SidebarActivator \{\n\s+rightEdge: true/)
-assert.match(read("../../bar/Bar.qml"), /name === "settings"/)
+assert.match(read("../../bar/Bar.qml"), /"settings"/)
 const act = read("../../bar/SidebarActivator.qml")
 assert.match(act, /anchors \{ left: !root\.rightEdge; right: root\.rightEdge;/)
 

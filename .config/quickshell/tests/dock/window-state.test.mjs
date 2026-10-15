@@ -7,7 +7,7 @@ import assert from "node:assert/strict"
 // silently ignoring the write (sloppy mode would hide the mutation).
 const body = readFileSync(fileURLToPath(new URL("../../config/WindowState.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
-const { empty, applyEvent, workspaceEmpty } = new Function('"use strict";\n' + body + "; return { empty, applyEvent, workspaceEmpty }")()
+const { empty, applyEvent } = new Function('"use strict";\n' + body + "; return { empty, applyEvent }")()
 
 const win = (id, app, ws, extra = {}) => ({
   id, title: "t" + id, app_id: app, pid: 100 + id, workspace_id: ws,
@@ -35,16 +35,13 @@ s = applyEvent(seeded, { WindowsChanged: { windows: [win(7, "foot", 1, { is_focu
 assert.deepEqual(s.windows.map(w => w.id), [7])
 assert.equal(s.focusedWindowId, 7)
 
-// Workspaces: focused workspace id and emptiness.
+// Workspaces: focused workspace id.
 s = applyEvent(seeded, wsEv([wsRow(1, false), wsRow(2, true), wsRow(3, false)]))
 assert.equal(s.focusedWorkspaceId, 2)
-assert.equal(workspaceEmpty(s), false)
 s = applyEvent(s, { WorkspaceActivated: { id: 3, focused: true } })
 assert.equal(s.focusedWorkspaceId, 3)
-assert.equal(workspaceEmpty(s), true)
 s = applyEvent(s, { WorkspaceActivated: { id: 1, focused: false } })     // not focused: ignored
 assert.equal(s.focusedWorkspaceId, 3)
-assert.equal(workspaceEmpty(empty()), false, "unknown workspace is not 'empty'")
 
 // Title-only change returns the SAME object (no dock churn).
 s = applyEvent(seeded, wsEv([wsRow(1, false), wsRow(2, true), wsRow(3, false)]))
@@ -55,7 +52,6 @@ assert.equal(same, s)
 // Open a new window; app change is a change.
 s = applyEvent(s, { WindowOpenedOrChanged: { window: win(4, "firefox", 3) } })
 assert.equal(s.windows.length, 3)
-assert.equal(workspaceEmpty(s), false)
 const changed = applyEvent(s, { WindowOpenedOrChanged: { window: win(4, "librewolf", 3) } })
 assert.notEqual(changed, s)
 assert.equal(changed.windows.find(w => w.id === 4).appId, "librewolf")

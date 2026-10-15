@@ -143,12 +143,3 @@ function applyEvent(state, event) {
 
   return state
 }
-
-// True when the focused workspace is known and holds no windows.
-function workspaceEmpty(state) {
-  if (!state || state.focusedWorkspaceId === null) return false
-  for (var i = 0; i < state.windows.length; i++) {
-    if (state.windows[i].workspaceId === state.focusedWorkspaceId) return false
-  }
-  return true
-}

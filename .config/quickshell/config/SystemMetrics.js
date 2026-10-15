@@ -2,11 +2,6 @@
 
 // Pure parsers for the Home page tiles. No QML types, no I/O.
 
-function num(text) {
-  var v = Number(String(text).trim())
-  return isFinite(v) ? v : null
-}
-
 function parseCpu(text) {
   var lines = String(text || "").split("\n")
   for (var i = 0; i < lines.length; i++) {

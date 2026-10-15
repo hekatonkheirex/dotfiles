@@ -19,7 +19,6 @@ PanelWindow {
   id: root
 
   property QtObject notificationServer: null
-  property string barPosition: "top"
   property int displayMs: Settings.notificationToastDurationMs   // normal urgency
   property int nextUid: 1
   property var objs: ({})        // uid -> Notification
@@ -42,8 +41,7 @@ PanelWindow {
   margins.top: Settings.notificationToastPosition === "bottom-right" ? 0 : Config.dp(20)
   // Bottom placement clears the elena bottom bar's right cluster.
   margins.bottom: Settings.notificationToastPosition === "bottom-right"
-    ? (root.barPosition === "bottom" ? Config.barWidth + Config.spacingCompact : Config.spacingLarge)
-      + Config.bottomBarHeight
+    ? Config.spacingLarge + Config.bottomBarHeight
     : 0
   visible: stack.count > 0
 

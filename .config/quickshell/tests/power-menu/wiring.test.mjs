@@ -76,7 +76,7 @@ assert.match(shell, /function requestLock\(\) \{[^}]*powerMenu\.cancelPending\(\
 console.log("power-menu logout safety ok")
 
 // Final review: Reset Appearance restores the quote; the rows keep visible labels.
-const resetFn = settings.slice(settings.indexOf("function resetAppearanceDefaults()"), settings.indexOf("function resetAppearanceToDefaults()"))
+const resetFn = settings.slice(settings.indexOf("function resetAppearanceToDefaults()"), settings.indexOf("JsonAdapter {"))
 for (const k of ["powerMenuQuote", "powerMenuQuoteAuthor"]) {
   assert.match(resetFn, new RegExp(`${k} = root\\.defaults\\.${k}`), "Reset Appearance resets " + k)
   assert.match(tab, new RegExp(`function on${k[0].toUpperCase() + k.slice(1)}Changed\\(\\) \\{\\s*if \\(!${k}Field\\.input\\.activeFocus\\) ${k}Field\\.input\\.text = Settings\\.${k}`), k + " field follows resets")

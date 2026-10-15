@@ -39,9 +39,6 @@ FocusScope {
   readonly property bool hovered: implementation.item ? implementation.item.hovered : false
   readonly property bool pressed: implementation.item ? implementation.item.pressed : false
   readonly property bool active: implementation.item ? implementation.item.active : false
-  function clearFocus() {
-    root.focus = false
-  }
 
   Loader {
     id: implementation

@@ -93,7 +93,7 @@ const bb = shell.slice(shell.indexOf("\n  BottomBar {"))
 assert.match(bb, /onNetworkRequested: \{\s*if \(lockScreen\.locked\) return\s*bar\.togglePopupByName\("networks"\)\s*\}/, "network button toggles the window")
 assert.doesNotMatch(shell, /devForgetName/)
 assert.match(shell, /function forgetPrompt\(name: string\): string \{[^}]*networksWindow\.forgetFor = name[^}]*bar\.openPopup = "networks"/)
-assert.match(rd("../../bar/Bar.qml"), /if \(name === "sidebar" \|\| name === "settings" \|\| name === "networks" \|\| name === "tray"\)/)
+assert.match(rd("../../bar/Bar.qml"), /\["sidebar", "settings", "networks", "tray", "quickmenu", "launcher"\]/)
 assert.match(rd("../../scripts/popup-ipc-check.sh"), /\bnetworks\b/)
 
 assert.ok(!existsSync(path("../../bar/WifiPanel.qml")), "WifiPanel.qml removed")

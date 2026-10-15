@@ -110,11 +110,6 @@ function resolveVariant(family, variant, darkMode) {
   return "expressive"
 }
 
-function displayName(family, variant, darkMode) {
-  var resolved = resolveVariant(family, variant, darkMode)
-  return familyLabel(family) + " · " + variantLabel(family, resolved)
-}
-
 function semanticPalette(surface, accents) {
   var primaryContainer = accents.primaryContainer || surface.container
   var secondaryContainer = accents.secondaryContainer || surface.container

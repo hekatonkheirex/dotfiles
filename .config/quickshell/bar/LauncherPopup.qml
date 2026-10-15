@@ -14,8 +14,6 @@ import "../config/LauncherLayout.js" as LauncherLayout
 PanelWindow {
   id: root
 
-  property int anchorY: 0
-
   signal dismissed()
   // "@" hands off to the full-width wallpaper filmstrip; the text typed after
   // it travels along as the initial jump query.
@@ -178,9 +176,6 @@ PanelWindow {
   ListModel { id: clipboardModel }
 
   property string searchText: ""
-  // Set by the sidebar search field (shell.qml) before the launcher opens; applied
-  // once after the on-show reset below, then cleared.
-  property string initialQuery: ""
   property int selectedIndex: 0
   property bool clipboardLoaded: false
   property bool clipboardLoading: false
@@ -720,15 +715,6 @@ PanelWindow {
           appendFilteredResult(appModel.get(i), "app")
         }
       }
-      if (root.initialQuery !== "") {
-        var q = root.initialQuery
-        root.initialQuery = ""
-        searchInputControl.text = q
-        root.searchText = q
-        root.selectedIndex = 0
-        root.filterApps()
-        searchInputControl.input.cursorPosition = q.length
-      }
       if (Config.reducedMotion) {
         materialEntryAnimation.stop()
         scaleTransform.xScale = 1.0
@@ -739,8 +725,6 @@ PanelWindow {
         materialEntryAnimation.restart()
       }
     } else {
-      // A query set while the launcher stayed hidden must not leak into the next open.
-      root.initialQuery = ""
       resultMenu.close()
       if (clipboardProc.running) clipboardProc.running = false
       clipboardWipeTimer.stop()
