@@ -6,7 +6,7 @@
     "colorSource": "fixed",
     "colorVariant": "auto",
     "doNotDisturb": false,
-    "dockPinned": "brave-origin,kitty,org.gnome.Nautilus",
+    "dockPinned": "brave-origin,kitty,org.gnome.Nautilus,dev.zed.Zed,sonora,org.localsend.localsend_app",
     "fontPixelSize": 10,
     "iconSize": 16,
     "idleLockTimeoutSeconds": 300,

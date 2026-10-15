@@ -21,7 +21,12 @@ Item {
 
   // Every app shows its desktop entry icon; the glyph is the fallback when
   // no entry or icon resolves.
-  readonly property var entry: DesktopEntries.heuristicLookup(root.appId)
+  // heuristicLookup is not reactive: right after a shell restart the desktop
+  // entry scan has not finished and it returns null, so the glyph fallback
+  // stuck until something else rebuilt the item. Reading the application
+  // count re-runs the lookup when the scan completes.
+  readonly property var entry: DesktopEntries.applications.values.length >= 0
+    ? DesktopEntries.heuristicLookup(root.appId) : null
   readonly property string iconPath: root.entry && root.entry.icon !== ""
     ? Quickshell.iconPath(root.entry.icon, true) : ""
   readonly property bool useIcon: root.iconPath !== ""

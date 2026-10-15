@@ -154,4 +154,10 @@ const ffc = rd("../../scripts/bar-font-check.sh")
 assert.match(ffc, /bar\/bottombar\/BottomBarContent\.qml/, "font check reads the bar's glyphs")
 assert.match(ffc, /config\/DockSymbols\.js/, "font check reads the dock's glyphs")
 assert.doesNotMatch(ffc, /0xE92B/, "no hardcoded codepoint list")
+// Regression: heuristicLookup is not reactive. Right after a shell restart the
+// desktop entry scan is unfinished, so the lookup must depend on the
+// applications list or the dock keeps the glyph fallback until a rebuild.
+const dg = rd("../../bar/bottombar/DockGlyph.qml")
+assert.match(dg, /DesktopEntries\.applications\.values\.length[^\n]*\n?[^\n]*DesktopEntries\.heuristicLookup\(root\.appId\)/,
+  "dock icon lookup re-runs when the desktop entry scan completes")
 console.log("bottom bar wiring: ok")

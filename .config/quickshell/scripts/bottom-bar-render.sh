@@ -25,7 +25,9 @@ kyok="$real_home/.local/share/fonts/Kyok"
 [ -d "$kyok" ] && ln -s "$kyok" "$home/.local/share/fonts/Kyok"
 printf '{"colorSource":"fixed","colorPalette":"elenapan","colorVariant":"auto","themePreference":2}\n' \
   > "$home/.config/quickshell/settings.json"
-HOME="$home" XDG_RUNTIME_DIR="$home/run" GOLDEN_OUT="$home/bar.png" QS_NO_RELOAD_POPUP=1 \
+# Empty XDG_DATA_DIRS: no desktop entries resolve, so the dock items render their
+# glyph fallback on any machine (the icon path is covered by the live shell).
+HOME="$home" XDG_RUNTIME_DIR="$home/run" XDG_DATA_DIRS="$home/none" GOLDEN_OUT="$home/bar.png" QS_NO_RELOAD_POPUP=1 \
   timeout 30 qs -p "$home/cfg/shell.qml" >"$home/qs.log" 2>&1 || true
 [ -s "$home/bar.png" ] || { echo "FAIL: no render"; tail -8 "$home/qs.log"; exit 1; }
 [ -z "${KEEP_PNG:-}" ] || cp "$home/bar.png" "$KEEP_PNG"
