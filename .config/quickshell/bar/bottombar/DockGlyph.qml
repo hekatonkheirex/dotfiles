@@ -4,7 +4,7 @@ import "../../config"
 import "../../config/DockSymbols.js" as DockSymbols
 import "../../config/BottomBarModel.js" as BottomBarModel
 
-// One dock item: app glyph in its accent, a 6x3 S indicator under it while the
+// One dock item: app icon (glyph fallback) in its accent, a 6x3 S indicator under it while the
 // app is focused, muted glyph while pinned with no window. Click focuses or
 // launches, middle click closes, wheel cycles one window per 120 notch.
 Item {
@@ -19,9 +19,9 @@ Item {
   readonly property color accent: Colors.elenaAccent(root.sym.slot)
   readonly property color glyphColor: root.running ? root.accent : Colors.elenaAccent(8)
 
-  // Apps without a glyph in the table show their desktop entry icon, so two
-  // unlisted apps do not collapse onto the same placeholder.
-  readonly property var entry: root.sym.known ? null : DesktopEntries.heuristicLookup(root.appId)
+  // Every app shows its desktop entry icon; the glyph is the fallback when
+  // no entry or icon resolves.
+  readonly property var entry: DesktopEntries.heuristicLookup(root.appId)
   readonly property string iconPath: root.entry && root.entry.icon !== ""
     ? Quickshell.iconPath(root.entry.icon, true) : ""
   readonly property bool useIcon: root.iconPath !== ""
