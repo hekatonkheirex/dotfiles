@@ -95,7 +95,7 @@ Item {
       Column {
         id: leftCol
         x: Config.dp(47)
-        y: Config.dp(27)
+        y: Math.round((left.height - leftCol.implicitHeight) / 2)
         spacing: Config.dp(22)
 
         Column {
@@ -128,7 +128,7 @@ Item {
             }
             Text {
               objectName: "quoteAuthor"
-              anchors.right: parent.right
+              anchors.horizontalCenter: parent.horizontalCenter
               visible: Settings.powerMenuQuoteAuthor !== ""
               text: Settings.powerMenuQuoteAuthor
               color: Colors.fgSurfaceVariant
