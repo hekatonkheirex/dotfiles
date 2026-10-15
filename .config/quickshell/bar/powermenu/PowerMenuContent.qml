@@ -93,22 +93,12 @@ Item {
 
         Column {
           anchors.horizontalCenter: parent.horizontalCenter
-          // Battle Andy leaves room under the line; pull the subtitle up.
-          spacing: -Config.dp(34)
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "Wake up, Mura"
+            text: "Wake up"
             color: Colors.elenaAccent(6)
             font.family: BottomBarFonts.pick("Battle Andy")
             font.pixelSize: root.pt(56)
-          }
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.horizontalCenterOffset: Config.dp(27)
-            text: "(again)"
-            color: Colors.fgSurfaceVariant
-            font.family: Config.fontFamily
-            font.pixelSize: root.pt(17)
           }
         }
 
