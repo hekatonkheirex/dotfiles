@@ -48,7 +48,7 @@ window-rule {
 
 window-rule {
     match app-id=r#"^org\.wezfurlong\.wezterm$"#
-    // match app-id="brave-origin"
+    match app-id="brave-origin"
     match app-id="zen"
     match app-id="firefox"
     match app-id="kitty"
@@ -82,7 +82,7 @@ layer-rule {
 }
 
 layer-rule {
-  match namespace="^quickshell-(background|launcher-overlay|dock|panel|popup|toast|osd|bottombar)(-.*)?$"
+  match namespace="^quickshell-(bottombar|panel|popup|toast|osd|shield)(-.*)?$"
   background-effect {
     blur false
   }
