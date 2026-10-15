@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Io
 import "../config"
 import "primitives"
+import "sidebar"
 
 PanelWindow {
   id: root
@@ -14,12 +15,17 @@ PanelWindow {
   property bool muted: false
   readonly property bool continuous: osdType === "volume" || osdType === "brightness" || osdType === "kbdlight"
   readonly property bool meterVisible: continuous && !(osdType === "volume" && muted)
+  // Volume and brightness use her icomoon glyphs (same as the sidebar tiles).
+  // The rest have no glyph in her fonts and keep Material Symbols, like the
+  // sidebar weather disc.
+  readonly property bool materialGlyph: osdType !== "volume" && osdType !== "brightness" && osdType !== "kbdlight"
   readonly property string symbol: {
-    if (osdType === "volume") return muted ? "volume_off" : (value <= 0.01 ? "volume_mute" : (value <= 0.3 ? "volume_mute" : (value <= 0.7 ? "volume_down" : "volume_up")))
+    if (osdType === "volume") return "\uef74"
+    if (osdType === "brightness" || osdType === "kbdlight") return "\ue983"
     if (osdType === "mic") return muted ? "mic_off" : "mic"
     if (osdType === "airplane") return muted ? "airplanemode_active" : "airplanemode_inactive"
     if (osdType === "bluetooth") return muted ? "bluetooth_disabled" : "bluetooth"
-    return osdType === "kbdlight" ? "keyboard" : "light_mode"
+    return ""
   }
   readonly property string osdTitle: {
     if (osdType === "volume") return "Volume"
@@ -36,23 +42,22 @@ PanelWindow {
     if (osdType === "bluetooth") return muted ? "Disabled" : "Enabled"
     return Math.round(value * 100) + "%"
   }
-  readonly property color signalColor: {
-    if ((osdType === "volume" || osdType === "mic" || osdType === "bluetooth") && muted)
-      return Colors.error
-    if (osdType === "brightness" || osdType === "kbdlight") return Colors.brightness
-    return Colors.primary
-  }
-  readonly property color readoutColor: (osdType === "airplane" && muted)
-    || ((osdType === "volume" || osdType === "mic" || osdType === "bluetooth") && muted)
-    ? signalColor : Colors.fgSurface
+  // Her slider colors: volume x5, brightness x1, off states x8 (SliderTile).
+  readonly property bool off: (osdType === "volume" || osdType === "mic" || osdType === "bluetooth") && muted
+  readonly property color signalColor: off ? Colors.elenaAccent(8) : Colors.elenaAccent(accentSlot)
+  readonly property int accentSlot: osdType === "volume" ? 5
+    : (osdType === "mic" ? 2 : (osdType === "bluetooth" || osdType === "airplane" ? 4 : 1))
+  readonly property int pad: Config.dp(8) + Config.dp(16)   // frame + inner padding
+  readonly property int textPx: Math.round(12 * 4 / 3 * Config.elenaScale)
 
-  implicitWidth: 300
-  implicitHeight: 120
+  implicitWidth: Config.dp(340)
+  implicitHeight: Config.dp(112)
   color: "transparent"
   exclusionMode: ExclusionMode.Normal
   WlrLayershell.namespace: Config.layerNamespace("osd")
   anchors.bottom: true
-  margins.bottom: 80
+  // Above the 48 px bottom bar.
+  margins.bottom: Config.bottomBarHeight + Config.dp(20)
 
   visible: false
 
@@ -215,70 +220,74 @@ PanelWindow {
     }
   }
 
+  // Same card as the toasts: solid surface in a surfaceContainer frame.
   Rectangle {
     id: osdSurface
+    objectName: "osdSurface"
     anchors.fill: parent
-    radius: Config.shapeLarge
+    radius: Config.dp(18)
     opacity: root.osdOpacity
-    color: {
-      var c = Colors.chromeSurface
-      return Qt.rgba(c.r, c.g, c.b, 0.92)
+    color: Colors.surface
+    border.width: Config.dp(8)
+    border.color: Colors.surfaceContainer
+
+    SymbolDisc {
+      id: disc
+      objectName: "osdDisc"
+      x: root.pad
+      anchors.verticalCenter: parent.verticalCenter
+      width: Config.dp(46)
+      color: root.signalColor
+      glyph: root.symbol
+      family: root.materialGlyph ? Config.iconFont : BottomBarFonts.family
+      glyphSize: Math.round(14 * 4 / 3 * Config.elenaScale)
     }
-    border.width: Config.themeBorderWidth
-    border.color: Colors.outlineVariant
 
     Column {
-      visible: true
-      anchors.centerIn: parent
-      anchors.verticalCenterOffset: root.meterVisible ? -6 : 0
-      spacing: Config.spacingSmall
+      x: root.pad + disc.width + Config.dp(14)
+      width: parent.width - x - root.pad
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: Config.dp(10)
 
-      IconGlyph {
-        anchors.horizontalCenter: parent.horizontalCenter
-        iconLabel: root.symbol
-        iconSize: 32
-        iconColor: root.signalColor
-        // The outline sun matches the bar indicator; the filled one is a solid disc.
-        filled: osdType !== "brightness"
+      Row {
+        width: parent.width
+        Text {
+          objectName: "osdTitle"
+          width: parent.width - readoutText.implicitWidth
+          text: root.osdTitle
+          color: Colors.fgSurface
+          font.family: Config.fontFamily
+          font.pixelSize: root.textPx
+          elide: Text.ElideRight
+        }
+        Text {
+          id: readoutText
+          objectName: "osdReadout"
+          text: root.readout
+          color: root.off ? root.signalColor : Colors.fgSurface
+          font.family: Config.fontFamily
+          font.pixelSize: root.textPx
+        }
       }
-
-      Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: root.osdTitle
-        color: Colors.fgSurfaceVariant
-        font.family: Config.fontFamily
-        font.pixelSize: Config.typeLabelMediumSize
-        font.letterSpacing: Config.typeLabelTracking
-      }
-
-      Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: root.readout
-        color: root.readoutColor
-        font.family: Config.fontFamily
-        font.pixelSize: Config.typeHeadlineSmallSize
-        font.weight: Config.typeStrongWeight
-        font.letterSpacing: Config.typeHeadlineTracking
-      }
-    }
-
-    Rectangle {
-      visible: root.meterVisible
-      anchors.horizontalCenter: parent.horizontalCenter
-      anchors.bottom: parent.bottom
-      anchors.bottomMargin: 14
-      width: parent.width - (48)
-      height: 6
-      radius: (height / 2)
-      color: Colors.surfaceContainerHighest
 
       Rectangle {
-        width: parent.width * Math.max(0, Math.min(1, root.value))
-        height: parent.height
-        radius: parent.radius
-        color: root.signalColor
-        Behavior on width {
-          NumberAnimation { duration: Config.motionShort; easing.type: Easing.OutCubic }
+        objectName: "osdMeter"
+        visible: root.meterVisible
+        width: parent.width
+        height: Config.dp(10)
+        radius: height / 2
+        color: Colors.surfaceContainerHighest
+
+        Rectangle {
+          objectName: "osdFill"
+          width: parent.width * Math.max(0, Math.min(1, root.value))
+          height: parent.height
+          radius: parent.radius
+          color: root.signalColor
+          Behavior on width {
+            enabled: !Config.reducedMotion
+            NumberAnimation { duration: Config.motionShort; easing.type: Easing.OutCubic }
+          }
         }
       }
     }

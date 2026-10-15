@@ -26,7 +26,7 @@ Regenerate with `bash scripts/screenshots.sh` (needs an empty niri workspace and
 | Power menu | `bar/PowerMenu.qml`, `bar/powermenu/` | Full-screen menu with confirmation. |
 | Lock screen | `bar/LockScreen.qml` | PAM and fingerprint, compositor session lock. |
 | Notifications | `bar/NotificationToast.qml` | Toast stack, Do Not Disturb, quiet hours. No history store. |
-| OSD | `bar/OsdOverlay.qml` | Volume, brightness, mic, airplane, bluetooth, keyboard backlight. |
+| OSD | `bar/OsdOverlay.qml` | Toast-style card above the bottom bar: volume, brightness, mic, airplane, bluetooth, keyboard backlight. |
 | Networks window | `bar/NetworksWindow.qml`, `bar/networks/` | Wi-Fi list, connect, forget, bandwidth, ping. |
 | Mic tab, tray | `bar/MicIndicator.qml`, `bar/TrayWindow.qml` | |
 
