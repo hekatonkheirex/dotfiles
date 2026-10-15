@@ -223,7 +223,7 @@ PanelWindow {
             Text {
               id: summaryGlyph
               objectName: "summaryGlyph"
-              text: "\ue944"
+              text: "\ue9a0"
               color: card.tint
               font.family: BottomBarFonts.family
               font.pixelSize: root.glyphPx
