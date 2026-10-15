@@ -82,34 +82,9 @@ layer-rule {
 }
 
 layer-rule {
-  match namespace="^quickshell-(background|launcher-overlay|dock|panel|popup|toast|osd)(-.*)?$"
+  match namespace="^quickshell-(background|launcher-overlay|dock|panel|popup|toast|osd|bottombar)(-.*)?$"
   background-effect {
     blur false
-  }
-}
-
-// The Liquid Glass click-outside shield must not blur the entire desktop.
-layer-rule {
-  match namespace="^quickshell-liquid-glass-shield$"
-  background-effect {
-    blur false
-  }
-}
-
-// Match QML glass corners and blur the actual backdrop, not the wallpaper.
-layer-rule {
-  match namespace="^quickshell-liquid-glass-(popup|toast)$"
-  geometry-corner-radius 20
-  background-effect {
-    xray false
-  }
-}
-
-layer-rule {
-  match namespace="^quickshell-liquid-glass-(settings|osd)$"
-  geometry-corner-radius 16
-  background-effect {
-    xray false
   }
 }
 
