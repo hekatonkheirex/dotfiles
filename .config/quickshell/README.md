@@ -2,6 +2,17 @@
 
 A [Quickshell](https://quickshell.outfoxxed.me/) shell for **Niri** (Mango also works) in the "elena" look. One QML tree provides the workspace strip, bottom bar and dock, sidebars, launcher, power menu, lock screen, notifications and OSD.
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Desktop](docs/screenshots/desktop.jpg) | ![Launcher](docs/screenshots/launcher.jpg) |
+| ![Home sidebar](docs/screenshots/sidebar-home.jpg) | ![Agenda sidebar](docs/screenshots/sidebar-agenda.jpg) |
+| ![Media sidebar](docs/screenshots/sidebar-media.jpg) | ![Settings](docs/screenshots/settings.jpg) |
+| ![Power menu](docs/screenshots/powermenu.jpg) | ![Wallpaper filmstrip](docs/screenshots/wallpapers.jpg) |
+
+Regenerate with `bash scripts/screenshots.sh` (needs an empty niri workspace and a running shell).
+
 ## What it does
 
 | Surface | File | Notes |
