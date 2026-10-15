@@ -19,6 +19,44 @@ QtObject {
   signal fixedPaletteSaved()
   signal fixedPaletteSaveFailed(var error)
 
+  // The desktop synchronizer takes ~30s. It lives here, not in the Appearance
+  // tab: that tab sits in a Loader, and closing the sidebar or changing page
+  // destroyed it and killed the script before Niri/kitty were refreshed.
+  signal paletteSyncFinished(int exitCode)
+  property bool paletteSyncRunning: paletteSyncProc.running
+  property bool paletteSyncQueued: false
+  property string paletteSyncMode: "auto"
+
+  function runPaletteSync(modeName) {
+    paletteSyncMode = modeName
+    // A change made while the generator runs queues one follow-up so the
+    // latest cache wins without surfacing the cancelled run's exit code.
+    if (paletteSyncProc.running) {
+      paletteSyncQueued = true
+      return
+    }
+    paletteSyncProc.command = [
+      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-active-palette.sh",
+      "--source",
+      Settings.colorSource,
+      paletteSyncMode
+    ]
+    paletteSyncProc.running = true
+  }
+
+  property var paletteSyncProc: Process {
+    running: false
+    onExited: function(exitCode) {
+      if (colors.paletteSyncQueued) {
+        colors.paletteSyncQueued = false
+        colors.runPaletteSync(colors.paletteSyncMode)
+        return
+      }
+      colors.reloadMatugenPalette()
+      colors.paletteSyncFinished(exitCode)
+    }
+  }
+
   // Start from the active Matugen cache instead of waiting for a later file
   // change notification. The palette activation helper selects the Live or
   // Fixed cache before the shared desktop synchronizer runs.

@@ -52,3 +52,12 @@ const film = read("../../bar/WallpaperFilmstrip.qml")
 assert.ok(/generate-thumbnails\.sh/.test(film) && /thumbScript/.test(film), "the filmstrip generates thumbnails")
 assert.ok(/Qt\.Key_R && \(event\.modifiers & Qt\.ControlModifier\)/.test(film), "Ctrl+R applies a random wallpaper")
 console.log("PASS settings-tabs")
+
+// Regression: the palette synchronizer (~30s) must outlive the Appearance tab.
+// The page Loader destroys the tab when the sidebar closes or the page changes;
+// a Process owned by the tab was killed before Niri/kitty colors refreshed.
+assert.doesNotMatch(appearance, /sync-active-palette\.sh|reloadThemeProc|\bProcess \{/, "Appearance tab owns no sync process")
+const colors = read("../../config/Colors.qml")
+assert.match(colors, /property var paletteSyncProc: Process \{/, "Colors owns the palette sync process")
+assert.match(colors, /sync-active-palette\.sh/, "Colors runs sync-active-palette.sh")
+assert.match(appearance, /Colors\.runPaletteSync\(/, "Appearance tab delegates to Colors.runPaletteSync")

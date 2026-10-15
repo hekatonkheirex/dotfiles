@@ -29,7 +29,6 @@ Flickable {
   property bool resetConfirm: false
   property string wmStatusMessage: ""
   property bool paletteSyncPending: false
-  property bool paletteSyncQueued: false
   function onWmFieldFailed(message) {
     wmStatusMessage = message
   }
@@ -67,14 +66,9 @@ Flickable {
 
   function startPaletteSync() {
     appearanceTab.paletteSyncPending = false
-    if (reloadThemeProc.running) {
-      // Keep the current generator alive. A variant can be changed while the
-      // external theme outputs are rebuilding; queue one follow-up run so the
-      // latest cache wins without exposing the cancelled process' exit code.
-      appearanceTab.paletteSyncQueued = true
-      return
-    }
-    reloadThemeProc.running = true
+    // Colors owns the process so it outlives this tab (the page Loader
+    // destroys the tab when the sidebar closes or the page changes).
+    Colors.runPaletteSync(appearanceTab.themeModeName())
   }
 
   function reloadTheme() {
@@ -93,36 +87,20 @@ Flickable {
       appearanceTab.paletteSyncPending = false
       appearanceTab.themeStatus = "Fixed palette could not be saved"
     }
-  }
 
-  Connections {
-    target: Settings
-    function onColorSourceChanged() { appearanceTab.normalizeFixedPaletteSelection() }
-    function onColorPaletteChanged() { appearanceTab.normalizeFixedPaletteSelection() }
-  }
-
-  Process {
-    id: reloadThemeProc
-    command: [
-      Quickshell.env("HOME") + "/.config/quickshell/scripts/sync-active-palette.sh",
-      "--source",
-      Settings.colorSource,
-      appearanceTab.themeModeName()
-    ]
-    running: false
-    onExited: (exitCode) => {
-      if (appearanceTab.paletteSyncQueued) {
-        appearanceTab.paletteSyncQueued = false
-        reloadThemeProc.running = true
-        return
-      }
-      Colors.reloadMatugenPalette()
+    function onPaletteSyncFinished(exitCode) {
       appearanceTab.themeStatus = exitCode === 0
         ? "Colors synchronized"
         : (exitCode === 2
           ? "Colors applied; desktop refresh incomplete"
           : "Color synchronization failed")
     }
+  }
+
+  Connections {
+    target: Settings
+    function onColorSourceChanged() { appearanceTab.normalizeFixedPaletteSelection() }
+    function onColorPaletteChanged() { appearanceTab.normalizeFixedPaletteSelection() }
   }
 
   ColumnLayout {
@@ -604,7 +582,7 @@ Flickable {
             Layout.preferredWidth: 140
             Layout.preferredHeight: Config.themeLabeledActionButtonHeight
             Layout.alignment: Qt.AlignHCenter
-            enabled: !reloadThemeProc.running
+            enabled: !Colors.paletteSyncRunning
             radius: height / 2
             iconLabel: "sync"
             iconSize: Config.iconSize - 2
@@ -622,12 +600,12 @@ Flickable {
             visible: appearanceTab.themeStatus !== ""
 
             LoadingIndicator {
-              visible: reloadThemeProc.running
+              visible: Colors.paletteSyncRunning
               size: Config.iconSizeSmall
-              running: reloadThemeProc.running
+              running: Colors.paletteSyncRunning
               indicatorColor: Colors.primary
               accessibleName: "Reloading colors"
-              Layout.preferredWidth: reloadThemeProc.running ? Config.iconSizeSmall : 0
+              Layout.preferredWidth: Colors.paletteSyncRunning ? Config.iconSizeSmall : 0
               Layout.preferredHeight: Config.iconSizeSmall
             }
 
