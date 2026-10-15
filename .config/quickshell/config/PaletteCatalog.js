@@ -9,7 +9,13 @@ var familyList = [
   { value: "catppuccin", label: "Catppuccin", icon: "palette" },
   { value: "gruvbox", label: "Gruvbox", icon: "tonality" },
   { value: "tokyonight", label: "TokyoNight", icon: "nights_stay" },
-  { value: "elenapan", label: "Elenapan", icon: "palette" }
+  { value: "elenapan", label: "Elenapan", icon: "palette" },
+  { value: "nord", label: "Nord", icon: "ac_unit" },
+  { value: "dracula", label: "Dracula", icon: "bedtime" },
+  { value: "rosepine", label: "Rosé Pine", icon: "local_florist" },
+  { value: "everforest", label: "Everforest", icon: "forest" },
+  { value: "kanagawa", label: "Kanagawa", icon: "waves" },
+  { value: "solarized", label: "Solarized", icon: "wb_sunny" }
 ]
 
 var variantLists = {
@@ -41,6 +47,31 @@ var variantLists = {
   ],
   elenapan: [
     { value: "dark", label: "Dark", icon: "dark_mode" }
+  ],
+  nord: [
+    { value: "dark", label: "Dark", icon: "dark_mode" }
+  ],
+  dracula: [
+    { value: "dark", label: "Dark", icon: "dark_mode" }
+  ],
+  rosepine: [
+    { value: "auto", label: "Auto", icon: "brightness_auto" },
+    { value: "dawn", label: "Dawn", icon: "light_mode" },
+    { value: "main", label: "Main", icon: "dark_mode" },
+    { value: "moon", label: "Moon", icon: "brightness_2" }
+  ],
+  everforest: [
+    { value: "auto", label: "Auto", icon: "brightness_auto" },
+    { value: "light", label: "Light", icon: "light_mode" },
+    { value: "dark", label: "Dark", icon: "dark_mode" }
+  ],
+  kanagawa: [
+    { value: "wave", label: "Wave", icon: "dark_mode" }
+  ],
+  solarized: [
+    { value: "auto", label: "Auto", icon: "brightness_auto" },
+    { value: "light", label: "Light", icon: "light_mode" },
+    { value: "dark", label: "Dark", icon: "dark_mode" }
   ]
 }
 
@@ -64,7 +95,7 @@ function familyOptions() {
 }
 
 function fixedFamilyOptions() {
-  return [familyList[1], familyList[2], familyList[3], familyList[4]]
+  return familyList.filter(function(f) { return f.value !== "material3" })
 }
 
 function variantOptions(family) {
@@ -106,7 +137,16 @@ function resolveVariant(family, variant, darkMode) {
       ? variant
       : (darkMode ? "night" : "day")
   }
-  if (family === "elenapan") return "dark"
+  if (family === "elenapan" || family === "nord" || family === "dracula") return "dark"
+  if (family === "kanagawa") return "wave"
+  if (family === "rosepine") {
+    if (variant === "auto") return darkMode ? "main" : "dawn"
+    return ["dawn", "main", "moon"].indexOf(variant) >= 0 ? variant : (darkMode ? "main" : "dawn")
+  }
+  if (family === "everforest" || family === "solarized") {
+    if (variant === "auto") return darkMode ? "dark" : "light"
+    return ["light", "dark"].indexOf(variant) >= 0 ? variant : (darkMode ? "dark" : "light")
+  }
   return "expressive"
 }
 
@@ -345,12 +385,185 @@ function elenapanPalette() {
   return semanticPalette(s, a)
 }
 
+// Nord, Dracula and Kanagawa ship one variant each; light mode reuses it, like
+// elenapan. Hex values are the upstream palettes (nordtheme.com, draculatheme.com,
+// rebelot/kanagawa.nvim). Container tones step through the upstream surface
+// ramp so GTK/Kvantum/kitty/nvim generators get distinct surface levels.
+function nordPalette() {
+  var s = {
+    base: "#2e3440", dim: "#242933", bright: "#3b4252", lowest: "#242933",
+    low: "#2e3440", container: "#3b4252", high: "#434c5e", highest: "#4c566a",
+    variant: "#434c5e", text: "#eceff4", subtext: "#d8dee9", outline: "#616e88", outlineVariant: "#4c566a"
+  }
+  var a = {
+    primary: "#88c0d0", onPrimary: "#2e3440", primaryContainer: "#434c5e", onPrimaryContainer: "#eceff4",
+    secondary: "#81a1c1", onSecondary: "#2e3440", secondaryContainer: "#434c5e", onSecondaryContainer: "#eceff4",
+    tertiary: "#a3be8c", onTertiary: "#2e3440", tertiaryContainer: "#434c5e", onTertiaryContainer: "#eceff4",
+    error: "#bf616a", onError: "#eceff4", errorContainer: "#434c5e", onErrorContainer: "#eceff4",
+    inversePrimary: "#5e81ac"
+  }
+  return semanticPalette(s, a)
+}
+
+function draculaPalette() {
+  var s = {
+    base: "#282a36", dim: "#21222c", bright: "#343746", lowest: "#191a21",
+    low: "#21222c", container: "#343746", high: "#44475a", highest: "#6272a4",
+    variant: "#44475a", text: "#f8f8f2", subtext: "#f8f8f2", outline: "#6272a4", outlineVariant: "#44475a"
+  }
+  var a = {
+    primary: "#bd93f9", onPrimary: "#282a36", primaryContainer: "#44475a", onPrimaryContainer: "#f8f8f2",
+    secondary: "#ff79c6", onSecondary: "#282a36", secondaryContainer: "#44475a", onSecondaryContainer: "#f8f8f2",
+    tertiary: "#8be9fd", onTertiary: "#282a36", tertiaryContainer: "#44475a", onTertiaryContainer: "#f8f8f2",
+    error: "#ff5555", onError: "#282a36", errorContainer: "#44475a", onErrorContainer: "#f8f8f2",
+    inversePrimary: "#bd93f9"
+  }
+  return semanticPalette(s, a)
+}
+
+function kanagawaPalette() {
+  var s = {
+    base: "#1f1f28", dim: "#16161d", bright: "#2a2a37", lowest: "#16161d",
+    low: "#1a1a22", container: "#2a2a37", high: "#363646", highest: "#54546d",
+    variant: "#363646", text: "#dcd7ba", subtext: "#c8c093", outline: "#727169", outlineVariant: "#54546d"
+  }
+  var a = {
+    primary: "#7e9cd8", onPrimary: "#1f1f28", primaryContainer: "#2d4f67", onPrimaryContainer: "#dcd7ba",
+    secondary: "#957fb8", onSecondary: "#1f1f28", secondaryContainer: "#363646", onSecondaryContainer: "#dcd7ba",
+    tertiary: "#7aa89f", onTertiary: "#1f1f28", tertiaryContainer: "#363646", onTertiaryContainer: "#dcd7ba",
+    error: "#e46876", onError: "#1f1f28", errorContainer: "#363646", onErrorContainer: "#dcd7ba",
+    inversePrimary: "#7e9cd8"
+  }
+  return semanticPalette(s, a)
+}
+
+function rosepinePalette(variant) {
+  var s
+  var a
+  if (variant === "dawn") {
+    s = {
+      base: "#faf4ed", dim: "#f2e9e1", bright: "#fffaf3", lowest: "#fffaf3",
+      low: "#fffaf3", container: "#f2e9e1", high: "#dfdad9", highest: "#cecacd",
+      variant: "#dfdad9", text: "#575279", subtext: "#797593", outline: "#9893a5", outlineVariant: "#dfdad9"
+    }
+    a = {
+      primary: "#907aa9", onPrimary: "#faf4ed", primaryContainer: "#f2e9e1", onPrimaryContainer: "#575279",
+      secondary: "#286983", onSecondary: "#faf4ed", secondaryContainer: "#f2e9e1", onSecondaryContainer: "#575279",
+      tertiary: "#56949f", onTertiary: "#faf4ed", tertiaryContainer: "#f2e9e1", onTertiaryContainer: "#575279",
+      error: "#b4637a", onError: "#faf4ed", errorContainer: "#f2e9e1", onErrorContainer: "#575279",
+      inversePrimary: "#c4a7e7"
+    }
+  } else if (variant === "moon") {
+    s = {
+      base: "#232136", dim: "#232136", bright: "#393552", lowest: "#232136",
+      low: "#2a273f", container: "#393552", high: "#44415a", highest: "#56526e",
+      variant: "#44415a", text: "#e0def4", subtext: "#908caa", outline: "#6e6a86", outlineVariant: "#44415a"
+    }
+    a = {
+      primary: "#c4a7e7", onPrimary: "#232136", primaryContainer: "#44415a", onPrimaryContainer: "#e0def4",
+      secondary: "#ea9a97", onSecondary: "#232136", secondaryContainer: "#44415a", onSecondaryContainer: "#e0def4",
+      tertiary: "#9ccfd8", onTertiary: "#232136", tertiaryContainer: "#44415a", onTertiaryContainer: "#e0def4",
+      error: "#eb6f92", onError: "#232136", errorContainer: "#44415a", onErrorContainer: "#e0def4",
+      inversePrimary: "#907aa9"
+    }
+  } else {
+    s = {
+      base: "#191724", dim: "#191724", bright: "#26233a", lowest: "#191724",
+      low: "#1f1d2e", container: "#26233a", high: "#403d52", highest: "#524f67",
+      variant: "#403d52", text: "#e0def4", subtext: "#908caa", outline: "#6e6a86", outlineVariant: "#403d52"
+    }
+    a = {
+      primary: "#c4a7e7", onPrimary: "#191724", primaryContainer: "#403d52", onPrimaryContainer: "#e0def4",
+      secondary: "#ebbcba", onSecondary: "#191724", secondaryContainer: "#403d52", onSecondaryContainer: "#e0def4",
+      tertiary: "#9ccfd8", onTertiary: "#191724", tertiaryContainer: "#403d52", onTertiaryContainer: "#e0def4",
+      error: "#eb6f92", onError: "#191724", errorContainer: "#403d52", onErrorContainer: "#e0def4",
+      inversePrimary: "#907aa9"
+    }
+  }
+  return semanticPalette(s, a)
+}
+
+function everforestPalette(variant) {
+  var s
+  var a
+  if (variant === "light") {
+    s = {
+      base: "#fdf6e3", dim: "#f2efdf", bright: "#fdf6e3", lowest: "#fdf6e3",
+      low: "#f4f0d9", container: "#efebd4", high: "#e6e2cc", highest: "#e0dcc7",
+      variant: "#e6e2cc", text: "#5c6a72", subtext: "#829181", outline: "#939f91", outlineVariant: "#bdc3af"
+    }
+    a = {
+      primary: "#819300", onPrimary: "#fdf6e3", primaryContainer: "#e6e2cc", onPrimaryContainer: "#5c6a72",
+      secondary: "#3a94c5", onSecondary: "#fdf6e3", secondaryContainer: "#e6e2cc", onSecondaryContainer: "#5c6a72",
+      tertiary: "#cd60aa", onTertiary: "#fdf6e3", tertiaryContainer: "#e6e2cc", onTertiaryContainer: "#5c6a72",
+      error: "#f85552", onError: "#fdf6e3", errorContainer: "#e6e2cc", onErrorContainer: "#5c6a72",
+      inversePrimary: "#a7c080"
+    }
+  } else {
+    s = {
+      base: "#2d353b", dim: "#232a2e", bright: "#3d484d", lowest: "#232a2e",
+      low: "#343f44", container: "#3d484d", high: "#475258", highest: "#4f585e",
+      variant: "#475258", text: "#d3c6aa", subtext: "#9da9a0", outline: "#859289", outlineVariant: "#475258"
+    }
+    a = {
+      primary: "#a7c080", onPrimary: "#2d353b", primaryContainer: "#475258", onPrimaryContainer: "#d3c6aa",
+      secondary: "#7fbbb3", onSecondary: "#2d353b", secondaryContainer: "#475258", onSecondaryContainer: "#d3c6aa",
+      tertiary: "#dbbc7f", onTertiary: "#2d353b", tertiaryContainer: "#475258", onTertiaryContainer: "#d3c6aa",
+      error: "#e67e80", onError: "#2d353b", errorContainer: "#475258", onErrorContainer: "#d3c6aa",
+      inversePrimary: "#8da101"
+    }
+  }
+  return semanticPalette(s, a)
+}
+
+// Solarized has only two surface tones, so the high/highest steps reuse base01
+// and base02. Text uses the emphasized content tones (base1 / base01) for
+// readable contrast.
+function solarizedPalette(variant) {
+  var s
+  var a
+  if (variant === "light") {
+    s = {
+      base: "#fdf6e3", dim: "#eee8d5", bright: "#fdf6e3", lowest: "#fdf6e3",
+      low: "#fdf6e3", container: "#eee8d5", high: "#eee8d5", highest: "#93a1a1",
+      variant: "#eee8d5", text: "#586e75", subtext: "#657b83", outline: "#93a1a1", outlineVariant: "#93a1a1"
+    }
+    a = {
+      primary: "#268bd2", onPrimary: "#fdf6e3", primaryContainer: "#eee8d5", onPrimaryContainer: "#586e75",
+      secondary: "#6c71c4", onSecondary: "#fdf6e3", secondaryContainer: "#eee8d5", onSecondaryContainer: "#586e75",
+      tertiary: "#24948b", onTertiary: "#fdf6e3", tertiaryContainer: "#eee8d5", onTertiaryContainer: "#586e75",
+      error: "#dc322f", onError: "#fdf6e3", errorContainer: "#eee8d5", onErrorContainer: "#586e75",
+      inversePrimary: "#268bd2"
+    }
+  } else {
+    s = {
+      base: "#002b36", dim: "#002b36", bright: "#073642", lowest: "#002b36",
+      low: "#002b36", container: "#073642", high: "#073642", highest: "#586e75",
+      variant: "#073642", text: "#93a1a1", subtext: "#839496", outline: "#657b83", outlineVariant: "#586e75"
+    }
+    a = {
+      primary: "#268bd2", onPrimary: "#002b36", primaryContainer: "#073642", onPrimaryContainer: "#93a1a1",
+      secondary: "#6c71c4", onSecondary: "#002b36", secondaryContainer: "#073642", onSecondaryContainer: "#93a1a1",
+      tertiary: "#2aa198", onTertiary: "#002b36", tertiaryContainer: "#073642", onTertiaryContainer: "#93a1a1",
+      error: "#dc322f", onError: "#002b36", errorContainer: "#073642", onErrorContainer: "#93a1a1",
+      inversePrimary: "#268bd2"
+    }
+  }
+  return semanticPalette(s, a)
+}
+
 function palette(family, variant, darkMode) {
   var resolved = resolveVariant(family, variant, darkMode)
   if (family === "catppuccin") return catppuccinPalette(resolved)
   if (family === "gruvbox") return gruvboxPalette(resolved)
   if (family === "tokyonight") return tokyonightPalette(resolved)
   if (family === "elenapan") return elenapanPalette()
+  if (family === "nord") return nordPalette()
+  if (family === "dracula") return draculaPalette()
+  if (family === "kanagawa") return kanagawaPalette()
+  if (family === "rosepine") return rosepinePalette(resolved)
+  if (family === "everforest") return everforestPalette(resolved)
+  if (family === "solarized") return solarizedPalette(resolved)
   return null
 }
 
