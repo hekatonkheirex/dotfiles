@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Shapes
+import Quickshell.Io
 import "../../config"
 import "../../config/PowerMenuModel.js" as Model
 
@@ -24,6 +25,12 @@ Item {
   signal hovered(string id)
 
   readonly property var buttons: Model.buttons()
+  property string hostname: ""
+  FileView {
+    path: "/etc/hostname"
+    onLoaded: root.hostname = String(text()).trim()
+    onLoadFailed: root.hostname = ""
+  }
   readonly property color border30: Qt.rgba(Colors.outline.r, Colors.outline.g, Colors.outline.b, 0.3)
   readonly property real panelHeight: Math.max(
     leftCol.implicitHeight + Config.dp(27) + Config.dp(54),
@@ -230,7 +237,7 @@ Item {
           objectName: "terminalLine"
           anchors.horizontalCenter: parent.horizontalCenter
           live: root.revealed   // the overlay binds revealed to its window's visibility
-          flavor: root.locked ? "[ L O C K D O W N ]" : "/ Y Ū G E N /"
+          flavor: root.locked ? "[ L O C K D O W N ]" : Model.hostFlavor(root.hostname)
           prompt: root.locked ? "> " : "$ "
           value: root.locked ? Model.maskInput(root.inputLength) : root.selected
           ink: Colors.elenaAccent(root.locked ? 1 : 2)   // locked x1, else her x10 (bright x2)

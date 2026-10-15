@@ -39,3 +39,9 @@ var GLYPHS = {
 }
 
 function glyph(id) { return GLYPHS[id] || "" }
+
+// "x390" -> "/ X 3 9 0 /": the terminal flavor line, spaced like her title.
+function hostFlavor(name) {
+  var n = String(name || "").trim().toUpperCase()
+  return n === "" ? "" : "/ " + n.split("").join(" ") + " /"
+}

@@ -6,7 +6,7 @@ import assert from "node:assert/strict"
 const src = readFileSync(fileURLToPath(new URL("../../config/PowerMenuModel.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
 const M = new Function('"use strict";\n' + src +
-  "; return { buttons, paletteAccents, ringBorder, maskInput, step, glyph }")()
+  "; return { buttons, paletteAccents, ringBorder, maskInput, step, glyph, hostFlavor }")()
 
 const b = M.buttons()
 assert.deepEqual(b.map(x => x.id), ["poweroff", "reboot", "exit", "hibernate", "suspend", "lock"])
@@ -41,4 +41,7 @@ assert.deepEqual(["poweroff", "reboot", "exit", "hibernate", "suspend", "lock", 
   .map(id => M.glyph(id).codePointAt(0).toString(16)),
   ["ee10", "eb92", "ec9d", "ee0e", "ed60", "ec53", "eac8", "ea45"])
 assert.equal(M.glyph("nope"), "")
+assert.equal(M.hostFlavor("X390"), "/ X 3 9 0 /")
+assert.equal(M.hostFlavor(" x390\n"), "/ X 3 9 0 /")
+assert.equal(M.hostFlavor(""), "")
 console.log("power-menu model ok")
