@@ -96,7 +96,7 @@ Item {
         id: leftCol
         x: Config.dp(47)
         y: Config.dp(27)
-        spacing: 40
+        spacing: Config.dp(22)
 
         Column {
           anchors.horizontalCenter: parent.horizontalCenter
@@ -104,35 +104,27 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "Wake up"
             color: Colors.elenaAccent(6)
-            font.family: BottomBarFonts.pick("Orbitron")
-            font.bold: true
+            // The static ExtraBold face: font.bold on the variable "Orbitron"
+            // family renders at regular weight.
+            font.family: BottomBarFonts.pick("Orbitron ExtraBold")
             font.pixelSize: root.pt(40)
           }
         }
 
         Column {
           anchors.horizontalCenter: parent.horizontalCenter
-          spacing: 2
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: "❝"
-            color: Colors.elenaAccent(3)   // her x11 (bright x3)
-            font.family: Config.fontFamily
-            font.italic: true
-            font.pixelSize: root.pt(27)
-          }
           Column {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: Config.dp(6)
             Text {
               objectName: "quoteText"
+              anchors.horizontalCenter: parent.horizontalCenter
               width: Math.min(implicitWidth, Config.dp(360))
               wrapMode: Text.Wrap
               text: "“" + Settings.powerMenuQuote + "”"
               color: Colors.fgSurface
-              font.family: Config.fontFamily
-              font.italic: true
-              font.pixelSize: root.pt(14)
+              font.family: "monospace"
+              font.pixelSize: root.pt(18)
             }
             Text {
               objectName: "quoteAuthor"

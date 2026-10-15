@@ -125,7 +125,7 @@ w, h = normal.size
 def centre(fx):
     cx, cy = round(fx * w / 64), round(h / 2)
     return (cx - 2, cy - 2, cx + 3, cy + 3)
-RED, BLUE = centre(17), centre(47)
+RED, BLUE = centre(15), centre(49)
 def count_in(image, b, col, t=8):
     return sum(near(image.getpixel((x, y)), col, t) for x in range(b[0], b[2]) for y in range(b[1], b[3]))
 check("resting red pill is hollow", count_in(normal, RED, X[1]), 0, 0)

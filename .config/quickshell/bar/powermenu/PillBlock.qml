@@ -17,8 +17,8 @@ Item {
     property color ink
     property bool filled: false
     property alias area: area
-    width: root.width * 22 / 64
-    height: root.width * 48 / 64
+    width: root.width * 18 / 64
+    height: root.width * 42 / 64
     Rectangle {
       anchors.fill: parent
       radius: width / 2
@@ -41,18 +41,18 @@ Item {
   Pill {
     id: redPill
     objectName: "pillRed"
-    x: root.width * 17 / 64 - width / 2
+    x: root.width * 15 / 64 - width / 2
     y: root.height / 2 - height / 2
-    rotation: -18
+    rotation: -14
     ink: Colors.elenaAccent(1)
     filled: root.hovered === "red"
   }
   Pill {
     id: bluePill
     objectName: "pillBlue"
-    x: root.width * 47 / 64 - width / 2
+    x: root.width * 49 / 64 - width / 2
     y: root.height / 2 - height / 2
-    rotation: 18
+    rotation: 14
     ink: Colors.elenaAccent(3)
     filled: root.hovered === "blue"
   }
