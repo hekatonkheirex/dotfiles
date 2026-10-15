@@ -4,8 +4,8 @@ import "../../config"
 import "../../config/DockSymbols.js" as DockSymbols
 import "../../config/BottomBarModel.js" as BottomBarModel
 
-// One dock item: app icon (glyph fallback) in its accent, a 6x3 S indicator under it while the
-// app is focused, muted glyph while pinned with no window. Click focuses or
+// One dock item: app icon (glyph fallback) in its accent, a 3x3 dot under it while the app is
+// open but unfocused, a 12x3 bar while focused, muted glyph while pinned with no window. Click focuses or
 // launches, middle click closes, wheel cycles one window per 120 notch.
 Item {
   id: root
@@ -65,11 +65,15 @@ Item {
     objectName: "focusIndicator"
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
-    width: Config.bottomBarDp(6)
+    width: root.focused ? Config.bottomBarDp(12) : Config.bottomBarDp(3)
     height: Config.bottomBarDp(3)
     radius: height / 2
     color: root.accent
-    opacity: root.focused ? 1 : 0
+    opacity: root.running ? (root.focused ? 1 : 0.7) : 0
+    Behavior on width {
+      enabled: !Config.reducedMotion
+      NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+    }
     Behavior on opacity {
       enabled: !Config.reducedMotion
       NumberAnimation { duration: 200 }
