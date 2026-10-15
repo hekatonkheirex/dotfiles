@@ -102,7 +102,7 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "WAKE UP"
+            text: "Wake up"
             color: Colors.elenaAccent(6)
             font.family: BottomBarFonts.pick("Orbitron")
             font.bold: true
