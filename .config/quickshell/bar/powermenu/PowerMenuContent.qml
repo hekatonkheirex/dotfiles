@@ -102,10 +102,11 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "Wake up"
+            text: "WAKE UP"
             color: Colors.elenaAccent(6)
-            font.family: BottomBarFonts.pick("Battle Andy")
-            font.pixelSize: root.pt(56)
+            font.family: BottomBarFonts.pick("Orbitron")
+            font.bold: true
+            font.pixelSize: root.pt(40)
           }
         }
 
