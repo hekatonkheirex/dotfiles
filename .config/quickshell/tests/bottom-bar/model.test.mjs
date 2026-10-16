@@ -84,8 +84,9 @@ assert.deepEqual(M.notchSteps(0, -120), { accum: 0, steps: -1 }, "negative notch
 assert.deepEqual(run([-100, -50]), { accum: -30, steps: [0, -1] }, "negative remainder kept")
 console.log("bottom bar model: ok")
 
-// iconFit: scale the opaque bbox's longer side up to the slot, clamped to
-// [1, 1.4], and report the bbox center's offset.
+// iconFit: scale the opaque bbox's longer side up to the slot (cap 1.4), shrink
+// by sqrt(short/long) so tall shapes do not read bigger, floor 0.75, and
+// report the bbox center's offset.
 const sq = (n, x0, y0, x1, y1) => Array.from({ length: n * n }, (_, i) =>
   (i % n >= x0 && i % n <= x1 && Math.floor(i / n) >= y0 && Math.floor(i / n) <= y1) ? 255 : 0)
 assert.deepEqual(M.iconFit(sq(10, 0, 0, 9, 9), 10), { scale: 1, dx: 0, dy: 0 }, "full-bleed icon is untouched")
@@ -94,7 +95,10 @@ assert.equal(M.iconFit(sq(10, 4, 4, 5, 5), 10).scale, 1.4, "tiny artwork is capp
 const off = M.iconFit(sq(10, 0, 2, 5, 7), 10)
 assert.equal(off.scale, 1.4, "6 of 10 px wants 1.67x, capped")
 assert.ok(Math.abs(off.dx - -0.2) < 1e-9 && Math.abs(off.dy - 0) < 1e-9, "off-center bbox reports its offset")
-assert.deepEqual(M.iconFit(sq(10, 3, 0, 6, 9), 10).scale, 1, "tall icon is limited by its longer side")
+assert.equal(M.iconFit(sq(10, 0, 0, 9, 5), 10).scale.toFixed(4), Math.sqrt(0.6).toFixed(4), "wide icon is penalized by its aspect")
+assert.equal(M.iconFit(sq(10, 3, 0, 6, 9), 10).scale, 0.75, "very tall icon hits the floor")
+const fileLike = M.iconFit(sq(64, 9, 3, 54, 60), 64).scale, zedLike = M.iconFit(sq(64, 3, 3, 60, 60), 64).scale
+assert.ok(fileLike < zedLike, "tall Files-shaped icon ends up smaller than a square one of equal height")
 assert.deepEqual(M.iconFit(new Array(100).fill(0), 10), { scale: 1, dx: 0, dy: 0 }, "blank raster is the identity")
 assert.deepEqual(M.iconFit(null, 10), { scale: 1, dx: 0, dy: 0 }, "missing data is the identity")
 assert.deepEqual(M.iconFit(new Array(100).fill(10), 10), { scale: 1, dx: 0, dy: 0 }, "alpha at or below 16 is ignored")

@@ -78,7 +78,9 @@ function notchSteps(accum, delta) {
 // Dock icon normalization. `alpha` is the alpha channel of an n x n raster of
 // the icon (n*n values). Themes pad their artwork differently, so the opaque
 // bounding box is measured and the icon scaled until its longer side fills
-// the slot. Returns { scale, dx, dy }: scale clamped to [1, maxScale]; dx, dy
+// the slot, then shrinks it by sqrt(short side / long side) because a tall or
+// narrow shape reads bigger than a square of the same height. Returns
+// { scale, dx, dy }: scale clamped to [0.75, maxScale]; dx, dy
 // are the bbox center's offset from the image center as fractions of its size
 // (positive = right/down). A blank or unreadable raster gives the identity.
 function iconFit(alpha, n, maxScale) {
@@ -97,9 +99,11 @@ function iconFit(alpha, n, maxScale) {
     }
   }
   if (x1 < 0) return identity
-  var extent = Math.max(x1 - x0 + 1, y1 - y0 + 1) / n
+  var bw = x1 - x0 + 1, bh = y1 - y0 + 1
+  var extent = Math.max(bw, bh) / n
+  var squareness = Math.sqrt(Math.min(bw, bh) / Math.max(bw, bh))
   return {
-    scale: Math.min(cap, Math.max(1, 1 / extent)),
+    scale: Math.max(0.75, Math.min(cap, 1 / extent) * squareness),
     dx: (x0 + x1 + 1) / 2 / n - 0.5,
     dy: (y0 + y1 + 1) / 2 / n - 0.5
   }
