@@ -160,4 +160,9 @@ assert.doesNotMatch(ffc, /0xE92B/, "no hardcoded codepoint list")
 const dg = rd("../../bar/bottombar/DockGlyph.qml")
 assert.match(dg, /DesktopEntries\.applications\.values\.length[^\n]*\n?[^\n]*DesktopEntries\.heuristicLookup\(root\.appId\)/,
   "dock icon lookup re-runs when the desktop entry scan completes")
+// Dock icons are normalized: the probe canvas feeds BottomBarModel.iconFit and
+// the icon is scaled and re-centered by the result.
+assert.match(dg, /BottomBarModel\.iconFit\(alpha, 64, 1\.4\)/, "probe measures opaque bounds through iconFit")
+assert.match(dg, /scale: root\.fit\.scale/, "icon scales by the measured fit")
+assert.match(dg, /x: -root\.fit\.dx \* appIcon\.width \* root\.fit\.scale/, "icon re-centers horizontally")
 console.log("bottom bar wiring: ok")

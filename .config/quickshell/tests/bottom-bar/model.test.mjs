@@ -6,7 +6,7 @@ import assert from "node:assert/strict"
 const src = readFileSync(fileURLToPath(new URL("../../config/BottomBarModel.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
 const M = new Function('"use strict";\n' + src +
-  "; return { batteryParts, signalParts, clockText, dateText, parseWifi, parseVpn, sidebarToggle, notchSteps }")()
+  "; return { batteryParts, signalParts, clockText, dateText, parseWifi, parseVpn, sidebarToggle, notchSteps, iconFit }")()
 
 // batteryParts: top part full above 83, half above 66; middle full above 49,
 // half above 33; bottom full above 16, half above 0 (strict greater-than).
@@ -83,3 +83,19 @@ assert.deepEqual(M.notchSteps(50, 0), { accum: 50, steps: 0 }, "zero delta ignor
 assert.deepEqual(M.notchSteps(0, -120), { accum: 0, steps: -1 }, "negative notch")
 assert.deepEqual(run([-100, -50]), { accum: -30, steps: [0, -1] }, "negative remainder kept")
 console.log("bottom bar model: ok")
+
+// iconFit: scale the opaque bbox's longer side up to the slot, clamped to
+// [1, 1.4], and report the bbox center's offset.
+const sq = (n, x0, y0, x1, y1) => Array.from({ length: n * n }, (_, i) =>
+  (i % n >= x0 && i % n <= x1 && Math.floor(i / n) >= y0 && Math.floor(i / n) <= y1) ? 255 : 0)
+assert.deepEqual(M.iconFit(sq(10, 0, 0, 9, 9), 10), { scale: 1, dx: 0, dy: 0 }, "full-bleed icon is untouched")
+assert.deepEqual(M.iconFit(sq(10, 1, 1, 8, 8), 10), { scale: 1.25, dx: 0, dy: 0 }, "8 of 10 px grows 1.25x")
+assert.equal(M.iconFit(sq(10, 4, 4, 5, 5), 10).scale, 1.4, "tiny artwork is capped")
+const off = M.iconFit(sq(10, 0, 2, 5, 7), 10)
+assert.equal(off.scale, 1.4, "6 of 10 px wants 1.67x, capped")
+assert.ok(Math.abs(off.dx - -0.2) < 1e-9 && Math.abs(off.dy - 0) < 1e-9, "off-center bbox reports its offset")
+assert.deepEqual(M.iconFit(sq(10, 3, 0, 6, 9), 10).scale, 1, "tall icon is limited by its longer side")
+assert.deepEqual(M.iconFit(new Array(100).fill(0), 10), { scale: 1, dx: 0, dy: 0 }, "blank raster is the identity")
+assert.deepEqual(M.iconFit(null, 10), { scale: 1, dx: 0, dy: 0 }, "missing data is the identity")
+assert.deepEqual(M.iconFit(new Array(100).fill(10), 10), { scale: 1, dx: 0, dy: 0 }, "alpha at or below 16 is ignored")
+console.log("model: iconFit ok")

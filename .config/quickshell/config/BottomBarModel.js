@@ -74,3 +74,33 @@ function notchSteps(accum, delta) {
   var steps = Math.trunc(a / 120) || 0   // `|| 0` turns -0 into 0
   return { accum: a - steps * 120, steps: steps }
 }
+
+// Dock icon normalization. `alpha` is the alpha channel of an n x n raster of
+// the icon (n*n values). Themes pad their artwork differently, so the opaque
+// bounding box is measured and the icon scaled until its longer side fills
+// the slot. Returns { scale, dx, dy }: scale clamped to [1, maxScale]; dx, dy
+// are the bbox center's offset from the image center as fractions of its size
+// (positive = right/down). A blank or unreadable raster gives the identity.
+function iconFit(alpha, n, maxScale) {
+  var cap = Number(maxScale) || 1.4
+  var identity = { scale: 1, dx: 0, dy: 0 }
+  if (!alpha || !(n > 0) || alpha.length < n * n) return identity
+  var x0 = n, y0 = n, x1 = -1, y1 = -1
+  for (var y = 0; y < n; y++) {
+    for (var x = 0; x < n; x++) {
+      if (alpha[y * n + x] > 16) {
+        if (x < x0) x0 = x
+        if (x > x1) x1 = x
+        if (y < y0) y0 = y
+        if (y > y1) y1 = y
+      }
+    }
+  }
+  if (x1 < 0) return identity
+  var extent = Math.max(x1 - x0 + 1, y1 - y0 + 1) / n
+  return {
+    scale: Math.min(cap, Math.max(1, 1 / extent)),
+    dx: (x0 + x1 + 1) / 2 / n - 0.5,
+    dy: (y0 + y1 + 1) / 2 / n - 0.5
+  }
+}

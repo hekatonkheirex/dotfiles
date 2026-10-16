@@ -31,6 +31,11 @@ Item {
     ? Quickshell.iconPath(root.entry.icon, true) : ""
   readonly property bool useIcon: root.iconPath !== ""
 
+  // Themes pad their artwork differently, so some icons look small in the
+  // same 22 S box. The probe canvas measures the opaque bounds and `fit`
+  // scales each icon until its longer side fills the box.
+  property var fit: ({ scale: 1, dx: 0, dy: 0 })
+
   signal activated()
   signal closeRequested()
   signal cycled(int direction)
@@ -46,9 +51,43 @@ Item {
     width: Config.bottomBarDp(22)
     height: width
     source: root.iconPath
-    sourceSize: Qt.size(width * 2, height * 2)
+    sourceSize: Qt.size(width * 3, height * 3)
     asynchronous: true
     opacity: root.running ? 1 : 0.55
+    scale: root.fit.scale
+    // Scaling is about the center; shift so the artwork's center stays put.
+    transform: Translate {
+      x: -root.fit.dx * appIcon.width * root.fit.scale
+      y: -root.fit.dy * appIcon.height * root.fit.scale
+    }
+  }
+
+  Canvas {
+    id: probe
+    visible: false
+    width: 64
+    height: 64
+    renderTarget: Canvas.Image
+    onPaint: {
+      if (!root.useIcon || !probe.isImageLoaded(root.iconPath)) return
+      var ctx = probe.getContext("2d")
+      ctx.clearRect(0, 0, 64, 64)
+      ctx.drawImage(root.iconPath, 0, 0, 64, 64)
+      var px = ctx.getImageData(0, 0, 64, 64).data
+      var alpha = []
+      for (var i = 3; i < px.length; i += 4) alpha.push(px[i])
+      root.fit = BottomBarModel.iconFit(alpha, 64, 1.4)
+    }
+    onImageLoaded: probe.requestPaint()
+    function load() {
+      if (root.useIcon) probe.loadImage(root.iconPath)
+      else root.fit = ({ scale: 1, dx: 0, dy: 0 })
+    }
+    Component.onCompleted: load()
+    Connections {
+      target: root
+      function onIconPathChanged() { probe.load() }
+    }
   }
 
   Text {
