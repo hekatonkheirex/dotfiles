@@ -19,7 +19,7 @@ QtObject {
   // blocks (barWidth = tagStripHeight, form full, top).
   readonly property bool spatialMotion: true
   readonly property bool expressiveMotion: true
-  readonly property int tagStripHeight: 8
+  readonly property int tagStripHeight: 5
   // Reference scale for the sidebar, networks window and power menu.
   readonly property real elenaScale: 1.5
   function dp(n) { return Math.round(n * elenaScale) }
