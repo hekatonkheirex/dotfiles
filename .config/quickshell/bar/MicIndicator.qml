@@ -5,7 +5,7 @@ import Quickshell.Wayland._WlrLayerShell
 import "../config"
 import "../config/MicState.js" as MicState
 
-// Her microphone tab: 18 S by 10 S, top center, square top and round bottom.
+// Her microphone tab: 18 S by 6 S, top center, square top and round bottom.
 // Live mic x1 at full opacity, muted x8 at 0.4. Click toggles the default
 // source's mute, middle click hides it until the mute state next changes.
 PanelWindow {
@@ -23,7 +23,7 @@ PanelWindow {
 
   anchors.top: true
   implicitWidth: Config.dp(18)
-  implicitHeight: Config.dp(10)
+  implicitHeight: Config.dp(6)
 
   Rectangle {
     objectName: "tab"
