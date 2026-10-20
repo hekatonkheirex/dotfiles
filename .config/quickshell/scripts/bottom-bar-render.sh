@@ -59,7 +59,7 @@ SCALE = 48 / 43
 INK_SCALE = (SCALE / 1.5) ** 2
 def dp(n): return int(n * SCALE + 0.5)
 W, BH = 1100, 48
-CW, BW = dp(300), dp(300) / 3
+CW, BW = dp(230), dp(230) / 3
 OFF = {"A": 0, "B": 85, "C": 170}  # A: idle; B: hover on glance; C: disconnected, 20 items
 checks = []
 def check(name, n, lo, hi=None):
@@ -175,8 +175,8 @@ fl, fr = CW + dp(8), W - CW - dp(8)
 check("C dock ink left of free band px", bgc((CW, yc0, fl, yc1)), 0, 0)
 check("C dock ink right of free band px", bgc((fr, yc0, W - CW, yc1)), 0, 0)
 check("C dock ink in free band px", bgc((fl, yc0, fr, yc1)), int(400 * INK_SCALE))
-check("C left cluster gap 1 px", sfc((dp(80) + 2, yc0, dp(113), yc1)), 0, 0)
-check("C left cluster gap 2 px", sfc((dp(180) + 2, yc0, dp(213), yc1)), 0, 0)
+check("C left cluster gap 1 px", sfc((dp(72) + 2, yc0, dp(81), yc1)), 0, 0)
+check("C left cluster gap 2 px", sfc((dp(150) + 2, yc0, dp(157), yc1)), 0, 0)
 
 if not all(checks):
     print(f"FAIL: {checks.count(False)} of {len(checks)} checks")

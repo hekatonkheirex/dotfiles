@@ -41,7 +41,7 @@ Item {
     id: left
     anchors.left: parent.left
     anchors.bottom: parent.bottom
-    width: Config.bottomBarDp(300)
+    width: Config.bottomBarDp(230)
     height: parent.height
     color: Colors.surface
     topRightRadius: root.outerRadius
@@ -90,7 +90,7 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
     anchors.bottomMargin: Config.bottomBarDp(6)
-    width: Math.max(0, root.width - 2 * Config.bottomBarDp(300) - 2 * Config.bottomBarDp(8))
+    width: Math.max(0, root.width - 2 * Config.bottomBarDp(230) - 2 * Config.bottomBarDp(8))
     height: Config.bottomBarDp(26) + Config.bottomBarDp(6) + Config.bottomBarDp(3)
     clip: true
 
@@ -120,7 +120,7 @@ Item {
     id: right
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    width: Config.bottomBarDp(300)
+    width: Config.bottomBarDp(230)
     height: parent.height
     color: Colors.surface
     topLeftRadius: root.outerRadius
