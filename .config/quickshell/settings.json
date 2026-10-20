@@ -2,9 +2,9 @@
     "calendarWeekStartsMonday": false,
     "clock24h": true,
     "colorContrast": "standard",
-    "colorPalette": "tokyonight",
+    "colorPalette": "catppuccin",
     "colorSource": "fixed",
-    "colorVariant": "auto",
+    "colorVariant": "frappe",
     "doNotDisturb": false,
     "dockPinned": "brave-origin,kitty,org.gnome.Nautilus,dev.zed.Zed,sonora,org.localsend.localsend_app",
     "fontPixelSize": 10,
@@ -28,6 +28,6 @@
     "themePreference": 0,
     "weatherAllowIpGeolocation": true,
     "weatherLocation": "",
-    "weatherRefreshIntervalMinutes": 15,
+    "weatherRefreshIntervalMinutes": 60,
     "weatherUnits": "metric"
 }

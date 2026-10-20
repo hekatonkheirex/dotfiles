@@ -13,12 +13,6 @@ binds {
   // Mod+B hotkey-overlay-title="Open Web Browser: Firefox" { spawn "firefox"; }
   Mod+T hotkey-overlay-title="Open File Manager: Nautilus" { spawn "nautilus"; }
   Mod+Escape repeat=false hotkey-overlay-title="Power Menu" { spawn "~/.config/quickshell/scripts/quickmenu"; }
-  Mod+A hotkey-overlay-title="Open OpenCode" { spawn "kitty" "-e" "opencode"; }
-
-  // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
-  // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
-  // For example, this is a standard bind to toggle the screen reader (orca).
-  Super+Alt+S allow-when-locked=true hotkey-overlay-title=null { spawn-sh "pkill orca || exec orca"; }
 
   // Example volume keys mappings for PipeWire & WirePlumber.
   // The allow-when-locked=true property makes them work even when the session is locked.

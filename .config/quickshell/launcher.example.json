@@ -1,0 +1,12 @@
+{
+  "aliases": { "ff": "Firefox", "term": "kitty" },
+  "quicklinks": [
+    { "name": "Docs", "keyword": "doc", "url": "https://docs.example.com/search?q={query}" },
+    { "name": "Crates", "keyword": "cr", "url": "https://crates.io/search?q={query}" }
+  ],
+  "snippets": [
+    { "name": "Sign-off", "keyword": "sig", "text": "Best,\nRodrigo" },
+    { "name": "Today", "keyword": "td", "text": "{date}" },
+    { "name": "Paste as link", "keyword": "lnk", "text": "<{clipboard}>" }
+  ]
+}

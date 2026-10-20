@@ -48,7 +48,7 @@ window-rule {
 
 window-rule {
     match app-id=r#"^org\.wezfurlong\.wezterm$"#
-    match app-id="brave-origin"
+    // match app-id="brave-origin"
     match app-id="zen"
     match app-id="firefox"
     match app-id="kitty"

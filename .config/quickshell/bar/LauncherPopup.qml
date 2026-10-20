@@ -10,6 +10,16 @@ import Quickshell.Io
 import "primitives"
 import "../config"
 import "../config/LauncherLayout.js" as LauncherLayout
+import "../config/launcher/Calc.js" as Calc
+import "../config/launcher/Rank.js" as Rank
+import "../config/launcher/Frecency.js" as Frecency
+import "../config/launcher/Quicklinks.js" as Quicklinks
+import "../config/launcher/Snippets.js" as Snippets
+import "../config/launcher/Windows.js" as LauncherWindows
+import "../config/launcher/Emoji.js" as Emoji
+import "../config/launcher/EmojiData.js" as EmojiData
+import "../config/launcher/Root.js" as LauncherRoot
+import "../config/launcher/ActionPanel.js" as ActionPanel
 
 PanelWindow {
   id: root
@@ -50,16 +60,86 @@ PanelWindow {
 
   readonly property var selectedResult: filteredModel.count > 0
     && selectedIndex >= 0 && selectedIndex < filteredModel.count ? filteredModel.get(selectedIndex) : null
-  readonly property string selectionActionLabel: selectedResult && selectedResult.kind === "clipboard"
-    ? "Restore clipboard entry" : (selectedResult && selectedResult.kind === "clipboard-action"
-      ? selectedResult.name : (selectedResult && selectedResult.kind === "action" ? "Run action" : "Open application"))
+  readonly property var panelActions: ActionPanel.actionsFor(selectedResult ? {
+    kind: selectedResult.kind, terminal: selectedResult.terminal, name: selectedResult.name
+  } : null, { canType: true })
 
   function activateSelection() {
-    if (!root.selectedResult) return
+    if (!root.selectedResult || root.panelActions.length === 0) return
+    root.runPanelAction(root.panelActions[0].id)
+  }
+
+  function payloadOf(result) {
+    try { return JSON.parse(result.payload || "{}") } catch (e) { return {} }
+  }
+
+  function copyText(text) {
+    Quickshell.execDetached(["wl-copy", "--", text])
+  }
+
+  // Types the text into whatever window regains focus once the launcher hides.
+  function typeText(text) {
+    Quickshell.execDetached(["sh", "-c", "sleep 0.25; exec wtype -- \"$1\"", "launcher-type", text])
+  }
+
+  function runPanelAction(id) {
     var result = root.selectedResult
-    if (result.kind === "action" || result.kind === "clipboard-action") root.runAction(result.actionId)
-    else if (result.kind === "clipboard") root.restoreClipboardEntry(result.clipboardLine)
-    else root.launchApp(result.argv, result.terminal)
+    if (!result) return
+    var data = root.payloadOf(result)
+    switch (id) {
+      case "open":
+        root.remember(result.itemId)
+        root.launchApp(result.argv, result.terminal)
+        return
+      case "open-terminal":
+        root.remember(result.itemId)
+        root.launchApp(result.argv, true)
+        return
+      case "copy-command":
+        root.copyText(root.launchCommandText(result.argv))
+        break
+      case "copy":
+        root.remember(result.itemId)
+        root.copyText(data.text || "")
+        break
+      case "copy-expression":
+        root.copyText(data.expression || "")
+        break
+      case "paste":
+        root.remember(result.itemId)
+        root.typeText(data.text || "")
+        break
+      case "open-url":
+        root.remember(result.itemId)
+        Quickshell.execDetached(["xdg-open", data.url || ""])
+        break
+      case "copy-url":
+        root.copyText(data.url || "")
+        break
+      case "focus-window":
+        Quickshell.execDetached(data.focusArgv || [])
+        break
+      case "close-window":
+        Quickshell.execDetached(data.closeArgv || [])
+        break
+      case "restore":
+        root.restoreClipboardEntry(result.clipboardLine)
+        return
+      case "delete-clipboard":
+        root.deleteClipboardEntry(result.clipboardLine)
+        return
+      case "run-action":
+        root.remember(result.itemId)
+        root.runAction(result.actionId)
+        return
+      case "run-command":
+        root.remember(result.itemId)
+        Quickshell.execDetached(data.argv || [])
+        break
+      default:
+        return
+    }
+    dismissed()
   }
 
   function launchCommandText(argv) {
@@ -69,7 +149,6 @@ PanelWindow {
     }).join(" ")
   }
 
-  ListModel { id: appModel }
   ListModel {
     id: filteredModel
 
@@ -95,6 +174,12 @@ PanelWindow {
       clipboardLine: ""
       clipboardPreview: ""
       clipboardMime: ""
+      itemId: ""
+      tag: ""
+      glyph: ""
+      // JSON text for the same reason as argv: provider-specific data
+      // (URL, text, window id, argv) crosses the ListModel as a string.
+      payload: ""
     }
   }
   ListModel {
@@ -175,6 +260,22 @@ PanelWindow {
   }
   ListModel { id: clipboardModel }
 
+  // Launcher providers. Plain JS arrays, not ListModels: they are rebuilt
+  // wholesale and ranked in config/launcher/*.js.
+  property var appEntries: []
+  property var commandEntries: []
+  property var windowEntries: []
+  readonly property var emojiEntries: Emoji.toItems(EmojiData.EMOJI)
+  property var userData: ({ aliases: {}, quicklinks: [], snippets: [] })
+  readonly property var linkList: Quicklinks.merge(userData.quicklinks)
+  readonly property var snippetList: Snippets.normalize(userData.snippets)
+  property var desktopEntries: []
+  property var historyStore: ({})
+  property var boostMap: ({})
+  property string clipText: ""
+  readonly property bool needsClipboardText: JSON.stringify(userData.snippets).indexOf("{clipboard}") !== -1
+    || JSON.stringify(userData.quicklinks).indexOf("{clipboard}") !== -1
+
   property string searchText: ""
   property int selectedIndex: 0
   property bool clipboardLoaded: false
@@ -185,6 +286,7 @@ PanelWindow {
   readonly property bool actionMode: searchText.trim().startsWith(">")
   readonly property bool wallpaperMode: searchText.trim().startsWith("@")
   readonly property bool clipboardMode: searchText.trim().startsWith(";")
+  readonly property bool emojiMode: searchText.trim().startsWith(":")
 
   onWallpaperModeChanged: {
     if (!root.wallpaperMode) return
@@ -202,14 +304,8 @@ PanelWindow {
         var txt = text
         if (txt.length > 0) {
           try {
-            var json = JSON.parse(txt)
-            for (var i = 0; i < json.length; i++) {
-              // Arrays become nested QQmlListModel objects when stored in a
-              // ListModel. Serialize before insertion so ListModel.get()
-              // returns a stable string that can be decoded at launch time.
-              json[i].argv = root.serializeArgv(json[i].argv)
-              appModel.append(json[i])
-            }
+            root.desktopEntries = JSON.parse(txt)
+            root.rebuildApps()
             if (visible) filterApps()
           } catch (e) { print("LauncherPopup parse error:", e) }
         }
@@ -281,8 +377,56 @@ PanelWindow {
     }
   }
 
+  FileView {
+    id: userFile
+    path: Quickshell.env("HOME") + "/.config/quickshell/launcher.json"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: {
+      root.userData = LauncherRoot.parseUserData(text())
+      root.rebuildApps()
+    }
+    // No launcher.json is the normal state: defaults only.
+  }
+
+  FileView {
+    id: historyFile
+    path: (Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state") + "/quickshell/launcher-history.json"
+    atomicWrites: true
+    printErrors: false
+    onLoaded: {
+      root.historyStore = Frecency.parse(text())
+      root.boostMap = Frecency.boosts(root.historyStore, Date.now())
+    }
+  }
+
+  Process {
+    id: windowsProc
+    command: ["sh", "-c", "NIRI_SOCKET=$(ls -t /run/user/$(id -u)/niri.*.sock 2>/dev/null | head -1) exec niri msg -j windows"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.buildWindowEntries(LauncherWindows.parse(text))
+        if (root.visible && root.searchText !== "") root.filterApps()
+      }
+    }
+  }
+
+  // Only read when a snippet or quicklink uses {clipboard}.
+  Process {
+    id: clipTextProc
+    command: ["sh", "-c", "wl-paste --no-newline --type text 2>/dev/null | head -c 2000"]
+    running: false
+    stdout: StdioCollector {
+      onStreamFinished: root.clipText = text
+    }
+  }
+
   Component.onCompleted: {
     filteredModel.clear()
+    root.commandEntries = root.buildCommandEntries()
+    Quickshell.execDetached(["mkdir", "-p", (Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state") + "/quickshell"])
     desktopProc.running = true
     Qt.application.activeChanged.connect(function() {
       if (!Qt.application.active && root.visible && Config.isNiri) root.dismissed()
@@ -347,8 +491,50 @@ PanelWindow {
       argv: root.serializeArgv(item.argv),
       clipboardLine: item.clipboardLine || "",
       clipboardPreview: item.clipboardPreview || "",
-      clipboardMime: item.clipboardMime || ""
+      clipboardMime: item.clipboardMime || "",
+      itemId: item.id || "",
+      tag: item.tag || "",
+      glyph: item.glyph || "",
+      payload: JSON.stringify(item.payload || {})
     })
+  }
+
+  function rebuildApps() {
+    root.appEntries = LauncherRoot.appItems(root.desktopEntries, root.userData.aliases)
+  }
+
+  function buildCommandEntries() {
+    var out = []
+    for (var i = 0; i < actionModel.count; i++) {
+      var a = actionModel.get(i)
+      out.push({
+        id: "cmd:" + a.actionId, kind: "action", actionId: a.actionId, name: a.name, comment: a.comment,
+        keywords: a.keywords, icon: a.icon, tag: "Command", payload: {}
+      })
+    }
+    return out
+  }
+
+  function remember(id) {
+    if (!LauncherRoot.shouldRemember(id)) return
+    root.historyStore = Frecency.record(root.historyStore, id, Date.now())
+    root.boostMap = Frecency.boosts(root.historyStore, Date.now())
+    historyFile.setText(JSON.stringify(root.historyStore))
+  }
+
+  function buildWindowEntries(windows) {
+    var names = {}
+    for (var i = 0; i < root.desktopEntries.length; i++) {
+      var d = root.desktopEntries[i]
+      names[String(d.name).toLowerCase()] = d.name
+    }
+    var focused = WindowService.focusedWindowId
+    root.windowEntries = LauncherWindows.toItems(windows, names).concat(LauncherWindows.layoutItems(focused))
+  }
+
+  function keywordLinkFor(text) {
+    var m = Quicklinks.matchKeyword(root.linkList, text)
+    return m ? Quicklinks.keywordItem(m, root.clipText) : null
   }
 
   function clipboardDisplayText(value) {
@@ -570,110 +756,21 @@ PanelWindow {
     }
     root.clipboardWipeArmed = false
     root.clipboardLoaded = false
-    if (q === "") {
-      for (var i = 0; i < appModel.count; i++) {
-        appendFilteredResult(appModel.get(i), "app")
-      }
-      selectedIndex = 0
-      return
-    }
-
-    var terms = q.split(/\s+/)
-    var matches = []
-    for (var i = 0; i < appModel.count; i++) {
-      var app = appModel.get(i)
-      var score = 0
-      var nameLower = app.name.toLowerCase()
-      var commentLower = (app.comment || "").toLowerCase()
-      var genNameLower = (app.generic_name || "").toLowerCase()
-      var keywordsLower = (app.keywords || "").toLowerCase()
-      var categoriesLower = (app.categories || "").toLowerCase()
-
-      // 1. Check exact or prefix match on Name (highest priority)
-      if (nameLower === q) {
-        score += 500
-      } else if (nameLower.indexOf(q) === 0) {
-        score += 300
-      } else if (nameLower.indexOf(q) !== -1) {
-        score += 150
-      }
-
-      // 2. Check Generic Name (e.g. "Web Browser", "Text Editor")
-      if (genNameLower === q) {
-        score += 250
-      } else if (genNameLower.indexOf(q) === 0) {
-        score += 180
-      } else if (genNameLower.indexOf(q) !== -1) {
-        score += 100
-      }
-
-      // 3. Check keywords (e.g. "browser", "internet")
-      if (keywordsLower.indexOf(q) !== -1) {
-        score += 80
-      }
-
-      // 4. Check Categories
-      if (categoriesLower.indexOf(q) !== -1) {
-        score += 60
-      }
-
-      // 5. Check description/comment
-      if (commentLower.indexOf(q) !== -1) {
-        score += 40
-      }
-
-      // 6. Check individual terms for multi-word queries
-      if (terms.length > 1) {
-        var allTermsMatch = true
-        var termScore = 0
-        for (var t = 0; t < terms.length; t++) {
-          var term = terms[t]
-          if (!term) continue
-          var foundTerm = false
-          if (nameLower.indexOf(term) !== -1) {
-            termScore += 30
-            foundTerm = true
-          }
-          if (genNameLower.indexOf(term) !== -1) {
-            termScore += 20
-            foundTerm = true
-          }
-          if (keywordsLower.indexOf(term) !== -1) {
-            termScore += 15
-            foundTerm = true
-          }
-          if (commentLower.indexOf(term) !== -1) {
-            termScore += 10
-            foundTerm = true
-          }
-          if (!foundTerm) {
-            allTermsMatch = false
-          }
-        }
-        if (allTermsMatch) {
-          score += termScore + 50
-        } else {
-          score += termScore * 0.5
-        }
-      }
-
-      if (score > 0) {
-        matches.push({ app: app, score: score })
-      }
-    }
-
-    // Sort by score descending, secondary sort alphabetically by name
-    matches.sort(function(a, b) {
-      if (b.score !== a.score) {
-        return b.score - a.score
-      }
-      return a.app.name.localeCompare(b.app.name)
-    })
-
-    for (var j = 0; j < matches.length; j++) {
-      appendFilteredResult(matches[j].app, "app")
-    }
-
+    var typed = searchText.trim()
+    var items = LauncherRoot.build({
+      query: typed,
+      apps: root.appEntries,
+      commands: root.commandEntries,
+      windows: root.windowEntries,
+      snippets: Snippets.toItems(root.snippetList, { now: new Date(), clipboard: root.clipText }),
+      links: Quicklinks.toItems(root.linkList),
+      emoji: root.emojiEntries,
+      calc: Calc.evaluate(typed),
+      keywordLink: root.keywordLinkFor(typed),
+      fallbacks: Quicklinks.fallbackItems(root.linkList, typed),
+      boosts: root.boostMap
+    }, Rank.rank)
+    for (var j = 0; j < items.length; j++) appendFilteredResult(items[j], items[j].kind)
     selectedIndex = Math.max(0, Math.min(selectedIndex, filteredModel.count - 1))
   }
 
@@ -710,11 +807,10 @@ PanelWindow {
       clipboardWipeArmed = false
       clipboardWipeRunning = false
       clipboardStatus = ""
-      if (appModel.count > 0) {
-        for (var i = 0; i < appModel.count; i++) {
-          appendFilteredResult(appModel.get(i), "app")
-        }
-      }
+      root.boostMap = Frecency.boosts(root.historyStore, Date.now())
+      windowsProc.running = true
+      if (root.needsClipboardText) clipTextProc.running = true
+      root.filterApps()
       if (Config.reducedMotion) {
         materialEntryAnimation.stop()
         scaleTransform.xScale = 1.0
@@ -796,7 +892,7 @@ PanelWindow {
         }
       }
       Shortcut {
-        sequences: ["Shift+F10", "Menu"]
+        sequences: ["Ctrl+K", "Shift+F10", "Menu"]
         context: Qt.WindowShortcut
         enabled: root.visible && root.selectedResult !== null
         onActivated: resultMenu.popup(appList, appList.width / 2, appList.height / 2)
@@ -830,23 +926,15 @@ PanelWindow {
           border.width: 1
           border.color: Colors.outlineVariant
         }
-        DesktopMenuItem {
-          text: root.selectionActionLabel
-          enabled: root.selectedResult !== null
-          onTriggered: root.activateSelection()
-        }
-        DesktopMenuItem {
-          text: "Copy launch command"
-          visible: root.selectedResult !== null && root.selectedResult.kind === "app"
-          height: visible ? implicitHeight : 0
-          enabled: visible && root.normalizeArgv(root.selectedResult.argv).length > 0
-          onTriggered: Quickshell.execDetached(["wl-copy", "--", root.launchCommandText(root.selectedResult.argv)])
-        }
-        DesktopMenuItem {
-          text: "Delete clipboard entry"
-          visible: root.selectedResult !== null && root.selectedResult.kind === "clipboard"
-          height: visible ? implicitHeight : 0
-          onTriggered: root.deleteClipboardEntry(root.selectedResult.clipboardLine)
+        Instantiator {
+          model: root.panelActions
+          delegate: DesktopMenuItem {
+            required property var modelData
+            text: modelData.label
+            onTriggered: root.runPanelAction(modelData.id)
+          }
+          onObjectAdded: function(index, object) { resultMenu.insertItem(index, object) }
+          onObjectRemoved: function(index, object) { resultMenu.removeItem(object) }
         }
       }
 
@@ -871,7 +959,8 @@ PanelWindow {
         onLeftPressed: root.moveSelection(-1)
         onRightPressed: root.moveSelection(1)
         placeholder: root.actionMode ? "Run a shell action..."
-          : (root.clipboardMode ? "Search clipboard history..." : "")
+          : (root.clipboardMode ? "Search clipboard history..."
+          : (root.emojiMode ? "Search emoji..." : "Search apps, windows, snippets, links; try 2+2 or gh quickshell"))
         showPlaceholderOnFocus: true
         accessibleName: "Search applications and launcher providers"
 
@@ -893,10 +982,11 @@ PanelWindow {
           anchors.leftMargin: Config.dp(30)
           anchors.rightMargin: Config.dp(30)
           verticalAlignment: Text.AlignVCenter
-          text: "/ " + (root.actionMode ? "ACTIONS" : (root.clipboardMode ? "CLIPBOARD" : "APPLICATIONS")) + " /"
+          text: "/ " + (root.actionMode ? "ACTIONS" : (root.clipboardMode ? "CLIPBOARD" : (root.emojiMode ? "EMOJI" : "SEARCH"))) + " /"
             + "   " + filteredModel.count + (filteredModel.count === 1 ? " MATCH" : " MATCHES")
-            + "   ↑↓ SELECT · ENTER " + (root.clipboardMode ? "RESTORE" : (root.actionMode ? "RUN" : "OPEN"))
-            + (root.searchText === "" ? "   > ACTIONS · ; CLIPBOARD · @ WALLPAPERS" : "")
+            + "   ↑↓ SELECT · ENTER " + (root.panelActions.length > 0 ? root.panelActions[0].label.toUpperCase() : "OPEN")
+            + " · CTRL+K ACTIONS"
+            + (root.searchText === "" ? "   > ACTIONS · ; CLIPBOARD · : EMOJI · @ WALLPAPERS" : "")
           color: Colors.fgSurface
           font.family: "monospace"
           font.pixelSize: Math.round(root.textPx * 0.6)
@@ -954,11 +1044,12 @@ PanelWindow {
             anchors.leftMargin: Config.dp(25)
             anchors.right: parent.right
             anchors.rightMargin: Config.dp(25) + (deleteButton.visible ? deleteButton.width : 0)
+              + (tagText.visible ? tagText.width + Config.dp(14) : 0)
             spacing: Config.dp(14)
             Text {
               id: nameText
               objectName: "name"
-              text: resultRow.model.name
+              text: (resultRow.model.glyph ? resultRow.model.glyph + "  " : "") + resultRow.model.name
               color: resultRow.selected ? Colors.elenaAccent(4) : Colors.fgSurface
               font.family: "monospace"
               font.bold: true
@@ -976,6 +1067,19 @@ PanelWindow {
               anchors.verticalCenter: parent.verticalCenter
               elide: Text.ElideRight
             }
+          }
+
+          Text {
+            id: tagText
+            anchors.right: parent.right
+            anchors.rightMargin: Config.dp(25) + (deleteButton.visible ? deleteButton.width + Config.dp(10) : 0)
+            anchors.verticalCenter: parent.verticalCenter
+            visible: text !== "" && !root.clipboardMode
+            text: resultRow.model.tag.toUpperCase()
+            color: Colors.fgSurfaceVariant
+            font.family: "monospace"
+            font.pixelSize: Math.round(root.textPx * 0.6)
+            font.letterSpacing: Config.typeMonoTracking
           }
 
           MouseArea {

@@ -1,10 +1,9 @@
 android-sdk-cmdline-tools-latest
 antigravity-cli
 brave-origin-bin
-chatgpt-desktop
 claude-code
 google-chrome
-helium-browser-bin
+hopper
 libgnome-keyring
 localsend-bin
 onlyoffice-bin
@@ -16,4 +15,3 @@ timeshift-autosnap
 ttfautohint
 unimatrix-git
 xnviewmp
-zen-browser-bin
