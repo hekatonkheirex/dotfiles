@@ -15,7 +15,11 @@ var familyList = [
   { value: "rosepine", label: "Rosé Pine", icon: "local_florist" },
   { value: "everforest", label: "Everforest", icon: "forest" },
   { value: "kanagawa", label: "Kanagawa", icon: "waves" },
-  { value: "solarized", label: "Solarized", icon: "wb_sunny" }
+  { value: "solarized", label: "Solarized", icon: "wb_sunny" },
+  { value: "vapourwave", label: "Vapourwave", icon: "blur_on" },
+  { value: "synthwave", label: "Synthwave", icon: "graphic_eq" },
+  { value: "monokai", label: "Monokai", icon: "terminal" },
+  { value: "oxocarbon", label: "Oxocarbon", icon: "contrast" }
 ]
 
 var variantLists = {
@@ -71,6 +75,18 @@ var variantLists = {
   solarized: [
     { value: "auto", label: "Auto", icon: "brightness_auto" },
     { value: "light", label: "Light", icon: "light_mode" },
+    { value: "dark", label: "Dark", icon: "dark_mode" }
+  ],
+  vapourwave: [
+    { value: "dark", label: "Dark", icon: "dark_mode" }
+  ],
+  synthwave: [
+    { value: "dark", label: "Dark", icon: "dark_mode" }
+  ],
+  monokai: [
+    { value: "dark", label: "Dark", icon: "dark_mode" }
+  ],
+  oxocarbon: [
     { value: "dark", label: "Dark", icon: "dark_mode" }
   ]
 }
@@ -137,7 +153,9 @@ function resolveVariant(family, variant, darkMode) {
       ? variant
       : (darkMode ? "night" : "day")
   }
-  if (family === "elenapan" || family === "nord" || family === "dracula") return "dark"
+  if (family === "elenapan" || family === "nord" || family === "dracula" ||
+      family === "vapourwave" || family === "synthwave" || family === "monokai" ||
+      family === "oxocarbon") return "dark"
   if (family === "kanagawa") return "wave"
   if (family === "rosepine") {
     if (variant === "auto") return darkMode ? "main" : "dawn"
@@ -552,6 +570,74 @@ function solarizedPalette(variant) {
   return semanticPalette(s, a)
 }
 
+// Vapourwave, Synthwave, Monokai and Oxocarbon are dark only; light mode reuses
+// them. Synthwave follows SynthWave '84, Monokai the classic Sublime scheme,
+// Oxocarbon the IBM Carbon based nyoom-engineering/oxocarbon dark ramp.
+// Vapourwave uses the common pink/cyan/violet vaporwave set on a deep purple base.
+function vapourwavePalette() {
+  var s = {
+    base: "#1b1230", dim: "#150e26", bright: "#2d1f4d", lowest: "#110a20",
+    low: "#20163a", container: "#2a1d48", high: "#382862", highest: "#4a3680",
+    variant: "#382862", text: "#f4eaff", subtext: "#b9a6d9", outline: "#7a66a8", outlineVariant: "#4a3680"
+  }
+  var a = {
+    primary: "#ff71ce", onPrimary: "#1b1230", primaryContainer: "#4d2450", onPrimaryContainer: "#ffd6f1",
+    secondary: "#01cdfe", onSecondary: "#1b1230", secondaryContainer: "#0f3f5a", onSecondaryContainer: "#c9f3ff",
+    tertiary: "#b967ff", onTertiary: "#1b1230", tertiaryContainer: "#432a75", onTertiaryContainer: "#ecd9ff",
+    error: "#ff6b8a", onError: "#1b1230", errorContainer: "#5a2036", onErrorContainer: "#ffd9e2",
+    inversePrimary: "#b43e8f"
+  }
+  return semanticPalette(s, a)
+}
+
+function synthwavePalette() {
+  var s = {
+    base: "#262335", dim: "#1f1b2e", bright: "#34294f", lowest: "#1a1626",
+    low: "#2a2139", container: "#34294f", high: "#463465", highest: "#495495",
+    variant: "#463465", text: "#f4eeee", subtext: "#b6b1d4", outline: "#848bbd", outlineVariant: "#495495"
+  }
+  var a = {
+    primary: "#ff7edb", onPrimary: "#262335", primaryContainer: "#5a2a63", onPrimaryContainer: "#ffd6f3",
+    secondary: "#36f9f6", onSecondary: "#262335", secondaryContainer: "#1a4a58", onSecondaryContainer: "#c8fffe",
+    tertiary: "#fede5d", onTertiary: "#262335", tertiaryContainer: "#5a4a1a", onTertiaryContainer: "#fff3b8",
+    error: "#fe4450", onError: "#262335", errorContainer: "#5e1f2b", onErrorContainer: "#ffd6d9",
+    inversePrimary: "#b8349a"
+  }
+  return semanticPalette(s, a)
+}
+
+function monokaiPalette() {
+  var s = {
+    base: "#272822", dim: "#1e1f1c", bright: "#3e3d32", lowest: "#1a1a17",
+    low: "#2d2e27", container: "#3e3d32", high: "#49483e", highest: "#75715e",
+    variant: "#49483e", text: "#f8f8f2", subtext: "#cfcfc2", outline: "#75715e", outlineVariant: "#49483e"
+  }
+  var a = {
+    primary: "#a6e22e", onPrimary: "#272822", primaryContainer: "#3e4a1c", onPrimaryContainer: "#e3f7b5",
+    secondary: "#66d9ef", onSecondary: "#272822", secondaryContainer: "#1f4a54", onSecondaryContainer: "#d0f4fb",
+    tertiary: "#fd971f", onTertiary: "#272822", tertiaryContainer: "#5a3a10", onTertiaryContainer: "#ffe0b8",
+    error: "#f92672", onError: "#272822", errorContainer: "#5e1a35", onErrorContainer: "#ffd6e4",
+    inversePrimary: "#6a9a12"
+  }
+  return semanticPalette(s, a)
+}
+
+function oxocarbonPalette() {
+  var s = {
+    base: "#161616", dim: "#161616", bright: "#262626", lowest: "#0f0f0f",
+    low: "#1c1c1c", container: "#262626", high: "#393939", highest: "#525252",
+    variant: "#393939", text: "#f2f4f8", subtext: "#a2a9b0", outline: "#6f6f6f", outlineVariant: "#393939"
+  }
+  var a = {
+    primary: "#78a9ff", onPrimary: "#161616", primaryContainer: "#1c3a6e", onPrimaryContainer: "#d0e2ff",
+    secondary: "#be95ff", onSecondary: "#161616", secondaryContainer: "#3d2a6b", onSecondaryContainer: "#e8daff",
+    tertiary: "#3ddbd9", onTertiary: "#161616", tertiaryContainer: "#0e4a4a", onTertiaryContainer: "#9ef0f0",
+    error: "#ee5396", onError: "#161616", errorContainer: "#5e1a3a", onErrorContainer: "#ffd6e8",
+    inversePrimary: "#0f62fe"
+  }
+  return semanticPalette(s, a)
+}
+
 function palette(family, variant, darkMode) {
   var resolved = resolveVariant(family, variant, darkMode)
   if (family === "catppuccin") return catppuccinPalette(resolved)
@@ -564,6 +650,10 @@ function palette(family, variant, darkMode) {
   if (family === "rosepine") return rosepinePalette(resolved)
   if (family === "everforest") return everforestPalette(resolved)
   if (family === "solarized") return solarizedPalette(resolved)
+  if (family === "vapourwave") return vapourwavePalette()
+  if (family === "synthwave") return synthwavePalette()
+  if (family === "monokai") return monokaiPalette()
+  if (family === "oxocarbon") return oxocarbonPalette()
   return null
 }
 

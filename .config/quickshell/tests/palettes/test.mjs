@@ -23,7 +23,8 @@ const ratio = (a, b) => {
 const roles = Object.keys(P.palette("tokyonight", "night", true))
 const families = P.fixedFamilyOptions().map(f => f.value)
 for (const f of ["catppuccin", "gruvbox", "tokyonight", "elenapan",
-                 "nord", "dracula", "rosepine", "everforest", "kanagawa", "solarized"]) {
+                 "nord", "dracula", "rosepine", "everforest", "kanagawa", "solarized",
+                 "vapourwave", "synthwave", "monokai", "oxocarbon"]) {
   assert.ok(families.includes(f), `fixedFamilyOptions lacks ${f}`)
 }
 assert.ok(!families.includes("material3"))
@@ -55,7 +56,7 @@ assert.equal(P.resolveVariant("rosepine", "moon", false), "moon")
 assert.equal(P.resolveVariant("everforest", "auto", false), "light")
 assert.equal(P.resolveVariant("solarized", "dark", false), "dark")
 assert.equal(P.resolveVariant("solarized", "junk", true), "dark")
-for (const f of ["nord", "dracula"]) assert.equal(P.resolveVariant(f, "auto", false), "dark")
+for (const f of ["nord", "dracula", "vapourwave", "synthwave", "monokai", "oxocarbon"]) assert.equal(P.resolveVariant(f, "auto", false), "dark")
 assert.equal(P.resolveVariant("kanagawa", "auto", true), "wave")
 
 // Anchor colors from the upstream palettes.
@@ -69,4 +70,11 @@ assert.equal(P.palette("rosepine", "dawn", false).surface, "#faf4ed")
 assert.equal(P.palette("everforest", "dark", true).surface, "#2d353b")
 assert.equal(P.palette("solarized", "dark", true).surface, "#002b36")
 assert.equal(P.palette("solarized", "light", false).surface, "#fdf6e3")
+assert.equal(P.palette("vapourwave", "dark", true).primary, "#ff71ce")
+assert.equal(P.palette("synthwave", "dark", true).surface, "#262335")
+assert.equal(P.palette("synthwave", "dark", true).primary, "#ff7edb")
+assert.equal(P.palette("monokai", "dark", true).surface, "#272822")
+assert.equal(P.palette("monokai", "dark", true).primary, "#a6e22e")
+assert.equal(P.palette("oxocarbon", "dark", true).surface, "#161616")
+assert.equal(P.palette("oxocarbon", "dark", true).primary, "#78a9ff")
 console.log("palettes: ok")
