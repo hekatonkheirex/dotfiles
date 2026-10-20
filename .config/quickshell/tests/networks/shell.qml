@@ -63,8 +63,8 @@ ShellRoot {
         id: a
         anchors.fill: parent
         networksModel: win.rows
-        downText: "1.25MB/s"
-        upText: "0.40MB/s"
+        downText: "10.00Mb/s"
+        upText: "3.20Mb/s"
       }
     }
     Rectangle {
@@ -79,8 +79,8 @@ ShellRoot {
         vpnOn: true
         scanning: true
         pingText: "13ms"
-        downText: "0.00MB/s"
-        upText: "0.00MB/s"
+        downText: "0.00Mb/s"
+        upText: "0.00Mb/s"
       }
     }
     Rectangle {
@@ -150,8 +150,8 @@ ShellRoot {
             win.geomItem("a", frameA, labels[i][0] + "_symbol", win.find(tool, "symbol"))
             win.geomItem("a", frameA, labels[i][0] + "_label", win.find(tool, "label"))
           }
-          win.check("bandwidth down text", win.find(a, "bandDownText").text === "1.25MB/s")
-          win.check("bandwidth up text", win.find(a, "bandUpText").text === "0.40MB/s")
+          win.check("bandwidth down text", win.find(a, "bandDownText").text === "10.00Mb/s")
+          win.check("bandwidth up text", win.find(a, "bandUpText").text === "3.20Mb/s")
           for (var nm of ["bandDownSymbol", "bandUpSymbol", "bandDownText", "bandUpText"]) win.geom("a", frameA, nm)
           win.check("rows sit in a 4-row list", Math.abs(win.find(a, "listFrame").height - 4 * Config.dp(60)) <= 1)
 

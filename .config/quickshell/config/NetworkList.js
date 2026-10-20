@@ -84,9 +84,9 @@ function parsePingLine(line) {
   return { kind: "none" }
 }
 
-// Bytes/s to her bandwidth label (MB/s, two decimals); unknown -> "--MB/s".
+// Bytes/s to her bandwidth label (megabits, Mb/s, two decimals); unknown -> "--Mb/s".
 function formatRate(bytes) {
   var v = Number(bytes)
-  if (!isFinite(v) || v < 0) return "--MB/s"
-  return (v / 1000000).toFixed(2) + "MB/s"
+  if (!isFinite(v) || v < 0) return "--Mb/s"
+  return (v * 8 / 1000000).toFixed(2) + "Mb/s"
 }

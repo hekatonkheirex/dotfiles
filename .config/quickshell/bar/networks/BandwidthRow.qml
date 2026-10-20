@@ -2,7 +2,7 @@ import QtQuick
 import "../../config"
 
 // Her bandwidth row: down arrow x1 and up arrow x2, each half centered,
-// MB/s text in monospace 14pt.
+// Mb/s text in monospace 14pt.
 Row {
   id: root
   property string downText: ""
