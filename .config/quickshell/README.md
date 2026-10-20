@@ -18,10 +18,10 @@ Regenerate with `bash scripts/screenshots.sh` (needs an empty niri workspace and
 | Surface | File | Notes |
 |---|---|---|
 | Workspace strip | `bar/Bar.qml`, `bar/TagStripBlocks.qml` | 8 px row at the top edge, one block per niri workspace. Click focuses, right click moves the focused window there, wheel steps. |
-| Bottom bar and dock | `bar/BottomBar.qml`, `bar/bottombar/` | 48 px bar: page buttons, volume, dock, clock, battery, network, tray. |
+| Bottom bar and dock | `bar/BottomBar.qml`, `bar/bottombar/` | 44 px bar: page buttons, volume, dock, clock, battery, network, tray. |
 | Left sidebar | `bar/Sidebar.qml`, `bar/sidebar/` | Home, Agenda, Media pages. Also opens from the left screen edge. |
 | Settings sidebar | `bar/SettingsSidebar.qml`, `bar/settings/` | Right-edge sidebar, six pages: General, Appearance, Display & Input, Bluetooth, Lock & Power, Notifications. |
-| Launcher | `bar/LauncherPopup.qml` | Fuzzy app search; `>` shell actions, `;` clipboard history, `@` wallpapers. |
+| Launcher | `bar/LauncherPopup.qml`, `config/launcher/` | Raycast-style root search: apps, calculator, quicklinks, snippets, windows, emoji (`:`), action panel (`Ctrl+K`). `>` shell actions, `;` clipboard history, `@` wallpapers. See [docs/launcher.md](docs/launcher.md). |
 | Wallpaper filmstrip | `bar/WallpaperFilmstrip.qml` | Full-width picker, opened by `@` or `ipc wallpapers`. |
 | Power menu | `bar/PowerMenu.qml`, `bar/powermenu/` | Full-screen menu with confirmation. |
 | Lock screen | `bar/LockScreen.qml` | PAM and fingerprint, compositor session lock. |
@@ -39,6 +39,7 @@ shell.qml            entry point: ShellRoot, IPC, popup wiring, battery alert
 settings.json        persisted preferences (JsonAdapter, config/Settings.qml)
 colorscheme          terminal palette selector read by ~/.local/bin/sync-terminal-theme.sh
 config/              singletons (Config, Colors, Settings, *Service) and pure *.js models
+config/launcher/     launcher providers and ranking (pure JS), see docs/launcher.md
 bar/                 windows and their parts (one subdirectory per surface)
 scripts/             triggers, theme/wallpaper sync, helpers, render checks
 scripts/niri_config/ python CLI that reads and writes niri kdl (Display & Input tab)
@@ -83,6 +84,8 @@ Niri binds call `scripts/launcher`, `quickmenu`, `settings`, `lock` and `emit-tr
 ## Theme pipeline
 
 `apply-wallpaper.sh` sets the wallpaper (awww), then `sync-active-palette.sh` renders the Matugen cache and runs `~/.local/bin/generate-all-themes.sh` and `sync-theme-mode.sh` for GTK, Qt, Kvantum, kitty, btop and niri. Fixed palettes (Elenapan, Catppuccin, Gruvbox, TokyoNight, Nord, Dracula, Rosé Pine, Everforest, Kanagawa, Solarized) are exported through the same path. `sync-theme-mode-locked.sh` serializes concurrent syncs through `theme-sync-lock.sh`. The Settings Appearance tab starts the sync through `Colors.runPaletteSync()`, so the run survives closing the sidebar. `generate-all-themes.sh` rebuilds icons, Kvantum and GTK/Qt only; the SDDM theme is built by `install-ui-suite.sh`, not on palette changes.
+
+Regeneration requires the four `~/Projects/material3-expressive-{shared,theme,icons,kvantum}` source checkouts, even when their generated themes are already installed. Restore missing sources and rebuild user-session companions with `scripts/install-ui-suite.sh --skip-sddm` (no SDDM or system-wide installation). `generate-all-themes.sh` checks these sources and reports a failed icon or Kvantum build instead of announcing success.
 
 `install-ui-suite.sh` and `install-sddm-integration.sh` (with their `verify-*` twins) install the external Material 3 companions and the SDDM bridge. They use sudo; run them yourself.
 

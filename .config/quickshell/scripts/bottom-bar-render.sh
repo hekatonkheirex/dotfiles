@@ -55,10 +55,10 @@ def count(box, col, t=8):
     x0, y0, x1, y1 = box
     return sum(near(im.getpixel((x, y)), col, t) for x in range(x0, x1) for y in range(y0, y1))
 def area(box): return (box[2] - box[0]) * (box[3] - box[1])
-SCALE = 48 / 43
+SCALE = 44 / 43
 INK_SCALE = (SCALE / 1.5) ** 2
 def dp(n): return int(n * SCALE + 0.5)
-W, BH = 1100, 48
+W, BH = 1100, 44
 CW, BW = dp(230), dp(230) / 3
 OFF = {"A": 0, "B": 85, "C": 170}  # A: idle; B: hover on glance; C: disconnected, 20 items
 checks = []
@@ -67,6 +67,8 @@ def check(name, n, lo, hi=None):
     print(f"{'ok  ' if ok else 'FAIL'} {name}: {n} (want {lo}..{hi if hi is not None else 'inf'})")
     checks.append(ok)
 def patch(cx, cy, r=1): return (cx - r, cy - r, cx + r + 1, cy + r + 1)
+# 3x1 strip: the shortest signal bar is a near-circle, so a 3x3 patch clips its corners.
+def strip(cx, cy): return (cx - 1, cy, cx + 2, cy + 1)
 
 # 2. cluster surface and rounded outer corners
 for lab, (x, y) in (("left", (20, BH - 10)), ("right", (W - 20, BH - 10))):
@@ -123,9 +125,9 @@ sx = [round(signal_left + dp(5) / 2 + (dp(5) + dp(8 / 3)) * i) for i in range(4)
 def colh(lab, x, col):
     return sum(near(im.getpixel((x, y)), col) for y in range(OFF[lab], OFF[lab] + BH))
 for i, x in enumerate(sx):
-    mid = patch(x, OFF["A"] + BH // 2, 1)
+    mid = strip(x, OFF["A"] + BH // 2)
     check(f"A signal bar {i} px (primary)", count(mid, PRI), area(mid))
-    midb = patch(x, OFF["B"] + BH // 2, 1)
+    midb = strip(x, OFF["B"] + BH // 2)
     want, nm = (PRI, "primary") if i < 2 else (HIGH, "container")
     check(f"B signal bar {i} px ({nm})", count(midb, want), area(midb))
 hs = [colh("A", x, PRI) for x in sx]
@@ -159,7 +161,7 @@ check("B tray pill px (container)", count(ab("B"), HIGH), 0, 20)
 # 10. Disconnected bars collapse to the scaled short height; battery parts
 # remain empty, empty, half for the 10 % fixture.
 for i, x in enumerate(sx):
-    mid = patch(x, OFF["C"] + BH // 2, 1)
+    mid = strip(x, OFF["C"] + BH // 2)
     check(f"C signal bar {i} px (muted)", count(mid, OUT), area(mid))
     check(f"C signal bar {i} height px", colh("C", x, OUT), dp(6) - 2, dp(6))
 check("C battery top empty px", count(stack("C", 0), HIGH), area(stack("C", 0)))
