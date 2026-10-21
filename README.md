@@ -61,7 +61,7 @@ Without yadm, clone the repo, run `./install.sh`, then copy `.config`, `.local` 
 
 ## Known fixes
 
-**OnlyOffice has a thick border under Niri.** OnlyOffice draws its own window frame with a transparent shadow margin of about 28px. Under XWayland, Niri fills that margin with the focus ring color. Launch it with `--system-title-bar` to drop the custom frame. To make the launcher do this, copy the desktop entry and add the flag:
+**OnlyOffice has a thick border under Niri.** OnlyOffice draws its own window frame with a transparent shadow margin of about 28px. Under XWayland, Niri fills that margin with the focus ring color. Launch it with `--system-title-bar` to drop the custom frame. The patched desktop entry is tracked at `.local/share/applications/onlyoffice-desktopeditors.desktop`, so a clone gets the fix. To rebuild it from the system entry (for example after an update adds new entries):
 
 ```bash
 mkdir -p ~/.local/share/applications
@@ -70,4 +70,4 @@ sed 's#^Exec=/usr/bin/onlyoffice-desktopeditors#Exec=/usr/bin/onlyoffice-desktop
   > ~/.local/share/applications/onlyoffice-desktopeditors.desktop
 ```
 
-Redo this if an OnlyOffice update adds new `.desktop` entries. Restart OnlyOffice for it to take effect.
+Restart OnlyOffice for it to take effect.
