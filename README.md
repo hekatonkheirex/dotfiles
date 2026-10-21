@@ -58,3 +58,16 @@ Without yadm, clone the repo, run `./install.sh`, then copy `.config`, `.local` 
 | Niri config | nothing (niri reloads on save) |
 | Systemd user units | `systemctl --user daemon-reload` |
 | `.config/thinkpad` files | re-run `yadm bootstrap` (uses sudo) |
+
+## Known fixes
+
+**OnlyOffice has a thick border under Niri.** OnlyOffice draws its own window frame with a transparent shadow margin of about 28px. Under XWayland, Niri fills that margin with the focus ring color. Launch it with `--system-title-bar` to drop the custom frame. To make the launcher do this, copy the desktop entry and add the flag:
+
+```bash
+mkdir -p ~/.local/share/applications
+sed 's#^Exec=/usr/bin/onlyoffice-desktopeditors#Exec=/usr/bin/onlyoffice-desktopeditors --system-title-bar#' \
+  /usr/share/applications/onlyoffice-desktopeditors.desktop \
+  > ~/.local/share/applications/onlyoffice-desktopeditors.desktop
+```
+
+Redo this if an OnlyOffice update adds new `.desktop` entries. Restart OnlyOffice for it to take effect.
