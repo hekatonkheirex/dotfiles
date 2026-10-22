@@ -24,7 +24,7 @@ const roles = Object.keys(P.palette("tokyonight", "night", true))
 const families = P.fixedFamilyOptions().map(f => f.value)
 for (const f of ["catppuccin", "gruvbox", "tokyonight", "elenapan",
                  "nord", "dracula", "rosepine", "everforest", "kanagawa", "solarized",
-                 "vapourwave", "synthwave", "monokai", "oxocarbon"]) {
+                 "vapourwave", "synthwave", "monokai", "oxocarbon", "claude"]) {
   assert.ok(families.includes(f), `fixedFamilyOptions lacks ${f}`)
 }
 assert.ok(!families.includes("material3"))
@@ -56,6 +56,9 @@ assert.equal(P.resolveVariant("rosepine", "moon", false), "moon")
 assert.equal(P.resolveVariant("everforest", "auto", false), "light")
 assert.equal(P.resolveVariant("solarized", "dark", false), "dark")
 assert.equal(P.resolveVariant("solarized", "junk", true), "dark")
+assert.equal(P.resolveVariant("claude", "auto", true), "dark")
+assert.equal(P.resolveVariant("claude", "auto", false), "light")
+assert.equal(P.resolveVariant("claude", "dark", false), "dark")
 for (const f of ["nord", "dracula", "vapourwave", "synthwave", "monokai", "oxocarbon"]) assert.equal(P.resolveVariant(f, "auto", false), "dark")
 assert.equal(P.resolveVariant("kanagawa", "auto", true), "wave")
 
@@ -77,4 +80,8 @@ assert.equal(P.palette("monokai", "dark", true).surface, "#272822")
 assert.equal(P.palette("monokai", "dark", true).primary, "#a6e22e")
 assert.equal(P.palette("oxocarbon", "dark", true).surface, "#161616")
 assert.equal(P.palette("oxocarbon", "dark", true).primary, "#78a9ff")
+assert.equal(P.palette("claude", "light", false).surface, "#eeece2")
+assert.equal(P.palette("claude", "light", false).primary, "#bd5d3a")
+assert.equal(P.palette("claude", "dark", true).surface, "#000000")
+assert.equal(P.palette("claude", "dark", true).primary, "#da7756")
 console.log("palettes: ok")

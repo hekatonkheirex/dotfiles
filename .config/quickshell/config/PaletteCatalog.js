@@ -19,7 +19,8 @@ var familyList = [
   { value: "vapourwave", label: "Vapourwave", icon: "blur_on" },
   { value: "synthwave", label: "Synthwave", icon: "graphic_eq" },
   { value: "monokai", label: "Monokai", icon: "terminal" },
-  { value: "oxocarbon", label: "Oxocarbon", icon: "contrast" }
+  { value: "oxocarbon", label: "Oxocarbon", icon: "contrast" },
+  { value: "claude", label: "Claude", icon: "auto_awesome" }
 ]
 
 var variantLists = {
@@ -87,6 +88,11 @@ var variantLists = {
     { value: "dark", label: "Dark", icon: "dark_mode" }
   ],
   oxocarbon: [
+    { value: "dark", label: "Dark", icon: "dark_mode" }
+  ],
+  claude: [
+    { value: "auto", label: "Auto", icon: "brightness_auto" },
+    { value: "light", label: "Light", icon: "light_mode" },
     { value: "dark", label: "Dark", icon: "dark_mode" }
   ]
 }
@@ -161,7 +167,7 @@ function resolveVariant(family, variant, darkMode) {
     if (variant === "auto") return darkMode ? "main" : "dawn"
     return ["dawn", "main", "moon"].indexOf(variant) >= 0 ? variant : (darkMode ? "main" : "dawn")
   }
-  if (family === "everforest" || family === "solarized") {
+  if (family === "everforest" || family === "solarized" || family === "claude") {
     if (variant === "auto") return darkMode ? "dark" : "light"
     return ["light", "dark"].indexOf(variant) >= 0 ? variant : (darkMode ? "dark" : "light")
   }
@@ -638,6 +644,42 @@ function oxocarbonPalette() {
   return semanticPalette(s, a)
 }
 
+// Claude.ai colors: terra cotta #da7756 / #bd5d3a on cream #eeece2 (light) and
+// black (dark), as in the kitty claude themes. Light secondary and tertiary are
+// darkened from the site's slate and sage so they hold 3:1 on the cream.
+function claudePalette(variant) {
+  var s
+  var a
+  if (variant === "light") {
+    s = {
+      base: "#eeece2", dim: "#e6e3d5", bright: "#eeece2", lowest: "#f5f3ea",
+      low: "#e9e6da", container: "#e0ddd0", high: "#d8d5c8", highest: "#d0cec2",
+      variant: "#e6e3d5", text: "#3d3929", subtext: "#5a5748", outline: "#8a8778", outlineVariant: "#c8c5b8"
+    }
+    a = {
+      primary: "#bd5d3a", onPrimary: "#ffffff", primaryContainer: "#f5d5c8", onPrimaryContainer: "#3d1a0a",
+      secondary: "#5f6f82", onSecondary: "#ffffff", secondaryContainer: "#d8e0eb", onSecondaryContainer: "#1a2530",
+      tertiary: "#667a70", onTertiary: "#ffffff", tertiaryContainer: "#e0e8e4", onTertiaryContainer: "#1a2420",
+      error: "#ba1a1a", onError: "#ffffff", errorContainer: "#ffdad6", onErrorContainer: "#410002",
+      inversePrimary: "#da7756"
+    }
+  } else {
+    s = {
+      base: "#000000", dim: "#000000", bright: "#2a2720", lowest: "#000000",
+      low: "#0f0e0b", container: "#1a1814", high: "#282520", highest: "#3d3929",
+      variant: "#3d3929", text: "#e6e3d5", subtext: "#b0bcb6", outline: "#8a8778", outlineVariant: "#3d3929"
+    }
+    a = {
+      primary: "#da7756", onPrimary: "#3d1a0a", primaryContainer: "#8b3b22", onPrimaryContainer: "#f5d5c8",
+      secondary: "#b0bcb6", onSecondary: "#1a2520", secondaryContainer: "#3d4a48", onSecondaryContainer: "#d8e8e4",
+      tertiary: "#8492a3", onTertiary: "#000000", tertiaryContainer: "#2a3548", onTertiaryContainer: "#c8d4e0",
+      error: "#ffb4ab", onError: "#690005", errorContainer: "#93000a", onErrorContainer: "#ffdad6",
+      inversePrimary: "#bd5d3a"
+    }
+  }
+  return semanticPalette(s, a)
+}
+
 function palette(family, variant, darkMode) {
   var resolved = resolveVariant(family, variant, darkMode)
   if (family === "catppuccin") return catppuccinPalette(resolved)
@@ -654,6 +696,7 @@ function palette(family, variant, darkMode) {
   if (family === "synthwave") return synthwavePalette()
   if (family === "monokai") return monokaiPalette()
   if (family === "oxocarbon") return oxocarbonPalette()
+  if (family === "claude") return claudePalette(resolved)
   return null
 }
 
