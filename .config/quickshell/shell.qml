@@ -468,7 +468,7 @@ ShellRoot {
     id: bottomBar
     visible: bar.visible && !lockScreen.locked
     screen: bar.screen
-    items: DockModel.dockItems(DockModel.normalizePinned(Settings.dockPinned), WindowService.windows)
+    items: !Settings.dockEnabled ? [] : DockModel.dockItems(DockModel.normalizePinned(Settings.dockPinned), WindowService.windows)
     onSidebarPageRequested: function(page) { shell.openSidebarPage(page) }
     // Same anchor and toggle as the launcher() IPC call.
     // ipc.launcher() anchors, then toggles (an open launcher closes).

@@ -102,6 +102,34 @@ ColumnLayout {
 
   SettingsCard {
     Layout.fillWidth: true
+    Layout.preferredHeight: enableRow.implicitHeight + Config.spacingSmall * 2
+
+    ListItem {
+      id: enableRow
+      anchors.fill: parent
+      anchors.margins: Config.spacingSmall
+      leadingIcon: "dock_to_bottom"
+      title: "Show dock"
+      subtitle: Settings.dockEnabled ? "Pinned and running apps in the bottom bar" : "Hidden"
+      toggleControl: dockSwitch
+      SwitchControl {
+        id: dockSwitch
+        checked: Settings.dockEnabled
+        activeColor: Colors.primary
+        surfaceContainerHigh: Colors.surfaceContainerHigh
+        surfaceContainerHighest: Colors.surfaceContainerHighest
+        outline: Colors.outline
+        motionDuration: Config.motionMedium
+        reducedMotion: Config.reducedMotion
+        accessibleName: "Show dock"
+        onToggled: { Settings.dockEnabled = !Settings.dockEnabled; Settings.save() }
+      }
+    }
+  }
+
+  SettingsCard {
+    Layout.fillWidth: true
+    opacity: Settings.dockEnabled ? 1 : 0.5
     Layout.preferredHeight: cardCol.implicitHeight + Config.spacingSmall * 2
 
     ColumnLayout {

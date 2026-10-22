@@ -166,3 +166,13 @@ assert.match(dg, /BottomBarModel\.iconFit\(alpha, 64, 1\.4\)/, "probe measures o
 assert.match(dg, /scale: root\.fit\.scale/, "icon scales by the measured fit")
 assert.match(dg, /x: -root\.fit\.dx \* appIcon\.width \* root\.fit\.scale/, "icon re-centers horizontally")
 console.log("bottom bar wiring: ok")
+
+// dockEnabled toggle: setting, Settings sidebar switch, and shell gate
+{
+  const s = rd("../../config/Settings.qml")
+  assert.match(s, /dockEnabled: true/)
+  assert.match(s, /property alias dockEnabled: adapter\.dockEnabled/)
+  assert.match(s, /property bool dockEnabled: root\.defaults\.dockEnabled/)
+  assert.match(rd("../../bar/settings/DockSection.qml"), /Settings\.dockEnabled = !Settings\.dockEnabled/)
+  assert.match(rd("../../shell.qml"), /items: !Settings\.dockEnabled \? \[\] : DockModel\.dockItems\(/)
+}

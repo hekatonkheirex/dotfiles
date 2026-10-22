@@ -24,6 +24,7 @@ FileView {
   // missing keys, while the reset actions reuse the same snapshot below.
   readonly property var defaults: ({
     schemaVersion: 3,
+    dockEnabled: true,
     dockPinned: "brave-origin,kitty",
     sidebarEdgeHover: true,
     micIndicator: true,
@@ -102,6 +103,7 @@ FileView {
   }
 
   // Every key here has a reader. Delete a key from this file and settings.json together.
+  property alias dockEnabled: adapter.dockEnabled
   property alias dockPinned: adapter.dockPinned
   property alias sidebarEdgeHover: adapter.sidebarEdgeHover
   property alias micIndicator: adapter.micIndicator
@@ -158,6 +160,7 @@ FileView {
     // Persisted format marker. Increment before a breaking key rename/removal
     // and migrate the stored data before writing the new schema.
     property int schemaVersion: root.defaults.schemaVersion
+    property bool dockEnabled: root.defaults.dockEnabled
     property string dockPinned: root.defaults.dockPinned
     property bool sidebarEdgeHover: root.defaults.sidebarEdgeHover
     property bool micIndicator: root.defaults.micIndicator
