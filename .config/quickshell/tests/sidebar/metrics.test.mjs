@@ -6,7 +6,7 @@ import assert from "node:assert/strict"
 const src = readFileSync(fileURLToPath(new URL("../../config/SystemMetrics.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
 const M = new Function('"use strict";\n' + src +
-  "; return { parseCpu, cpuPercent, memoryPercent, swapPercent, tempC, diskPercent, parseNet, netRate, uptimeParts }")()
+  "; return { parseCpu, cpuPercent, memoryPercent, swapPercent, tempC, diskPercent, parseNet, netRate, netTile, uptimeParts }")()
 
 // cpu: idle + iowait counts as idle; delta over two samples.
 const a = M.parseCpu("cpu  100 0 100 700 100 0 0 0 0 0\ncpu0 1 1 1 1 1 0 0 0 0 0\n")
@@ -45,6 +45,12 @@ assert.deepEqual(M.netRate({ rx: 5000, tx: 5000 }, { rx: 100, tx: 100 }, 2), { d
 assert.equal(M.netRate(null, { rx: 1, tx: 1 }, 2), null)
 assert.equal(M.netRate({ rx: 1, tx: 1 }, { rx: 2, tx: 2 }, 0), null)
 assert.equal(M.parseNet(""), null)
+
+// network tile: megabits, fill against the ceiling
+assert.deepEqual(M.netTile(0, 100), { percent: 0, label: "0.0" })
+assert.deepEqual(M.netTile(625000, 100), { percent: 5, label: "5.0" })      // 5 Mb/s
+assert.deepEqual(M.netTile(12500000, 100), { percent: 100, label: "100" })
+assert.deepEqual(M.netTile(125000000, 100), { percent: 100, label: "1000" })
 
 // uptime parts
 assert.equal(M.uptimeParts(59), "59s")

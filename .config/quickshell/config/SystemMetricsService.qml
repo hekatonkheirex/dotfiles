@@ -29,7 +29,7 @@ QtObject {
   property var prevCpu: null
   property var prevNet: null
   property real prevNetAt: 0
-  property real netCeilingBytes: 100 * 1000 * 1000     // 100 MB/s = 100 %
+  property real netCeilingMbps: 100     // 100 Mb/s = 100 %
 
   // Drop baselines and values when the page closes so the next open starts
   // from a fresh 2 s delta instead of a stale one.
@@ -85,8 +85,9 @@ QtObject {
       root.netDown = rate.down
       root.netUp = rate.up
       var top = Math.max(rate.down, rate.up)
-      root.netPercent = Math.max(0, Math.min(100, 100 * top / root.netCeilingBytes))
-      root.netLabel = (top / 1000000).toFixed(top >= 10000000 ? 0 : 1)
+      var tile = SystemMetrics.netTile(top, root.netCeilingMbps)
+      root.netPercent = tile.percent
+      root.netLabel = tile.label
     }
     onLoadFailed: { root.netPercent = -1; root.netLabel = "--"; root.netDown = -1; root.netUp = -1 }
   }

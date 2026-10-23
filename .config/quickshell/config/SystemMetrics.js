@@ -89,6 +89,16 @@ function netRate(prev, cur, dtSec) {
   return { down: down > 0 ? down / dtSec : 0, up: up > 0 ? up / dtSec : 0 }
 }
 
+// Tile fill and label for the faster of down/up: megabits per second, as in the
+// networks window. Fill is relative to ceilingMbps.
+function netTile(topBytes, ceilingMbps) {
+  var mbps = topBytes * 8 / 1000000
+  return {
+    percent: Math.max(0, Math.min(100, 100 * mbps / ceilingMbps)),
+    label: mbps.toFixed(mbps >= 100 ? 0 : 1)
+  }
+}
+
 function uptimeParts(seconds) {
   if (seconds === null || seconds === undefined || !isFinite(seconds) || seconds < 0) return "--"
   var s = Math.floor(seconds)
