@@ -154,5 +154,16 @@ def test_cli_merges_several_links_and_keeps_good_ones_on_partial_failure(tmp_pat
     assert part["status"] == "error" and part["message"].startswith("1 of 3") and len(part["events"]) == 2
 
 
+def test_calendar_color_passes_through_and_lightens_dark_blue():
+    ev = "BEGIN:VEVENT\r\nUID:a\r\nSUMMARY:X\r\nDTSTART;VALUE=DATE:20261025\r\nEND:VEVENT\r\n"
+    def color(c):
+        text = "BEGIN:VCALENDAR\r\n" + (f"X-APPLE-CALENDAR-COLOR:{c}\r\n" if c else "") + ev + "END:VCALENDAR\r\n"
+        return ics.parse_events(text, D(2026, 10, 25), D(2026, 10, 26))[0]["color"]
+    assert color("#34AADCFF") == "#34aadc"
+    assert color("#0000ff") == "#7f7fff"
+    assert color("#zzzzzz") == ""
+    assert color(None) == ""
+
+
 def test_cli_bad_args(tmp_path):
     assert run_cli(tmp_path, None, "nope")["status"] == "error"

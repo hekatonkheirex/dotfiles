@@ -154,8 +154,26 @@ def occurrences(start, rule):
                 return
 
 
+def calendar_color(text):
+    """The calendar's Apple color as #rrggbb, lightened to read on a dark bar; "" if absent."""
+    for line in unfold(text):
+        if line == "BEGIN:VEVENT":
+            break
+        name, _, value = line.partition(":")
+        if name.upper() == "X-APPLE-CALENDAR-COLOR" and len(value) >= 7 and value[0] == "#":
+            try:
+                r, g, b = (int(value[i:i + 2], 16) for i in (1, 3, 5))
+            except ValueError:
+                return ""
+            if 0.2126 * r + 0.7152 * g + 0.0722 * b < 110:   # pure blue is unreadable on dark
+                r, g, b = ((v + 255) // 2 for v in (r, g, b))
+            return "#%02x%02x%02x" % (r, g, b)
+    return ""
+
+
 def parse_events(text, range_start, range_end):
     """Events with any day in [range_start, range_end), local time, sorted."""
+    color = calendar_color(text)
     comps = list(components(text))
     overridden = set()
     for c in comps:
@@ -199,6 +217,7 @@ def parse_events(text, range_start, range_end):
                     "end": "" if all_day or length == dt.timedelta() else le.strftime("%H:%M"),
                     "title": title,
                     "allDay": all_day,
+                    "color": color,
                 })
                 day += dt.timedelta(days=1)
     events.sort(key=lambda ev: (ev["date"], not ev["allDay"], ev["start"], ev["title"]))

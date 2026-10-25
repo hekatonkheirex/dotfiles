@@ -78,7 +78,7 @@ ShellRoot {
       x: 0; y: stage.height; width: 450; height: 831 - stage.height
       today: new Date(2026, 9, 7, 9, 5)
       events: [
-        { date: "2026-10-07", start: "", end: "", title: "Holiday", allDay: true },
+        { date: "2026-10-07", start: "", end: "", title: "Holiday", allDay: true, color: "#34aadc" },
         { date: "2026-10-07", start: "09:30", end: "10:00", title: "Standup", allDay: false },
         { date: "2026-10-08", start: "18:00", end: "19:00", title: "Gym", allDay: false }
       ]
@@ -142,6 +142,8 @@ ShellRoot {
           win.check("events: today rows listed", win.find(evAgenda, "eventRow1") !== null && win.find(evAgenda, "eventRow2") === null)
           win.check("events: dots on days with events", win.find(evAgenda, "eventDot10").visible && win.find(evAgenda, "eventDot11").visible
             && !win.find(evAgenda, "eventDot12").visible)
+          win.check("events: time takes the calendar color", Qt.colorEqual(win.find(evAgenda, "eventTime0").color, "#34aadc"))
+          win.check("events: no color falls back to the accent", Qt.colorEqual(win.find(evAgenda, "eventTime1").color, Colors.elenaAccent(1)))
           mouseClick(win.find(evAgenda, "dayCell11"))
           win.check("events: click picks Oct 8", evAgenda.selectedKey === "2026-10-08" && evAgenda.tasks === 1)
           mouseClick(win.find(evAgenda, "dayCell12"))

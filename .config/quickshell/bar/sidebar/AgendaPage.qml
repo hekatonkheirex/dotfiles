@@ -224,8 +224,9 @@ Item {
             spacing: Config.dp(10)
             Text {
               width: Config.dp(52)
+              objectName: "eventTime" + parent.index
               text: parent.modelData.allDay ? "all day" : parent.modelData.start
-              color: Colors.elenaAccent(1)
+              color: parent.modelData.color ? parent.modelData.color : Colors.elenaAccent(1)
               font.family: Config.fontFamily
               font.pixelSize: Config.dp(10)
               font.weight: Font.Bold
