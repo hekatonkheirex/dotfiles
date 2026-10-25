@@ -165,5 +165,20 @@ def test_calendar_color_passes_through_and_lightens_dark_blue():
     assert color(None) == ""
 
 
+def test_line_color_overrides_calendar_color(tmp_path):
+    a = tmp_path / "a.ics"
+    a.write_text("BEGIN:VCALENDAR\r\nX-APPLE-CALENDAR-COLOR:#34AADCFF\r\n" + "BEGIN:VEVENT\r\nUID:a\r\nSUMMARY:X\r\nDTSTART;VALUE=DATE:20261025\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n")
+    out = run_cli(tmp_path, f"{a.as_uri()} #FF8800\n", "2026-10-25", "2026-10-26")
+    assert out["events"][0]["color"] == "#ff8800"
+    out = run_cli(tmp_path, f"{a.as_uri()} #nope\n", "2026-10-25", "2026-10-26")
+    assert out["events"][0]["color"] == "#34aadc"
+
+
+def test_parse_line():
+    assert ics.parse_line("https://x/y.ics") == ("https://x/y.ics", "")
+    assert ics.parse_line("https://x/y.ics   #AbCdEf") == ("https://x/y.ics", "#abcdef")
+    assert ics.parse_line("https://x/y.ics #abc") == ("https://x/y.ics", "")
+
+
 def test_cli_bad_args(tmp_path):
     assert run_cli(tmp_path, None, "nope")["status"] == "error"

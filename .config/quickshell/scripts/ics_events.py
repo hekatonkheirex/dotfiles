@@ -2,7 +2,8 @@
 """Events from a public iCloud (Apple Calendar) ICS link, as JSON for the sidebar.
 
 usage: ics_events.py START END      dates YYYY-MM-DD, START inclusive, END exclusive
-One link per line (webcal:// or https://; # starts a comment) lives in ~/.local/state/quickshell/calendar-url,
+One link per line (webcal:// or https://), optionally followed by #rrggbb to color
+it; a line starting with # is a comment. The file is ~/.local/state/quickshell/calendar-url,
 outside the dotfiles repo because anyone holding it can read the calendar.
 Always prints one JSON object and exits 0: {status, message, updated_at, events}.
 status is "ok", "unconfigured" or "error".
@@ -11,6 +12,7 @@ import calendar
 import datetime as dt
 import json
 import os
+import re
 import sys
 import urllib.request
 from zoneinfo import ZoneInfo
@@ -171,9 +173,10 @@ def calendar_color(text):
     return ""
 
 
-def parse_events(text, range_start, range_end):
-    """Events with any day in [range_start, range_end), local time, sorted."""
-    color = calendar_color(text)
+def parse_events(text, range_start, range_end, color=""):
+    """Events with any day in [range_start, range_end), local time, sorted.
+    color overrides the calendar's own."""
+    color = color or calendar_color(text)
     comps = list(components(text))
     overridden = set()
     for c in comps:
@@ -236,19 +239,26 @@ def result(status, message="", events=None):
     return {"status": status, "message": message, "updated_at": dt.datetime.now().strftime("%H:%M"), "events": events or []}
 
 
+def parse_line(line):
+    """'URL' or 'URL #rrggbb' -> (url, color); a malformed color is ignored."""
+    parts = line.split()
+    color = parts[1].lower() if len(parts) > 1 and re.fullmatch(r"#[0-9a-fA-F]{6}", parts[1]) else ""
+    return parts[0], color
+
+
 def run(start, end):
     hint = "Put one iCloud public calendar link per line into " + URL_FILE
     try:
         lines = open(URL_FILE, encoding="utf-8").read().splitlines()
     except OSError:
         return result("unconfigured", hint)
-    urls = [l.strip() for l in lines if l.strip() and not l.strip().startswith("#")]
+    urls = [parse_line(l) for l in lines if l.strip() and not l.strip().startswith("#")]
     if not urls:
         return result("unconfigured", hint)
     events, errors = [], []
-    for url in urls:
+    for url, color in urls:
         try:
-            events += parse_events(fetch(url), start, end)
+            events += parse_events(fetch(url), start, end, color)
         except Exception as error:
             errors.append(str(error))
     events.sort(key=lambda ev: (ev["date"], not ev["allDay"], ev["start"], ev["title"]))
