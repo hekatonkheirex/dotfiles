@@ -55,5 +55,8 @@ const evs = [{ date: "2026-10-25", title: "a" }, { date: "2026-10-25", title: "b
 assert.deepEqual(M.eventsOn(evs, "2026-10-25").map(e => e.title), ["a", "b"])
 assert.deepEqual(M.eventsOn(evs, "2026-10-27"), [])
 assert.deepEqual(M.eventsOn(undefined, "2026-10-25"), [])
-assert.deepEqual(M.daysWithEvents(evs), { "2026-10-25": true, "2026-10-26": true })
+assert.deepEqual(M.daysWithEvents(evs), { "2026-10-25": [""], "2026-10-26": [""] })
+const colored = [{ date: "d", color: "#111111" }, { date: "d", color: "#222222" }, { date: "d", color: "#111111" }, { date: "d" }]
+assert.deepEqual(M.daysWithEvents(colored), { d: ["#111111", "#222222", ""] })
+assert.deepEqual(M.daysWithEvents(undefined), {})
 console.log("sidebar calendar: ok")

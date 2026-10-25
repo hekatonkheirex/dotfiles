@@ -40,9 +40,14 @@ function eventsOn(events, key) {
   return (events || []).filter(function(e) { return e.date === key })
 }
 
-// { "YYYY-MM-DD": true } for every day with an event.
+// { "YYYY-MM-DD": [color, ...] }: one distinct color per calendar with an
+// event that day ("" when the calendar has none), in event order.
 function daysWithEvents(events) {
   var out = {}
-  for (var i = 0; i < (events || []).length; i++) out[events[i].date] = true
+  for (var i = 0; i < (events || []).length; i++) {
+    var e = events[i], c = e.color || ""
+    if (!out[e.date]) out[e.date] = []
+    if (out[e.date].indexOf(c) < 0) out[e.date].push(c)
+  }
   return out
 }

@@ -80,7 +80,9 @@ ShellRoot {
       events: [
         { date: "2026-10-07", start: "", end: "", title: "Holiday", allDay: true, color: "#34aadc" },
         { date: "2026-10-07", start: "09:30", end: "10:00", title: "Standup", allDay: false },
-        { date: "2026-10-08", start: "18:00", end: "19:00", title: "Gym", allDay: false }
+        { date: "2026-10-08", start: "18:00", end: "19:00", title: "Gym", allDay: false, color: "#cc73e1" },
+        { date: "2026-10-08", start: "19:00", end: "20:00", title: "Call", allDay: false, color: "#34aadc" },
+        { date: "2026-10-08", start: "20:00", end: "21:00", title: "Late", allDay: false, color: "#34aadc" }
       ]
     }
 
@@ -144,8 +146,10 @@ ShellRoot {
             && !win.find(evAgenda, "eventDot12").visible)
           win.check("events: time takes the calendar color", Qt.colorEqual(win.find(evAgenda, "eventTime0").color, "#34aadc"))
           win.check("events: no color falls back to the accent", Qt.colorEqual(win.find(evAgenda, "eventTime1").color, Colors.elenaAccent(1)))
+          win.check("events: one dot per calendar", win.find(evAgenda, "eventDot10").dots.length === 2
+            && win.find(evAgenda, "eventDot11").dots.length === 2 && win.find(evAgenda, "eventDot12").dots.length === 0)
           mouseClick(win.find(evAgenda, "dayCell11"))
-          win.check("events: click picks Oct 8", evAgenda.selectedKey === "2026-10-08" && evAgenda.tasks === 1)
+          win.check("events: click picks Oct 8", evAgenda.selectedKey === "2026-10-08" && evAgenda.tasks === 3)
           mouseClick(win.find(evAgenda, "dayCell12"))
           win.check("events: empty day shows the empty state", evAgenda.tasks === 0 && win.find(evAgenda, "emptyText").text === "You have no events")
           evAgenda.calendarStatus = "unconfigured"

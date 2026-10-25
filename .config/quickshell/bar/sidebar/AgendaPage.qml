@@ -171,16 +171,24 @@ Item {
             border.width: 1
             border.color: Colors.elenaAccent(1)
           }
-          Rectangle {   // event dot
+          Row {   // one dot per calendar with an event that day
             objectName: "eventDot" + parent.index
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.bottomMargin: Config.dp(1)
-            width: Config.dp(3)
-            height: width
-            radius: width / 2
-            visible: root.eventDays[parent.cell.key] === true
-            color: parent.isToday ? Colors.fgSurface : Colors.elenaAccent(2)
+            spacing: Config.dp(2)
+            visible: dots.length > 0
+            readonly property var dots: (root.eventDays[parent.cell.key] || []).slice(0, 3)
+            Repeater {
+              model: parent.dots
+              Rectangle {
+                required property string modelData
+                width: Config.dp(3)
+                height: width
+                radius: width / 2
+                color: modelData !== "" ? modelData : Colors.elenaAccent(2)
+              }
+            }
           }
           MouseArea {
             anchors.fill: parent
