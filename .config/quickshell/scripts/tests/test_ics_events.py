@@ -143,5 +143,16 @@ def test_cli_reads_file_url_and_reports_fetch_errors(tmp_path):
     assert bad["status"] == "error" and "failed" in bad["message"]
 
 
+def test_cli_merges_several_links_and_keeps_good_ones_on_partial_failure(tmp_path):
+    a, b = tmp_path / "a.ics", tmp_path / "b.ics"
+    a.write_text(cal("UID:a\nSUMMARY:Home thing\nDTSTART;VALUE=DATE:20261025"))
+    b.write_text(cal("UID:b\nSUMMARY:Work thing\nDTSTART:20261025T090000"))
+    links = "# comment\n" + a.as_uri() + "\n\n" + b.as_uri() + "\n"
+    ok = run_cli(tmp_path, links, "2026-10-25", "2026-10-26")
+    assert ok["status"] == "ok" and [e["title"] for e in ok["events"]] == ["Home thing", "Work thing"]
+    part = run_cli(tmp_path, links + (tmp_path / "gone.ics").as_uri() + "\n", "2026-10-25", "2026-10-26")
+    assert part["status"] == "error" and part["message"].startswith("1 of 3") and len(part["events"]) == 2
+
+
 def test_cli_bad_args(tmp_path):
     assert run_cli(tmp_path, None, "nope")["status"] == "error"

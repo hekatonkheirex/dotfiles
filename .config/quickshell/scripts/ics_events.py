@@ -2,7 +2,7 @@
 """Events from a public iCloud (Apple Calendar) ICS link, as JSON for the sidebar.
 
 usage: ics_events.py START END      dates YYYY-MM-DD, START inclusive, END exclusive
-The link (webcal:// or https://) lives in ~/.local/state/quickshell/calendar-url,
+One link per line (webcal:// or https://; # starts a comment) lives in ~/.local/state/quickshell/calendar-url,
 outside the dotfiles repo because anyone holding it can read the calendar.
 Always prints one JSON object and exits 0: {status, message, updated_at, events}.
 status is "ok", "unconfigured" or "error".
@@ -218,16 +218,24 @@ def result(status, message="", events=None):
 
 
 def run(start, end):
+    hint = "Put one iCloud public calendar link per line into " + URL_FILE
     try:
-        url = open(URL_FILE, encoding="utf-8").read().strip()
+        lines = open(URL_FILE, encoding="utf-8").read().splitlines()
     except OSError:
-        return result("unconfigured", "Paste your iCloud public calendar link into " + URL_FILE)
-    if not url:
-        return result("unconfigured", "Paste your iCloud public calendar link into " + URL_FILE)
-    try:
-        return result("ok", "", parse_events(fetch(url), start, end))
-    except Exception as error:
-        return result("error", "Calendar fetch failed: %s" % error)
+        return result("unconfigured", hint)
+    urls = [l.strip() for l in lines if l.strip() and not l.strip().startswith("#")]
+    if not urls:
+        return result("unconfigured", hint)
+    events, errors = [], []
+    for url in urls:
+        try:
+            events += parse_events(fetch(url), start, end)
+        except Exception as error:
+            errors.append(str(error))
+    events.sort(key=lambda ev: (ev["date"], not ev["allDay"], ev["start"], ev["title"]))
+    if errors:   # events from the links that worked still show
+        return result("error", "%d of %d calendars failed: %s" % (len(errors), len(urls), errors[0]), events)
+    return result("ok", "", events)
 
 
 if __name__ == "__main__":
