@@ -36,12 +36,16 @@ Item {
 
     HomePage { anchors.fill: parent; visible: root.currentPage === 0; active: root.active && root.currentPage === 0 }
     AgendaPage {
+      id: agenda
       objectName: "agendaPage"
       anchors.fill: parent
       visible: root.currentPage === 1
       active: root.active && root.currentPage === 1
       sidebarOpen: root.active
       weekStartsMonday: Settings.calendarWeekStartsMonday
+      events: CalendarService.events
+      calendarStatus: CalendarService.status
+      calendarMessage: CalendarService.message
     }
     MediaPage {
       anchors.fill: parent
@@ -65,6 +69,9 @@ Item {
   }
 
   Binding { target: MediaService; property: "sidebarActive"; value: root.active && root.currentPage === 2 }
+  Binding { target: CalendarService; property: "rangeStart"; value: agenda.rangeStart }
+  Binding { target: CalendarService; property: "rangeEnd"; value: agenda.rangeEnd }
+  Binding { target: CalendarService; property: "active"; value: root.active && root.currentPage === 1 }
 
   // Appends "artist - title" to her playlist file; an empty title is a no-op.
   Process {

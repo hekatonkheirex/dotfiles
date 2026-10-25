@@ -3,8 +3,9 @@ import Quickshell
 import "../../config"
 import "../CalendarLogic.js" as CalendarLogic
 
-// Page 1: her task ring (no task source, so 0), month and year steppers, the
-// month grid and the empty task list.
+// Page 1: ring counting the picked day's Apple Calendar events, month and year
+// steppers, the month grid (a click picks a day, a dot marks days with events)
+// and that day's event list.
 Item {
   id: root
   property bool active: false
@@ -22,11 +23,24 @@ Item {
   readonly property int todayColumn: root.weekStartsMonday ? (root.today.getDay() + 6) % 7 : root.today.getDay()
   readonly property var letters: root.weekStartsMonday ? ["m", "t", "w", "t", "f", "s", "s"] : ["s", "m", "t", "w", "t", "f", "s"]
   readonly property var weekendColumns: root.weekStartsMonday ? [5, 6] : [0, 6]
-  readonly property int tasks: 0
+  // Fed by CalendarService: events are {date, start, end, title, allDay}.
+  property var events: []
+  property string calendarStatus: "ok"
+  property string calendarMessage: ""
+  // The day the list shows; empty means today. Closing the sidebar clears it.
+  property string pickedKey: ""
+  readonly property string todayKey: CalendarLogic.dateKey(root.today)
+  readonly property string selectedKey: root.pickedKey !== "" ? root.pickedKey : root.todayKey
+  readonly property var dayEvents: CalendarLogic.eventsOn(root.events, root.selectedKey)
+  readonly property var eventDays: CalendarLogic.daysWithEvents(root.events)
+  readonly property int tasks: root.dayEvents.length
+  // Range CalendarService fetches: the 42 cells on show.
+  readonly property string rangeStart: CalendarLogic.gridRange(root.cells).start
+  readonly property string rangeEnd: CalendarLogic.gridRange(root.cells).end
 
   SystemClock { id: clock; precision: SystemClock.Hours; enabled: root.active }
   Binding { target: root; property: "today"; value: clock.date; when: root.active }
-  onSidebarOpenChanged: if (!root.sidebarOpen) root.monthOffset = 0
+  onSidebarOpenChanged: if (!root.sidebarOpen) { root.monthOffset = 0; root.pickedKey = "" }
 
   Column {
     anchors.top: parent.top
@@ -47,6 +61,7 @@ Item {
           property color track: Colors.surfaceContainerHighest
           property color fill: Colors.elenaAccent(2)
           onTrackChanged: requestPaint()
+          Connections { target: root; function onTasksChanged() { ring.requestPaint() } }
           onPaint: {
             var ctx = getContext("2d")
             ctx.reset()
@@ -56,7 +71,7 @@ Item {
             ctx.beginPath()
             ctx.arc(width / 2, height / 2, width / 2 - lw / 2, 0, 2 * Math.PI)
             ctx.stroke()
-            if (root.tasks > 0) {   // never today: no task source
+            if (root.tasks > 0) {
               ctx.strokeStyle = fill
               ctx.beginPath()
               ctx.arc(width / 2, height / 2, width / 2 - lw / 2, -Math.PI / 2, 3 * Math.PI / 2)
@@ -76,7 +91,7 @@ Item {
           }
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "tasks"
+            text: root.tasks === 1 ? "event" : "events"
             color: Colors.fgSurfaceVariant
             font.family: Config.fontFamily
             font.pixelSize: Config.dp(7)
@@ -134,6 +149,7 @@ Item {
           required property int index
           readonly property var cell: root.cells[index]
           readonly property bool isToday: root.todayShown && !cell.other && cell.day === root.today.getDate()
+          readonly property bool isPicked: cell.key !== "" && cell.key === root.selectedKey && !isToday
           objectName: isToday ? "todayCell" : ("dayCell" + index)
           width: Config.dp(36)
           height: Config.dp(28)
@@ -144,6 +160,32 @@ Item {
             radius: width / 2
             visible: parent.isToday
             color: Colors.fgSurface
+          }
+          Rectangle {   // picked day (today keeps its filled round)
+            anchors.centerIn: parent
+            width: Config.dp(24)
+            height: width
+            radius: width / 2
+            visible: parent.isPicked
+            color: "transparent"
+            border.width: 1
+            border.color: Colors.elenaAccent(1)
+          }
+          Rectangle {   // event dot
+            objectName: "eventDot" + parent.index
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: Config.dp(1)
+            width: Config.dp(3)
+            height: width
+            radius: width / 2
+            visible: root.eventDays[parent.cell.key] === true
+            color: parent.isToday ? Colors.fgSurface : Colors.elenaAccent(2)
+          }
+          MouseArea {
+            anchors.fill: parent
+            enabled: parent.cell.key !== ""
+            onClicked: root.pickedKey = parent.cell.key
           }
           Text {
             anchors.centerIn: parent
@@ -160,32 +202,80 @@ Item {
       }
     }
 
-    Flickable {   // task list (empty state; ready for a future source)
+    Flickable {   // the picked day's events, or the empty state
       objectName: "taskList"
       anchors.horizontalCenter: parent.horizontalCenter
       width: Config.dp(252)
-      height: Config.dp(90)
+      height: Config.dp(150)
       clip: true
-      contentHeight: empty.implicitHeight
+      contentHeight: list.implicitHeight
       boundsBehavior: Flickable.StopAtBounds
       Column {
-        id: empty
+        id: list
         width: parent.width
-        topPadding: Config.dp(14)
-        spacing: Config.dp(6)
-        Text {
-          anchors.horizontalCenter: parent.horizontalCenter
-          text: ""
-          color: Colors.fgSurfaceVariant
-          font.family: BottomBarFonts.family
-          font.pixelSize: Config.dp(20)
+        spacing: Config.dp(8)
+        topPadding: Config.dp(8)
+        Repeater {
+          model: root.dayEvents
+          Row {
+            required property int index
+            required property var modelData
+            objectName: "eventRow" + index
+            spacing: Config.dp(10)
+            Text {
+              width: Config.dp(52)
+              text: parent.modelData.allDay ? "all day" : parent.modelData.start
+              color: Colors.elenaAccent(1)
+              font.family: Config.fontFamily
+              font.pixelSize: Config.dp(10)
+              font.weight: Font.Bold
+            }
+            Text {
+              width: list.width - Config.dp(62)
+              text: parent.modelData.title
+              elide: Text.ElideRight
+              color: Colors.fgSurface
+              font.family: Config.fontFamily
+              font.pixelSize: Config.dp(10)
+            }
+          }
         }
-        Text {
-          anchors.horizontalCenter: parent.horizontalCenter
-          text: "You have no tasks"
-          color: Colors.fgSurfaceVariant
-          font.family: Config.fontFamily
-          font.pixelSize: Config.dp(10)
+        Column {   // empty, unlinked and error states
+          visible: root.tasks === 0
+          width: parent.width
+          topPadding: Config.dp(6)
+          spacing: Config.dp(6)
+          Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: ""
+            color: Colors.fgSurfaceVariant
+            font.family: BottomBarFonts.family
+            font.pixelSize: Config.dp(20)
+          }
+          Text {
+            objectName: "emptyText"
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.Wrap
+            text: root.calendarStatus === "unconfigured" ? "No calendar linked"
+              : root.calendarStatus === "error" ? "Calendar unavailable"
+              : "You have no events"
+            color: Colors.fgSurfaceVariant
+            font.family: Config.fontFamily
+            font.pixelSize: Config.dp(10)
+          }
+          Text {
+            visible: root.calendarStatus === "unconfigured" || root.calendarStatus === "error"
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.Wrap
+            text: root.calendarMessage
+            color: Colors.outline
+            font.family: Config.fontFamily
+            font.pixelSize: Config.dp(8)
+          }
         }
       }
     }

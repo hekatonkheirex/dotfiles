@@ -103,3 +103,15 @@ assert.doesNotMatch(mon, /timeout_add/, "no unconditional position tick in the m
 assert.doesNotMatch(mon, /def tick\(/)
 assert.match(ctl, /elif action == 'position':/)
 console.log("sidebar position polling: ok")
+
+// Apple Calendar events: service, script and agenda wiring.
+const cal = rd("../../config/CalendarService.qml")
+assert.match(cal, /pragma Singleton/)
+assert.match(cal, /scripts\/ics_events\.py/)
+assert.match(cal, /running: root\.active/, "refresh timer runs only while the agenda shows")
+assert.match(rd("../../config/qmldir"), /singleton CalendarService 1\.0 CalendarService\.qml/)
+const calSidebar = content
+assert.match(calSidebar, /target: CalendarService; property: "active"; value: root\.active && root\.currentPage === 1/)
+assert.match(calSidebar, /events: CalendarService\.events/)
+assert.match(rd("../../scripts/ics_events.py"), /\.local\/state\/quickshell\/calendar-url/, "link stays outside the repo")
+console.log("sidebar wiring (calendar): ok")

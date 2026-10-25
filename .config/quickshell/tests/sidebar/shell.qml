@@ -71,6 +71,19 @@ ShellRoot {
       }
     }
 
+    // Off the grabbed stage: an agenda fed fixed events.
+    AgendaPage {
+      id: evAgenda
+      objectName: "evAgenda"
+      x: 0; y: stage.height; width: 450; height: 831 - stage.height
+      today: new Date(2026, 9, 7, 9, 5)
+      events: [
+        { date: "2026-10-07", start: "", end: "", title: "Holiday", allDay: true },
+        { date: "2026-10-07", start: "09:30", end: "10:00", title: "Standup", allDay: false },
+        { date: "2026-10-08", start: "18:00", end: "19:00", title: "Gym", allDay: false }
+      ]
+    }
+
     // Off the grabbed stage: the real page host.
     SidebarContent {
       id: content
@@ -122,6 +135,23 @@ ShellRoot {
           win.check("seek line 0 right side seeks to 1/20", Math.abs(seekTo - 0.05) < 1e-9)
           mouseClick(win.find(stage, "seekCell4"), 2, cell0.height / 2)
           win.check("seek line 4 seeks to 5/20", Math.abs(seekTo - 0.25) < 1e-9)
+
+          // Calendar events: today's rows and ring, a click picks another day,
+          // closing the sidebar returns to today.
+          win.check("events: ring counts today's events", evAgenda.tasks === 2)
+          win.check("events: today rows listed", win.find(evAgenda, "eventRow1") !== null && win.find(evAgenda, "eventRow2") === null)
+          win.check("events: dots on days with events", win.find(evAgenda, "eventDot10").visible && win.find(evAgenda, "eventDot11").visible
+            && !win.find(evAgenda, "eventDot12").visible)
+          mouseClick(win.find(evAgenda, "dayCell11"))
+          win.check("events: click picks Oct 8", evAgenda.selectedKey === "2026-10-08" && evAgenda.tasks === 1)
+          mouseClick(win.find(evAgenda, "dayCell12"))
+          win.check("events: empty day shows the empty state", evAgenda.tasks === 0 && win.find(evAgenda, "emptyText").text === "You have no events")
+          evAgenda.calendarStatus = "unconfigured"
+          win.check("events: unconfigured text", win.find(evAgenda, "emptyText").text === "No calendar linked")
+          evAgenda.calendarStatus = "ok"
+          evAgenda.sidebarOpen = true
+          evAgenda.sidebarOpen = false
+          win.check("events: closing the sidebar returns to today", evAgenda.selectedKey === "2026-10-07" && evAgenda.tasks === 2)
 
           // The shell's activation path: no forceActiveFocus here; the content
           // takes focus itself when `active` turns true.

@@ -5,7 +5,7 @@ import assert from "node:assert/strict"
 
 const src = readFileSync(fileURLToPath(new URL("../../bar/CalendarLogic.js", import.meta.url)), "utf8")
   .replace(/^\.pragma library$/m, "")
-const M = new Function('"use strict";\n' + src + "; return { buildMonthGrid }")()
+const M = new Function('"use strict";\n' + src + "; return { buildMonthGrid, dateKey, addDays, gridRange, eventsOn, daysWithEvents }")()
 
 const days = g => g.map(c => c.day).join(",")
 // October 2026: starts on Thursday (4), 31 days.
@@ -39,4 +39,21 @@ assert.equal(jan.filter(c => !c.other).length, 31)
 assert.equal(days(jan.slice(36)), "1,2,3,4,5,6")
 // Invalid date gives 42 empty cells.
 assert.equal(M.buildMonthGrid(new Date(NaN), false).length, 42)
+
+// Cell keys, the fetch range and event lookups.
+assert.equal(oct[0].key, "2026-09-27")
+assert.equal(oct[4].key, "2026-10-01")
+assert.equal(oct[41].key, "2026-11-07")
+assert.equal(M.buildMonthGrid(new Date(NaN), false)[0].key, "")
+assert.equal(M.dateKey(new Date(2026, 0, 5)), "2026-01-05")
+assert.equal(M.addDays("2026-12-31", 1), "2027-01-01")
+assert.equal(M.addDays("2028-02-28", 1), "2028-02-29")
+assert.equal(M.addDays("2026-03-01", -1), "2026-02-28")
+assert.deepEqual(M.gridRange(oct), { start: "2026-09-27", end: "2026-11-08" })
+assert.deepEqual(M.gridRange(M.buildMonthGrid(new Date(NaN), false)), { start: "", end: "" })
+const evs = [{ date: "2026-10-25", title: "a" }, { date: "2026-10-25", title: "b" }, { date: "2026-10-26", title: "c" }]
+assert.deepEqual(M.eventsOn(evs, "2026-10-25").map(e => e.title), ["a", "b"])
+assert.deepEqual(M.eventsOn(evs, "2026-10-27"), [])
+assert.deepEqual(M.eventsOn(undefined, "2026-10-25"), [])
+assert.deepEqual(M.daysWithEvents(evs), { "2026-10-25": true, "2026-10-26": true })
 console.log("sidebar calendar: ok")
