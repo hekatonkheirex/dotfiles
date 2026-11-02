@@ -21,7 +21,6 @@ for (const argv of [
   `["nmcli", "device", "disconnect", args.device]`,
   `["nmcli", "connection", "delete", args.name]`,
   `["notify-send", "-u", "low", "Networks", args.message]`,
-  `["nm-connection-editor"]`,
   `["xdg-open", "https://www.speedtest.net"]`,
   `"stdbuf -oL ping -c 10 -w 30 1.1.1.1 2>&1"`,
 ]) assert.ok(svc.includes(argv), `service command ${argv}`)

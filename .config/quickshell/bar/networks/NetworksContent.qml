@@ -12,6 +12,7 @@ Item {
   property bool scanning: false
   property string pingText: "ping"
   property bool vpnOn: false
+  property bool vpnBusy: false
   property string downText: ""
   property string upText: ""
   property string passphraseFor: ""
@@ -205,8 +206,9 @@ Item {
         objectName: "tool_vpn"
         width: toolbar.buttonWidth; height: parent.height
         glyph: ""
-        accent: root.vpnOn ? 4 : 8
-        label: "vpn " + (root.vpnOn ? "on" : "off")
+        accent: root.vpnBusy ? 8 : (root.vpnOn ? 4 : 8)
+        loading: root.vpnBusy
+        label: root.vpnBusy ? "vpn..." : ("vpn " + (root.vpnOn ? "on" : "off"))
         onClicked: root.vpnRequested()
       }
       ToolbarButton {

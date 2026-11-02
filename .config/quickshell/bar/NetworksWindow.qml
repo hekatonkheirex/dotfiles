@@ -68,7 +68,8 @@ PanelWindow {
         networksModel: NetworkListService.networks
         scanning: NetworkListService.scanning
         pingText: NetworkListService.pingText
-        vpnOn: NetworkStatusService.vpn
+        vpnOn: NetworkStatusService.datasystemsVpn
+        vpnBusy: NetworkStatusService.vpnBusy
         downText: NetworkList.formatRate(SystemMetricsService.netDown)
         upText: NetworkList.formatRate(SystemMetricsService.netUp)
         onConnectRequested: function(name, password) { NetworkListService.connect(name, password) }
@@ -77,7 +78,7 @@ PanelWindow {
         onScanRequested: NetworkListService.scan()
         onSpeedtestRequested: NetworkListService.speedtest()
         onPingRequested: NetworkListService.ping()
-        onVpnRequested: NetworkListService.openVpnEditor()
+        onVpnRequested: NetworkListService.toggleVpn()
         onDismissRequested: root.dismissed()
       }
     }

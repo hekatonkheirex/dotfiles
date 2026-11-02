@@ -3,9 +3,9 @@ antigravity-cli
 brave-origin-bin
 claude-code
 google-chrome
-hopper
 libgnome-keyring
 localsend-bin
+networkmanager-fortisslvpn
 onlyoffice-bin
 openai-codex-bin
 paru

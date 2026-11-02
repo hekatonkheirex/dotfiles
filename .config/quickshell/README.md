@@ -27,10 +27,19 @@ Regenerate with `bash scripts/screenshots.sh` (needs an empty niri workspace and
 | Lock screen | `bar/LockScreen.qml` | PAM and fingerprint, compositor session lock. |
 | Notifications | `bar/NotificationToast.qml` | Toast stack, Do Not Disturb, quiet hours. No history store. |
 | OSD | `bar/OsdOverlay.qml` | Toast-style card above the bottom bar: volume, brightness, mic, airplane, bluetooth, keyboard backlight. |
-| Networks window | `bar/NetworksWindow.qml`, `bar/networks/` | Wi-Fi list, connect, forget, bandwidth, ping. |
+| Networks window | `bar/NetworksWindow.qml`, `bar/networks/` | Wi-Fi list, connect, forget, bandwidth, ping, DATASYSTEMS VPN control. |
 | Mic tab, tray | `bar/MicIndicator.qml`, `bar/TrayWindow.qml` | |
 
 Battery alerts (20% and 10%) live in `shell.qml`.
+
+### DATASYSTEMS VPN
+
+The networks window's VPN button uses `scripts/datasystems-vpn.py`, not the NetworkManager connection editor. It reads only the gateway, username and optional certificate pin from `vpn.data` of the local `DATASYSTEMS-VPN` profile. No password is read from NetworkManager, stored by the helper, or passed on the command line. Connection opens Kitty and runs OpenFortiVPN with interactive sudo and VPN password prompts; keep that terminal open, and use Ctrl+C to disconnect. Only configure a certificate pin after verifying it with the administrator.
+
+Clicking while the matching VPN process is already running opens a confirmation before disconnection, including tunnels started manually with the same profile parameters. Canceling leaves the tunnel untouched. Disconnect validates the process identity and uses a Linux pidfd so PID reuse cannot signal an unrelated process. An operation lock prevents concurrent startup/authentication dialogs. `vpn on` requires both the matching OpenFortiVPN process and an up PPP interface with the gateway as its peer; `vpn...` indicates startup. The bottom bar still detects other NetworkManager VPNs separately. Status refresh follows the existing network monitor and ten-second fallback.
+
+Requires `kitty`, `sudo`, `openfortivpn`, `nmcli`, `ip` and `getent`, plus the configured local profile. Missing/invalid profile data produces an error rather than using a fallback account or server. Validate without changing the tunnel using `python3 scripts/datasystems-vpn.py status`; safety regressions are in `scripts/tests/test_datasystems_vpn.py`.
+
 
 ## Layout
 

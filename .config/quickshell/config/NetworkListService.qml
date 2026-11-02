@@ -49,7 +49,7 @@ QtObject {
     case "forget": return ["nmcli", "connection", "delete", args.name]
     case "ping": return ["sh", "-c", "stdbuf -oL ping -c 10 -w 30 1.1.1.1 2>&1"]
     case "notify": return ["notify-send", "-u", "low", "Networks", args.message]
-    case "vpn": return ["nm-connection-editor"]
+    case "vpn": return ["python3", Quickshell.env("HOME") + "/.config/quickshell/scripts/datasystems-vpn.py", "toggle"]
     case "speedtest": return ["xdg-open", "https://www.speedtest.net"]
     }
     return ["true"]
@@ -109,7 +109,7 @@ QtObject {
     root.run(pingProc, "ping")
   }
 
-  function openVpnEditor() { Quickshell.execDetached(root.commandFor("vpn", {})) }
+  function toggleVpn() { Quickshell.execDetached(root.commandFor("vpn", {})) }
   function speedtest() { Quickshell.execDetached(root.commandFor("speedtest", {})) }
 
   onActiveChanged: {

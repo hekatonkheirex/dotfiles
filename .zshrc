@@ -174,6 +174,7 @@ trash() { paru -Rns $(paru -Qdtq); }
 alias n="nvim"
 alias mirrors="run0 reflector --country US,Paraguay --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist"
 alias tery='echo "--- Power Dashboard ---"; echo "Discharge Rate: $(echo "scale=2; $(cat /sys/class/power_supply/BAT0/power_now) / 1000000" | bc)W"; echo "Battery Health: $(cat /sys/class/power_supply/BAT0/capacity)%"; echo "Cycles: $(cat /sys/class/power_supply/BAT0/cycle_count)"; echo "Status: $(cat /sys/class/power_supply/BAT0/status)"'
+alias ssh="kitten ssh"
 
 # Shell integrations
 eval "$(fzf --zsh)"
@@ -211,8 +212,8 @@ precmd_functions+=(_theme_env_reload)
 # old static ~/.zsh (hardcoded Catppuccin Mocha, unreadable in light mode).
 # source /home/mura/.apple
 
-# Fetch
-fastfetch
+# Fetch (foot needs its own sixel sizing, see ~/.config/fastfetch/foot.jsonc)
+if [[ $TERM == foot* ]]; then fastfetch -c ~/.config/fastfetch/foot.jsonc; else fastfetch; fi
 
 # Zsh Insulter
 if [ -f ~/.zshInsulter/zsh.command-not-found ]; then

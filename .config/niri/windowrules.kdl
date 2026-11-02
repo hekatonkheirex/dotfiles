@@ -52,6 +52,7 @@ window-rule {
     match app-id="zen"
     match app-id="firefox"
     match app-id="kitty"
+    match app-id="foot"
     match app-id="org.gnome.Nautilus"
     draw-border-with-background false
     opacity 0.80

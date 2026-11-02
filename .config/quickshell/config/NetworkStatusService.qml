@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQml
+import Quickshell
 import Quickshell.Io
 import "BottomBarModel.js" as BottomBarModel
 
@@ -13,7 +14,11 @@ QtObject {
   property bool active: false
   property bool connected: false
   property int signal: 0
-  property bool vpn: false
+  property bool nmVpn: false
+  property bool datasystemsVpn: false
+  property bool vpnBusy: false
+  readonly property bool vpn: root.nmVpn || root.datasystemsVpn
+  readonly property string helperPath: Quickshell.env("HOME") + "/.config/quickshell/scripts/datasystems-vpn.py"
   // NetworkListService refreshes on these instead of polling.
   signal nmChanged()
   readonly property bool monitorRunning: monitor.running
@@ -22,6 +27,7 @@ QtObject {
     if (!root.active) return
     if (!wifiQuery.running) wifiQuery.running = true
     if (!vpnQuery.running) vpnQuery.running = true
+    if (!targetVpnQuery.running) targetVpnQuery.running = true
   }
 
   property Process wifiQuery: Process {
@@ -38,7 +44,23 @@ QtObject {
   property Process vpnQuery: Process {
     command: ["sh", "-c", "nmcli -t -f TYPE,STATE con show --active"]
     stdout: StdioCollector {
-      onStreamFinished: root.vpn = BottomBarModel.parseVpn(text)
+      onStreamFinished: root.nmVpn = BottomBarModel.parseVpn(text)
+    }
+  }
+
+  property Process targetVpnQuery: Process {
+    command: ["python3", root.helperPath, "status"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        try {
+          var parsed = JSON.parse(String(text || "").trim())
+          root.datasystemsVpn = Boolean(parsed.connected)
+          root.vpnBusy = Boolean(parsed.busy)
+        } catch (e) {
+          root.datasystemsVpn = false
+          root.vpnBusy = false
+        }
+      }
     }
   }
 

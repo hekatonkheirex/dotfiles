@@ -305,7 +305,6 @@ ShellRoot {
           win.check("default forget argv", same(real("forget", { name: "Home" }), ["nmcli", "connection", "delete", "Home"]))
           win.check("default rescan argv", same(real("rescan", {}), ["nmcli", "dev", "wifi", "rescan"]))
           win.check("default notify argv", same(real("notify", { message: "Could not connect to X" }), ["notify-send", "-u", "low", "Networks", "Could not connect to X"]))
-          win.check("default vpn argv", same(real("vpn", {}), ["nm-connection-editor"]))
           win.check("default speedtest argv", same(real("speedtest", {}), ["xdg-open", "https://www.speedtest.net"]))
           win.check("default ping argv", same(real("ping", {}), ["sh", "-c", "stdbuf -oL ping -c 10 -w 30 1.1.1.1 2>&1"]))
 

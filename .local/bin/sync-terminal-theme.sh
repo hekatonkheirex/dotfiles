@@ -1,5 +1,5 @@
 #!/bin/bash
-# Syncs kitty, starship, fzf, btop, Neovim and Niri/Mango window decorations to the
+# Syncs kitty, foot, starship, fzf, btop, Neovim and Niri/Mango window decorations to the
 # current light/dark mode + colorscheme (matugen | claude). Called from
 # sync-theme-mode.sh (mode changes) and Quickshell color changes. Safe to
 # call with no args: re-reads current state and re-applies. The third argument
@@ -83,6 +83,9 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
   ln -sf "$KITTY_THEME_NAME" "$HOME/.config/kitty/theme.conf"
   killall -SIGUSR1 kitty 2>/dev/null || true
 
+  # Foot: regenerate theme.ini from the same kitty palettes, push live to open windows
+  "$HOME/.config/foot/sync-theme.sh" "$SCHEME" "$MODE" || echo "foot theme sync failed"
+
   # Starship + fzf: both read config from env vars, so regenerate a single
   # sourced file. New shells pick it up automatically; existing shells need
   # `source ~/.config/theme-env.sh` (starship also re-reads STARSHIP_CONFIG
@@ -135,6 +138,8 @@ STARSHIP_CONF="$HOME/.config/starship/$STARSHIP_THEME_NAME"
     for s in dollar-quoted-argument dollar-double-quoted-argument assign named-fd numeric-fd redirection arg0 default cursor; do
       echo "ZSH_HIGHLIGHT_STYLES[$s]='fg=$FG'"
     done
+    # Foot server windows keep the colors loaded at server start; repaint them.
+    echo '[ "$TERM" = foot ] && [ -t 1 ] && [ -f "$HOME/.config/foot/theme.osc" ] && cat "$HOME/.config/foot/theme.osc"'
   } >"$HOME/.config/theme-env.sh"
 
   echo "kitty theme.conf -> $KITTY_THEME_NAME"

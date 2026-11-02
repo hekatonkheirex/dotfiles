@@ -1,0 +1,116 @@
+animations {
+  on
+  workspace-switch {
+        duration-ms 500
+        curve "cubic-bezier" 0.05 0.7 0.1 1.0
+    }
+    window-open {
+        duration-ms 500
+        custom-shader r#"
+
+            // Ported from skwd-wall soft-warp-fade transition
+
+            float swf_hash(vec2 p) {
+                return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+            }
+
+            float swf_noise(vec2 p) {
+                vec2 i = floor(p);
+                vec2 f = fract(p);
+                f = f * f * (3.0 - 2.0 * f);
+                return mix(mix(swf_hash(i), swf_hash(i + vec2(1.0, 0.0)), f.x),
+                           mix(swf_hash(i + vec2(0.0, 1.0)), swf_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+            }
+
+            vec4 open_color(vec3 coords_geo, vec3 size_geo) {
+                float p = niri_clamped_progress;
+                vec2 uv = coords_geo.xy;
+
+                float strength = sin(p * 3.14159) * 0.025;
+                vec2 warp = vec2(
+                    swf_noise(uv * 3.0 + vec2(0.0, p * 0.5)),
+                    swf_noise(uv * 3.0 + vec2(p * 0.5, 0.0))
+                ) - 0.5;
+                vec2 warped = uv + warp * strength;
+
+                vec3 tc = niri_geo_to_tex * vec3(warped, 1.0);
+                vec4 win = texture2D(niri_tex, tc.st);
+
+                float t = smoothstep(0.05, 0.95, p);
+                t = t * t * (3.0 - 2.0 * t);
+                return win * t;
+            }
+
+"#
+    }
+    window-close {
+        duration-ms 500
+        custom-shader r#"
+            float hash(vec2 p) {
+                return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+            }
+
+            vec4 close_color(vec3 coords_geo, vec3 size_geo) {
+                float p = niri_clamped_progress;
+                vec2 uv = coords_geo.xy;
+                float seed = niri_random_seed * 100.0;
+
+                float num_layers = 10.0;
+                float pixel_layer = floor(hash(floor(uv * size_geo.xy) + seed) * num_layers);
+
+                vec4 result = vec4(0.0);
+                vec2 target = vec2(1.0, 0.0);
+
+                for (int i = 0; i < 10; i++) {
+                    float layer = float(i);
+                    float layer_delay = layer * 0.06;
+                    float layer_p = clamp((p - layer_delay) / (1.0 - layer_delay * 0.5), 0.0, 1.0);
+
+                    float t = layer_p * layer_p;
+
+                    float layer_alpha = 1.0 - smoothstep(0.3, 0.85, layer_p);
+
+                    float lh = hash(vec2(layer + 0.5, seed));
+                    vec2 layer_target = target + vec2(-0.08 + lh * 0.16, -0.04 + lh * 0.08);
+
+                    float converge = t * 0.92;
+                    vec2 sample_uv = (uv - layer_target * converge) / (1.0 - converge);
+
+                    vec3 tex_coords = niri_geo_to_tex * vec3(sample_uv, 1.0);
+                    vec4 color = texture2D(niri_tex, tex_coords.st);
+
+                    float belongs = step(abs(pixel_layer - layer), 0.5);
+                    result += color * belongs * layer_alpha;
+                }
+
+                float initial_fade = smoothstep(0.0, 0.05, p);
+                result.a *= mix(1.0, 0.0, initial_fade);
+                vec3 base_tex = niri_geo_to_tex * vec3(uv, 1.0);
+                vec4 base_color = texture2D(niri_tex, base_tex.st);
+                float base_alpha = 1.0 - smoothstep(0.0, 0.1, p);
+
+                return base_color * base_alpha + result * (1.0 - base_alpha);
+            }
+
+"#
+    }
+    horizontal-view-movement {
+        spring damping-ratio=0.85 stiffness=423 epsilon=0.0001
+    }
+    window-movement {
+        spring damping-ratio=0.75 stiffness=323 epsilon=0.0001
+    }
+    window-resize {
+        spring damping-ratio=0.85 stiffness=423 epsilon=0.0001
+    }
+    config-notification-open-close {
+        spring damping-ratio=0.65 stiffness=923 epsilon=0.001
+    }
+    screenshot-ui-open {
+        duration-ms 200
+        curve "ease-out-quad"
+    }
+    overview-open-close {
+        spring damping-ratio=0.85 stiffness=800 epsilon=0.0001
+    }
+}

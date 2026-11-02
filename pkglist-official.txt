@@ -31,6 +31,7 @@ fd
 ffmpegthumbnailer
 file-roller
 firefox
+foot
 fprintd
 fwupd
 fzf
@@ -87,8 +88,8 @@ noto-fonts-emoji
 ntfsprogs
 nwg-look
 obs-studio
-obs-studio-plugin-browser
 opencode
+openfortivpn
 pacman-contrib
 pacutils
 papers
