@@ -737,7 +737,7 @@ Flickable {
         RemoteSwitchRow {
           Layout.fillWidth: true
           live: appearanceTab.visible && appearanceTab.root && appearanceTab.root.visible
-          cliFile: "decorations"; cliField: "animations-enabled"
+          cliFile: "animations"; cliField: "animations-enabled"
           leadingIcon: "animation"; title: "Animations"
           onWriteFailed: appearanceTab.onWmFieldFailed(message)
         }

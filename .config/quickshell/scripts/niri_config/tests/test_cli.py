@@ -81,11 +81,11 @@ def test_hot_corner_write_and_read(tmp_path):
 
 
 def test_animation_duration_write_and_read(tmp_path):
-    target = tmp_path / "decorations.kdl"
-    shutil.copy2(FIXTURES / "decorations.kdl", target)
-    result = run_cli("decorations", "write", "animation-duration-ms", "300", "window-open", path=target)
+    target = tmp_path / "animations.kdl"
+    shutil.copy2(FIXTURES / "decorations.kdl", target)  # fixture holds an animations block
+    result = run_cli("animations", "write", "animation-duration-ms", "300", "window-open", path=target)
     assert result.returncode == 0, result.stderr
-    result2 = run_cli("decorations", "read", "animation-duration-ms", "window-open", path=target)
+    result2 = run_cli("animations", "read", "animation-duration-ms", "window-open", path=target)
     assert result2.stdout.strip() == "300"
 
 

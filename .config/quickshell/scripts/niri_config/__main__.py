@@ -12,6 +12,7 @@ DEFAULT_PATHS = {
     "outputs": os.path.expanduser("~/.config/niri/outputs.kdl"),
     "inputs": os.path.expanduser("~/.config/niri/inputs.kdl"),
     "decorations": os.path.expanduser("~/.config/niri/decorations.kdl"),
+    "animations": os.path.expanduser("~/.config/niri/animations.kdl"),
 }
 
 # field -> (read_fn, write_fn, value_type, needs_arg)
@@ -39,6 +40,10 @@ _FIELDS = {
         "workspace-switch-max-speed": (i.read_workspace_switch_max_speed, i.write_workspace_switch_max_speed, float, False),
         "hot-corner": (i.read_hot_corner, i.write_hot_corner, bool, True),
     },
+    "animations": {
+        "animations-enabled": (d.read_animations_enabled, d.write_animations_enabled, bool, False),
+        "animation-duration-ms": (d.read_animation_duration_ms, d.write_animation_duration_ms, float, True),
+    },
     "decorations": {
         "gaps": (d.read_gaps, d.write_gaps, float, False),
         "always-center-single-column": (d.read_always_center_single_column, d.write_always_center_single_column, bool, False),
@@ -50,8 +55,6 @@ _FIELDS = {
         "shadow-softness": (d.read_shadow_softness, d.write_shadow_softness, float, False),
         "shadow-spread": (d.read_shadow_spread, d.write_shadow_spread, float, False),
         "shadow-color": (d.read_shadow_color, d.write_shadow_color, str, False),
-        "animations-enabled": (d.read_animations_enabled, d.write_animations_enabled, bool, False),
-        "animation-duration-ms": (d.read_animation_duration_ms, d.write_animation_duration_ms, float, True),
         "blur-enabled": (d.read_blur_enabled, d.write_blur_enabled, bool, False),
         "blur-passes": (d.read_blur_passes, d.write_blur_passes, float, False),
         "blur-offset": (d.read_blur_offset, d.write_blur_offset, float, False),
