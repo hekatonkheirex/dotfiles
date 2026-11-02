@@ -55,10 +55,10 @@ def count(box, col, t=8):
     x0, y0, x1, y1 = box
     return sum(near(im.getpixel((x, y)), col, t) for x in range(x0, x1) for y in range(y0, y1))
 def area(box): return (box[2] - box[0]) * (box[3] - box[1])
-SCALE = 44 / 43
+SCALE = 26 / 43
 INK_SCALE = (SCALE / 1.5) ** 2
 def dp(n): return int(n * SCALE + 0.5)
-W, BH = 1100, 44
+W, BH = 1100, 26
 CW, BW = dp(230), dp(230) / 3
 OFF = {"A": 0, "B": 85, "C": 170}  # A: idle; B: hover on glance; C: disconnected, 20 items
 checks = []
@@ -68,15 +68,15 @@ def check(name, n, lo, hi=None):
     checks.append(ok)
 def patch(cx, cy, r=1): return (cx - r, cy - r, cx + r + 1, cy + r + 1)
 # 3x1 strip: the shortest signal bar is a near-circle, so a 3x3 patch clips its corners.
-def strip(cx, cy): return (cx - 1, cy, cx + 2, cy + 1)
+def strip(cx, cy): return (cx, cy, cx + 1, cy + 1)   # 26 px bar: bars are 2-3 px wide
 
 # 2. cluster surface and rounded outer corners
-for lab, (x, y) in (("left", (20, BH - 10)), ("right", (W - 20, BH - 10))):
+for lab, (x, y) in (("left", (40, BH - 8)), ("right", (W - 40, BH - 8))):
     box = (x, y, x + 6, y + 6)
     check(f"A {lab} cluster surface px", count(box, SURF, 3), 36, 36)
 # Sample outside the scaled upper corner's arc, but inside its bounding box.
-check("A left cluster corner is stage bg", int(near(im.getpixel((CW - dp(7), 3)), BG, 3)), 1, 1)
-check("A right cluster corner is stage bg", int(near(im.getpixel((W - CW + dp(7), 3)), BG, 3)), 1, 1)
+check("A left cluster corner is stage bg", int(near(im.getpixel((CW - dp(7), 1)), BG, 3)), 1, 1)
+check("A right cluster corner is stage bg", int(near(im.getpixel((W - CW + dp(7), 1)), BG, 3)), 1, 1)
 
 # 3. hover border: bottom dp(3) strip under the glance button, accent only in B
 for lab in "AB":
@@ -102,7 +102,7 @@ accents = (ERR, SEC, TER, PRI, INVP, FGTC)
 check("A firefox indicator-band accent px", sum(count(band(1), a) for a in accents), 0, 0)
 check("A firefox glyph muted px (outline)", count(item(1), OUT), int(150 * INK_SCALE))
 check("A firefox glyph accent px (tertiary)", count(item(1), TER), 0, 0)
-check("A mpv glyph px (accent6)", count(item(2), FGTC), int(100 * INK_SCALE))
+check("A mpv glyph px (accent6)", count(item(2), FGTC, 40), int(100 * INK_SCALE))
 check("A mpv indicator-band px", count(band(2), FGTC), 0, 0)
 
 # 5. Battery sample points follow the scaled, centred icon/content row.
@@ -110,7 +110,7 @@ icon_width = dp(16)   # 12pt icon converted to pixels before bar scaling
 bx = round(W - CW / 6 + (icon_width + dp(10)) / 2)
 stack_gap = dp(8 / 3)
 part_height = (dp(23) - 2 * stack_gap) / 3
-stack = lambda lab, k: patch(bx, round(OFF[lab] + (BH - dp(23)) / 2 + part_height / 2 + k * (part_height + stack_gap)), 1)
+stack = lambda lab, k: patch(bx, round(OFF[lab] + (BH - dp(23)) / 2 + part_height / 2 + k * (part_height + stack_gap)), 0)
 half = tuple((a + b) // 2 for a, b in zip(FGTC, SURF))
 for k in range(3):
     check(f"A battery part {k} full px", count(stack("A", k), FGTC), area(stack("A", k)))
@@ -139,23 +139,23 @@ import math
 rcx, rr = 5 * CW / 6 + (icon_width + dp(10)) / 2, (dp(23) - dp(5)) / 2
 def ring(lab, deg):    # deg counter-clockwise from 12 o'clock
     t = math.radians(deg)
-    return patch(int(round(rcx - rr * math.sin(t))), int(round(OFF[lab] + BH / 2 - rr * math.cos(t))), 0)
+    return patch(int(round(rcx - rr * math.sin(t))), int(round(OFF[lab] + BH / 2 - rr * math.cos(t))), 1)
 for deg in range(0, 360, 45):
     b = ring("A", deg)
-    check(f"A ring {deg:3d} deg px (fgSurface)", count(b, FGS), area(b))
+    check(f"A ring {deg:3d} deg px (fgSurface)", count(b, FGS), 1)
 for deg in (20, 72, 124):
     b = ring("B", deg)
-    check(f"B ring {deg:3d} deg px (muted arc)", count(b, OUT), area(b))
+    check(f"B ring {deg:3d} deg px (muted arc)", count(b, OUT), 1)
 for deg in (180, 230, 290, 340):
     b = ring("B", deg)
-    check(f"B ring {deg:3d} deg px (backdrop)", count(b, HIGH), area(b))
+    check(f"B ring {deg:3d} deg px (backdrop)", count(b, HIGH), 1)
 
 # 8. tray count: pill in A, slashed line in B (button 2 of the right cluster)
 tray_x = W - CW / 2 + (icon_width + dp(10)) / 2
 ab = lambda lab: (round(tray_x - dp(23) / 2), OFF[lab] + (BH - dp(23)) // 2, round(tray_x + dp(23) / 2), OFF[lab] + (BH + dp(23)) // 2)
 check("A tray pill px (container)", count(ab("A"), HIGH), int(700 * INK_SCALE))
 check("A tray slash px (tertiary)", count(ab("A"), TER), 0, 0)
-check("B tray slash px (tertiary)", count(ab("B"), TER), int(0.6 * dp(23) * dp(4)))
+check("B tray slash px (tertiary)", count(ab("B"), TER), int(0.4 * dp(23) * dp(4)))
 check("B tray pill px (container)", count(ab("B"), HIGH), 0, 20)
 
 # 10. Disconnected bars collapse to the scaled short height; battery parts

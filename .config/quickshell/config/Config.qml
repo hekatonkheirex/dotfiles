@@ -24,7 +24,7 @@ QtObject {
   readonly property real elenaScale: 1.5
   function dp(n) { return Math.round(n * elenaScale) }
   // Laptop-sized bottom bar; its content has an independent scale.
-  readonly property int bottomBarHeight: 44
+  readonly property int bottomBarHeight: 26
   readonly property real bottomBarScale: bottomBarHeight / 43
   function bottomBarDp(n) { return Math.round(n * bottomBarScale) }
 
