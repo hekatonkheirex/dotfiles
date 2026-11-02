@@ -134,12 +134,13 @@ QtObject {
   // Reference-rice accent slots mapped onto this palette. The bottom bar and
   // the dock cycle this ramp; change the table here, not in the bar.
   // Slot 6 sits on `surface`, not on a tertiary container. Matugen's
-  // on_tertiary_container is #fff in light mode and #000 in dark mode, which
-  // vanishes on surface. Take whichever of the two roles contrasts more.
+  // on_primary_container is near-white in light mode and dark in dark mode,
+  // which vanishes on surface. Take whichever of the two roles contrasts more.
+  // Primary family so it follows the wallpaper hue; slot 3 already holds tertiary.
   function luma(c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b }
   readonly property color accent6:
-    Math.abs(luma(fgTertiaryContainer) - luma(surface)) >= Math.abs(luma(tertiaryContainer) - luma(surface))
-      ? fgTertiaryContainer : tertiaryContainer
+    Math.abs(luma(fgPrimaryContainer) - luma(surface)) >= Math.abs(luma(primaryContainer) - luma(surface))
+      ? fgPrimaryContainer : primaryContainer
 
   function elenaAccent(n) {
     switch (n) {
@@ -445,6 +446,7 @@ QtObject {
   property color surfaceContainerHighest:   paletteRole(darkMode ? "dark" : "light", "surface_container_highest", darkMode ? d_surfaceContainerHighest : l_surfaceContainerHighest)
   property color primary:                   paletteRole(darkMode ? "dark" : "light", "primary", darkMode ? d_primary : l_primary)
   property color fgPrimary:                 paletteRole(darkMode ? "dark" : "light", "on_primary", darkMode ? d_onPrimary : l_onPrimary)
+  property color fgPrimaryContainer:        paletteRole(darkMode ? "dark" : "light", "on_primary_container", darkMode ? d_onPrimaryContainer : l_onPrimaryContainer)
   property color primaryContainer:          paletteRole(darkMode ? "dark" : "light", "primary_container", darkMode ? d_primaryContainer : l_primaryContainer)
   property color secondary:                 paletteRole(darkMode ? "dark" : "light", "secondary", darkMode ? d_secondary : l_secondary)
   property color secondaryContainer:        paletteRole(darkMode ? "dark" : "light", "secondary_container", darkMode ? d_secondaryContainer : l_secondaryContainer)

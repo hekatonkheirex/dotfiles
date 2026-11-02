@@ -48,7 +48,7 @@ assert im.size == (1100, 255), f"size {im.size}"
 def hx(s): return tuple(int(s[i:i+2], 16) for i in (1, 3, 5))
 SURF, HIGH, ERR = hx("#1a1f2b"), hx("#343c4d"), hx("#ff6b6b")
 SEC, TER, PRI = hx("#f06292"), hx("#5bb8d4"), hx("#c77dc8")
-INVP, FGTC, OUT = hx("#8e4f90"), hx("#cfeefa"), hx("#5b6578")
+INVP, FGTC, OUT = hx("#8e4f90"), hx("#f3d4f4"), hx("#5b6578")
 FGS, BG = hx("#f2f4f8"), hx("#101216")
 def near(a, b, t=8): return all(abs(a[i] - b[i]) <= t for i in range(3))
 def count(box, col, t=8):
@@ -102,7 +102,7 @@ accents = (ERR, SEC, TER, PRI, INVP, FGTC)
 check("A firefox indicator-band accent px", sum(count(band(1), a) for a in accents), 0, 0)
 check("A firefox glyph muted px (outline)", count(item(1), OUT), int(150 * INK_SCALE))
 check("A firefox glyph accent px (tertiary)", count(item(1), TER), 0, 0)
-check("A mpv glyph px (fgTertiaryContainer)", count(item(2), FGTC), int(100 * INK_SCALE))
+check("A mpv glyph px (accent6)", count(item(2), FGTC), int(100 * INK_SCALE))
 check("A mpv indicator-band px", count(band(2), FGTC), 0, 0)
 
 # 5. Battery sample points follow the scaled, centred icon/content row.

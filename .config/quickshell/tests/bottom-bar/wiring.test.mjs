@@ -9,7 +9,7 @@ const rd = p => readFileSync(fileURLToPath(new URL(p, import.meta.url)), "utf8")
 const colors = rd("../../config/Colors.qml")
 assert.match(colors, /function elenaAccent\(n\)/)
 // slot 6 must stay visible on surface: pick the higher-contrast of the two roles
-assert.match(colors, /accent6:[\s\S]*?fgTertiaryContainer : tertiaryContainer/)
+assert.match(colors, /accent6:[\s\S]*?fgPrimaryContainer : primaryContainer/)
 for (const role of ["error", "secondary", "tertiary", "primary", "inversePrimary", "accent6", "outline"])
   assert.match(colors.slice(colors.indexOf("function elenaAccent")), new RegExp("return " + role + "\\b"), role)
 

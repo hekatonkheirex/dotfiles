@@ -56,7 +56,7 @@ def im(name):
     return imgs[name]
 def hx(s): return tuple(int(s[i:i+2], 16) for i in (1, 3, 5))
 SURF, OUT, OUTV, FGS = hx("#1a1f2b"), hx("#5b6578"), hx("#3a4254"), hx("#f2f4f8")
-X = {1: hx("#ff6b6b"), 2: hx("#f06292"), 3: hx("#5bb8d4"), 4: hx("#c77dc8"), 5: hx("#8e4f90"), 6: hx("#cfeefa"), 8: OUT}
+X = {1: hx("#ff6b6b"), 2: hx("#f06292"), 3: hx("#5bb8d4"), 4: hx("#c77dc8"), 5: hx("#8e4f90"), 6: hx("#f3d4f4"), 8: OUT}
 def mix(a, b, t): return tuple(round(a[i] * t + b[i] * (1 - t)) for i in range(3))
 def near(a, b, t=8): return all(abs(a[i] - b[i]) <= t for i in range(3))
 def box(img, name):

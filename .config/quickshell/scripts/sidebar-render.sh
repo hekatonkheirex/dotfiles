@@ -47,7 +47,7 @@ for line in open(sys.argv[2]):
 def hx(s): return tuple(int(s[i:i+2], 16) for i in (1, 3, 5))
 SURF, HIGH, ERR = hx("#1a1f2b"), hx("#343c4d"), hx("#ff6b6b")
 SEC, INVP, OUT, FGS = hx("#f06292"), hx("#8e4f90"), hx("#5b6578"), hx("#f2f4f8")
-FGTC = hx("#cfeefa")
+FGTC = hx("#f3d4f4")
 def mix(a, b, t): return tuple(round(a[i] * t + b[i] * (1 - t)) for i in range(3))
 def near(a, b, t=8): return all(abs(a[i] - b[i]) <= t for i in range(3))
 def count(box, col, t=8):
