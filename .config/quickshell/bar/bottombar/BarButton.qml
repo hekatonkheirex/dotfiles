@@ -29,7 +29,7 @@ Item {
       text: root.symbol
       color: root.accent
       font.family: BottomBarFonts.family
-      font.pixelSize: Math.round(12 * 4 / 3 * Config.bottomBarScale)   // 12pt * scale
+      font.pixelSize: Math.round(14 * 4 / 3 * Config.bottomBarScale)   // 14pt * scale
     }
     Row {
       id: contentRow
