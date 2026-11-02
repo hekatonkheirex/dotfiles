@@ -55,10 +55,10 @@ def count(box, col, t=8):
     x0, y0, x1, y1 = box
     return sum(near(im.getpixel((x, y)), col, t) for x in range(x0, x1) for y in range(y0, y1))
 def area(box): return (box[2] - box[0]) * (box[3] - box[1])
-SCALE = 26 / 43
+SCALE = 30 / 43
 INK_SCALE = (SCALE / 1.5) ** 2
 def dp(n): return int(n * SCALE + 0.5)
-W, BH = 1100, 26
+W, BH = 1100, 30
 CW, BW = dp(230), dp(230) / 3
 OFF = {"A": 0, "B": 85, "C": 170}  # A: idle; B: hover on glance; C: disconnected, 20 items
 checks = []
@@ -71,7 +71,7 @@ def patch(cx, cy, r=1): return (cx - r, cy - r, cx + r + 1, cy + r + 1)
 def strip(cx, cy): return (cx, cy, cx + 1, cy + 1)   # 26 px bar: bars are 2-3 px wide
 
 # 2. cluster surface and rounded outer corners
-for lab, (x, y) in (("left", (40, BH - 8)), ("right", (W - 40, BH - 8))):
+for lab, (x, y) in (("left", (48, BH - 8)), ("right", (W - 48, BH - 8))):
     box = (x, y, x + 6, y + 6)
     check(f"A {lab} cluster surface px", count(box, SURF, 3), 36, 36)
 # Sample outside the scaled upper corner's arc, but inside its bounding box.
