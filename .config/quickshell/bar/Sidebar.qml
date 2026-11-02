@@ -10,10 +10,9 @@ PopupBase {
   id: root
 
   surfaceWidth: Config.dp(300)
-  // Pages dp(554) plus the indicator section dp(106), capped to the free height
-  // between the top strip and the bottom bar.
-  surfaceHeight: Math.min(Config.dp(554) + Config.dp(106),
-    root.screenH - Config.bottomBarHeight - Config.dp(7) - Config.barWidth)
+  // The full free height between the top strip and the bottom bar; the pages
+  // take what the dp(106) indicator section leaves.
+  surfaceHeight: root.screenH - Config.bottomBarHeight - Config.dp(7) - Config.barWidth
 
   readonly property int currentPage: content.currentPage
   readonly property int pageCount: content.pageCount

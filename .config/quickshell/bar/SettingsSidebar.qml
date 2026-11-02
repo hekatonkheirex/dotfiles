@@ -10,8 +10,7 @@ PopupBase {
   id: root
 
   surfaceWidth: Config.dp(300)
-  surfaceHeight: Math.min(Config.dp(554) + Config.dp(106),
-    root.screenH - Config.bottomBarHeight - Config.dp(7) - Config.barWidth)
+  surfaceHeight: root.screenH - Config.bottomBarHeight - Config.dp(7) - Config.barWidth
   entryOriginX: root.surfaceWidth
 
   signal resetAppearance()

@@ -32,7 +32,7 @@ Item {
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right
-    height: Config.dp(554)
+    height: root.height - Config.dp(106)
 
     HomePage { anchors.fill: parent; visible: root.currentPage === 0; active: root.active && root.currentPage === 0 }
     AgendaPage {
