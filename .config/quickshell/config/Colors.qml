@@ -133,6 +133,14 @@ QtObject {
 
   // Reference-rice accent slots mapped onto this palette. The bottom bar and
   // the dock cycle this ramp; change the table here, not in the bar.
+  // Slot 6 sits on `surface`, not on a tertiary container. Matugen's
+  // on_tertiary_container is #fff in light mode and #000 in dark mode, which
+  // vanishes on surface. Take whichever of the two roles contrasts more.
+  function luma(c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b }
+  readonly property color accent6:
+    Math.abs(luma(fgTertiaryContainer) - luma(surface)) >= Math.abs(luma(tertiaryContainer) - luma(surface))
+      ? fgTertiaryContainer : tertiaryContainer
+
   function elenaAccent(n) {
     switch (n) {
     case 1: return error
@@ -140,7 +148,7 @@ QtObject {
     case 3: return tertiary
     case 4: return primary
     case 5: return inversePrimary
-    case 6: return fgTertiaryContainer
+    case 6: return accent6
     case 8: return outline
     default: return primary
     }
@@ -442,6 +450,7 @@ QtObject {
   property color secondaryContainer:        paletteRole(darkMode ? "dark" : "light", "secondary_container", darkMode ? d_secondaryContainer : l_secondaryContainer)
   property color fgSecondaryContainer:      paletteRole(darkMode ? "dark" : "light", "on_secondary_container", darkMode ? d_onSecondaryContainer : l_onSecondaryContainer)
   property color tertiary:                  paletteRole(darkMode ? "dark" : "light", "tertiary", darkMode ? d_tertiary : l_tertiary)
+  property color tertiaryContainer:         paletteRole(darkMode ? "dark" : "light", "tertiary_container", darkMode ? d_tertiaryContainer : l_tertiaryContainer)
   property color fgTertiaryContainer:       paletteRole(darkMode ? "dark" : "light", "on_tertiary_container", darkMode ? d_onTertiaryContainer : l_onTertiaryContainer)
   property color error:                    paletteRole(darkMode ? "dark" : "light", "error", darkMode ? d_error : l_error)
   property color errorContainer:           paletteRole(darkMode ? "dark" : "light", "error_container", darkMode ? d_errorContainer : l_errorContainer)
