@@ -42,11 +42,15 @@ Item {
   Binding { target: root; property: "today"; value: clock.date; when: root.active }
   onSidebarOpenChanged: if (!root.sidebarOpen) { root.monthOffset = 0; root.pickedKey = "" }
 
+  // Height beyond the design's dp(554), shared evenly by the top margin, the
+  // 3 gaps and the bottom, so a taller sidebar spreads the page out.
+  readonly property real slack: Math.max(0, root.height - Config.dp(554)) / 5
+
   Column {
     anchors.top: parent.top
-    anchors.topMargin: Config.dp(30)
+    anchors.topMargin: Config.dp(30) + root.slack
     anchors.horizontalCenter: parent.horizontalCenter
-    spacing: Config.dp(14)
+    spacing: Config.dp(14) + root.slack
 
     Row {   // header: task ring, month and year steppers
       anchors.horizontalCenter: parent.horizontalCenter

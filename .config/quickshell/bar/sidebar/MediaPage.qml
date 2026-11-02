@@ -32,11 +32,15 @@ Item {
   readonly property string playGlyph: root.playing ? "" : ""   // pause : play
   readonly property int buttonGlyph: Math.round(10 * 4 / 3 * Config.elenaScale)   // 10pt
 
+  // Height beyond the design's dp(554), shared evenly by the top margin, the
+  // 4 gaps and the bottom, so a taller sidebar spreads the page out.
+  readonly property real slack: Math.max(0, root.height - Config.dp(554)) / 6
+
   Column {
     anchors.top: parent.top
-    anchors.topMargin: Config.dp(24)
+    anchors.topMargin: Config.dp(24) + root.slack
     anchors.horizontalCenter: parent.horizontalCenter
-    spacing: Config.dp(14)
+    spacing: Config.dp(14) + root.slack
 
     Item {   // cover, ring and time labels
       id: cover

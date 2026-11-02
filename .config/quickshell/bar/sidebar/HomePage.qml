@@ -56,11 +56,15 @@ Item {
       label: root.pick("netLabel", SystemMetricsService.netLabel) }
   ]
 
+  // Height beyond the design's dp(554), shared evenly by the top margin, the
+  // 4 gaps and the bottom, so a taller sidebar spreads the page out.
+  readonly property real slack: Math.max(0, root.height - Config.dp(554)) / 6
+
   Column {
     anchors.top: parent.top
-    anchors.topMargin: Config.dp(40)
+    anchors.topMargin: Config.dp(40) + root.slack
     anchors.horizontalCenter: parent.horizontalCenter
-    spacing: Config.dp(10)
+    spacing: Config.dp(10) + root.slack
 
     Row {   // time: HH + mm
       anchors.horizontalCenter: parent.horizontalCenter
