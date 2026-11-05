@@ -50,6 +50,7 @@ QtObject {
     case "ping": return ["sh", "-c", "stdbuf -oL ping -c 10 -w 30 1.1.1.1 2>&1"]
     case "notify": return ["notify-send", "-u", "low", "Networks", args.message]
     case "vpn": return ["python3", Quickshell.env("HOME") + "/.config/quickshell/scripts/datasystems-vpn.py", "toggle"]
+      .concat(Settings.vpnCloseTerminal ? ["--detach"] : [])
     case "speedtest": return ["xdg-open", "https://www.speedtest.net"]
     }
     return ["true"]

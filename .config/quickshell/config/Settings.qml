@@ -32,6 +32,7 @@ FileView {
     powerMenuQuoteAuthor: "",
     calendarWeekStartsMonday: false,
     clock24h: true,
+    vpnCloseTerminal: false,
     doNotDisturb: false,
     fontPixelSize: 12,
     iconSize: 20,
@@ -111,6 +112,7 @@ FileView {
   property alias powerMenuQuoteAuthor: adapter.powerMenuQuoteAuthor
   property alias calendarWeekStartsMonday: adapter.calendarWeekStartsMonday
   property alias clock24h: adapter.clock24h
+  property alias vpnCloseTerminal: adapter.vpnCloseTerminal
   property alias doNotDisturb: adapter.doNotDisturb
   property alias fontPixelSize: adapter.fontPixelSize
   property alias iconSize: adapter.iconSize
@@ -168,6 +170,7 @@ FileView {
     property string powerMenuQuoteAuthor: root.defaults.powerMenuQuoteAuthor
     property bool calendarWeekStartsMonday: root.defaults.calendarWeekStartsMonday
     property bool clock24h: root.defaults.clock24h
+    property bool vpnCloseTerminal: root.defaults.vpnCloseTerminal
     property bool doNotDisturb: root.defaults.doNotDisturb
     property int fontPixelSize: root.defaults.fontPixelSize
     property int iconSize: root.defaults.iconSize

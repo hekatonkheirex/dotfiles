@@ -61,3 +61,10 @@ assert.match(shell, /margins\.top: LauncherLayout\.centered\(bar\.screen\.height
 for (const kept of ["wallpapersRequested", "actionMode", "clipboardMode"])
   assert.ok(launcher.includes(kept), `launcher keeps ${kept}`)
 console.log("r6 wiring: ok")
+
+// VPN terminal option
+assert.match(settings, /vpnCloseTerminal: false/)
+assert.match(settings, /property alias vpnCloseTerminal: adapter\.vpnCloseTerminal/)
+assert.match(settings, /property bool vpnCloseTerminal: root\.defaults\.vpnCloseTerminal/)
+assert.match(rd("../../bar/settings/GeneralTab.qml"), /Settings\.vpnCloseTerminal = !Settings\.vpnCloseTerminal; Settings\.save\(\)/)
+assert.match(rd("../../config/NetworkListService.qml"), /Settings\.vpnCloseTerminal \? \["--detach"\] : \[\]/)

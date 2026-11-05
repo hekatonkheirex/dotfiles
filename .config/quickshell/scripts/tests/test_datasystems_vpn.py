@@ -94,3 +94,55 @@ def test_disconnect_signals_only_the_process_with_matching_identity():
             if process.poll() is None:
                 process.terminate()
             process.wait(timeout=5)
+
+
+def test_detach_flag_is_forwarded_to_the_terminal_session(monkeypatch):
+    calls = []
+    monkeypatch.setattr(vpn, "locked", lambda: False)
+    monkeypatch.setattr(vpn.subprocess, "Popen", lambda cmd, **k: calls.append(cmd))
+    vpn.toggle()
+    vpn.toggle(detach=True)
+    assert calls[0][-1] == "session"
+    assert calls[1][-2:] == ["session", "--detach"]
+
+
+@pytest.mark.parametrize("argv,expected", [
+    (["status", "--detach"], 1), (["bogus"], 1), (["toggle", "--other"], 1), ([], 1)])
+def test_rejects_bad_arguments(monkeypatch, argv, expected, capsys):
+    monkeypatch.setattr(sys, "argv", ["datasystems-vpn.py"] + argv)
+    assert vpn.main() == expected
+
+
+def test_detached_process_survives_terminal_hangup():
+    import os, pty, signal, time
+    script = ("import importlib.util,sys;"
+              "s=importlib.util.spec_from_file_location('v',sys.argv[1]);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);"
+              "p=m.popen_surviving_hangup(['sleep','30']);print(p.pid,flush=True);import time;time.sleep(60)")
+    pid, master = pty.fork()
+    if pid == 0:
+        os.execv(sys.executable, [sys.executable, "-c", script, str(Path(vpn.__file__))])
+    sleeper = int(os.read(master, 100).split()[0])
+    try:
+        os.close(master)  # terminal closes: kernel sends SIGHUP to the session
+        time.sleep(0.5)
+        os.kill(sleeper, 0)  # raises ProcessLookupError if it died
+    finally:
+        for target in (sleeper, pid):
+            try:
+                os.kill(target, signal.SIGKILL)
+                os.waitpid(target, 0) if target == pid else None
+            except (ProcessLookupError, ChildProcessError):
+                pass
+
+
+def test_attached_process_dies_on_terminal_hangup():
+    """Control: without the helper the same hangup kills the process."""
+    import os, pty, signal, time
+    pid, master = pty.fork()
+    if pid == 0:
+        os.execvp("sleep", ["sleep", "30"])
+    time.sleep(0.3)
+    os.close(master)
+    time.sleep(0.5)
+    done, status = os.waitpid(pid, os.WNOHANG)
+    assert done == pid and os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGHUP

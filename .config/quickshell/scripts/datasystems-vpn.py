@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import signal
 import subprocess
 import sys
 import threading
@@ -118,11 +119,11 @@ def status():
     return {"connected": connected, "busy": locked() and not connected}
 
 
-def toggle():
+def toggle(detach=False):
     if not locked():
         subprocess.Popen(
             ["kitty", "--class", "datasystems-vpn", "--title", "DATASYSTEMS VPN",
-             sys.executable, str(Path(__file__).resolve()), "session"],
+             sys.executable, str(Path(__file__).resolve()), "session"] + (["--detach"] if detach else []),
             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             start_new_session=True,
         )
@@ -151,21 +152,35 @@ def stop_target(target):
     ).returncode
 
 
-def connect(settings, lock_fd):
+def popen_surviving_hangup(command):
+    """Start command so closing its terminal (SIGHUP) cannot kill it."""
+    previous = signal.signal(signal.SIGHUP, signal.SIG_IGN)
+    try:
+        return subprocess.Popen(command)  # SIG_IGN survives exec; sudo restores it for its child
+    finally:
+        signal.signal(signal.SIGHUP, previous)
+
+
+def connect(settings, lock_fd, detach=False):
     command = ["sudo", "openfortivpn", "-c", "/dev/null", settings["gateway"],
                "--username=" + settings["user"]]
     if settings["trusted_cert"]:
         command.append("--trusted-cert=" + settings["trusted_cert"])
     print(f"DATASYSTEMS VPN: {settings['gateway']} / {settings['user']}", flush=True)
-    print("Keep this terminal open. Ctrl+C disconnects. Passwords are not saved.", flush=True)
-    child = subprocess.Popen(command)
+    if detach:
+        print("This terminal closes once connected. Disconnect from the networks window.", flush=True)
+    else:
+        print("Keep this terminal open. Ctrl+C disconnects. Passwords are not saved.", flush=True)
+    child = popen_surviving_hangup(command) if detach else subprocess.Popen(command)
     finished = threading.Event()
+    connected = threading.Event()
 
     def release_when_connected():
         while not finished.wait(1):
             try:
                 if find_target(settings) and ppp_connected(settings):
                     fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                    connected.set()
                     return
             except (OSError, ValueError, subprocess.SubprocessError):
                 continue
@@ -174,6 +189,10 @@ def connect(settings, lock_fd):
     watcher.start()
     try:
         try:
+            while detach and child.poll() is None:
+                if connected.wait(0.5):
+                    print("Connected.", flush=True)
+                    return 0  # tunnel keeps running; the terminal closes
             return child.wait()
         except KeyboardInterrupt:
             # The terminal sends SIGINT to the foreground process group,
@@ -184,7 +203,7 @@ def connect(settings, lock_fd):
         watcher.join()
 
 
-def session():
+def session(detach=False):
     if not sys.stdin.isatty():
         raise ValueError("VPN credentials require an interactive terminal")
     fd = open_lock()
@@ -202,25 +221,28 @@ def session():
                 print("Disconnect canceled.")
                 return 0
             return stop_target(target)
-        return connect(settings, fd)
+        return connect(settings, fd, detach)
     finally:
         os.close(fd)
 
 
 def main():
-    action = sys.argv[1] if len(sys.argv) == 2 else ""
+    action = sys.argv[1] if len(sys.argv) > 1 else ""
+    detach = sys.argv[2:] == ["--detach"]
+    if sys.argv[2:] not in ([], ["--detach"]) or (detach and action not in ("toggle", "session")):
+        action = ""
     try:
         if action == "status":
             print(json.dumps(status()))
             return 0
         if action == "toggle":
-            return toggle()
+            return toggle(detach)
         if action == "session":
-            code = session()
+            code = session(detach)
             if code not in (0, 130, -2):
                 input(f"VPN exited with status {code}. Press Enter to close...")
             return code
-        raise ValueError("Usage: datasystems-vpn.py status|toggle|session")
+        raise ValueError("Usage: datasystems-vpn.py status | toggle [--detach] | session [--detach]")
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print(f"DATASYSTEMS VPN: {error}", file=sys.stderr)
         if action == "status":

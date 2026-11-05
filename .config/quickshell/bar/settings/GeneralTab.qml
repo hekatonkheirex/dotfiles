@@ -35,7 +35,7 @@ Flickable {
 
     SettingsPageHeader {
       pageTitle: "General"
-      subtitle: "Calendar, notification times, and weather."
+      subtitle: "Calendar, notification times, weather, and VPN."
     }
 
     GridLayout {
@@ -310,6 +310,48 @@ Flickable {
             }
             onInteractionFinished: Settings.save()
             valueText: Settings.weatherRefreshIntervalMinutes + "m"
+          }
+        }
+      }
+    }
+
+    SettingsSectionLabel { text: "Network" }
+
+    // DATASYSTEMS VPN terminal behavior
+    SettingsCard {
+      variant: "filled"
+      Layout.fillWidth: true
+      Layout.preferredHeight: vpnCol.implicitHeight + Config.spacingSmall * 2
+      radius: Config.settingsCardRadius
+      surfaceColor: Colors.surfaceContainer
+      outlineColor: Colors.outlineVariant
+      outlineWidth: Config.themeBorderWidth
+
+      ColumnLayout {
+        id: vpnCol
+        anchors.fill: parent
+        anchors.margins: Config.spacingSmall
+        spacing: 0
+
+        ListItem {
+          Layout.fillWidth: true
+          leadingIcon: "terminal"
+          title: "Close VPN terminal after connecting"
+          subtitle: Settings.vpnCloseTerminal
+            ? "Terminal closes once connected. Disconnect from the networks window"
+            : "Terminal stays open. Ctrl+C disconnects"
+          toggleControl: vpnCloseSwitch
+          SwitchControl {
+            id: vpnCloseSwitch
+            checked: Settings.vpnCloseTerminal
+            activeColor: Colors.primary
+            surfaceContainerHigh: Colors.surfaceContainerHigh
+            surfaceContainerHighest: Colors.surfaceContainerHighest
+            outline: Colors.outline
+            motionDuration: Config.motionMedium
+            reducedMotion: Config.reducedMotion
+            accessibleName: "Close VPN terminal after connecting"
+            onToggled: { Settings.vpnCloseTerminal = !Settings.vpnCloseTerminal; Settings.save() }
           }
         }
       }
